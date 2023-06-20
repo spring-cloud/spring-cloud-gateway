@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
@@ -65,9 +67,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 	private final Environment env;
 
-	private final PredicateDiscoverer predicateDiscoverer = new PredicateDiscoverer();
-
 	private final FilterDiscoverer filterDiscoverer = new FilterDiscoverer();
+
+	private final HandlerDiscoverer handlerDiscoverer = new HandlerDiscoverer();
+
+	private final PredicateDiscoverer predicateDiscoverer = new PredicateDiscoverer();
 
 	private final ParameterValueMapper parameterValueMapper = new ConversionServiceParameterValueMapper();
 
@@ -106,15 +110,19 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 		RouterFunctions.Builder builder = route();
 
-		// TODO: cache, externalize?
+		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
+		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Method handlerFunctionMethod = ReflectionUtils.findMethod(HandlerFunctions.class, scheme);
-		if (handlerFunctionMethod == null) {
+		Optional<OperationMethod> handlerOperationMethod = handlerOperations.get(scheme.toLowerCase()).stream()
+				.filter(operationMethod -> matchOperation(operationMethod, Collections.emptyMap())).findFirst();
+		if (handlerOperationMethod.isEmpty()) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
-		HandlerFunction<ServerResponse> handlerFunction = (HandlerFunction) ReflectionUtils
-				.invokeMethod(handlerFunctionMethod, null);
+		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(handlerOperationMethod.get(),
+				this.parameterValueMapper);
+		InvocationContext context = new InvocationContext(Collections.emptyMap(), trueNullOperationArgumentResolver);
+		HandlerFunction<ServerResponse> handlerFunction = operationInvoker.invoke(context);
 
 		// translate predicates
 		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();

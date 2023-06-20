@@ -1,6 +1,9 @@
 org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
   org.springframework.cloud.gateway.server.mvc.filter.FilterFunctionsFilterSupplier
 
+org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\
+  org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionsHandlerSupplier
+
 org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
   org.springframework.cloud.gateway.server.mvc.predicate.MvcPredicateSupplier,\
   org.springframework.cloud.gateway.server.mvc.predicate.GatewayPredicateSupplier
