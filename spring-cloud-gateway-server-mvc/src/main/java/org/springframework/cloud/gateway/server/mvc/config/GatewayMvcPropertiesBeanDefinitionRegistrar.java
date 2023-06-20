@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +33,6 @@ import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
-import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
@@ -48,7 +46,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -114,8 +111,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Optional<OperationMethod> handlerOperationMethod = handlerOperations.get(scheme.toLowerCase()).stream()
-				.filter(operationMethod -> matchOperation(operationMethod, Collections.emptyMap())).findFirst();
+		Optional<OperationMethod> handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), Collections.emptyMap());
 		if (handlerOperationMethod.isEmpty()) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
@@ -165,8 +161,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
 			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
 		String normalizedName = StringUtils.uncapitalize(operationName);
-		Optional<OperationMethod> operationMethod = operations.getOrDefault(normalizedName, Collections.emptyList()).stream()
-				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
+		Optional<OperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
 			ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod.get(),
 					this.parameterValueMapper);
@@ -181,6 +176,12 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 			log.error(LogMessage.format("Unable to find operation %s for %s with args %s", returnType, normalizedName,
 					operationArgs));
 		}
+	}
+
+	private Optional<OperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations, String operationName,
+													Map<String, String> operationArgs) {
+		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
+				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
 
 	private static boolean matchOperation(OperationMethod operationMethod, Map<String, String> args) {
