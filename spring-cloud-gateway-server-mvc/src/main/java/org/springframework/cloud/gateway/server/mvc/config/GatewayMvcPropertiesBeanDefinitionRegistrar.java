@@ -111,14 +111,13 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Optional<OperationMethod> handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), Collections.emptyMap());
+		Map<String, String> handlerArgs = Collections.emptyMap();
+		Optional<OperationMethod> handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(),
+				handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
-		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(handlerOperationMethod.get(),
-				this.parameterValueMapper);
-		InvocationContext context = new InvocationContext(Collections.emptyMap(), trueNullOperationArgumentResolver);
-		HandlerFunction<ServerResponse> handlerFunction = operationInvoker.invoke(context);
+		HandlerFunction<ServerResponse> handlerFunction = invokeOperation(handlerOperationMethod.get(), handlerArgs);
 
 		// translate predicates
 		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
@@ -163,11 +162,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		String normalizedName = StringUtils.uncapitalize(operationName);
 		Optional<OperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
-			ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod.get(),
-					this.parameterValueMapper);
-			Map<String, Object> args = new HashMap<>(operationArgs);
-			InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
-			T handlerFilterFunction = operationInvoker.invoke(context);
+			T handlerFilterFunction = invokeOperation(operationMethod.get(), operationArgs);
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
 			}
@@ -178,8 +173,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		}
 	}
 
-	private Optional<OperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations, String operationName,
-													Map<String, String> operationArgs) {
+	private Optional<OperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
+			String operationName, Map<String, String> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
@@ -193,6 +188,14 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		}
 		// args contains all parameter names
 		return true;
+	}
+
+	private <T> T invokeOperation(OperationMethod operationMethod, Map<String, String> operationArgs) {
+		Map<String, Object> args = new HashMap<>(operationArgs);
+		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod,
+				this.parameterValueMapper);
+		InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
+		return operationInvoker.invoke(context);
 	}
 
 	static class TrueNullOperationArgumentResolver implements OperationArgumentResolver {
