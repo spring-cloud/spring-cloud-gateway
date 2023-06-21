@@ -27,8 +27,15 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.gateway.server.mvc.ServerMvcIntegrationTests;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -84,6 +91,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void configuredRouteWorks() {
 		restClient.get().uri("/anything/listRoute1").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
@@ -94,9 +102,35 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 				});
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void lbRouteWorks() {
+		restClient.get().uri("/anything/listRoute3").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("x-test", "listRoute3");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
+	@LoadBalancerClient(name = "testservice", configuration = ServerMvcIntegrationTests.TestLoadBalancerConfig.class)
 	static class Config {
+
+	}
+
+	public static class TestLoadBalancerConfig {
+
+		@LocalServerPort
+		protected int port = 0;
+
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("testservice",
+					new DefaultServiceInstance("testservice" + "-1", "testservice", "localhost", port, false));
+		}
 
 	}
 

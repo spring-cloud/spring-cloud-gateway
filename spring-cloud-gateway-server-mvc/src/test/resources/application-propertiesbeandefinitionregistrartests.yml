@@ -56,6 +56,20 @@ spring.cloud.gateway.mvc:
           args:
             name: X-Test
             values: listRoute1
+    - id: listRoute3
+      uri: lb://testservice
+      predicates:
+        - name: Path
+          args:
+            pattern: /anything/listRoute3
+      filters:
+        - name: PrefixPath
+          args:
+            prefix: /httpbin
+        - name: AddRequestHeader
+          args:
+            name: X-Test
+            values: listRoute3
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE

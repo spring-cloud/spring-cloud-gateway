@@ -107,17 +107,42 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 		RouterFunctions.Builder builder = route();
 
+		// MVC.fn users won't need this anonymous filter as url will be set directly.
+		// Put this function first, so if a filter from a handler changes the url
+		// it is after this one.
+		builder.filter((request, next) -> {
+			MvcUtils.setRequestUrl(request, routeProperties.getUri());
+			return next.handle(request);
+		});
+
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Map<String, String> handlerArgs = Collections.emptyMap();
+		Map<String, String> handlerArgs = new HashMap<>();
+		// TODO: avoid hardcoded scheme/uri args
+		// maybe find empty args or single RouteProperties param?
+		if (scheme.equals("lb")) {
+			handlerArgs.put("uri", routeProperties.getUri().toString());
+		}
 		Optional<OperationMethod> handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(),
 				handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
-		HandlerFunction<ServerResponse> handlerFunction = invokeOperation(handlerOperationMethod.get(), handlerArgs);
+		Object response = invokeOperation(handlerOperationMethod.get(), handlerArgs);
+		HandlerFunction<ServerResponse> handlerFunction = null;
+		if (response instanceof HandlerFunction<?>) {
+			handlerFunction = (HandlerFunction<ServerResponse>) response;
+		}
+		else if (response instanceof HandlerDiscoverer.Result result) {
+			handlerFunction = result.getHandlerFunction();
+			result.getFilters().forEach(builder::filter);
+		}
+		if (handlerFunction == null) {
+			throw new IllegalStateException(
+					"Unable to find HandlerFunction for scheme: " + scheme + " and response " + response);
+		}
 
 		// translate predicates
 		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
@@ -142,12 +167,6 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// combine predicate and handlerFunction
 		builder.route(predicate.get(), handlerFunction);
 		predicate.set(null);
-
-		// MVC.fn users won't need this anonymous filter as url will be set directly
-		builder.filter((request, next) -> {
-			MvcUtils.setRequestUrl(request, routeProperties.getUri());
-			return next.handle(request);
-		});
 
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
@@ -181,6 +200,9 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 	private static boolean matchOperation(OperationMethod operationMethod, Map<String, String> args) {
 		OperationParameters parameters = operationMethod.getParameters();
+		if (parameters.getParameterCount() != args.size()) {
+			return false;
+		}
 		for (int i = 0; i < parameters.getParameterCount(); i++) {
 			if (!args.containsKey(parameters.get(i).getName())) {
 				return false;

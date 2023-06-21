@@ -35,7 +35,7 @@ public abstract class AbstractGatewayDiscoverer {
 
 	protected final Log log = LogFactory.getLog(getClass());
 
-	protected volatile MultiValueMap<String, OperationMethod> operations;
+	protected volatile MultiValueMap<String, OperationMethod> operations = new LinkedMultiValueMap<>();
 
 	public <T extends Supplier<Collection<Method>>, R> void doDiscover(Class<T> supplierClass, Class<R> returnType) {
 		List<T> suppliers = loadSuppliers(supplierClass);
@@ -45,10 +45,9 @@ public abstract class AbstractGatewayDiscoverer {
 			methods.addAll(supplier.get());
 		}
 
-		operations = new LinkedMultiValueMap<>();
 		for (Method method : methods) {
 			// TODO: replace with a BiPredicate of some kind
-			if (method.getReturnType().isAssignableFrom(returnType)) {
+			if (returnType.isAssignableFrom(method.getReturnType())) {
 				addOperationMethod(method);
 			}
 		}

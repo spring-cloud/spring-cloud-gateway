@@ -16,14 +16,43 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.cloud.gateway.server.mvc.common.AbstractGatewayDiscoverer;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
+import org.springframework.web.servlet.function.ServerResponse;
 
 public class HandlerDiscoverer extends AbstractGatewayDiscoverer {
 
 	@Override
 	public void discover() {
 		doDiscover(HandlerSupplier.class, HandlerFunction.class);
+		doDiscover(HandlerSupplier.class, HandlerDiscoverer.Result.class);
+	}
+
+	public static class Result {
+
+		private final HandlerFunction<ServerResponse> handlerFunction;
+
+		private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters;
+
+		public Result(HandlerFunction<ServerResponse> handlerFunction,
+				List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters) {
+			this.handlerFunction = handlerFunction;
+			this.filters = Objects.requireNonNullElse(filters, Collections.emptyList());
+		}
+
+		public HandlerFunction<ServerResponse> getHandlerFunction() {
+			return handlerFunction;
+		}
+
+		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getFilters() {
+			return filters;
+		}
+
 	}
 
 }
