@@ -17,11 +17,18 @@
 package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public abstract class MvcUtils {
 
@@ -37,8 +44,20 @@ public abstract class MvcUtils {
 		return "GatewayServerMvc." + attr;
 	}
 
-	public static void setRequestUrl(ServerRequest request, URI url) {
-		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
+	public static String expand(ServerRequest request, String template) {
+		Assert.notNull(request, "request may not be null");
+		Assert.notNull(template, "template may not be null");
+
+		if (template.indexOf('{') == -1) { // short circuit
+			return template;
+		}
+		Map<String, Object> variables = getUriTemplateVariables(request);
+		return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+	}
+
+	public static String[] expandMultiple(ServerRequest request, String... templates) {
+		List<String> expanded = Arrays.stream(templates).map(value -> MvcUtils.expand(request, value)).toList();
+		return expanded.toArray(new String[0]);
 	}
 
 	public static ApplicationContext getApplicationContext(ServerRequest request) {
@@ -48,6 +67,16 @@ public abstract class MvcUtils {
 			throw new IllegalStateException("No Application Context in request attributes");
 		}
 		return webApplicationContext;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
+		return (Map<String, Object>) request.attributes().getOrDefault(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE,
+				new HashMap<>());
+	}
+
+	public static void setRequestUrl(ServerRequest request, URI url) {
+		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 	}
 
 }

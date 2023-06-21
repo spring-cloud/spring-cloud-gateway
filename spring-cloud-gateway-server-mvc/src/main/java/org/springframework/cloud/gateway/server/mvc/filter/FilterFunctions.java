@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Map;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -27,19 +29,22 @@ import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriTemplate;
 
 public interface FilterFunctions {
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return (request, next) -> {
-			ServerRequest modified = ServerRequest.from(request).header(name, values).build();
+			String[] expandedValues = MvcUtils.expandMultiple(request, values);
+			ServerRequest modified = ServerRequest.from(request).header(name, expandedValues).build();
 			return next.handle(modified);
 		};
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestParameter(String name, String... values) {
 		return (request, next) -> {
-			ServerRequest modified = ServerRequest.from(request).param(name, values).build();
+			String[] expandedValues = MvcUtils.expandMultiple(request, values);
+			ServerRequest modified = ServerRequest.from(request).param(name, expandedValues).build();
 			return next.handle(modified);
 		};
 	}
@@ -49,16 +54,21 @@ public interface FilterFunctions {
 			ServerResponse response = next.handle(request);
 			if (response instanceof GatewayServerResponse) {
 				GatewayServerResponse res = (GatewayServerResponse) response;
-				res.headers().addAll(name, Arrays.asList(values));
+				String[] expandedValues = MvcUtils.expandMultiple(request, values);
+				res.headers().addAll(name, Arrays.asList(expandedValues));
 			}
 			return response;
 		};
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
+		final UriTemplate uriTemplate = new UriTemplate(prefix);
+
 		return (request, next) -> {
-			// TODO: template vars
-			String newPath = prefix + request.uri().getRawPath();
+			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
+			URI uri = uriTemplate.expand(uriVariables);
+
+			String newPath = uri.getRawPath() + request.uri().getRawPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
@@ -67,9 +77,14 @@ public interface FilterFunctions {
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setPath(String path) {
+		UriTemplate uriTemplate = new UriTemplate(path);
+
 		return (request, next) -> {
-			// TODO: template vars
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(path).build().toUri();
+			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
+			URI uri = uriTemplate.expand(uriVariables);
+			String newPath = uri.getRawPath();
+
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
 			return next.handle(modified);
 		};

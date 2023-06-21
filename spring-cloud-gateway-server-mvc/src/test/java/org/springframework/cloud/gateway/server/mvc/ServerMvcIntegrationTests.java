@@ -115,12 +115,12 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void setPathWorks() {
-		restClient.get().uri("/mycustompath").exchange().expectStatus().isOk().expectBody(Map.class)
+		restClient.get().uri("/mycustompathextra1").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					assertThat(map).isNotEmpty().containsKey("args");
 					Map<String, Object> args = (Map<String, Object>) map.get("args");
-					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+					assertThat(args).containsEntry("param1", Collections.singletonList("param1valextra1"));
 				});
 	}
 
@@ -138,7 +138,7 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void setStatusGatewayRouterFunctionWorks() {
 		restClient.get().uri("/status/201").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
-				.expectBody(String.class).isEqualTo("Failed with 201");
+				.expectHeader().valueEquals("x-status", "201").expectBody(String.class).isEqualTo("Failed with 201");
 	}
 
 	@Test
@@ -202,6 +202,7 @@ public class ServerMvcIntegrationTests {
 						.filter(new LocalServerPortUriResolver())
 						.filter(prefixPath("/httpbin"))
 						.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
+						.filter(addResponseHeader("X-Status", "{status}"))
 					// TODO: Filters apply to all routes in a builder
 					//.GET("/anything/addresheader", http())
 					//	.filter(new LocalServerPortUriResolver())
@@ -234,10 +235,10 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
 			// @formatter:off
-			return route(GET("/mycustompath"), http())
+			return route(GET("/mycustompath{extra}"), http())
 					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/anything/mycustompath"))
-					.filter(addRequestParameter("param1", "param1val"));
+					.filter(setPath("/httpbin/anything/mycustompath{extra}"))
+					.filter(addRequestParameter("param1", "param1val{extra}"));
 			// @formatter:on
 		}
 
