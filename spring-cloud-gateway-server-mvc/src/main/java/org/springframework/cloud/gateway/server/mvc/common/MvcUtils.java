@@ -25,11 +25,13 @@ import java.util.Map;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
+
+// TODO: maybe rename to ServerRequestUtils?
 public abstract class MvcUtils {
 
 	/**
@@ -71,8 +73,22 @@ public abstract class MvcUtils {
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
-		return (Map<String, Object>) request.attributes().getOrDefault(RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE,
+		return (Map<String, Object>) request.attributes().getOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE,
 				new HashMap<>());
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void putUriTemplateVariables(ServerRequest request, Map<String, String> uriVariables) {
+		if (request.attributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
+			Map<String, Object> existingVariables = (Map<String, Object>) request.attributes()
+					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			HashMap<String, Object> newVariables = new HashMap<>(existingVariables);
+			newVariables.putAll(uriVariables);
+			request.attributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, newVariables);
+		}
+		else {
+			request.attributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
+		}
 	}
 
 	public static void setRequestUrl(ServerRequest request, URI url) {

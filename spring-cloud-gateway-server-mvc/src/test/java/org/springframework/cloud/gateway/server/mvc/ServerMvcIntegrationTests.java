@@ -51,7 +51,9 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
+import static org.springframework.web.servlet.function.RequestPredicates.path;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
 @SuppressWarnings("unchecked")
@@ -173,6 +175,12 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void hostPredicateWorks() {
+		restClient.get().uri("/anything/hostpredicate").header("Host", "www1.myjavadslhost.com").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-SubDomain", "www1");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -283,6 +291,16 @@ public class ServerMvcIntegrationTests {
 					.filter(prefixPath("/httpbin"))
 					.filter(addRequestHeader("X-Test", "loadbalancer"))
 					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
+			// @formatter:off
+			return route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addResponseHeader("X-SubDomain", "{sub}"));
 			// @formatter:on
 		}
 
