@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
@@ -181,6 +183,18 @@ public class ServerMvcIntegrationTests {
 				.expectStatus().isOk().expectHeader().valueEquals("X-SubDomain", "www1");
 	}
 
+	@Test
+	public void circuitBreakerFallbackWorks() {
+		restClient.get().uri("/anything/circuitbreakerfallback").exchange().expectStatus().isOk()
+				.expectBody(String.class).isEqualTo("Hello");
+	}
+
+	@Test
+	public void circuitBreakerNoFallbackWorks() {
+		restClient.get().uri("/anything/circuitbreakernofallback").exchange().expectStatus()
+				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -301,6 +315,25 @@ public class ServerMvcIntegrationTests {
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
 					.filter(addResponseHeader("X-SubDomain", "{sub}"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
+			// @formatter:off
+			return route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.filter(circuitBreaker("mycb1", "/hello"))
+					.filter(prefixPath("/httpbin"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerNoFallback() {
+			// @formatter:off
+			return route(path("/anything/circuitbreakernofallback"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(circuitBreaker("mycb1", null))
+					.filter(setPath("/httpbin/delay/5"));
 			// @formatter:on
 		}
 

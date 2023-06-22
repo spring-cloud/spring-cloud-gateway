@@ -84,12 +84,12 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	/*
-	 * @GetMapping(path = "/delay/{sec}/**", produces = MediaType.APPLICATION_JSON_VALUE)
-	 * public Mono<Map<String, Object>> delay(ServerWebExchange exchange, @PathVariable
-	 * int sec) throws InterruptedException { int delay = Math.min(sec, 10); return
-	 * Mono.just(get(exchange)).delayElement(Duration.ofSeconds(delay)); }
-	 */
+	@GetMapping(path = "/delay/{sec}/**", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> delay(HttpServletRequest request, @PathVariable int sec) throws InterruptedException {
+		int delay = Math.min(sec, 10) * 1000;
+		Thread.sleep(delay);
+		return get(request);
+	}
 
 	@GetMapping(path = "/anything/{anything}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> anything(HttpServletRequest request, @PathVariable(required = false) String anything) {

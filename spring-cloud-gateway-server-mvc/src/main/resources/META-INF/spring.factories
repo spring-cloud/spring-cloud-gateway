@@ -1,5 +1,6 @@
 org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
-  org.springframework.cloud.gateway.server.mvc.filter.FilterFunctionsFilterSupplier
+  org.springframework.cloud.gateway.server.mvc.filter.FilterFunctionsFilterSupplier,\
+  org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctionsFilterSupplier
 
 org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\
   org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionsHandlerSupplier,\
