@@ -123,10 +123,12 @@ public abstract class Bucket4jFilterFunctions {
 	}
 
 	static class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+
 		@Override
 		public Collection<Method> get() {
 			return Arrays.asList(Bucket4jFilterFunctions.class.getMethods());
 		}
+
 	}
 
 }

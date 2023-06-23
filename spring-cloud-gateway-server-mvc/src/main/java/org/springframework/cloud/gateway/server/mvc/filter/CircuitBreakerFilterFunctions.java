@@ -17,6 +17,9 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.TimeoutException;
 
 import jakarta.servlet.ServletException;
@@ -83,6 +86,15 @@ public abstract class CircuitBreakerFilterFunctions {
 				});
 			});
 		};
+	}
+
+	public static class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+
+		@Override
+		public Collection<Method> get() {
+			return Arrays.asList(CircuitBreakerFilterFunctions.class.getMethods());
+		}
+
 	}
 
 }

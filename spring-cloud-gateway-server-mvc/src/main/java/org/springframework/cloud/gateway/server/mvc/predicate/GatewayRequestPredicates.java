@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc.predicate;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -214,6 +217,16 @@ public abstract class GatewayRequestPredicates {
 
 			void changeParser(PathPatternParser parser);
 
+		}
+
+	}
+
+	public static class PredicateSupplier
+			implements org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier {
+
+		@Override
+		public Collection<Method> get() {
+			return Arrays.asList(GatewayRequestPredicates.class.getMethods());
 		}
 
 	}

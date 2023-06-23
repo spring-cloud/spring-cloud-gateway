@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -139,6 +141,15 @@ public interface FilterFunctions {
 			}
 			return response;
 		};
+	}
+
+	class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+
+		@Override
+		public Collection<Method> get() {
+			return Arrays.asList(FilterFunctions.class.getMethods());
+		}
+
 	}
 
 }

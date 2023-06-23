@@ -16,7 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -75,6 +78,16 @@ public abstract class HandlerFunctions {
 
 		private static ProxyExchangeHandlerFunction lookup(ServerRequest request) {
 			return MvcUtils.getApplicationContext(request).getBean(ProxyExchangeHandlerFunction.class);
+		}
+
+	}
+
+	public static class HandlerSupplier
+			implements org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier {
+
+		@Override
+		public Collection<Method> get() {
+			return Arrays.asList(HandlerFunctions.class.getMethods());
 		}
 
 	}
