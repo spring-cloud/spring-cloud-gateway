@@ -17,11 +17,16 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.bucket4j.caffeine.CaffeineProxyManager;
+import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
+import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
@@ -50,6 +55,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
@@ -208,6 +214,12 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
+	@Test
+	public void rateLimitWorks() {
+		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isOk();
+		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -221,6 +233,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		RetryController retryController() {
 			return new RetryController();
+		}
+
+		@Bean
+		public AsyncProxyManager<String> caffeineProxyManager() {
+			Caffeine<String, RemoteBucketState> builder = (Caffeine) Caffeine.newBuilder().maximumSize(100);
+			return new CaffeineProxyManager<>(builder, Duration.ofMinutes(1)).asAsync();
 		}
 
 		@Bean
@@ -361,6 +379,19 @@ public class ServerMvcIntegrationTests {
 			return route(path("/retry"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(retry(3))
+					.filter(prefixPath("/httpbin"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRateLimit() {
+			// @formatter:off
+			return route(GET("/anything/ratelimit"), http())
+					.filter(new LocalServerPortUriResolver())
+					//.filter(rateLimit(1, Duration.ofMinutes(1), request -> "ratelimittest1min"))
+					.filter(rateLimit(c -> c.setCapacity(1)
+							.setPeriod(Duration.ofMinutes(1))
+							.setKeyResolver(request -> "ratelimitttest1min")))
 					.filter(prefixPath("/httpbin"));
 			// @formatter:on
 		}

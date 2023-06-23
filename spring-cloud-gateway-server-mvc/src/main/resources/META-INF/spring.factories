@@ -1,4 +1,5 @@
 org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
+  org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.FilterSupplier,\
   org.springframework.cloud.gateway.server.mvc.filter.FilterFunctionsFilterSupplier,\
   org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctionsFilterSupplier
 
