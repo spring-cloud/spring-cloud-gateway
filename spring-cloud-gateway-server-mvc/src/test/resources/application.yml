@@ -1,0 +1,4 @@
+logging:
+  level:
+    org.springframework.web.servlet: TRACE
+    org.springframework.retry: TRACE

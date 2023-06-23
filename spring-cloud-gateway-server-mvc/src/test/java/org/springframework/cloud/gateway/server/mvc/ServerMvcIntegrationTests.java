@@ -19,7 +19,11 @@ package org.springframework.cloud.gateway.server.mvc;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +42,9 @@ import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSupplie
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -52,6 +59,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
@@ -195,6 +203,11 @@ public class ServerMvcIntegrationTests {
 				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 	}
 
+	@Test
+	public void retryWorks() {
+		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -203,6 +216,11 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		TestHandler testHandler() {
 			return new TestHandler();
+		}
+
+		@Bean
+		RetryController retryController() {
+			return new RetryController();
 		}
 
 		@Bean
@@ -335,6 +353,47 @@ public class ServerMvcIntegrationTests {
 					.filter(circuitBreaker("mycb1", null))
 					.filter(setPath("/httpbin/delay/5"));
 			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
+			// @formatter:off
+			return route(path("/retry"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(retry(3))
+					.filter(prefixPath("/httpbin"));
+			// @formatter:on
+		}
+
+	}
+
+	@RestController
+	protected static class RetryController {
+
+		Log log = LogFactory.getLog(getClass());
+
+		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+
+		@GetMapping("/httpbin/retry")
+		public ResponseEntity<String> retry(@RequestParam("key") String key,
+				@RequestParam(name = "count", defaultValue = "3") int count,
+				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
+			AtomicInteger num = getCount(key);
+			int i = num.incrementAndGet();
+			log.warn("Retry count: " + i);
+			String body = String.valueOf(i);
+			if (i < count) {
+				HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+				if (failStatus != null) {
+					httpStatus = HttpStatus.resolve(failStatus);
+				}
+				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
+			}
+			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
+		}
+
+		AtomicInteger getCount(String key) {
+			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
 
 	}
