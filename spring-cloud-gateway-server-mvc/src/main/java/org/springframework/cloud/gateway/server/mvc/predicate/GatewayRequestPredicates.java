@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
 import org.springframework.lang.Nullable;
@@ -130,6 +131,11 @@ public abstract class GatewayRequestPredicates {
 		}
 
 		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.header(header, pattern.pattern());
+		}
+
+		@Override
 		public String toString() {
 			return String.format("Header: %s regexp=%s", header, pattern);
 		}
@@ -175,7 +181,7 @@ public abstract class GatewayRequestPredicates {
 
 		@Override
 		public boolean test(ServerRequest request) {
-			String host = request.headers().firstHeader("Host");
+			String host = request.headers().firstHeader(HttpHeaders.HOST);
 			PathContainer pathContainer = PathContainer.parsePath(host, PathContainer.Options.MESSAGE_ROUTE);
 			PathPattern.PathMatchInfo info = this.pattern.matchAndExtract(pathContainer);
 			traceMatch("Pattern", this.pattern.getPatternString(), request.path(), info != null);
@@ -199,7 +205,7 @@ public abstract class GatewayRequestPredicates {
 
 		@Override
 		public void accept(RequestPredicates.Visitor visitor) {
-			visitor.path(this.pattern.getPatternString());
+			visitor.header(HttpHeaders.HOST, this.pattern.getPatternString());
 		}
 
 		@Override
