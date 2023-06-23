@@ -67,6 +67,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
@@ -218,6 +219,18 @@ public class ServerMvcIntegrationTests {
 	public void rateLimitWorks() {
 		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isOk();
 		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+	}
+
+	@Test
+	public void headerRegexWorks() {
+		restClient.get().uri("/headerregex").exchange().expectStatus().isNotFound();
+		restClient.get().uri("/headerregex").header("X-MyHeader", "foo").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("x-myheader", "foo");
+				});
 	}
 
 	@SpringBootConfiguration
@@ -393,6 +406,15 @@ public class ServerMvcIntegrationTests {
 							.setPeriod(Duration.ofMinutes(1))
 							.setKeyResolver(request -> "ratelimitttest1min")))
 					.filter(prefixPath("/httpbin"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsHeaderPredicate() {
+			// @formatter:off
+			return route(path("/headerregex").and(header("X-MyHeader", "fo.")), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(setPath("/httpbin/headers"));
 			// @formatter:on
 		}
 

@@ -19,9 +19,11 @@ package org.springframework.cloud.gateway.server.mvc.predicate;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,6 +34,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
 import org.springframework.web.servlet.function.RequestPredicates;
@@ -48,6 +52,14 @@ public abstract class GatewayRequestPredicates {
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
 
 	private GatewayRequestPredicates() {
+	}
+
+	public static RequestPredicate header(String header) {
+		return header(header, null);
+	}
+
+	public static RequestPredicate header(String header, String regexp) {
+		return new HeaderRequestPredicate(header, regexp);
 	}
 
 	public static RequestPredicate method(HttpMethod method) {
@@ -80,6 +92,48 @@ public abstract class GatewayRequestPredicates {
 			logger.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual));
 		}
+	}
+
+	private static class HeaderRequestPredicate implements RequestPredicate {
+
+		private final String header;
+
+		private final Pattern pattern;
+
+		HeaderRequestPredicate(String header, String regexp) {
+			this.header = header;
+			this.pattern = (StringUtils.hasText(regexp)) ? Pattern.compile(regexp) : null;
+		}
+
+		@Override
+		public boolean test(ServerRequest request) {
+			if (CorsUtils.isPreFlightRequest(request.servletRequest())) {
+				return true;
+			}
+			List<String> values = request.headers().header(header);
+			if (values.isEmpty()) {
+				return false;
+			}
+			// values is now guaranteed to not be empty
+			if (pattern != null) {
+				// check if a header value matches
+				for (String value : values) {
+					if (pattern.asMatchPredicate().test(value)) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			// there is a value and since regexp is empty, we only check existence.
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("Header: %s regexp=%s", header, pattern);
+		}
+
 	}
 
 	private static class HostReadOnlyPathPatternParser extends PathPatternParser {
