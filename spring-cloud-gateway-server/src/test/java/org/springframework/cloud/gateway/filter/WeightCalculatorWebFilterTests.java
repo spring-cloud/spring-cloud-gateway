@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
@@ -34,7 +35,6 @@ import org.springframework.web.server.WebFilterChain;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -97,7 +97,7 @@ public class WeightCalculatorWebFilterTests {
 
 	// TODO: modify implementation for testability on JDK17 for Spring 6
 	@Test
-	@DisabledOnJre(JAVA_17)
+	@DisabledForJreRange(min = JRE.JAVA_17)
 	public void testChooseRouteWithRandom() {
 		WeightCalculatorWebFilter filter = createFilter();
 		filter.addWeightConfig(new WeightConfig("groupa", "route1", 1));
