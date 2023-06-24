@@ -16,10 +16,9 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Random;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnJre;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -32,7 +31,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -40,21 +38,20 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("weights-404")
 @DirtiesContext
-@DisabledOnJre(JAVA_17)
 class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
 
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble()).thenReturn(value);
+	private static Supplier<Double> getRandom(double value) {
+		Supplier<Double> random = mock(Supplier.class);
+		when(random.get()).thenReturn(value);
 		return random;
 	}
 
 	@Test
 	void weightsFromYamlNot404() {
-		filter.setRandom(getRandom(0.5));
+		filter.setRandomSupplier(getRandom(0.5));
 
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight4041.org").exchange().expectStatus().isOk()
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_first_404_test_1");
@@ -66,9 +63,9 @@ class WeightRoutePredicateFactoryYaml404Tests extends BaseWebClientTests {
 	static class TestConfig {
 
 		TestConfig(WeightCalculatorWebFilter filter) {
-			Random random = getRandom(0.4);
+			Supplier<Double> random = getRandom(0.4);
 
-			filter.setRandom(random);
+			filter.setRandomSupplier(random);
 		}
 
 	}

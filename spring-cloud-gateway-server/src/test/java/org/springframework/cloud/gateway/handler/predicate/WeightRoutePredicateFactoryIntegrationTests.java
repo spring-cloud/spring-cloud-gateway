@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Random;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnJre;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,28 +37,26 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-@DisabledOnJre(JAVA_17)
 public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Autowired
 	private WeightCalculatorWebFilter filter;
 
-	private static Random getRandom(double value) {
-		Random random = mock(Random.class);
-		when(random.nextDouble()).thenReturn(value);
+	private static Supplier<Double> getRandom(double value) {
+		Supplier<Double> random = mock(Supplier.class);
+		when(random.get()).thenReturn(value);
 		return random;
 	}
 
 	@Test
 	public void highWeight() {
-		filter.setRandom(getRandom(0.9));
+		filter.setRandomSupplier(getRandom(0.9));
 
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weighthigh.org").exchange().expectStatus().isOk()
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
@@ -67,7 +64,7 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 
 	@Test
 	public void lowWeight() {
-		filter.setRandom(getRandom(0.1));
+		filter.setRandomSupplier(getRandom(0.1));
 
 		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weightlow.org").exchange().expectStatus().isOk()
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_low_test");
@@ -89,9 +86,9 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 		private String uri;
 
 		public TestConfig(WeightCalculatorWebFilter filter) {
-			Random random = getRandom(0.4);
+			Supplier<Double> random = getRandom(0.4);
 
-			filter.setRandom(random);
+			filter.setRandomSupplier(random);
 		}
 
 		@Bean
