@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.predicate;
 
 import java.lang.reflect.Method;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +56,22 @@ public abstract class GatewayRequestPredicates {
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
 
 	private GatewayRequestPredicates() {
+	}
+
+	public static RequestPredicate after(ZonedDateTime dateTime) {
+		return request -> ZonedDateTime.now().isAfter(dateTime);
+	}
+
+	public static RequestPredicate before(ZonedDateTime dateTime) {
+		return request -> ZonedDateTime.now().isBefore(dateTime);
+	}
+
+	// TODO: accept and test datetime predicates (including yaml config)
+	public static RequestPredicate between(ZonedDateTime dateTime1, ZonedDateTime dateTime2) {
+		return request -> {
+			ZonedDateTime now = ZonedDateTime.now();
+			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
+		};
 	}
 
 	public static RequestPredicate cookie(String name) {
