@@ -50,6 +50,7 @@ import org.springframework.test.util.XmlExpectationsHelper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MimeType;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriBuilderFactory;
@@ -268,7 +269,16 @@ public class DefaultTestRestClient implements TestRestClient {
 
 		@Override
 		public ResponseSpec exchange() {
-			RequestEntity<Object> request = RequestEntity.method(httpMethod, uri).headers(getHeaders()).body(body);
+			HttpHeaders combinedHeaders = new HttpHeaders();
+			combinedHeaders.putAll(getHeaders());
+			if (!ObjectUtils.isEmpty(cookies)) {
+				cookies.forEach((name, values) -> {
+					values.forEach(value -> {
+						combinedHeaders.add("Cookie", name + "=" + value);
+					});
+				});
+			}
+			RequestEntity<Object> request = RequestEntity.method(httpMethod, uri).headers(combinedHeaders).body(body);
 			ResponseEntity<byte[]> response = testRestTemplate.exchange(request, byte[].class);
 			ExchangeResult exchangeResult = new ExchangeResult(request, response);
 			return new DefaultResponseSpec(exchangeResult, response, DefaultTestRestClient.this.entityResultConsumer);

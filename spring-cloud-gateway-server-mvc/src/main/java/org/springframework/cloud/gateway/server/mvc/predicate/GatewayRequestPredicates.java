@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import jakarta.servlet.http.Cookie;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,6 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -53,6 +55,14 @@ public abstract class GatewayRequestPredicates {
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
 
 	private GatewayRequestPredicates() {
+	}
+
+	public static RequestPredicate cookie(String name) {
+		return cookie(name, null);
+	}
+
+	public static RequestPredicate cookie(String name, String regexp) {
+		return new CookieRequestPredicate(name, regexp);
 	}
 
 	public static RequestPredicate header(String header) {
@@ -93,6 +103,53 @@ public abstract class GatewayRequestPredicates {
 			logger.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual));
 		}
+	}
+
+	private static class CookieRequestPredicate implements RequestPredicate {
+
+		private final String name;
+
+		private final Pattern pattern;
+
+		CookieRequestPredicate(String name, String regexp) {
+			this.name = name;
+			this.pattern = (StringUtils.hasText(regexp)) ? Pattern.compile(regexp) : null;
+		}
+
+		@Override
+		public boolean test(ServerRequest request) {
+			if (CorsUtils.isPreFlightRequest(request.servletRequest())) {
+				return true;
+			}
+			List<Cookie> cookies = request.cookies().get(name);
+			if (ObjectUtils.isEmpty(cookies)) {
+				return false;
+			}
+			// values is now guaranteed to not be empty
+			if (pattern != null) {
+				// check if a header value matches
+				for (Cookie cookie : cookies) {
+					if (pattern.asMatchPredicate().test(cookie.getValue())) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			// there is a value and since regexp is empty, we only check existence.
+			return true;
+		}
+
+		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.header(name, pattern.pattern());
+		}
+
+		@Override
+		public String toString() {
+			return String.format("Cookie: %s regexp=%s", name, pattern);
+		}
+
 	}
 
 	private static class HeaderRequestPredicate implements RequestPredicate {
