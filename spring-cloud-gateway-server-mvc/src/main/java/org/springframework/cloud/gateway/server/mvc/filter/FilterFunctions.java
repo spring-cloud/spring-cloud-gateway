@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
@@ -74,6 +75,24 @@ public interface FilterFunctions {
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
+			return next.handle(modified);
+		};
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
+		String normalizedReplacement = replacement.replace("$\\", "$");
+		Pattern pattern = Pattern.compile(regexp);
+		return (request, next) -> {
+			// TODO: original request url
+			String path = request.uri().getRawPath();
+			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
+
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+
+			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
+
+			MvcUtils.setRequestUrl(modified, modified.uri());
+
 			return next.handle(modified);
 		};
 	}

@@ -61,6 +61,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
@@ -243,6 +244,17 @@ public class ServerMvcIntegrationTests {
 					assertThat(map).isNotEmpty().containsKey("headers");
 					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
 					assertThat(headers).containsEntry("cookie", "mycookie=foo");
+				});
+	}
+
+	@Test
+	public void rewritePathWorks() {
+		restClient.get().uri("/foo/get").header("Host", "www.rewritepath.org").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("x-test", "rewritepath");
 				});
 	}
 
@@ -437,6 +449,16 @@ public class ServerMvcIntegrationTests {
 			return route(path("/cookieregex").and(cookie("mycookie", "fo.")), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(setPath("/httpbin/headers"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePath() {
+			// @formatter:off
+			return route(path("/foo/**").and(host("**.rewritepath.org")), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(rewritePath("/foo/(?<segment>.*)", "/httpbin/${segment}"))
+					.filter(addRequestHeader("X-Test", "rewritepath"));
 			// @formatter:on
 		}
 
