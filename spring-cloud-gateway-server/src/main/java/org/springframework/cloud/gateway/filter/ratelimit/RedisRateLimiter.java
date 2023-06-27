@@ -146,16 +146,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	}
 
 	static List<String> getKeys(String id) {
-		// use `{}` around keys to use Redis Key hash tags
-		// this allows for using redis cluster
-
-		// Make a unique key per user.
-		String prefix = "request_rate_limiter.{" + id;
-
-		// You need two Redis keys for Token Bucket.
-		String tokenKey = prefix + "}.tokens";
-		String timestampKey = prefix + "}.timestamp";
-		return Arrays.asList(tokenKey, timestampKey);
+		return Arrays.asList(id);
 	}
 
 	public boolean isIncludeHeaders() {

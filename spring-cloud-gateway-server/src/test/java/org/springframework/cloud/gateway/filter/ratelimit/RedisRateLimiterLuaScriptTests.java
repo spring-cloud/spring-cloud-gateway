@@ -64,10 +64,7 @@ public class RedisRateLimiterLuaScriptTests {
 	}
 
 	static List<String> getKeys(String id) {
-		String prefix = KEY_PREFIX + ".{" + id;
-		String tokens = prefix + "}.tokens";
-		String timestamp = prefix + "}.timestamp";
-		return Arrays.asList(tokens, timestamp);
+		return List.of(id);
 	}
 
 	static List<String> getArgs(long rate, long capacity, long now, long requested) {

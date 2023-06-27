@@ -1,7 +1,6 @@
 redis.replicate_commands()
 
-local tokens_key = KEYS[1]
-local timestamp_key = KEYS[2]
+local key = KEYS[1]
 --redis.log(redis.LOG_WARNING, "tokens_key " .. tokens_key)
 
 local rate = tonumber(ARGV[1])
@@ -24,13 +23,13 @@ end
 --redis.log(redis.LOG_WARNING, "filltime " .. fill_time)
 --redis.log(redis.LOG_WARNING, "ttl " .. ttl)
 
-local last_tokens = tonumber(redis.call("get", tokens_key))
+local last_tokens = tonumber(redis.call('HGET', key, 'tokens'))
 if last_tokens == nil then
   last_tokens = capacity
 end
 --redis.log(redis.LOG_WARNING, "last_tokens " .. last_tokens)
 
-local last_refreshed = tonumber(redis.call("get", timestamp_key))
+local last_refreshed = tonumber(redis.call('HGET', key, 'timestamp'))
 if last_refreshed == nil then
   last_refreshed = 0
 end
@@ -52,8 +51,9 @@ end
 --redis.log(redis.LOG_WARNING, "new_tokens " .. new_tokens)
 
 if ttl > 0 then
-  redis.call("setex", tokens_key, ttl, new_tokens)
-  redis.call("setex", timestamp_key, ttl, now)
+  redis.call('HSET', key, 'tokens', new_tokens)
+  redis.call('HSET', key, 'timestamp', now)
+  redis.call('EXPIRE', key, ttl)
 end
 
 -- return { allowed_num, new_tokens, capacity, filled_tokens, requested, new_tokens }
