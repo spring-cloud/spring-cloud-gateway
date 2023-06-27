@@ -146,7 +146,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	}
 
 	static List<String> getKeys(String id) {
-		return Arrays.asList(id);
+		// use `{}` around keys to use Redis Key hash tags
+		// this allows for using redis cluster
+
+		// Make a unique key per user.
+		return Arrays.asList("request_rate_limiter.{" + id + "}");
 	}
 
 	public boolean isIncludeHeaders() {
