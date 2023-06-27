@@ -128,8 +128,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void keysUseRedisKeyHashTags() {
-		assertThat(RedisRateLimiter.getKeys("1")).containsExactly("request_rate_limiter.{1}.tokens",
-				"request_rate_limiter.{1}.timestamp");
+		assertThat(RedisRateLimiter.getKeys("1")).containsExactly("request_rate_limiter.{1}");
 	}
 
 	@Test
