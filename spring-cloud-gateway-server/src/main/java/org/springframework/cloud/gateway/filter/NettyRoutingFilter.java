@@ -130,7 +130,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange).headers(headers -> {
+		Flux<HttpClientResponse> responseFlux = httpClient(route, exchange).flatMapMany(hc -> hc.headers(headers -> {
 			headers.add(httpHeaders);
 			// Will either be set below, or later by Netty
 			headers.remove(HttpHeaders.HOST);
@@ -184,7 +184,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			response.getHeaders().addAll(filteredResponseHeaders);
 
 			return Mono.just(res);
-		});
+		}));
 
 		Duration responseTimeout = getResponseTimeout(route);
 		if (responseTimeout != null) {
@@ -229,6 +229,18 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						+ " on response of type " + response.getClass().getName());
 			}
 		}
+	}
+
+	/**
+	 * Creates a new HttpClient with per route timeout configuration. Sub-classes that
+	 * override, should call super.httpClient() if they want to honor the per route
+	 * timeout configuration.
+	 * @param route the current route.
+	 * @param exchange the current ServerWebExchange.
+	 * @return the configured HttpClient.
+	 */
+	protected Mono<HttpClient> httpClient(Route route, ServerWebExchange exchange) {
+		return Mono.just(getHttpClient(route, exchange));
 	}
 
 	/**
