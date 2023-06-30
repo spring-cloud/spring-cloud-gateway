@@ -70,11 +70,9 @@ public class NormalizedOperationMethod implements OperationMethod {
 						int entryIdx = 0;
 						for (Map.Entry<String, String> entry : operationArgs.entrySet()) {
 							String key = normalizeKey(entry.getKey(), entryIdx, operationArgs, fieldOrder);
-							String value = entry.getValue(); // TODO: support spel?
-																// getValue(parser,
-																// beanFactory,
-																// entry.getValue());
-
+							// TODO: support spel?
+							// getValue(parser, beanFactory, entry.getValue());
+							String value = entry.getValue();
 							map.put(key, value);
 							entryIdx++;
 						}
@@ -86,9 +84,7 @@ public class NormalizedOperationMethod implements OperationMethod {
 						Assert.isTrue(fieldOrder != null && fieldOrder.length == 1,
 								"Shortcut Configuration Type GATHER_LIST must have shortcutFieldOrder of size 1");
 						String fieldName = fieldOrder[0];
-						// map.put(fieldName, args.values().stream().map(value ->
-						// getValue(parser, beanFactory,
-						// value)).collect(Collectors.toList()));
+						// No need to serialize here since that happens on invoke
 						map.put(fieldName, StringUtils.collectionToCommaDelimitedString(operationArgs.values()));
 						yield map;
 					}
