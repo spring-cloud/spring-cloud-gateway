@@ -36,7 +36,6 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 @AutoConfiguration(after = RestTemplateAutoConfiguration.class)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
@@ -57,24 +56,8 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder restTemplateBuilder) {
-		// TODO: temporarily force Jdk HttpClient, copied from
-		// https://github.com/spring-projects/spring-boot/pull/36118
-		return restTemplateBuilder.requestFactory(settings -> {
-			java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
-			if (settings.connectTimeout() != null) {
-				builder.connectTimeout(settings.connectTimeout());
-			}
-			if (settings.sslBundle() != null) {
-				builder.sslContext(settings.sslBundle().createSslContext());
-			}
-			java.net.http.HttpClient httpClient = builder.build();
-			JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-			if (settings.readTimeout() != null) {
-				requestFactory.setReadTimeout((int) settings.readTimeout().toMillis());
-			}
-			return requestFactory;
-		}).buildRequestFactory();
+	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder builder) {
+		return builder.buildRequestFactory();
 	}
 
 	@Bean
