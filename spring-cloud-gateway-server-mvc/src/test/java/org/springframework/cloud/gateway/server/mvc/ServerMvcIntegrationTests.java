@@ -38,14 +38,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
+import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -534,19 +532,6 @@ public class ServerMvcIntegrationTests {
 
 		public ServerResponse hello(ServerRequest request) {
 			return ServerResponse.ok().body("Hello");
-		}
-
-	}
-
-	public static class TestLoadBalancerConfig {
-
-		@LocalServerPort
-		protected int port = 0;
-
-		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers.from("testservice",
-					new DefaultServiceInstance("testservice" + "-1", "testservice", "localhost", port, false));
 		}
 
 	}
