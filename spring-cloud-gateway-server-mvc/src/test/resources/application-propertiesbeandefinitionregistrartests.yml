@@ -3,16 +3,12 @@ spring.cloud.gateway.mvc:
     route1:
       uri: https://example1.com
       predicates:
-        - name: Path
-          args:
-            pattern: /anything/example1
+        - Path=/anything/example1
     route2:
       id: route2CustomId
       uri: https://example2.com
       predicates:
-        - name: Path
-          args:
-            pattern: /anything/example2
+        - Path=/anything/example2
   routes:
     - id: listRoute1
       uri: https://examplel1.com
@@ -20,48 +16,28 @@ spring.cloud.gateway.mvc:
         - name: Method
           args:
             # TODO: implement aliases?
-            method: GET
+            methods: GET
         - name: Path
           args:
             pattern: /anything/listRoute1
       filters:
-        - name: LocalServerPortUriResolver
-        - name: PrefixPath
-          args:
-            prefix: /httpbin
-        - name: AddRequestHeader
-          args:
-            name: X-Test
-            values: listRoute1
+        - LocalServerPortUriResolver=
+        - PrefixPath=/httpbin
+        - AddRequestHeader=X-Test,listRoute1
     - id: listRoute2
       uri: https://examplel2.com
       predicates:
-        # TODO: implement shortcut config
-        - name: Method
-          args:
-            method: GET
-        # - Method=GET
-        # - Path=/anything/listRoute2
-        - name: Path
-          args:
-            pattern: /anything/listRoute2
+        - Method=GET,POST
+        - Path=/anything/listRoute2
       filters:
-        #- LocalServerPortUriResolver=
-        #- PrefixPath=/httpbin
-        - name: LocalServerPortUriResolver
-        - name: PrefixPath
-          args:
-            prefix: /httpbin
-        - name: AddRequestHeader
-          args:
-            name: X-Test
-            values: listRoute1
+        - LocalServerPortUriResolver=
+        - PrefixPath=/httpbin
+        - AddRequestHeader=X-Test,listRoute2
     - id: listRoute3
       uri: lb://testservice
       predicates:
-        - name: Path
-          args:
-            pattern: /anything/listRoute3
+        - Path=/anything/listRoute3
+        - Header=MyHeaderName,MyHeader.*
       filters:
         - name: PrefixPath
           args:

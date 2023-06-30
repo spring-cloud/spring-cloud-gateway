@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -58,15 +59,18 @@ public abstract class GatewayRequestPredicates {
 	private GatewayRequestPredicates() {
 	}
 
+	@Shortcut
 	public static RequestPredicate after(ZonedDateTime dateTime) {
 		return request -> ZonedDateTime.now().isAfter(dateTime);
 	}
 
+	@Shortcut
 	public static RequestPredicate before(ZonedDateTime dateTime) {
 		return request -> ZonedDateTime.now().isBefore(dateTime);
 	}
 
 	// TODO: accept and test datetime predicates (including yaml config)
+	@Shortcut
 	public static RequestPredicate between(ZonedDateTime dateTime1, ZonedDateTime dateTime2) {
 		return request -> {
 			ZonedDateTime now = ZonedDateTime.now();
@@ -78,6 +82,7 @@ public abstract class GatewayRequestPredicates {
 		return cookie(name, null);
 	}
 
+	@Shortcut
 	public static RequestPredicate cookie(String name, String regexp) {
 		return new CookieRequestPredicate(name, regexp);
 	}
@@ -86,14 +91,19 @@ public abstract class GatewayRequestPredicates {
 		return header(header, null);
 	}
 
+	@Shortcut
 	public static RequestPredicate header(String header, String regexp) {
 		return new HeaderRequestPredicate(header, regexp);
 	}
 
-	public static RequestPredicate method(HttpMethod method) {
-		return RequestPredicates.method(method);
+	// TODO: implement parameter aliases for predicates in RequestPredicates for webflux
+	// compatibility?
+	@Shortcut(type = Shortcut.Type.LIST)
+	public static RequestPredicate method(HttpMethod... methods) {
+		return RequestPredicates.methods(methods);
 	}
 
+	@Shortcut
 	public static RequestPredicate host(String pattern) {
 		Assert.notNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
@@ -113,6 +123,18 @@ public abstract class GatewayRequestPredicates {
 	public static Function<String, RequestPredicate> hostPredicates(PathPatternParser patternParser) {
 		Assert.notNull(patternParser, "PathPatternParser must not be null");
 		return pattern -> new HostPatternPredicate(patternParser.parse(pattern));
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the request path against the given
+	 * path pattern.
+	 * @param pattern the pattern to match to
+	 * @return a predicate that tests against the given path pattern
+	 */
+	// TODO: find a different way to add shortcut to RequestPredicates.*
+	@Shortcut
+	public static RequestPredicate path(String pattern) {
+		return RequestPredicates.path(pattern);
 	}
 
 	private static void traceMatch(String prefix, Object desired, @Nullable Object actual, boolean match) {

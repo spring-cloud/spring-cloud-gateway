@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -37,9 +38,11 @@ import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSupplie
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
+import org.springframework.web.servlet.function.RequestPredicates;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -56,36 +59,54 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@Test
 	void contextLoads(ApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = context.getBeansOfType(RouterFunction.class);
-		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(3).containsKeys("listRoute1RouterFunction",
-				"route1RouterFunction", "route2CustomIdRouterFunction");
+		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(5).containsKeys("listRoute1RouterFunction",
+				"route1RouterFunction", "route2CustomIdRouterFunction", "listRoute2RouterFunction",
+				"listRoute3RouterFunction");
 		RouterFunction listRoute1RouterFunction = routerFunctions.get("listRoute1RouterFunction");
-		listRoute1RouterFunction.accept(new RouterFunctions.Visitor() {
-			@Override
-			public void startNested(RequestPredicate predicate) {
-			}
-
-			@Override
-			public void endNested(RequestPredicate predicate) {
-			}
-
+		listRoute1RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
 			public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
-				assertThat(predicate.toString()).isEqualTo("(GET && /anything/listRoute1)");
+				predicate.accept(new AbstractRequestPredicatesVisitor() {
+					@Override
+					public void method(Set<HttpMethod> methods) {
+						assertThat(methods).containsOnly(HttpMethod.GET);
+					}
+
+					@Override
+					public void path(String pattern) {
+						assertThat(pattern).isEqualTo("/anything/listRoute1");
+					}
+				});
 			}
-
+		});
+		RouterFunction listRoute2RouterFunction = routerFunctions.get("listRoute2RouterFunction");
+		listRoute2RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
-			public void resources(Function<ServerRequest, Optional<Resource>> lookupFunction) {
-
+			public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
+				predicate.accept(new AbstractRequestPredicatesVisitor() {
+					@Override
+					public void method(Set<HttpMethod> methods) {
+						assertThat(methods).containsOnly(HttpMethod.GET, HttpMethod.POST);
+					}
+				});
 			}
-
+		});
+		RouterFunction listRoute3RouterFunction = routerFunctions.get("listRoute3RouterFunction");
+		listRoute3RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
-			public void attributes(Map<String, Object> attributes) {
+			public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
+				predicate.accept(new AbstractRequestPredicatesVisitor() {
+					@Override
+					public void path(String pattern) {
+						assertThat(pattern).isEqualTo("/anything/listRoute3");
+					}
 
-			}
-
-			@Override
-			public void unknown(RouterFunction<?> routerFunction) {
-
+					@Override
+					public void header(String name, String value) {
+						assertThat(name).isEqualTo("MyHeaderName");
+						assertThat(value).isEqualTo("MyHeader.*");
+					}
+				});
 			}
 		});
 	}
@@ -105,8 +126,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void lbRouteWorks() {
-		restClient.get().uri("/anything/listRoute3").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
+		restClient.get().uri("/anything/listRoute3").header("MyHeaderName", "MyHeaderVal").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					assertThat(map).isNotEmpty().containsKey("headers");
 					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
@@ -118,6 +139,114 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = ServerMvcIntegrationTests.TestLoadBalancerConfig.class)
 	static class Config {
+
+	}
+
+	static abstract class AbstractRequestPredicatesVisitor implements RequestPredicates.Visitor {
+
+		@Override
+		public void method(Set<HttpMethod> methods) {
+
+		}
+
+		@Override
+		public void path(String pattern) {
+
+		}
+
+		@Override
+		public void pathExtension(String extension) {
+
+		}
+
+		@Override
+		public void header(String name, String value) {
+
+		}
+
+		@Override
+		public void param(String name, String value) {
+
+		}
+
+		@Override
+		public void unknown(RequestPredicate predicate) {
+
+		}
+
+		@Override
+		public void startAnd() {
+
+		}
+
+		@Override
+		public void and() {
+
+		}
+
+		@Override
+		public void endAnd() {
+
+		}
+
+		@Override
+		public void startOr() {
+
+		}
+
+		@Override
+		public void or() {
+
+		}
+
+		@Override
+		public void endOr() {
+
+		}
+
+		@Override
+		public void startNegate() {
+
+		}
+
+		@Override
+		public void endNegate() {
+
+		}
+
+	}
+
+	static abstract class AbstractRouterFunctionsVisitor implements RouterFunctions.Visitor {
+
+		@Override
+		public void startNested(RequestPredicate predicate) {
+
+		}
+
+		@Override
+		public void endNested(RequestPredicate predicate) {
+
+		}
+
+		@Override
+		public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
+
+		}
+
+		@Override
+		public void resources(Function<ServerRequest, Optional<Resource>> lookupFunction) {
+
+		}
+
+		@Override
+		public void attributes(Map<String, Object> attributes) {
+
+		}
+
+		@Override
+		public void unknown(RouterFunction<?> routerFunction) {
+
+		}
 
 	}
 

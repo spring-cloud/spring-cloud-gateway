@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.server.mvc.invoke.reflect.DefaultOperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.core.log.LogMessage;
@@ -54,7 +55,7 @@ public abstract class AbstractGatewayDiscoverer {
 	}
 
 	protected void addOperationMethod(Method method) {
-		OperationMethod operationMethod = new OperationMethod(method);
+		OperationMethod operationMethod = new DefaultOperationMethod(method);
 		String key = method.getName();
 		operations.add(key, operationMethod);
 		log.trace(LogMessage.format("Discovered %s", operationMethod));

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -36,6 +37,7 @@ import org.springframework.web.util.UriTemplate;
 
 public interface FilterFunctions {
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return (request, next) -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
@@ -44,6 +46,7 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestParameter(String name, String... values) {
 		return (request, next) -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
@@ -52,6 +55,7 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
 		return (request, next) -> {
 			ServerResponse response = next.handle(request);
@@ -64,6 +68,7 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		final UriTemplate uriTemplate = new UriTemplate(prefix);
 
@@ -79,6 +84,7 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
 		String normalizedReplacement = replacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
@@ -97,6 +103,7 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setPath(String path) {
 		UriTemplate uriTemplate = new UriTemplate(path);
 
@@ -115,6 +122,7 @@ public interface FilterFunctions {
 		return stripPrefix(1);
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix(int parts) {
 		return (request, next) -> {
 			// TODO: gateway url attributes
@@ -151,6 +159,7 @@ public interface FilterFunctions {
 		return setStatus(HttpStatus.valueOf(statusCode));
 	}
 
+	// TODO: handle int or string for config
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
 		return (request, next) -> {
 			ServerResponse response = next.handle(request);

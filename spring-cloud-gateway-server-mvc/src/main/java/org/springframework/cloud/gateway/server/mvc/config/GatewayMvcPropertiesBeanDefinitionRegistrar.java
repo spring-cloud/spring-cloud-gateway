@@ -125,12 +125,13 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		if (scheme.equals("lb")) {
 			handlerArgs.put("uri", routeProperties.getUri().toString());
 		}
-		Optional<OperationMethod> handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(),
-				handlerArgs);
+		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
+				scheme.toLowerCase(), handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
 			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 		}
-		Object response = invokeOperation(handlerOperationMethod.get(), handlerArgs);
+		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
+		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
 		HandlerFunction<ServerResponse> handlerFunction = null;
 		if (response instanceof HandlerFunction<?>) {
 			handlerFunction = (HandlerFunction<ServerResponse>) response;
@@ -179,32 +180,35 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
 			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
 		String normalizedName = StringUtils.uncapitalize(operationName);
-		Optional<OperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
+		Optional<NormalizedOperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
-			T handlerFilterFunction = invokeOperation(operationMethod.get(), operationArgs);
+			NormalizedOperationMethod opMethod = operationMethod.get();
+			T handlerFilterFunction = invokeOperation(opMethod, opMethod.getNormalizedArgs());
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
 			}
 		}
 		else {
-			log.error(LogMessage.format("Unable to find operation %s for %s with args %s", returnType, normalizedName,
-					operationArgs));
+			throw new IllegalArgumentException(String.format("Unable to find operation %s for %s with args %s",
+					returnType, normalizedName, operationArgs));
 		}
 	}
 
-	private Optional<OperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
+	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
 			String operationName, Map<String, String> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
+				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
 
-	private static boolean matchOperation(OperationMethod operationMethod, Map<String, String> args) {
+	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, String> args) {
+		Map<String, String> normalizedArgs = operationMethod.getNormalizedArgs();
 		OperationParameters parameters = operationMethod.getParameters();
-		if (parameters.getParameterCount() != args.size()) {
+		if (parameters.getParameterCount() != normalizedArgs.size()) {
 			return false;
 		}
 		for (int i = 0; i < parameters.getParameterCount(); i++) {
-			if (!args.containsKey(parameters.get(i).getName())) {
+			if (!normalizedArgs.containsKey(parameters.get(i).getName())) {
 				return false;
 			}
 		}

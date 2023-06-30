@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2019 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,54 +19,11 @@ package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
 import java.lang.reflect.Method;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.util.Assert;
 
-/**
- * Information describing an operation method on an endpoint method.
- *
- * @author Phillip Webb
- * @since 2.0.0
- * @see ReflectiveOperationInvoker
- */
-public class OperationMethod {
+public interface OperationMethod {
 
-	private static final ParameterNameDiscoverer DEFAULT_PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
+	Method getMethod();
 
-	private final Method method;
-
-	private final OperationParameters operationParameters;
-
-	/**
-	 * Create a new {@link OperationMethod} instance.
-	 * @param method the source method
-	 */
-	public OperationMethod(Method method) {
-		Assert.notNull(method, "Method must not be null");
-		this.method = method;
-		this.operationParameters = new OperationMethodParameters(method, DEFAULT_PARAMETER_NAME_DISCOVERER);
-	}
-
-	/**
-	 * Return the source Java method.
-	 * @return the method
-	 */
-	public Method getMethod() {
-		return this.method;
-	}
-
-	/**
-	 * Return the operation parameters.
-	 * @return the operation parameters
-	 */
-	public OperationParameters getParameters() {
-		return this.operationParameters;
-	}
-
-	@Override
-	public String toString() {
-		return "Operation method " + this.method;
-	}
+	OperationParameters getParameters();
 
 }

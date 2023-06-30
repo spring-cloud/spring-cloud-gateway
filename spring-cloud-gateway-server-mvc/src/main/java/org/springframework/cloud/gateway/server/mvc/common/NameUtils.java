@@ -18,11 +18,17 @@ package org.springframework.cloud.gateway.server.mvc.common;
 
 public abstract class NameUtils {
 
+	/**
+	 * Generated name prefix.
+	 */
+	public static final String GENERATED_NAME_PREFIX = "_genkey_";
+
 	private NameUtils() {
+		throw new AssertionError("Must not instantiate utility class.");
 	}
 
 	public static String generateName(int i) {
-		return null;
+		return GENERATED_NAME_PREFIX + i;
 	}
 
 }
