@@ -23,10 +23,12 @@ import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfigu
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.ClientHttpRequestFactoryProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
@@ -44,6 +46,12 @@ public class GatewayServerMvcAutoConfiguration {
 	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
 			ClientHttpRequestFactory requestFactory) {
 		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter() {
+		return new ForwardedRequestHeadersFilter();
 	}
 
 	@Bean
@@ -81,6 +89,12 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean
 	public RemoveHopByHopResponseHeadersFilter removeHopByHopResponseHeadersFilter() {
 		return new RemoveHopByHopResponseHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter() {
+		return new XForwardedRequestHeadersFilter();
 	}
 
 }

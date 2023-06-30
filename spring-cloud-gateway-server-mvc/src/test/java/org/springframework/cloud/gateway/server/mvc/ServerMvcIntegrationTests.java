@@ -39,6 +39,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
@@ -258,6 +260,29 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void forwardedHeadersWork() {
+		restClient.get().uri("/headers").header("test", "forwarded").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsKeys(ForwardedRequestHeadersFilter.FORWARDED_HEADER.toLowerCase(),
+							XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER.toLowerCase(),
+							XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER.toLowerCase(),
+							XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER.toLowerCase(),
+							XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER.toLowerCase());
+					assertThat(headers.get(ForwardedRequestHeadersFilter.FORWARDED_HEADER.toLowerCase())).asString()
+							.contains("proto=http").contains("host=\"localhost:").contains("for=\"127.0.0.1:");
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER.toLowerCase()))
+							.asString().isEqualTo("localhost:" + this.port);
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER.toLowerCase()))
+							.asString().isEqualTo(String.valueOf(this.port));
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER.toLowerCase())
+							.toString()).asString().isEqualTo("http");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -459,6 +484,16 @@ public class ServerMvcIntegrationTests {
 					.filter(new LocalServerPortUriResolver())
 					.filter(rewritePath("/foo/(?<segment>.*)", "/httpbin/${segment}"))
 					.filter(addRequestHeader("X-Test", "rewritepath"));
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForwardedHeaders() {
+			// @formatter:off
+			return route(path("/headers").and(header("test", "forwarded")), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addRequestHeader("X-Test", "forwarded"));
 			// @formatter:on
 		}
 
