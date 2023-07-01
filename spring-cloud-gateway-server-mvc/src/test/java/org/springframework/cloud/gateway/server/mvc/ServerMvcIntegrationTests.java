@@ -320,32 +320,20 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatus() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatusAndAddRespHeader() {
 			// @formatter:off
-			return route()
-					.GET("/status/{status}", http())
-						.filter(new LocalServerPortUriResolver())
-						.filter(prefixPath("/httpbin"))
-						.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
-						.filter(addResponseHeader("X-Status", "{status}"))
+			return (RouterFunction<ServerResponse>) route().GET("/status/{status}", http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
+					.filter(addResponseHeader("X-Status", "{status}"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetstatus")
-					// TODO: Filters apply to all routes in a builder
-					//.GET("/anything/addresheader", http())
-					//	.filter(new LocalServerPortUriResolver())
-					//	.filter(prefixPath("/httpbin"))
-					//	.filter(addResponseHeader("X-Bar", "val1"))
-					.build();
-			// @formatter:on
-		}
-
-		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddResponseHeader() {
-			// @formatter:off
-			return route(GET("/anything/addresheader"), http())
+				.build().andOther(route().GET("/anything/addresheader", http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
 					.filter(addResponseHeader("X-Bar", "val1"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddresponseheader");
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddresponseheader")
+				.build());
 			// @formatter:on
 		}
 
