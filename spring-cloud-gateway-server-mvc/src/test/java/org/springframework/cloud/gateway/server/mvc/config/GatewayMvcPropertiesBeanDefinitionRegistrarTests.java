@@ -28,6 +28,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
@@ -73,6 +74,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 					}
 				});
 			}
+
+			@Override
+			public void attributes(Map<String, Object> attributes) {
+				assertThat(attributes).containsEntry(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "listRoute1");
+			}
 		});
 		RouterFunction listRoute2RouterFunction = routerFunctions.get("listRoute2RouterFunction");
 		listRoute2RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
@@ -84,6 +90,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 						assertThat(methods).containsOnly(HttpMethod.GET, HttpMethod.POST);
 					}
 				});
+			}
+
+			@Override
+			public void attributes(Map<String, Object> attributes) {
+				assertThat(attributes).containsEntry(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "listRoute2");
 			}
 		});
 		RouterFunction listRoute3RouterFunction = routerFunctions.get("listRoute3RouterFunction");
@@ -102,6 +113,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 						assertThat(value).isEqualTo("MyHeader.*");
 					}
 				});
+			}
+
+			@Override
+			public void attributes(Map<String, Object> attributes) {
+				assertThat(attributes).containsEntry(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "listRoute3");
 			}
 		});
 	}

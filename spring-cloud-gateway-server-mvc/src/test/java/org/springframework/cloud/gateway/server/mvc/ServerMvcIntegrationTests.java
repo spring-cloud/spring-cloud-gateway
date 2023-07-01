@@ -38,6 +38,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
@@ -304,13 +305,18 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> nonGatewayRouterFunctions(TestHandler testHandler) {
-			return route(GET("/hello"), testHandler::hello);
+			return route(GET("/hello"), testHandler::hello).withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello");
 		}
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-			return route(GET("/get"), http()).filter(new LocalServerPortUriResolver())
-					.filter(addRequestHeader("X-Foo", "Bar")).filter(prefixPath("/httpbin"));
+			// @formatter:off
+			return route(GET("/get"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(addRequestHeader("X-Foo", "Bar"))
+					.filter(prefixPath("/httpbin"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddreqheader");
+			// @formatter:on
 		}
 
 		@Bean
@@ -322,6 +328,7 @@ public class ServerMvcIntegrationTests {
 						.filter(prefixPath("/httpbin"))
 						.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
 						.filter(addResponseHeader("X-Status", "{status}"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetstatus")
 					// TODO: Filters apply to all routes in a builder
 					//.GET("/anything/addresheader", http())
 					//	.filter(new LocalServerPortUriResolver())
@@ -337,7 +344,8 @@ public class ServerMvcIntegrationTests {
 			return route(GET("/anything/addresheader"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
-					.filter(addResponseHeader("X-Bar", "val1"));
+					.filter(addResponseHeader("X-Bar", "val1"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddresponseheader");
 			// @formatter:on
 		}
 
@@ -347,7 +355,8 @@ public class ServerMvcIntegrationTests {
 			return route(GET("/anything/addrequestparam"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
-					.filter(addRequestParameter("param1", "param1val"));
+					.filter(addRequestParameter("param1", "param1val"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddrequestparam");
 			// @formatter:on
 		}
 
@@ -357,18 +366,20 @@ public class ServerMvcIntegrationTests {
 			return route(GET("/mycustompath{extra}"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(setPath("/httpbin/anything/mycustompath{extra}"))
-					.filter(addRequestParameter("param1", "param1val{extra}"));
+					.filter(addRequestParameter("param1", "param1val{extra}"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetpath");
 			// @formatter:on
 		}
 
 		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPath() {
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
 			return route(GET("/long/path/to/get"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
 					.filter(stripPrefix(3))
-					.filter(addRequestHeader("X-Test", "stripPrefix"));
+					.filter(addRequestHeader("X-Test", "stripPrefix"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
 			// @formatter:on
 		}
 
@@ -378,7 +389,8 @@ public class ServerMvcIntegrationTests {
 			return route(GET("/anything/removehopbyhoprequestheaders"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
-					.filter(addRequestHeader("x-application-context", "context-id1"));
+					.filter(addRequestHeader("x-application-context", "context-id1"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testremovehopbyhopheaders");
 			// @formatter:on
 		}
 
@@ -389,6 +401,7 @@ public class ServerMvcIntegrationTests {
 					.POST("/post", http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testpost")
 					.build();
 			// @formatter:on
 		}
@@ -401,6 +414,7 @@ public class ServerMvcIntegrationTests {
 					.filter(lb("testservice"))
 					.filter(prefixPath("/httpbin"))
 					.filter(addRequestHeader("X-Test", "loadbalancer"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testloadbalancer")
 					.build();
 			// @formatter:on
 		}
@@ -411,7 +425,8 @@ public class ServerMvcIntegrationTests {
 			return route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
-					.filter(addResponseHeader("X-SubDomain", "{sub}"));
+					.filter(addResponseHeader("X-SubDomain", "{sub}"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testhostpredicate");
 			// @formatter:on
 		}
 
@@ -420,7 +435,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
 					.filter(circuitBreaker("mycb1", "/hello"))
-					.filter(prefixPath("/httpbin"));
+					.filter(prefixPath("/httpbin"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakerfallback");
 			// @formatter:on
 		}
 
@@ -430,7 +446,8 @@ public class ServerMvcIntegrationTests {
 			return route(path("/anything/circuitbreakernofallback"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(circuitBreaker("mycb1", null))
-					.filter(setPath("/httpbin/delay/5"));
+					.filter(setPath("/httpbin/delay/5"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
 			// @formatter:on
 		}
 
@@ -440,7 +457,8 @@ public class ServerMvcIntegrationTests {
 			return route(path("/retry"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(retry(3))
-					.filter(prefixPath("/httpbin"));
+					.filter(prefixPath("/httpbin"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testretry");
 			// @formatter:on
 		}
 
@@ -453,7 +471,8 @@ public class ServerMvcIntegrationTests {
 					.filter(rateLimit(c -> c.setCapacity(1)
 							.setPeriod(Duration.ofMinutes(1))
 							.setKeyResolver(request -> "ratelimitttest1min")))
-					.filter(prefixPath("/httpbin"));
+					.filter(prefixPath("/httpbin"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testratelimit");
 			// @formatter:on
 		}
 
@@ -462,7 +481,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/headerregex").and(header("X-MyHeader", "fo.")), http())
 					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/headers"));
+					.filter(setPath("/httpbin/headers"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testheaderpredicate");
 			// @formatter:on
 		}
 
@@ -471,7 +491,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/cookieregex").and(cookie("mycookie", "fo.")), http())
 					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/headers"));
+					.filter(setPath("/httpbin/headers"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcookiepredicate");
 			// @formatter:on
 		}
 
@@ -481,7 +502,8 @@ public class ServerMvcIntegrationTests {
 			return route(path("/foo/**").and(host("**.rewritepath.org")), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(rewritePath("/foo/(?<segment>.*)", "/httpbin/${segment}"))
-					.filter(addRequestHeader("X-Test", "rewritepath"));
+					.filter(addRequestHeader("X-Test", "rewritepath"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testrewritepath");
 			// @formatter:on
 		}
 
@@ -491,7 +513,8 @@ public class ServerMvcIntegrationTests {
 			return route(path("/headers").and(header("test", "forwarded")), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
-					.filter(addRequestHeader("X-Test", "forwarded"));
+					.filter(addRequestHeader("X-Test", "forwarded"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testforwardedheaders");
 			// @formatter:on
 		}
 

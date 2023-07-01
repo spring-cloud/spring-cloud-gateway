@@ -174,6 +174,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		routeProperties.getFilters().forEach(filterProperties -> translate(filterOperations, filterProperties.getName(),
 				filterProperties.getArgs(), HandlerFilterFunction.class, builder::filter));
 
+		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, beanNamePrefix);
+
 		return builder.build();
 	}
 

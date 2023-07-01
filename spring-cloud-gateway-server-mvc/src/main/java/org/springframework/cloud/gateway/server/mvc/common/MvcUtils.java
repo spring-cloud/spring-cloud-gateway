@@ -39,6 +39,11 @@ public abstract class MvcUtils {
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
 
+	/**
+	 * Gateway route ID attribute name.
+	 */
+	public static final String GATEWAY_ROUTE_ID_ATTR = qualify("gatewayRouteId");
+
 	private MvcUtils() {
 	}
 
