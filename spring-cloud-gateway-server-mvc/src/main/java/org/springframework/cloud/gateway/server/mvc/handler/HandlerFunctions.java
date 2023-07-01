@@ -80,6 +80,15 @@ public abstract class HandlerFunctions {
 			return MvcUtils.getApplicationContext(request).getBean(ProxyExchangeHandlerFunction.class);
 		}
 
+		@Override
+		public String toString() {
+			ProxyExchangeHandlerFunction handlerFunction = this.proxyExchangeHandlerFunction.get();
+			if (handlerFunction != null) {
+				return handlerFunction.toString();
+			}
+			return ProxyExchangeHandlerFunction.class.getSimpleName();
+		}
+
 	}
 
 	public static class HandlerSupplier
