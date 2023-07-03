@@ -47,6 +47,8 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 	public ServerResponse exchange(Request request) {
 		try {
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
+			// TODO: why does this help form encoding?
+			request.getHttpHeaders().remove("content-length");
 			clientHttpRequest.getHeaders().putAll(request.getHttpHeaders());
 			// copy body from request to clientHttpRequest
 			StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), clientHttpRequest.getBody());

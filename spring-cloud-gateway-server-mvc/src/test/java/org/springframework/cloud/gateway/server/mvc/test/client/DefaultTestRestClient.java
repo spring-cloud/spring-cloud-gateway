@@ -135,6 +135,8 @@ public class DefaultTestRestClient implements TestRestClient {
 
 		private Object body;
 
+		private Class<?> type;
+
 		DefaultRequestBodyUriSpec(HttpMethod httpMethod) {
 			this.httpMethod = httpMethod;
 			this.requestId = String.valueOf(requestIndex.incrementAndGet());
@@ -258,12 +260,15 @@ public class DefaultTestRestClient implements TestRestClient {
 		}
 
 		@Override
-		public RequestHeadersSpec<?> body(Object producer, Class<?> elementClass) {
+		public RequestHeadersSpec<?> body(Object body, Class<?> elementClass) {
+			this.body = body;
+			this.type = elementClass;
 			return this;
 		}
 
 		@Override
-		public RequestHeadersSpec<?> body(Object producer, ParameterizedTypeReference<?> elementTypeRef) {
+		public RequestHeadersSpec<?> body(Object body, ParameterizedTypeReference<?> elementTypeRef) {
+			this.body = body;
 			return this;
 		}
 
@@ -278,7 +283,8 @@ public class DefaultTestRestClient implements TestRestClient {
 					});
 				});
 			}
-			RequestEntity<Object> request = RequestEntity.method(httpMethod, uri).headers(combinedHeaders).body(body);
+			RequestEntity.BodyBuilder builder = RequestEntity.method(httpMethod, uri).headers(combinedHeaders);
+			RequestEntity<Object> request = builder.body(body, type);
 			ResponseEntity<byte[]> response = testRestTemplate.exchange(request, byte[].class);
 			ExchangeResult exchangeResult = new ExchangeResult(request, response);
 			return new DefaultResponseSpec(exchangeResult, response, DefaultTestRestClient.this.entityResultConsumer);

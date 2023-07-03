@@ -16,21 +16,27 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
+import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +44,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ServerWebExchange;
 
 @RestController
@@ -108,27 +116,35 @@ public class HttpBinCompatibleController {
 		return result;
 	}
 
-	/*
-	 * @PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-	 * produces = MediaType.APPLICATION_JSON_VALUE) public Mono<Map<String, Object>>
-	 * postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) { //
-	 * StringDecoder decoder = StringDecoder.allMimeTypes(true); return
-	 * parts.flux().flatMap(map ->
-	 * Flux.fromIterable(map.values())).flatMap(Flux::fromIterable) .filter(part -> part
-	 * instanceof FilePart).reduce(new HashMap<String, Object>(), (files, part) -> {
-	 * MediaType contentType = part.headers().getContentType(); long contentLength =
-	 * part.headers().getContentLength(); // TODO: get part data files.put(part.name(),
-	 * "data:" + contentType + ";base64," + contentLength); return files; }).map(files ->
-	 * Collections.singletonMap("files", files)); }
-	 */
+	@PostMapping(value = "/post", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> postFormData(HttpServletRequest request,
+			@RequestParam MultiValueMap<String, MultipartFile> parts) throws ServletException, IOException {
+		Collection<Part> parts1 = request.getParts();
+		HashMap<String, Object> ret = new HashMap<>();
+		ret.put("headers", getHeaders(request));
+		HashMap<String, Object> files = new HashMap<>();
+		ret.put("files", files);
 
-	/*
-	 * @PostMapping(path = "/post", consumes =
-	 * MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces =
-	 * MediaType.APPLICATION_JSON_VALUE) public Mono<Map<String, Object>>
-	 * postUrlEncoded(ServerWebExchange exchange) throws IOException { return
-	 * post(exchange, null); }
-	 */
+		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
+		parts.values().stream().flatMap(List::stream).forEach(part -> {
+			String contentType = part.getContentType();
+			long contentLength = part.getSize();
+			// TODO: get part data
+			files.put(part.getName(), "data:" + contentType + ";base64," + contentLength);
+		});
+		return ret;
+	}
+
+	@PostMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	public Map<String, Object> postUrlEncoded(HttpServletRequest request,
+			@RequestBody(required = false) MultiValueMap form) throws IOException {
+		HashMap<String, Object> ret = new HashMap<>();
+		ret.put("headers", getHeaders(request));
+		ret.put("form", form);
+		return ret;
+	}
 
 	@PostMapping(path = "/post", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> post(HttpServletRequest request, @RequestBody(required = false) String body) {

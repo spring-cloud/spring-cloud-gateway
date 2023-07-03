@@ -146,7 +146,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private RouterFunction getRouterFunction(RouteProperties routeProperties, String beanNamePrefix) {
+	private RouterFunction getRouterFunction(RouteProperties routeProperties, String routeId) {
 		log.trace(LogMessage.format("Creating route for : %s", routeProperties));
 
 		RouterFunctions.Builder builder = route();
@@ -156,6 +156,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// it is after this one.
 		builder.filter((request, next) -> {
 			MvcUtils.setRequestUrl(request, routeProperties.getUri());
+			MvcUtils.setRouteId(request, routeId);
 			return next.handle(request);
 		});
 
@@ -196,7 +197,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		routeProperties.getPredicates()
 				.forEach(predicateProperties -> translate(predicateOperations, predicateProperties.getName(),
 						predicateProperties.getArgs(), RequestPredicate.class, requestPredicate -> {
-							log.trace(LogMessage.format("Adding predicate to route %s - %s", beanNamePrefix,
+							log.trace(LogMessage.format("Adding predicate to route %s - %s", routeId,
 									predicateProperties));
 							if (predicate.get() == null) {
 								predicate.set(requestPredicate);
@@ -205,7 +206,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 								RequestPredicate combined = predicate.get().and(requestPredicate);
 								predicate.set(combined);
 							}
-							log.trace(LogMessage.format("Combined predicate for route %s - %s", beanNamePrefix,
+							log.trace(LogMessage.format("Combined predicate for route %s - %s", routeId,
 									predicate.get()));
 						}));
 
@@ -218,7 +219,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		routeProperties.getFilters().forEach(filterProperties -> translate(filterOperations, filterProperties.getName(),
 				filterProperties.getArgs(), HandlerFilterFunction.class, builder::filter));
 
-		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, beanNamePrefix);
+		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
 		return builder.build();
 	}

@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
@@ -46,8 +47,15 @@ import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -72,6 +80,8 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
@@ -280,6 +290,69 @@ public class ServerMvcIntegrationTests {
 					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER.toLowerCase())
 							.toString()).asString().isEqualTo("http");
 				});
+	}
+
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
+			StandardCharsets.UTF_8);
+
+	@Test
+	void formUrlencodedWorks() {
+		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+		formData.add("foo", "bar");
+		formData.add("baz", "bam");
+
+		// @formatter:off
+		restClient.post().uri("/post").header("test", "form").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
+				.bodyValue(formData)
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(result -> {
+					Map map = result.getResponseBody();
+					Map<String, Object> form = (Map<String, Object>) map.get("form");
+					assertThat(form).containsEntry("foo", Collections.singletonList("bar"));
+					assertThat(form).containsEntry("baz", Collections.singletonList("bam"));
+				});
+		// @formatter:on
+	}
+
+	@Test
+	void multipartFormDataWorks() {
+		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
+		// @formatter:off
+		restClient.post().uri("/post").contentType(MULTIPART_FORM_DATA)
+				.header("test", "form")
+				.bodyValue(formData)
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(Map.class)
+				.consumeWith(result -> {
+					assertMultipartData(result.getResponseBody());
+				});
+		// @formatter:on
+	}
+
+	@Test
+	void multipartFormDataRestTemplateWorks() {
+		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
+		RequestEntity<MultiValueMap<String, HttpEntity<?>>> request = RequestEntity.post("/post")
+				.contentType(MULTIPART_FORM_DATA).header("test", "form").body(formData);
+		ResponseEntity<Map> response = restTemplate.exchange(request, Map.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertMultipartData(response.getBody());
+	}
+
+	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
+		ClassPathResource part = new ClassPathResource("test/1x1.png");
+		MultipartBodyBuilder builder = new MultipartBodyBuilder();
+		builder.part("imgpart", part, MediaType.IMAGE_PNG);
+		return builder.build();
+	}
+
+	private void assertMultipartData(Map responseBody) {
+		Map<String, Object> files = (Map<String, Object>) responseBody.get("files");
+		assertThat(files).containsKey("imgpart");
+		String file = (String) files.get("imgpart");
+		assertThat(file).startsWith("data:").contains(";base64,");
 	}
 
 	@SpringBootConfiguration
@@ -503,6 +576,17 @@ public class ServerMvcIntegrationTests {
 					.filter(prefixPath("/httpbin"))
 					.filter(addRequestHeader("X-Test", "forwarded"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testforwardedheaders");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForm() {
+			// @formatter:off
+			return route(path("/post").and(header("test", "form")), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(addRequestHeader("X-Test", "form"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testform");
 			// @formatter:on
 		}
 

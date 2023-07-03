@@ -1,1 +1,2 @@
 org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration
+org.springframework.cloud.gateway.server.mvc.handler.GatewayMultipartAutoConfiguration

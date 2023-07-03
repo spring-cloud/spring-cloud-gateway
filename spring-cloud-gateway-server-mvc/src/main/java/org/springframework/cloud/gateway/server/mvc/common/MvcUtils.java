@@ -96,8 +96,14 @@ public abstract class MvcUtils {
 		}
 	}
 
+	public static void setRouteId(ServerRequest request, String routeId) {
+		request.attributes().put(GATEWAY_ROUTE_ID_ATTR, routeId);
+		request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, routeId);
+	}
+
 	public static void setRequestUrl(ServerRequest request, URI url) {
 		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
+		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
 	}
 
 }
