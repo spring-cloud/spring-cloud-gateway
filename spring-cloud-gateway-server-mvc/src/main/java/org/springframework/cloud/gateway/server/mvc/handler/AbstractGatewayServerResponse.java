@@ -137,6 +137,6 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 
 	@Nullable
 	protected abstract ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
-			Context context) throws ServletException, IOException;
+			Context context) throws Exception;
 
 }

@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import jakarta.servlet.http.Cookie;
@@ -167,9 +166,9 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 	}
 
 	@Override
-	public ServerResponse build(BiFunction<HttpServletRequest, HttpServletResponse, ModelAndView> writeFunction) {
+	public ServerResponse build(WriteFunction writeFunction) {
 
-		return new WriterFunctionResponse(this.statusCode, this.headers, this.cookies, writeFunction);
+		return new WriteFunctionResponse(this.statusCode, this.headers, this.cookies, writeFunction);
 	}
 
 	@Override
@@ -200,12 +199,12 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 				.modelAttributes(model).build();
 	}
 
-	private static class WriterFunctionResponse extends AbstractGatewayServerResponse {
+	private static class WriteFunctionResponse extends AbstractGatewayServerResponse {
 
-		private final BiFunction<HttpServletRequest, HttpServletResponse, ModelAndView> writeFunction;
+		private final WriteFunction writeFunction;
 
-		WriterFunctionResponse(HttpStatusCode statusCode, HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
-				BiFunction<HttpServletRequest, HttpServletResponse, ModelAndView> writeFunction) {
+		WriteFunctionResponse(HttpStatusCode statusCode, HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
+				WriteFunction writeFunction) {
 
 			super(statusCode, headers, cookies);
 			Assert.notNull(writeFunction, "WriteFunction must not be null");
@@ -214,9 +213,9 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 
 		@Override
 		protected ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
-				Context context) {
+				Context context) throws Exception {
 
-			return this.writeFunction.apply(request, response);
+			return this.writeFunction.write(request, response);
 		}
 
 	}
