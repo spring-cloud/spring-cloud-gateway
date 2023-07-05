@@ -1,0 +1,51 @@
+spring.cloud.gateway.mvc:
+  routesMap:
+    route1:
+      uri: https://example1.com
+      predicates:
+        - Path=/anything/example1
+    route2:
+      id: route2CustomId
+      uri: https://example2.com
+      predicates:
+        - Path=/anything/example2
+  routes:
+    - id: listRoute1
+      uri: https://examplel1.com
+      predicates:
+        - name: Method
+          args:
+            # TODO: implement aliases?
+            methods: GET
+        - name: Path
+          args:
+            pattern: /anything/listRoute1
+      filters:
+        - LocalServerPortUriResolver=
+        - PrefixPath=/httpbin
+        - AddRequestHeader=X-Test,listRoute1
+    - id: listRoute2
+      uri: https://examplel2.com
+      predicates:
+        - Method=GET,POST
+        - Path=/anything/listRoute2
+      filters:
+        - LocalServerPortUriResolver=
+        - PrefixPath=/httpbin
+        - AddRequestHeader=X-Test,listRoute2
+    - id: listRoute3
+      uri: lb://testservice
+      predicates:
+        - Path=/anything/listRoute3
+        - Header=MyHeaderName,MyHeader.*
+      filters:
+        - name: PrefixPath
+          args:
+            prefix: /httpbin
+        - name: AddRequestHeader
+          args:
+            name: X-Test
+            values: listRoute3
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE
