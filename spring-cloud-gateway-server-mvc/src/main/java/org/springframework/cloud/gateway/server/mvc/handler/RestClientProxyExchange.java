@@ -86,7 +86,7 @@ public class RestClientProxyExchange implements ProxyExchange {
 		/*.exchange((clientRequest, clientResponse) -> {
 			ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
 					.build((req, httpServletResponse) -> {
-						try {
+						try (clientHttpResponse) {
 							// copy body from request to clientHttpRequest
 							StreamUtils.copy(clientResponse.getBody(), httpServletResponse.getOutputStream());
 						}
