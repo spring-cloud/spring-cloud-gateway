@@ -45,7 +45,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
 			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
 					.build((req, httpServletResponse) -> {
-						try {
+						try (clientHttpResponse) {
 							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
 						}
 						catch (IOException e) {
