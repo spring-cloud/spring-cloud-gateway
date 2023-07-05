@@ -20,6 +20,9 @@ import java.net.URI;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
@@ -32,6 +35,8 @@ import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
+
+	private static final Log log = LogFactory.getLog(ProxyExchangeHandlerFunction.class);
 
 	private final ProxyExchange proxyExchange;
 
@@ -107,10 +112,9 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				return true;
 			}
 			catch (IllegalArgumentException ignored) {
-				/*
-				 * if (log.isTraceEnabled()) { log.trace("Error in containsEncodedParts",
-				 * ignored); }
-				 */
+				if (log.isTraceEnabled()) {
+					log.trace("Error in containsEncodedParts", ignored);
+				}
 			}
 
 			return false;
@@ -119,7 +123,6 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		return encoded;
 	}
 
-	// TODO: move from URIResolver to filter that sets url in request attribute
 	public interface URIResolver extends Function<ServerRequest, URI> {
 
 	}
