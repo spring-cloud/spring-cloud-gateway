@@ -19,7 +19,9 @@ package org.springframework.cloud.gateway.server.mvc;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
+import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
@@ -39,8 +41,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestClient;
 
-@AutoConfiguration(after = RestTemplateAutoConfiguration.class)
+@AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
@@ -51,11 +54,16 @@ public class GatewayServerMvcAutoConfiguration {
 		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
 	}
 
+	@Bean
+	public RestClientCustomizer gatewayRestClientCustomizer(ClientHttpRequestFactory requestFactory) {
+		return restClientBuilder -> restClientBuilder.requestFactory(requestFactory);
+	}
+
 	// Make default when reflection is no longer needed to function
 	// @Bean
 	@ConditionalOnMissingBean(ProxyExchange.class)
-	public RestClientProxyExchange restClientProxyExchange(ClientHttpRequestFactory requestFactory) {
-		return new RestClientProxyExchange(requestFactory);
+	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
+		return new RestClientProxyExchange(restClientBuilder.build());
 	}
 
 	@Bean

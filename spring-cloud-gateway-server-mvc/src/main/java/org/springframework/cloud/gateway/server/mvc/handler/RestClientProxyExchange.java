@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -33,8 +32,8 @@ public class RestClientProxyExchange implements ProxyExchange {
 
 	private final Field clientResponseField;
 
-	public RestClientProxyExchange(ClientHttpRequestFactory requestFactory) {
-		restClient = RestClient.builder().requestFactory(requestFactory).build();
+	public RestClientProxyExchange(RestClient restClient) {
+		this.restClient = restClient;
 		try {
 			clientResponseField = ReflectionUtils.findField(
 					ClassUtils.forName("org.springframework.web.client.DefaultRestClient$DefaultResponseSpec", null),
