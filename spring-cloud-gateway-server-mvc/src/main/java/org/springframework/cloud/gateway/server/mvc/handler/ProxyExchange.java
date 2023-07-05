@@ -17,10 +17,14 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.net.URI;
-import java.util.function.BiFunction;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.BiConsumer;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMessage;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -32,9 +36,7 @@ public interface ProxyExchange {
 
 	ServerResponse exchange(Request request);
 
-	interface Request {
-
-		HttpHeaders getHttpHeaders();
+	interface Request extends HttpMessage {
 
 		HttpMethod getMethod();
 
@@ -42,7 +44,17 @@ public interface ProxyExchange {
 
 		ServerRequest getServerRequest();
 
-		BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter();
+		Collection<ResponseConsumer> getResponseConsumers();
+
+	}
+
+	interface Response extends HttpMessage {
+
+		HttpStatusCode getStatusCode();
+
+	}
+
+	interface ResponseConsumer extends BiConsumer<Response, ServerResponse> {
 
 	}
 
@@ -54,8 +66,7 @@ public interface ProxyExchange {
 
 		RequestBuilder uri(URI uri);
 
-		RequestBuilder responseHeadersFilter(
-				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter);
+		RequestBuilder responseConsumer(ResponseConsumer responseConsumer);
 
 		Request build();
 
@@ -71,7 +82,7 @@ public interface ProxyExchange {
 
 		private URI uri;
 
-		private BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter;
+		private ArrayList<ResponseConsumer> responseConsumers = new ArrayList<>();
 
 		DefaultRequestBuilder(ServerRequest serverRequest) {
 			this.serverRequest = serverRequest;
@@ -97,9 +108,8 @@ public interface ProxyExchange {
 		}
 
 		@Override
-		public RequestBuilder responseHeadersFilter(
-				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter) {
-			this.responseHeadersFilter = responseHeadersFilter;
+		public RequestBuilder responseConsumer(ResponseConsumer responseConsumer) {
+			responseConsumers.add(responseConsumer);
 			return this;
 		}
 
@@ -110,7 +120,7 @@ public interface ProxyExchange {
 		}
 
 		@Override
-		public HttpHeaders getHttpHeaders() {
+		public HttpHeaders getHeaders() {
 			return httpHeaders;
 		}
 
@@ -129,8 +139,9 @@ public interface ProxyExchange {
 			return serverRequest;
 		}
 
-		public BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter() {
-			return responseHeadersFilter;
+		@Override
+		public Collection<ResponseConsumer> getResponseConsumers() {
+			return responseConsumers;
 		}
 
 	}

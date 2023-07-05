@@ -51,7 +51,7 @@ public class RestClientProxyExchange implements ProxyExchange {
 		// return restClient.method(request.getMethod()).uri(request.getUri())
 		RestClient.ResponseSpec responseSpec = restClient.method(request.getMethod()).uri(request.getUri())
 				.headers(httpHeaders -> {
-					request.getHttpHeaders().forEach((header, values) -> {
+					request.getHeaders().forEach((header, values) -> {
 						// TODO: why does this help form encoding?
 						if (!header.equalsIgnoreCase("content-length")) {
 							httpHeaders.put(header, values);
@@ -74,8 +74,9 @@ public class RestClientProxyExchange implements ProxyExchange {
 						}
 						return null;
 					});
-			serverResponse.headers()
-					.putAll(request.getResponseHeadersFilter().apply(clientHttpResponse.getHeaders(), serverResponse));
+			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
+			request.getResponseConsumers()
+					.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 			return serverResponse;
 		}
 		catch (IOException e) {

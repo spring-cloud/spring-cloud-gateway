@@ -37,7 +37,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 	public ServerResponse exchange(Request request) {
 		try {
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
-			clientHttpRequest.getHeaders().putAll(request.getHttpHeaders());
+			clientHttpRequest.getHeaders().putAll(request.getHeaders());
 			// TODO: why does this help form encoding?
 			clientHttpRequest.getHeaders().remove("content-length");
 			// copy body from request to clientHttpRequest
@@ -53,8 +53,9 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 						}
 						return null;
 					});
-			serverResponse.headers()
-					.putAll(request.getResponseHeadersFilter().apply(clientHttpResponse.getHeaders(), serverResponse));
+			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
+			request.getResponseConsumers()
+					.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 			return serverResponse;
 		}
 		catch (IOException e) {

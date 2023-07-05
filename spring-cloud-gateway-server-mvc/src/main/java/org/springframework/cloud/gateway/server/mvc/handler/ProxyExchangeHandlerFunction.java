@@ -86,8 +86,12 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		// @formatter:off
 		ProxyExchange.Request proxyRequest = proxyExchange.request(serverRequest).uri(url)
 				.headers(filteredRequestHeaders)
-				.responseHeadersFilter((httpHeaders, serverResponse) -> filterHeaders(this.responseHttpHeadersFilters.orderedStream().map(Function.identity()),
-						httpHeaders, serverResponse))
+				// TODO: allow injection of ResponseConsumer
+				.responseConsumer((response, serverResponse) -> {
+					HttpHeaders httpHeaders = filterHeaders(this.responseHttpHeadersFilters.orderedStream()
+							.map(Function.identity()), response.getHeaders(), serverResponse);
+					serverResponse.headers().putAll(httpHeaders);
+				})
 				.build();
 		// @formatter:on
 		return proxyExchange.exchange(proxyRequest);
