@@ -18,18 +18,21 @@ package org.springframework.cloud.gateway.server.mvc.test;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestClient;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.http.client.ClientHttpRequestFactory;
 
-@AutoConfiguration
+@AutoConfiguration(after = GatewayServerMvcAutoConfiguration.class)
 public class TestAutoConfiguration {
 
-	/*
-	 * @Bean RestTemplateCustomizer testRestClientRestTemplateCustomizer() { return
-	 * restTemplate -> restTemplate.setRequestFactory(new
-	 * HttpComponentsClientHttpRequestFactory()); }
-	 */
+	@Bean
+	RestTemplateCustomizer testRestClientRestTemplateCustomizer(ApplicationContext context) {
+		return restTemplate -> restTemplate.setRequestFactory(context.getBean(ClientHttpRequestFactory.class));
+	}
 
 	@Bean
 	public DefaultTestRestClient testRestClient(TestRestTemplate testRestTemplate, Environment env) {

@@ -17,16 +17,11 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.function.BiFunction;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 // TODO: try blocking RestClient when ready https://github.com/spring-projects/spring-framework/issues/29552
@@ -39,17 +34,12 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 	}
 
 	@Override
-	public RequestBuilder request(ServerRequest serverRequest) {
-		return new ClientHttpRequestBuilder(serverRequest).method(serverRequest.method());
-	}
-
-	@Override
 	public ServerResponse exchange(Request request) {
 		try {
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
-			// TODO: why does this help form encoding?
-			request.getHttpHeaders().remove("content-length");
 			clientHttpRequest.getHeaders().putAll(request.getHttpHeaders());
+			// TODO: why does this help form encoding?
+			clientHttpRequest.getHeaders().remove("content-length");
 			// copy body from request to clientHttpRequest
 			StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), clientHttpRequest.getBody());
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
@@ -71,79 +61,6 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 			// TODO: log error?
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static class ClientHttpRequestBuilder implements RequestBuilder, Request {
-
-		final ServerRequest serverRequest;
-
-		private HttpHeaders httpHeaders;
-
-		private HttpMethod method;
-
-		private URI uri;
-
-		private BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter;
-
-		public ClientHttpRequestBuilder(ServerRequest serverRequest) {
-			this.serverRequest = serverRequest;
-		}
-
-		@Override
-		public RequestBuilder headers(HttpHeaders httpHeaders) {
-			this.httpHeaders = httpHeaders;
-			return this;
-		}
-
-		@Override
-		public RequestBuilder method(HttpMethod method) {
-			this.method = method;
-			return this;
-		}
-
-		@Override
-		public RequestBuilder uri(URI uri) {
-			this.uri = uri;
-			return this;
-		}
-
-		@Override
-		public RequestBuilder responseHeadersFilter(
-				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter) {
-			this.responseHeadersFilter = responseHeadersFilter;
-			return this;
-		}
-
-		@Override
-		public Request build() {
-			// TODO: validation
-			return this;
-		}
-
-		@Override
-		public HttpHeaders getHttpHeaders() {
-			return httpHeaders;
-		}
-
-		@Override
-		public HttpMethod getMethod() {
-			return method;
-		}
-
-		@Override
-		public URI getUri() {
-			return uri;
-		}
-
-		@Override
-		public ServerRequest getServerRequest() {
-			return serverRequest;
-		}
-
-		public BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter() {
-			return responseHeadersFilter;
-		}
-
 	}
 
 }

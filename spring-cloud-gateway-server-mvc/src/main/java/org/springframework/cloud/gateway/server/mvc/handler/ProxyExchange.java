@@ -26,7 +26,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 public interface ProxyExchange {
 
-	RequestBuilder request(ServerRequest serverRequest);
+	default RequestBuilder request(ServerRequest serverRequest) {
+		return new DefaultRequestBuilder(serverRequest);
+	}
 
 	ServerResponse exchange(Request request);
 
@@ -56,6 +58,80 @@ public interface ProxyExchange {
 				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter);
 
 		Request build();
+
+	}
+
+	class DefaultRequestBuilder implements RequestBuilder, Request {
+
+		final ServerRequest serverRequest;
+
+		private HttpHeaders httpHeaders;
+
+		private HttpMethod method;
+
+		private URI uri;
+
+		private BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter;
+
+		DefaultRequestBuilder(ServerRequest serverRequest) {
+			this.serverRequest = serverRequest;
+			this.method = serverRequest.method();
+		}
+
+		@Override
+		public RequestBuilder headers(HttpHeaders httpHeaders) {
+			this.httpHeaders = httpHeaders;
+			return this;
+		}
+
+		@Override
+		public RequestBuilder method(HttpMethod method) {
+			this.method = method;
+			return this;
+		}
+
+		@Override
+		public RequestBuilder uri(URI uri) {
+			this.uri = uri;
+			return this;
+		}
+
+		@Override
+		public RequestBuilder responseHeadersFilter(
+				BiFunction<HttpHeaders, ServerResponse, HttpHeaders> responseHeadersFilter) {
+			this.responseHeadersFilter = responseHeadersFilter;
+			return this;
+		}
+
+		@Override
+		public Request build() {
+			// TODO: validation
+			return this;
+		}
+
+		@Override
+		public HttpHeaders getHttpHeaders() {
+			return httpHeaders;
+		}
+
+		@Override
+		public HttpMethod getMethod() {
+			return method;
+		}
+
+		@Override
+		public URI getUri() {
+			return uri;
+		}
+
+		@Override
+		public ServerRequest getServerRequest() {
+			return serverRequest;
+		}
+
+		public BiFunction<HttpHeaders, ServerResponse, HttpHeaders> getResponseHeadersFilter() {
+			return responseHeadersFilter;
+		}
 
 	}
 
