@@ -21,8 +21,11 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
+import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -74,32 +77,33 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder restTemplateBuilder) {
-		// TODO: set property if jdk HttpClient
-		// TODO: temporarily force Jdk HttpClient, copied from
-		// https://github.com/spring-projects/spring-boot/pull/36118
-		String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-		if (!StringUtils.hasText(restrictedHeaders)) {
-			System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
+	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(GatewayMvcProperties gatewayMvcProperties,
+			SslBundles sslBundles) {
+		GatewayMvcProperties.HttpClient properties = gatewayMvcProperties.getHttpClient();
+
+		SslBundle sslBundle = null;
+		if (StringUtils.hasText(properties.getSslBundle())) {
+			sslBundle = sslBundles.getBundle(properties.getSslBundle());
 		}
-		else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
-			System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
+		ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(properties.getConnectTimeout(),
+				properties.getReadTimeout(), sslBundle);
+
+		if (properties.getType() == GatewayMvcProperties.HttpClientType.JDK) {
+			// TODO: customize restricted headers
+			// https://github.com/spring-projects/spring-boot/pull/36118
+			String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
+			if (!StringUtils.hasText(restrictedHeaders)) {
+				System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
+			}
+			else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
+				System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
+			}
+
+			return ClientHttpRequestFactories.get(JdkClientHttpRequestFactory.class, settings);
 		}
-		return restTemplateBuilder.requestFactory(settings -> {
-			java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
-			if (settings.connectTimeout() != null) {
-				builder.connectTimeout(settings.connectTimeout());
-			}
-			if (settings.sslBundle() != null) {
-				builder.sslContext(settings.sslBundle().createSslContext());
-			}
-			java.net.http.HttpClient httpClient = builder.build();
-			JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-			if (settings.readTimeout() != null) {
-				requestFactory.setReadTimeout(settings.readTimeout());
-			}
-			return requestFactory;
-		}).buildRequestFactory();
+
+		// Autodetect
+		return ClientHttpRequestFactories.get(settings);
 	}
 
 	@Bean
