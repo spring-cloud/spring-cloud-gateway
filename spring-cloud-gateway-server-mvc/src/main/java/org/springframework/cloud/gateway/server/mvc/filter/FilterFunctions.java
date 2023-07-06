@@ -85,6 +85,14 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHost() {
+		return (request, next) -> {
+			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
+			return next.handle(request);
+		};
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
 		String normalizedReplacement = replacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);

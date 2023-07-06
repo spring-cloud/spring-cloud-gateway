@@ -70,6 +70,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
@@ -207,8 +208,14 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void hostPredicateWorks() {
-		restClient.get().uri("/anything/hostpredicate").header("Host", "www1.myjavadslhost.com").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("X-SubDomain", "www1");
+		String host = "www1.myjavadslhost.com";
+		restClient.get().uri("/anything/hostpredicate").header("Host", host).exchange().expectStatus().isOk()
+				.expectHeader().valueEquals("X-SubDomain", "www1").expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).containsEntry("host", host);
+				});
 	}
 
 	@Test
@@ -486,6 +493,7 @@ public class ServerMvcIntegrationTests {
 			return route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/httpbin"))
+					.filter(preserveHost())
 					.filter(addResponseHeader("X-SubDomain", "{sub}"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testhostpredicate");
 			// @formatter:on

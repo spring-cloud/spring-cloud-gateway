@@ -44,6 +44,11 @@ public abstract class MvcUtils {
 	 */
 	public static final String GATEWAY_ROUTE_ID_ATTR = qualify("gatewayRouteId");
 
+	/**
+	 * Preserve-Host header attribute name.
+	 */
+	public static final String PRESERVE_HOST_HEADER_ATTRIBUTE = qualify("preserveHostHeader");
+
 	private MvcUtils() {
 	}
 
