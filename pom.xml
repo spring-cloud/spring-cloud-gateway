@@ -51,6 +51,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<bucket4j.version>8.3.0</bucket4j.version>
 		<blockhound.version>1.0.6.RELEASE</blockhound.version>
 		<java.version>17</java.version>
 		<junit-pioneer.version>1.6.1</junit-pioneer.version>
@@ -98,6 +99,16 @@
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.bucket4j</groupId>
+				<artifactId>bucket4j-core</artifactId>
+				<version>${bucket4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.bucket4j</groupId>
+				<artifactId>bucket4j-caffeine</artifactId>
+				<version>${bucket4j.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>io.projectreactor.tools</groupId>
 				<artifactId>blockhound</artifactId>
 				<version>${blockhound.version}</version>
@@ -127,6 +138,7 @@
 		<module>spring-cloud-gateway-mvc</module>
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-server</module>
+		<module>spring-cloud-gateway-server-mvc</module>
 		<module>spring-cloud-starter-gateway</module>
 		<module>spring-cloud-gateway-sample</module>
 		<module>spring-cloud-gateway-integration-tests</module>
