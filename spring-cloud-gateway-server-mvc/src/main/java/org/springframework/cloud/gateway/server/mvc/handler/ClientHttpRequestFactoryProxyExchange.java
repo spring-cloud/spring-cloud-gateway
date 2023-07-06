@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -49,7 +50,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
 						}
 						catch (IOException e) {
-							throw new RuntimeException(e);
+							throw new UncheckedIOException(e);
 						}
 						return null;
 					});
@@ -60,7 +61,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		}
 		catch (IOException e) {
 			// TODO: log error?
-			throw new RuntimeException(e);
+			throw new UncheckedIOException(e);
 		}
 	}
 
