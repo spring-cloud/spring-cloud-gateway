@@ -49,9 +49,6 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 						try (clientHttpResponse) {
 							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
 						}
-						catch (IOException e) {
-							throw new UncheckedIOException(e);
-						}
 						return null;
 					});
 			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
