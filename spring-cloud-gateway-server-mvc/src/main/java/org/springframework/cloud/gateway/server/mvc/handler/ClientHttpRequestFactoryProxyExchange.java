@@ -25,7 +25,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.function.ServerResponse;
 
-// TODO: try blocking RestClient when ready https://github.com/spring-projects/spring-framework/issues/29552
 public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 
 	private final ClientHttpRequestFactory requestFactory;
