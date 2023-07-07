@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
+import java.util.List;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
@@ -24,6 +26,8 @@ import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestC
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 
 @AutoConfiguration(after = GatewayServerMvcAutoConfiguration.class)
@@ -31,7 +35,14 @@ public class TestAutoConfiguration {
 
 	@Bean
 	RestTemplateCustomizer testRestClientRestTemplateCustomizer(ApplicationContext context) {
-		return restTemplate -> restTemplate.setRequestFactory(context.getBean(ClientHttpRequestFactory.class));
+		return restTemplate -> {
+			restTemplate.setRequestFactory(context.getBean(ClientHttpRequestFactory.class));
+			restTemplate.setClientHttpRequestInitializers(List.of(request -> {
+				if (!request.getHeaders().containsKey(HttpHeaders.ACCEPT)) {
+					request.getHeaders().setAccept(List.of(MediaType.ALL));
+				}
+			}));
+		};
 	}
 
 	@Bean
@@ -41,8 +52,8 @@ public class TestAutoConfiguration {
 	}
 
 	@Bean
-	public HttpBinCompatibleController httpBinCompatibleController() {
-		return new HttpBinCompatibleController();
+	public TestController testController() {
+		return new TestController();
 	}
 
 }

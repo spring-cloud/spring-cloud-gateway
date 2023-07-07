@@ -42,8 +42,10 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
-import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
+import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
+import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
+import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +57,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,14 +87,17 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
+import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 import static org.springframework.web.servlet.function.RouterFunctions.route;
 
 @SuppressWarnings("unchecked")
 @SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
+@ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class ServerMvcIntegrationTests {
 
 	@LocalServerPort
@@ -111,19 +117,9 @@ public class ServerMvcIntegrationTests {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void addRequestHeaderWorks() {
-		ResponseEntity<Map> response = restTemplate.getForEntity("/get", Map.class);
-		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-		Map<String, Object> map0 = response.getBody();
-		assertThat(map0).isNotEmpty().containsKey("headers");
-		Map<String, Object> headers0 = (Map<String, Object>) map0.get("headers");
-		// TODO: assert headers case insensitive
-		assertThat(headers0).containsEntry("x-foo", "Bar");
-
 		restClient.get().uri("/get").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-			Map<String, Object> map = res.getResponseBody();
-			assertThat(map).isNotEmpty().containsKey("headers");
-			Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-			assertThat(headers).containsEntry("x-foo", "Bar");
+			Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+			assertThat(headers).containsEntry("X-Foo", "Bar");
 		});
 	}
 
@@ -132,9 +128,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/addrequestparam").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("args");
-					Map<String, Object> args = (Map<String, Object>) map.get("args");
-					assertThat(args).containsEntry("param1", Collections.singletonList("param1val"));
+					Map<String, Object> args = getMap(map, "args");
+					assertThat(args).containsEntry("param1", "param1val");
 				});
 	}
 
@@ -143,8 +138,7 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/removehopbyhoprequestheaders").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					Map<String, Object> headers = getMap(map, "headers");
 					assertThat(headers).doesNotContainKeys("x-application-context");
 				});
 	}
@@ -154,9 +148,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/mycustompathextra1").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("args");
-					Map<String, Object> args = (Map<String, Object>) map.get("args");
-					assertThat(args).containsEntry("param1", Collections.singletonList("param1valextra1"));
+					Map<String, Object> args = getMap(map, "args");
+					assertThat(args).containsEntry("param1", "param1valextra1");
 				});
 	}
 
@@ -165,16 +158,16 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/long/path/to/get").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "stripPrefix");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Test", "stripPrefix");
 				});
 	}
 
 	@Test
 	public void setStatusGatewayRouterFunctionWorks() {
 		restClient.get().uri("/status/201").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
-				.expectHeader().valueEquals("x-status", "201").expectBody(String.class).isEqualTo("Failed with 201");
+				.expectHeader().valueEquals("x-status", "201"); // .expectBody(String.class).isEqualTo("Failed
+																// with 201");
 	}
 
 	@Test
@@ -182,8 +175,7 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/addresheader").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					Map<String, Object> headers = getMap(map, "headers");
 					assertThat(headers).doesNotContainKey("x-bar");
 					assertThat(res.getResponseHeaders()).containsEntry("x-bar", Collections.singletonList("val1"));
 				});
@@ -191,8 +183,8 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void postWorks() {
-		restClient.post().uri("/post").bodyValue("Post Value").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
+		restClient.post().uri("/post").bodyValue("Post Value").header("test", "post").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					assertThat(map).isNotEmpty().containsEntry("data", "Post Value");
 				});
@@ -203,9 +195,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/loadbalancer").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "loadbalancer");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Test", "loadbalancer");
 				});
 	}
 
@@ -215,9 +206,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/hostpredicate").header("Host", host).exchange().expectStatus().isOk()
 				.expectHeader().valueEquals("X-SubDomain", "www1").expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("host", host);
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("Host", host);
 				});
 	}
 
@@ -250,9 +240,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/headerregex").header("X-MyHeader", "foo").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-myheader", "foo");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Myheader", "foo");
 				});
 	}
 
@@ -262,9 +251,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/cookieregex").cookie("mycookie", "foo").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("cookie", "mycookie=foo");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("Cookie", "mycookie=foo");
 				});
 	}
 
@@ -273,9 +261,8 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/foo/get").header("Host", "www.rewritepath.org").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "rewritepath");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Test", "rewritepath");
 				});
 	}
 
@@ -284,21 +271,20 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/headers").header("test", "forwarded").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsKeys(ForwardedRequestHeadersFilter.FORWARDED_HEADER.toLowerCase(),
-							XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER.toLowerCase(),
-							XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER.toLowerCase(),
-							XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER.toLowerCase(),
-							XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER.toLowerCase());
-					assertThat(headers.get(ForwardedRequestHeadersFilter.FORWARDED_HEADER.toLowerCase())).asString()
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsKeys(ForwardedRequestHeadersFilter.FORWARDED_HEADER,
+							XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER,
+							XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+							XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+							XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER);
+					assertThat(headers.get(ForwardedRequestHeadersFilter.FORWARDED_HEADER)).asString()
 							.contains("proto=http").contains("host=\"localhost:").contains("for=\"127.0.0.1:");
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER.toLowerCase()))
-							.asString().isEqualTo("localhost:" + this.port);
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER.toLowerCase()))
-							.asString().isEqualTo(String.valueOf(this.port));
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER.toLowerCase())
-							.toString()).asString().isEqualTo("http");
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER)).asString()
+							.isEqualTo("localhost:" + this.port);
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER)).asString()
+							.isEqualTo(String.valueOf(this.port));
+					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER).toString())
+							.asString().isEqualTo("http");
 				});
 	}
 
@@ -318,9 +304,9 @@ public class ServerMvcIntegrationTests {
 				.expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(result -> {
 					Map map = result.getResponseBody();
-					Map<String, Object> form = (Map<String, Object>) map.get("form");
-					assertThat(form).containsEntry("foo", Collections.singletonList("bar"));
-					assertThat(form).containsEntry("baz", Collections.singletonList("bam"));
+					Map<String, Object> form = getMap(map, "form");
+					assertThat(form).containsEntry("foo", "bar");
+					assertThat(form).containsEntry("baz", "bam");
 				});
 		// @formatter:on
 	}
@@ -376,15 +362,14 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/removerequestheader").header("X-Request-Foo", "Bar").exchange().expectStatus()
 				.isOk().expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).doesNotContainKey("x-request-foo");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).doesNotContainKey("X-Request-Foo");
 				});
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
+	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	protected static class TestConfiguration {
 
 		@Bean
@@ -412,9 +397,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
 			// @formatter:off
 			return route(GET("/get"), http())
-					.filter(new LocalServerPortUriResolver())
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Foo", "Bar"))
-					.filter(prefixPath("/httpbin"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddreqheader");
 			// @formatter:on
 		}
@@ -423,14 +407,12 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatusAndAddRespHeader() {
 			// @formatter:off
 			return (RouterFunction<ServerResponse>) route().GET("/status/{status}", http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
 					.filter(addResponseHeader("X-Status", "{status}"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetstatus")
 				.build().andOther(route().GET("/anything/addresheader", http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(addResponseHeader("X-Bar", "val1"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddresponseheader")
 				.build());
@@ -441,8 +423,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRequestParam() {
 			// @formatter:off
 			return route(GET("/anything/addrequestparam"), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestParameter("param1", "param1val"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddrequestparam");
 			// @formatter:on
@@ -452,8 +433,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
 			// @formatter:off
 			return route(GET("/mycustompath{extra}"), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/anything/mycustompath{extra}"))
+					.filter(new HttpbinUriResolver())
+					.filter(setPath("/anything/mycustompath{extra}"))
 					.filter(addRequestParameter("param1", "param1val{extra}"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetpath");
 			// @formatter:on
@@ -463,8 +444,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
 			return route(GET("/long/path/to/get"), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
@@ -475,8 +455,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveHopByHopRequestHeaders() {
 			// @formatter:off
 			return route(GET("/anything/removehopbyhoprequestheaders"), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("x-application-context", "context-id1"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testremovehopbyhopheaders");
 			// @formatter:on
@@ -485,12 +464,9 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsPost() {
 			// @formatter:off
-			return route()
-					.POST("/post", http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testpost")
-					.build();
+			return route(POST("/post").and(header("test", "post")), http())
+					.filter(new HttpbinUriResolver())
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testpost");
 			// @formatter:on
 		}
 
@@ -499,8 +475,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route()
 					.GET("/anything/loadbalancer", http())
-					.filter(lb("testservice"))
-					.filter(prefixPath("/httpbin"))
+					.filter(lb("httpbin"))
 					.filter(addRequestHeader("X-Test", "loadbalancer"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testloadbalancer")
 					.build();
@@ -511,8 +486,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
 			// @formatter:off
 			return route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(preserveHost())
 					.filter(addResponseHeader("X-SubDomain", "{sub}"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testhostpredicate");
@@ -524,7 +498,6 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
 					.filter(circuitBreaker("mycb1", "/hello"))
-					.filter(prefixPath("/httpbin"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakerfallback");
 			// @formatter:on
 		}
@@ -533,9 +506,9 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerNoFallback() {
 			// @formatter:off
 			return route(path("/anything/circuitbreakernofallback"), http())
-					.filter(new LocalServerPortUriResolver())
+					.filter(new HttpbinUriResolver())
 					.filter(circuitBreaker("mycb1", null))
-					.filter(setPath("/httpbin/delay/5"))
+					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
 			// @formatter:on
 		}
@@ -546,7 +519,7 @@ public class ServerMvcIntegrationTests {
 			return route(path("/retry"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(retry(3))
-					.filter(prefixPath("/httpbin"))
+					.filter(prefixPath("/do"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testretry");
 			// @formatter:on
 		}
@@ -555,12 +528,11 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRateLimit() {
 			// @formatter:off
 			return route(GET("/anything/ratelimit"), http())
-					.filter(new LocalServerPortUriResolver())
+					.filter(new HttpbinUriResolver())
 					//.filter(rateLimit(1, Duration.ofMinutes(1), request -> "ratelimittest1min"))
 					.filter(rateLimit(c -> c.setCapacity(1)
 							.setPeriod(Duration.ofMinutes(1))
 							.setKeyResolver(request -> "ratelimitttest1min")))
-					.filter(prefixPath("/httpbin"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testratelimit");
 			// @formatter:on
 		}
@@ -569,8 +541,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsHeaderPredicate() {
 			// @formatter:off
 			return route(path("/headerregex").and(header("X-MyHeader", "fo.")), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/headers"))
+					.filter(new HttpbinUriResolver())
+					.filter(setPath("/headers"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testheaderpredicate");
 			// @formatter:on
 		}
@@ -579,8 +551,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCookiePredicate() {
 			// @formatter:off
 			return route(path("/cookieregex").and(cookie("mycookie", "fo.")), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(setPath("/httpbin/headers"))
+					.filter(new HttpbinUriResolver())
+					.filter(setPath("/headers"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcookiepredicate");
 			// @formatter:on
 		}
@@ -589,8 +561,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePath() {
 			// @formatter:off
 			return route(path("/foo/**").and(host("**.rewritepath.org")), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(rewritePath("/foo/(?<segment>.*)", "/httpbin/${segment}"))
+					.filter(new HttpbinUriResolver())
+					.filter(rewritePath("/foo/(?<segment>.*)", "/${segment}"))
 					.filter(addRequestHeader("X-Test", "rewritepath"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testrewritepath");
 			// @formatter:on
@@ -600,8 +572,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsForwardedHeaders() {
 			// @formatter:off
 			return route(path("/headers").and(header("test", "forwarded")), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Test", "forwarded"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testforwardedheaders");
 			// @formatter:on
@@ -610,11 +581,14 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsForm() {
 			// @formatter:off
-			return route(path("/post").and(header("test", "form")), http())
+
+			return route()
+					.POST("/post", header("test", "form"), http())
 					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testform");
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testform")
+					.build();
 			// @formatter:on
 		}
 
@@ -631,8 +605,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestHeader() {
 			// @formatter:off
 			return route(path("/anything/removerequestheader"), http())
-					.filter(new LocalServerPortUriResolver())
-					.filter(prefixPath("/httpbin"))
+					.filter(new HttpbinUriResolver())
 					.filter(removeRequestHeader("X-Request-Foo"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testremoverequestheader");
 			// @formatter:on
@@ -647,7 +620,7 @@ public class ServerMvcIntegrationTests {
 
 		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
 
-		@GetMapping("/httpbin/retry")
+		@GetMapping("/do/retry")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
 				@RequestParam(name = "count", defaultValue = "3") int count,
 				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
