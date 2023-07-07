@@ -49,6 +49,7 @@ import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -71,6 +72,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.preserveHost;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
@@ -348,6 +350,12 @@ public class ServerMvcIntegrationTests {
 		assertMultipartData(response.getBody());
 	}
 
+	@Test
+	public void redirectToWorks() {
+		restClient.get().uri("/anything/redirect").exchange().expectStatus().isEqualTo(HttpStatus.MOVED_PERMANENTLY)
+				.expectHeader().valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
+	}
+
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
 		ClassPathResource part = new ClassPathResource("test/1x1.png");
 		MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -595,6 +603,15 @@ public class ServerMvcIntegrationTests {
 					.filter(prefixPath("/httpbin"))
 					.filter(addRequestHeader("X-Test", "form"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testform");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectTo() {
+			// @formatter:off
+			return route(path("/anything/redirect"), http())
+					.filter(redirectTo(HttpStatus.MOVED_PERMANENTLY, URI.create("https://exampleredirect.com")))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirectto");
 			// @formatter:on
 		}
 

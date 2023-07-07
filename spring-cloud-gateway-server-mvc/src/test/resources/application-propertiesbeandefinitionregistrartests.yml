@@ -9,6 +9,8 @@ spring.cloud.gateway.mvc:
       uri: https://example2.com
       predicates:
         - Path=/anything/example2
+      filters:
+        - SetStatus=200
   routes:
     - id: listRoute1
       uri: https://examplel1.com

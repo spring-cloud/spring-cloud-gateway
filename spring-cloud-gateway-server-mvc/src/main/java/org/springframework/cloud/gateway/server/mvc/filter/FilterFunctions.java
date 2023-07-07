@@ -23,11 +23,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -89,6 +91,30 @@ public interface FilterFunctions {
 		return (request, next) -> {
 			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return next.handle(request);
+		};
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri) {
+		return redirectTo(new HttpStatusHolder(null, status), uri);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri) {
+		return redirectTo(new HttpStatusHolder(status, null), uri);
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
+		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
+
+		return (request, next) -> {
+			ServerResponse.BodyBuilder builder;
+			if (status.getStatus() != null) {
+				builder = ServerResponse.status(status.getStatus());
+			}
+			else {
+				builder = ServerResponse.status(status.getHttpStatus());
+			}
+			return builder.header(HttpHeaders.LOCATION, uri.toString()).build();
 		};
 	}
 
@@ -161,19 +187,25 @@ public interface FilterFunctions {
 		};
 	}
 
-	// TODO: current discovery only goes by method name
-	// so last one wins, so put int first for now
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(int statusCode) {
-		return setStatus(HttpStatus.valueOf(statusCode));
+		return setStatus(new HttpStatusHolder(null, statusCode));
 	}
 
-	// TODO: handle int or string for config
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
+		return setStatus(new HttpStatusHolder(statusCode, null));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(HttpStatusHolder statusCode) {
 		return (request, next) -> {
 			ServerResponse response = next.handle(request);
-			if (response instanceof GatewayServerResponse) {
-				GatewayServerResponse res = (GatewayServerResponse) response;
-				res.setStatusCode(statusCode);
+			if (response instanceof GatewayServerResponse res) {
+				if (statusCode.getStatus() != null) {
+					res.setStatusCode(HttpStatusCode.valueOf(statusCode.getStatus()));
+				}
+				else {
+					res.setStatusCode(statusCode.getHttpStatus());
+				}
 			}
 			return response;
 		};
