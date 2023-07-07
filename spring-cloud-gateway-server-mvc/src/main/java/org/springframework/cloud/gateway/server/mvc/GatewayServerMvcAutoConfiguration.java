@@ -50,13 +50,6 @@ import org.springframework.web.client.RestClient;
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
-	// @Bean
-	@ConditionalOnMissingBean(ProxyExchange.class)
-	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
-			ClientHttpRequestFactory requestFactory) {
-		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
-	}
-
 	@Bean
 	public RestClientCustomizer gatewayRestClientCustomizer(ClientHttpRequestFactory requestFactory) {
 		return restClientBuilder -> restClientBuilder.requestFactory(requestFactory);
@@ -89,7 +82,6 @@ public class GatewayServerMvcAutoConfiguration {
 
 		if (properties.getType() == GatewayMvcProperties.HttpClientType.JDK) {
 			// TODO: customize restricted headers
-			// https://github.com/spring-projects/spring-boot/pull/36118
 			String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
 			if (!StringUtils.hasText(restrictedHeaders)) {
 				System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
