@@ -50,7 +50,7 @@ import org.springframework.web.client.RestClient;
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
-	@Bean
+	// @Bean
 	@ConditionalOnMissingBean(ProxyExchange.class)
 	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
 			ClientHttpRequestFactory requestFactory) {
@@ -62,8 +62,7 @@ public class GatewayServerMvcAutoConfiguration {
 		return restClientBuilder -> restClientBuilder.requestFactory(requestFactory);
 	}
 
-	// Make default when reflection is no longer needed to function
-	// @Bean
+	@Bean
 	@ConditionalOnMissingBean(ProxyExchange.class)
 	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
 		return new RestClientProxyExchange(restClientBuilder.build());
