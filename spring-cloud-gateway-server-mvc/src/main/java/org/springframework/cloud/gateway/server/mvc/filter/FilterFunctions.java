@@ -118,6 +118,14 @@ public interface FilterFunctions {
 		};
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestHeader(String name) {
+		return (request, next) -> {
+			ServerRequest modified = ServerRequest.from(request).headers(httpHeaders -> httpHeaders.remove(name))
+					.build();
+			return next.handle(modified);
+		};
+	}
+
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
 		String normalizedReplacement = replacement.replace("$\\", "$");

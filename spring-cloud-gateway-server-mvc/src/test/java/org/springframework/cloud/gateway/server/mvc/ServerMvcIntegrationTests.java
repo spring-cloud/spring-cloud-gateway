@@ -73,6 +73,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
@@ -370,6 +371,17 @@ public class ServerMvcIntegrationTests {
 		assertThat(file).startsWith("data:").contains(";base64,");
 	}
 
+	@Test
+	public void removeRequestHeaderWorks() {
+		restClient.get().uri("/anything/removerequestheader").header("X-Request-Foo", "Bar").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).isNotEmpty().containsKey("headers");
+					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
+					assertThat(headers).doesNotContainKey("x-request-foo");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
@@ -612,6 +624,17 @@ public class ServerMvcIntegrationTests {
 			return route(path("/anything/redirect"), http())
 					.filter(redirectTo(HttpStatus.MOVED_PERMANENTLY, URI.create("https://exampleredirect.com")))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirectto");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestHeader() {
+			// @formatter:off
+			return route(path("/anything/removerequestheader"), http())
+					.filter(new LocalServerPortUriResolver())
+					.filter(prefixPath("/httpbin"))
+					.filter(removeRequestHeader("X-Request-Foo"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testremoverequestheader");
 			// @formatter:on
 		}
 
