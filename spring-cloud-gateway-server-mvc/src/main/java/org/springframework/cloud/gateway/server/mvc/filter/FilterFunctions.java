@@ -20,82 +20,43 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
-import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
-import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
-import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriTemplate;
+
+import static org.springframework.web.servlet.function.HandlerFilterFunction.ofRequestProcessor;
+import static org.springframework.web.servlet.function.HandlerFilterFunction.ofResponseProcessor;
 
 public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
-		return (request, next) -> {
-			String[] expandedValues = MvcUtils.expandMultiple(request, values);
-			ServerRequest modified = ServerRequest.from(request).header(name, expandedValues).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.addRequestHeader(name, values));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestParameter(String name, String... values) {
-		return (request, next) -> {
-			String[] expandedValues = MvcUtils.expandMultiple(request, values);
-			ServerRequest modified = ServerRequest.from(request).param(name, expandedValues).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.addRequestParameter(name, values));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
-		return (request, next) -> addResponseHeaderAfter(name, values).apply(request, next.handle(request));
-	}
-
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> addResponseHeaderAfter(String name,
-			String... values) {
-		return (request, response) -> {
-			if (response instanceof GatewayServerResponse res) {
-				String[] expandedValues = MvcUtils.expandMultiple(request, values);
-				res.headers().addAll(name, Arrays.asList(expandedValues));
-			}
-			return response;
-		};
+		return ofResponseProcessor(AfterFilterFunctions.addResponseHeader(name, values));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
-		final UriTemplate uriTemplate = new UriTemplate(prefix);
-
-		return (request, next) -> {
-			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
-			URI uri = uriTemplate.expand(uriVariables);
-
-			String newPath = uri.getRawPath() + request.uri().getRawPath();
-
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.prefixPath(prefix));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHost() {
-		return (request, next) -> {
-			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
-			return next.handle(request);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.preserveHost());
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri) {
@@ -123,92 +84,36 @@ public interface FilterFunctions {
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestHeader(String name) {
-		return (request, next) -> {
-			ServerRequest modified = ServerRequest.from(request).headers(httpHeaders -> httpHeaders.remove(name))
-					.build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.removeRequestHeader(name));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
-		String normalizedReplacement = replacement.replace("$\\", "$");
-		Pattern pattern = Pattern.compile(regexp);
-		return (request, next) -> {
-			// TODO: original request url
-			String path = request.uri().getRawPath();
-			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
-
-			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-
-			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
-
-			MvcUtils.setRequestUrl(modified, modified.uri());
-
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.rewritePath(regexp, replacement));
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> routeId(String routeId) {
-		return (request, next) -> {
-			request.attributes().put(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
-			return next.handle(request);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.routeId(routeId));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setPath(String path) {
-		UriTemplate uriTemplate = new UriTemplate(path);
-
-		return (request, next) -> {
-			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
-			URI uri = uriTemplate.expand(uriVariables);
-			String newPath = uri.getRawPath();
-
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.setPath(path));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestHeader(String name, String value) {
-		return (request, next) -> {
-			String expandedValue = MvcUtils.expand(request, value);
-			ServerRequest modified = ServerRequest.from(request)
-					.headers(httpHeaders -> httpHeaders.set(name, expandedValue)).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.setRequestHeader(name, value));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestHostHeader(String host) {
-		return (request, next) -> {
-			String expandedValue = MvcUtils.expand(request, host);
-			ServerRequest modified = ServerRequest.from(request).headers(httpHeaders -> {
-				httpHeaders.remove(HttpHeaders.HOST);
-				httpHeaders.set(HttpHeaders.HOST, expandedValue);
-			}).build();
-
-			// Make sure the header we just set is preserved
-			modified.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.setRequestHostHeader(host));
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setResponseHeader(String name, String value) {
-		return (request, next) -> setResponseHeaderAfter(name, value).apply(request, next.handle(request));
-	}
-
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeaderAfter(String name, String value) {
-		return (request, response) -> {
-			if (response instanceof GatewayServerResponse res) {
-				String expandedValue = MvcUtils.expand(request, value);
-				res.headers().set(name, expandedValue);
-			}
-			return response;
-		};
+		return ofResponseProcessor(AfterFilterFunctions.setResponseHeader(name, value));
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix() {
@@ -217,33 +122,7 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix(int parts) {
-		return (request, next) -> {
-			// TODO: gateway url attributes
-			String path = request.uri().getRawPath();
-			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
-			String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
-
-			// all new paths start with /
-			StringBuilder newPath = new StringBuilder("/");
-			for (int i = 0; i < originalParts.length; i++) {
-				if (i >= parts) {
-					// only append slash if this is the second part or greater
-					if (newPath.length() > 1) {
-						newPath.append('/');
-					}
-					newPath.append(originalParts[i]);
-				}
-			}
-			if (newPath.length() > 1 && path.endsWith("/")) {
-				newPath.append('/');
-			}
-			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
-
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
-					.toUri();
-			ServerRequest modified = ServerRequest.from(request).uri(prefixedUri).build();
-			return next.handle(modified);
-		};
+		return ofRequestProcessor(BeforeFilterFunctions.stripPrefix(parts));
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(int statusCode) {
@@ -256,18 +135,7 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setStatus(HttpStatusHolder statusCode) {
-		return (request, next) -> {
-			ServerResponse response = next.handle(request);
-			if (response instanceof GatewayServerResponse res) {
-				if (statusCode.getStatus() != null) {
-					res.setStatusCode(HttpStatusCode.valueOf(statusCode.getStatus()));
-				}
-				else {
-					res.setStatusCode(statusCode.getHttpStatus());
-				}
-			}
-			return response;
-		};
+		return ofResponseProcessor(AfterFilterFunctions.setStatus(statusCode));
 	}
 
 	class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {

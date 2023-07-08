@@ -69,23 +69,22 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeaderAfter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHostHeader;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setResponseHeaderAfter;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
@@ -443,14 +442,14 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return (RouterFunction<ServerResponse>) route("testsetstatus")
 					.GET("/status/{status}", http())
-					.filter(new HttpbinUriResolver())
-					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
-					.filter(addResponseHeader("X-Status", "{status}"))
+					.before(new HttpbinUriResolver())
+					.after(setStatus(HttpStatus.TOO_MANY_REQUESTS))
+					.after(addResponseHeader("X-Status", "{status}"))
 				.build().andOther(route()
 					.GET("/anything/addresheader", http())
-					.filter(routeId("testaddresponseheader"))
-					.filter(new HttpbinUriResolver())
-					.filter(addResponseHeader("X-Bar", "val1"))
+					.before(routeId("testaddresponseheader"))
+					.before(new HttpbinUriResolver())
+					.after(addResponseHeader("X-Bar", "val1"))
 				.build());
 			// @formatter:on
 		}
@@ -521,11 +520,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
 			// @formatter:off
-			return route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
-					.filter(new HttpbinUriResolver())
-					.filter(preserveHost())
-					.filter(addResponseHeader("X-SubDomain", "{sub}"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testhostpredicate");
+			return route("testhostpredicate")
+					.route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
+					.before(new HttpbinUriResolver())
+					.before(preserveHost())
+					.after(addResponseHeader("X-SubDomain", "{sub}"))
+					.build();
 			// @formatter:on
 		}
 
@@ -552,11 +552,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
 			// @formatter:off
-			return route(path("/retry"), http())
-					.filter(new LocalServerPortUriResolver())
+			return route("testretry")
+					.route(path("/retry"), http())
+					.before(new LocalServerPortUriResolver())
 					.filter(retry(3))
 					.filter(prefixPath("/do"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testretry");
+					.build();
 			// @formatter:on
 		}
 
@@ -619,7 +620,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testform")
 					.POST("/post", header("test", "form"), http())
-					.filter(new LocalServerPortUriResolver())
+					.before(new LocalServerPortUriResolver())
 					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
 					.build();
@@ -675,8 +676,8 @@ public class ServerMvcIntegrationTests {
 					.GET("/anything/setresponseheader", header("test", "setresponseheader"), http())
 					.before(new HttpbinUriResolver())
 					// reverse order for "post" filters
-					.after(setResponseHeaderAfter("X-Test", "value2"))
-					.after(addResponseHeaderAfter("X-Test", "value1"))
+					.after(setResponseHeader("X-Test", "value2"))
+					.after(addResponseHeader("X-Test", "value1"))
 					.build();
 			// @formatter:on
 		}
