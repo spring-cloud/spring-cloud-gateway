@@ -29,7 +29,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 public abstract class HandlerFunctions {
 
-	protected HandlerFunctions() {
+	private HandlerFunctions() {
 
 	}
 

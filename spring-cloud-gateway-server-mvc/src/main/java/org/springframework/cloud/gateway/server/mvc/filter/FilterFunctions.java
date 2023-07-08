@@ -145,6 +145,13 @@ public interface FilterFunctions {
 		};
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> routeId(String routeId) {
+		return (request, next) -> {
+			request.attributes().put(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
+			return next.handle(request);
+		};
+	}
+
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> setPath(String path) {
 		UriTemplate uriTemplate = new UriTemplate(path);

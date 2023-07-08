@@ -78,11 +78,13 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
@@ -93,7 +95,6 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.web.servlet.function.RequestPredicates.GET;
 import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
-import static org.springframework.web.servlet.function.RouterFunctions.route;
 
 @SuppressWarnings("unchecked")
 @SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -406,15 +407,16 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatusAndAddRespHeader() {
 			// @formatter:off
-			return (RouterFunction<ServerResponse>) route().GET("/status/{status}", http())
+			return (RouterFunction<ServerResponse>) route("testsetstatus")
+					.GET("/status/{status}", http())
 					.filter(new HttpbinUriResolver())
 					.filter(setStatus(HttpStatus.TOO_MANY_REQUESTS))
 					.filter(addResponseHeader("X-Status", "{status}"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testsetstatus")
-				.build().andOther(route().GET("/anything/addresheader", http())
+				.build().andOther(route()
+					.GET("/anything/addresheader", http())
+					.filter(routeId("testaddresponseheader"))
 					.filter(new HttpbinUriResolver())
 					.filter(addResponseHeader("X-Bar", "val1"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testaddresponseheader")
 				.build());
 			// @formatter:on
 		}
@@ -581,13 +583,11 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsForm() {
 			// @formatter:off
-
-			return route()
+			return route("testform")
 					.POST("/post", header("test", "form"), http())
 					.filter(new LocalServerPortUriResolver())
 					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testform")
 					.build();
 			// @formatter:on
 		}
