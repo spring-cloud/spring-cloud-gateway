@@ -80,6 +80,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
@@ -368,6 +369,17 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void setRequestHeaderWorks() {
+		restClient.get().uri("/headers").header("test", "setrequestheader").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).doesNotContainEntry("X-Test", "value1");
+					assertThat(headers).containsEntry("X-Test", "value2");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -608,6 +620,18 @@ public class ServerMvcIntegrationTests {
 					.filter(new HttpbinUriResolver())
 					.filter(removeRequestHeader("X-Request-Foo"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testremoverequestheader");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHeader() {
+			// @formatter:off
+			return route("testsetrequestheader")
+					.GET("/headers", header("test", "setrequestheader"), http())
+					.filter(new HttpbinUriResolver())
+					.filter(addRequestHeader("X-Test", "value1"))
+					.filter(setRequestHeader("X-Test", "value2"))
+					.build();
 			// @formatter:on
 		}
 

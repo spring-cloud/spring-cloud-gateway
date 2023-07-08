@@ -167,6 +167,16 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestHeader(String name, String value) {
+		return (request, next) -> {
+			String expandedValue = MvcUtils.expand(request, value);
+			ServerRequest modified = ServerRequest.from(request)
+					.headers(httpHeaders -> httpHeaders.set(name, expandedValue)).build();
+			return next.handle(modified);
+		};
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix() {
 		return stripPrefix(1);
 	}
