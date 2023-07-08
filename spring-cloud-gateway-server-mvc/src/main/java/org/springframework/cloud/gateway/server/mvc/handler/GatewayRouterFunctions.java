@@ -23,7 +23,7 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.RouterFunctions.Builder;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.routeId;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 
 public abstract class GatewayRouterFunctions {
 
@@ -35,7 +35,7 @@ public abstract class GatewayRouterFunctions {
 	}
 
 	public static Builder route(String routeId) {
-		return RouterFunctions.route().filter(routeId(routeId));
+		return RouterFunctions.route().before(routeId(routeId));
 	}
 
 	public static <T extends ServerResponse> RouterFunction<T> route(RequestPredicate predicate,
