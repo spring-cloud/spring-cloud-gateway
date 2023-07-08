@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
@@ -59,10 +60,13 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
-		return (request, next) -> {
-			ServerResponse response = next.handle(request);
-			if (response instanceof GatewayServerResponse) {
-				GatewayServerResponse res = (GatewayServerResponse) response;
+		return (request, next) -> addResponseHeaderAfter(name, values).apply(request, next.handle(request));
+	}
+
+	static BiFunction<ServerRequest, ServerResponse, ServerResponse> addResponseHeaderAfter(String name,
+			String... values) {
+		return (request, response) -> {
+			if (response instanceof GatewayServerResponse res) {
 				String[] expandedValues = MvcUtils.expandMultiple(request, values);
 				res.headers().addAll(name, Arrays.asList(expandedValues));
 			}
@@ -189,6 +193,21 @@ public interface FilterFunctions {
 			// Make sure the header we just set is preserved
 			modified.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return next.handle(modified);
+		};
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setResponseHeader(String name, String value) {
+		return (request, next) -> setResponseHeaderAfter(name, value).apply(request, next.handle(request));
+	}
+
+	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeaderAfter(String name, String value) {
+		return (request, response) -> {
+			if (response instanceof GatewayServerResponse res) {
+				String expandedValue = MvcUtils.expand(request, value);
+				res.headers().set(name, expandedValue);
+			}
+			return response;
 		};
 	}
 

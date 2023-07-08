@@ -17,9 +17,9 @@
 package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.net.URI;
+import java.util.function.Function;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
-import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -27,10 +27,9 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 public class HttpbinUriResolver
-		implements ProxyExchangeHandlerFunction.URIResolver, HandlerFilterFunction<ServerResponse, ServerResponse> {
+		implements Function<ServerRequest, ServerRequest>, HandlerFilterFunction<ServerResponse, ServerResponse> {
 
-	@Override
-	public URI apply(ServerRequest request) {
+	protected URI uri(ServerRequest request) {
 		ApplicationContext context = MvcUtils.getApplicationContext(request);
 		Integer port = context.getEnvironment().getProperty("httpbin.port", Integer.class);
 		String host = context.getEnvironment().getProperty("httpbin.host");
@@ -39,9 +38,14 @@ public class HttpbinUriResolver
 
 	@Override
 	public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
-		URI uri = apply(request);
+		return next.handle(apply(request));
+	}
+
+	@Override
+	public ServerRequest apply(ServerRequest request) {
+		URI uri = uri(request);
 		MvcUtils.setRequestUrl(request, uri);
-		return next.handle(request);
+		return request;
 	}
 
 }

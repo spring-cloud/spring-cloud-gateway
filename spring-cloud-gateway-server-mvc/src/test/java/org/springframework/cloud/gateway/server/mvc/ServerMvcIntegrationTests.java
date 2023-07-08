@@ -20,6 +20,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,6 +74,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreaker
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addResponseHeaderAfter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
@@ -82,6 +84,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setResponseHeaderAfter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
@@ -389,6 +392,16 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void setResponseHeaderWorks() {
+		restClient.get().uri("/anything/setresponseheader").header("test", "setresponseheader").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					HttpHeaders headers = res.getResponseHeaders();
+					assertThat(headers).doesNotContainEntry("X-Test", List.of("value1"));
+					assertThat(headers).containsEntry("X-Test", List.of("value2"));
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -651,6 +664,19 @@ public class ServerMvcIntegrationTests {
 					.route(host("**.setrequesthostheader.org"), http())
 					.filter(new HttpbinUriResolver())
 					.filter(setRequestHostHeader("otherhost.io"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetResponseHeader() {
+			// @formatter:off
+			return route("testsetresponseheader")
+					.GET("/anything/setresponseheader", header("test", "setresponseheader"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(setResponseHeaderAfter("X-Test", "value2"))
+					.after(addResponseHeaderAfter("X-Test", "value1"))
 					.build();
 			// @formatter:on
 		}
