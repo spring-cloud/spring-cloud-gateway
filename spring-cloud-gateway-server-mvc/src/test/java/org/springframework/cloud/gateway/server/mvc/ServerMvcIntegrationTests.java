@@ -81,6 +81,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
@@ -373,10 +374,18 @@ public class ServerMvcIntegrationTests {
 	public void setRequestHeaderWorks() {
 		restClient.get().uri("/headers").header("test", "setrequestheader").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
 					assertThat(headers).doesNotContainEntry("X-Test", "value1");
 					assertThat(headers).containsEntry("X-Test", "value2");
+				});
+	}
+
+	@Test
+	public void setRequestHeaderHostWorks() {
+		restClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("Host", "otherhost.io");
 				});
 	}
 
@@ -631,6 +640,17 @@ public class ServerMvcIntegrationTests {
 					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Test", "value1"))
 					.filter(setRequestHeader("X-Test", "value2"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHostHeader() {
+			// @formatter:off
+			return route("testsetrequestheader")
+					.route(host("**.setrequesthostheader.org"), http())
+					.filter(new HttpbinUriResolver())
+					.filter(setRequestHostHeader("otherhost.io"))
 					.build();
 			// @formatter:on
 		}

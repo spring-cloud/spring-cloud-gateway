@@ -177,6 +177,21 @@ public interface FilterFunctions {
 		};
 	}
 
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestHostHeader(String host) {
+		return (request, next) -> {
+			String expandedValue = MvcUtils.expand(request, host);
+			ServerRequest modified = ServerRequest.from(request).headers(httpHeaders -> {
+				httpHeaders.remove(HttpHeaders.HOST);
+				httpHeaders.set(HttpHeaders.HOST, expandedValue);
+			}).build();
+
+			// Make sure the header we just set is preserved
+			modified.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
+			return next.handle(modified);
+		};
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix() {
 		return stripPrefix(1);
 	}
