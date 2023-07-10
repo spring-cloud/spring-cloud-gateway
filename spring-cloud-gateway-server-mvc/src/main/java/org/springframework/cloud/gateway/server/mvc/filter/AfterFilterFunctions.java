@@ -36,6 +36,13 @@ public interface AfterFilterFunctions {
 		};
 	}
 
+	static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
+		return (request, response) -> {
+			response.headers().remove(name);
+			return response;
+		};
+	}
+
 	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeader(String name, String value) {
 		return (request, response) -> {
 			String expandedValue = MvcUtils.expand(request, value);

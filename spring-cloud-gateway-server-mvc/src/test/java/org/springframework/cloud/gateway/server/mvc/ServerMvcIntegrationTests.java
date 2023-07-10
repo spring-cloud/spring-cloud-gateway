@@ -70,6 +70,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
@@ -426,6 +427,15 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void removeResponseHeaderWorks() {
+		restClient.get().uri("/anything/removeresponseheader").header("test", "removeresponseheader").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					HttpHeaders headers = res.getResponseHeaders();
+					assertThat(headers).doesNotContainKey("X-Test");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -730,6 +740,19 @@ public class ServerMvcIntegrationTests {
 					.route(header("test", "removerequestparam"), http())
 					.filter(new HttpbinUriResolver())
 					.before(removeRequestParameter("foo"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveResponseHeader() {
+			// @formatter:off
+			return route("testremoveresponseheader")
+					.GET("/anything/removeresponseheader", header("test", "removeresponseheader"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(removeResponseHeader("X-Test"))
+					.after(addResponseHeader("X-Test", "value1"))
 					.build();
 			// @formatter:on
 		}
