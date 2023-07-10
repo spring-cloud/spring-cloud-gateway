@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -33,11 +34,20 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.util.Assert;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 public abstract class Bucket4jFilterFunctions {
+
+	/**
+	 * Default Header Name.
+	 */
+	public static final String DEFAULT_HEADER_NAME = "X-RateLimit-Remaining";
+
+	private static final Function<RateLimitConfig, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
+			.builder().addLimit(Bandwidth.simple(config.getCapacity(), config.getPeriod())).build();
 
 	private Bucket4jFilterFunctions() {
 	}
@@ -47,34 +57,39 @@ public abstract class Bucket4jFilterFunctions {
 		return rateLimit(c -> c.setCapacity(capacity).setPeriod(period).setKeyResolver(keyResolver));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> rateLimit(
 			Consumer<RateLimitConfig> configConsumer) {
 		RateLimitConfig config = new RateLimitConfig();
 		configConsumer.accept(config);
-		BucketConfiguration bucketConfiguration = BucketConfiguration.builder()
-				.addLimit(Bandwidth.simple(config.getCapacity(), config.getPeriod())).build();
+		BucketConfiguration bucketConfiguration = config.getConfigurationBuilder().apply(config);
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
 			AsyncBucketProxy bucket = proxyManager.builder().build(config.getKeyResolver().apply(request),
 					bucketConfiguration);
-			// TODO: configurable tokens
-			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(1);
-			// TODO: configurable timeout
-			ConsumptionProbe consumptionProbe = bucketFuture.get();
+			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(config.getTokens());
+			ConsumptionProbe consumptionProbe;
+			if (config.getTimeout() != null) {
+				consumptionProbe = bucketFuture.get(config.getTimeout().toMillis(), TimeUnit.MILLISECONDS);
+			}
+			else {
+				consumptionProbe = bucketFuture.get();
+			}
 			boolean allowed = consumptionProbe.isConsumed();
 			long remainingTokens = consumptionProbe.getRemainingTokens();
 			if (allowed) {
 				ServerResponse serverResponse = next.handle(request);
-				// TODO: configurable headers
-				serverResponse.headers().add("X-RateLimit-Remaining", String.valueOf(remainingTokens));
+				serverResponse.headers().add(config.getHeaderName(), String.valueOf(remainingTokens));
 				return serverResponse;
 			}
 			return ServerResponse.status(config.getStatusCode())
-					.header("X-RateLimit-Remaining", String.valueOf(remainingTokens)).build();
+					.header(config.getHeaderName(), String.valueOf(remainingTokens)).build();
 		};
 	}
 
 	public static class RateLimitConfig {
+
+		Function<RateLimitConfig, BucketConfiguration> configurationBuilder = DEFAULT_CONFIGURATION_BUILDER;
 
 		long capacity;
 
@@ -83,6 +98,21 @@ public abstract class Bucket4jFilterFunctions {
 		Function<ServerRequest, String> keyResolver;
 
 		HttpStatusCode statusCode = HttpStatus.TOO_MANY_REQUESTS;
+
+		Duration timeout;
+
+		int tokens = 1;
+
+		String headerName = DEFAULT_HEADER_NAME;
+
+		public Function<RateLimitConfig, BucketConfiguration> getConfigurationBuilder() {
+			return configurationBuilder;
+		}
+
+		public void setConfigurationBuilder(Function<RateLimitConfig, BucketConfiguration> configurationBuilder) {
+			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			this.configurationBuilder = configurationBuilder;
+		}
 
 		public long getCapacity() {
 			return capacity;
@@ -107,6 +137,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public RateLimitConfig setKeyResolver(Function<ServerRequest, String> keyResolver) {
+			Assert.notNull(keyResolver, "keyResolver may not be null");
 			this.keyResolver = keyResolver;
 			return this;
 		}
@@ -117,6 +148,35 @@ public abstract class Bucket4jFilterFunctions {
 
 		public RateLimitConfig setStatusCode(HttpStatusCode statusCode) {
 			this.statusCode = statusCode;
+			return this;
+		}
+
+		public Duration getTimeout() {
+			return timeout;
+		}
+
+		public RateLimitConfig setTimeout(Duration timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		public int getTokens() {
+			return tokens;
+		}
+
+		public RateLimitConfig setTokens(int tokens) {
+			Assert.isTrue(tokens > 0, "tokens must be greater than zero");
+			this.tokens = tokens;
+			return this;
+		}
+
+		public String getHeaderName() {
+			return headerName;
+		}
+
+		public RateLimitConfig setHeaderName(String headerName) {
+			Assert.notNull(headerName, "headerName may not be null");
+			this.headerName = headerName;
 			return this;
 		}
 
