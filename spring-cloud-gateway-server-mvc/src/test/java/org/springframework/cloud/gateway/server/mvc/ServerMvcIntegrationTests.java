@@ -71,6 +71,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
@@ -429,6 +430,12 @@ public class ServerMvcIntegrationTests {
 				.expectStatus().isOk().expectHeader().doesNotExist("X-Test");
 	}
 
+	@Test
+	public void rewriteResponseHeaderWorks() {
+		restClient.get().uri("/headers").header("test", "rewriteresponseheader").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -746,6 +753,19 @@ public class ServerMvcIntegrationTests {
 					// reverse order for "post" filters
 					.after(removeResponseHeader("X-Test"))
 					.after(addResponseHeader("X-Test", "value1"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteResponseHeader() {
+			// @formatter:off
+			return route("testrewriteresponseheader")
+					.route(header("test", "rewriteresponseheader"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(rewriteResponseHeader("X-Request-Foo", "password=[^&]+", "password=***"))
+					.after(addResponseHeader("X-Request-Foo", "/42?user=ford&password=omg!what&flag=true"))
 					.build();
 			// @formatter:on
 		}

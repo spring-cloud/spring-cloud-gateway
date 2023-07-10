@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -39,6 +42,20 @@ public interface AfterFilterFunctions {
 	static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
 		return (request, response) -> {
 			response.headers().remove(name);
+			return response;
+		};
+	}
+
+	static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteResponseHeader(String name, String regexp,
+			String originalReplacement) {
+		String replacement = originalReplacement.replace("$\\", "$");
+		Pattern pattern = Pattern.compile(regexp);
+		return (request, response) -> {
+			response.headers().computeIfPresent(name, (key, values) -> {
+				List<String> rewrittenValues = values.stream()
+						.map(value -> pattern.matcher(value).replaceAll(replacement)).toList();
+				return new ArrayList<>(rewrittenValues);
+			});
 			return response;
 		};
 	}
