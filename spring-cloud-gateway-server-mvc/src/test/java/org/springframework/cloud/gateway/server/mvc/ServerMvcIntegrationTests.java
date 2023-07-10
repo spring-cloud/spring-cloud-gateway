@@ -401,6 +401,20 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void nestedRouteWorks() {
+		testNestedRoute("nested1");
+		testNestedRoute("nested2");
+	}
+
+	private void testNestedRoute(String nestedPath) {
+		restClient.get().uri("/anything/nested/" + nestedPath).header("test", "nested").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Test", nestedPath);
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -678,6 +692,22 @@ public class ServerMvcIntegrationTests {
 					// reverse order for "post" filters
 					.after(setResponseHeader("X-Test", "value2"))
 					.after(addResponseHeader("X-Test", "value1"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsNested() {
+			// @formatter:off
+			return route()
+					.nest(path("/anything/nested").and(header("test", "nested")), () ->
+						(RouterFunction<ServerResponse>) route("nested1").GET("/nested1", http())
+							.before(new HttpbinUriResolver())
+							.filter(addRequestHeader("X-Test", "nested1"))
+						.build().andOther(
+							route("nested2").GET("/nested2", http())
+							.before(new HttpbinUriResolver())
+							.filter(addRequestHeader("X-Test", "nested2")).build()))
 					.build();
 			// @formatter:on
 		}
