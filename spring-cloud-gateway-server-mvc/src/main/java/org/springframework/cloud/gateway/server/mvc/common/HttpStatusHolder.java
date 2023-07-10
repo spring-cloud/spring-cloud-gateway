@@ -54,7 +54,8 @@ public class HttpStatusHolder {
 
 	/**
 	 * Resolves an {@link HttpStatusCode}.
-	 * @return either the httpStatus field if not null, or resolves an HttpStatusCode based on the int status.
+	 * @return either the httpStatus field if not null, or resolves an HttpStatusCode
+	 * based on the int status.
 	 */
 	public HttpStatusCode resolve() {
 		if (httpStatus != null) {
