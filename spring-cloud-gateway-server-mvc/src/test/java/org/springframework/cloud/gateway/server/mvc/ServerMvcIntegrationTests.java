@@ -454,12 +454,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatusAndAddRespHeader() {
 			// @formatter:off
-			return (RouterFunction<ServerResponse>) route("testsetstatus")
+			return route("testsetstatus")
 					.GET("/status/{status}", http())
 					.before(new HttpbinUriResolver())
 					.after(setStatus(HttpStatus.TOO_MANY_REQUESTS))
 					.after(addResponseHeader("X-Status", "{status}"))
-				.build().andOther(route()
+				.build().and(route()
 					.GET("/anything/addresheader", http())
 					.before(routeId("testaddresponseheader"))
 					.before(new HttpbinUriResolver())
@@ -701,10 +701,10 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route()
 					.nest(path("/anything/nested").and(header("test", "nested")), () ->
-						(RouterFunction<ServerResponse>) route("nested1").GET("/nested1", http())
+						route("nested1").GET("/nested1", http())
 							.before(new HttpbinUriResolver())
 							.filter(addRequestHeader("X-Test", "nested1"))
-						.build().andOther(
+						.build().and(
 							route("nested2").GET("/nested2", http())
 							.before(new HttpbinUriResolver())
 							.filter(addRequestHeader("X-Test", "nested2")).build()))
