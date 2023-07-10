@@ -420,20 +420,13 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void removeRequestParameterWorks() {
 		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> args = getMap(map, "args");
-					assertThat(args).doesNotContainKey("foo");
-				});
+				.expectStatus().isOk().expectHeader().doesNotExist("foo");
 	}
 
 	@Test
 	public void removeResponseHeaderWorks() {
 		restClient.get().uri("/anything/removeresponseheader").header("test", "removeresponseheader").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					HttpHeaders headers = res.getResponseHeaders();
-					assertThat(headers).doesNotContainKey("X-Test");
-				});
+				.expectStatus().isOk().expectHeader().doesNotExist("X-Test");
 	}
 
 	@SpringBootConfiguration
