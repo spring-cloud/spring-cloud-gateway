@@ -30,20 +30,16 @@ public interface AfterFilterFunctions {
 
 	static BiFunction<ServerRequest, ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
 		return (request, response) -> {
-			if (response instanceof GatewayServerResponse res) {
-				String[] expandedValues = MvcUtils.expandMultiple(request, values);
-				res.headers().addAll(name, Arrays.asList(expandedValues));
-			}
+			String[] expandedValues = MvcUtils.expandMultiple(request, values);
+			response.headers().addAll(name, Arrays.asList(expandedValues));
 			return response;
 		};
 	}
 
 	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeader(String name, String value) {
 		return (request, response) -> {
-			if (response instanceof GatewayServerResponse res) {
-				String expandedValue = MvcUtils.expand(request, value);
-				res.headers().set(name, expandedValue);
-			}
+			String expandedValue = MvcUtils.expand(request, value);
+			response.headers().set(name, expandedValue);
 			return response;
 		};
 	}

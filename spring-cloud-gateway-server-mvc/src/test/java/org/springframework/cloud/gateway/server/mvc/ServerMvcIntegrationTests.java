@@ -418,8 +418,8 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void removeRequestParameterWorks() {
-		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange().expectStatus()
-				.isOk().expectBody(Map.class).consumeWith(res -> {
+		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					Map<String, Object> args = getMap(map, "args");
 					assertThat(args).doesNotContainKey("foo");
@@ -733,6 +733,7 @@ public class ServerMvcIntegrationTests {
 					.build();
 			// @formatter:on
 		}
+
 	}
 
 	@RestController
