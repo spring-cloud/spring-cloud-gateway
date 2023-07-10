@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -99,10 +100,10 @@ public abstract class RetryFilterFunctions {
 
 		private int retries = 3;
 
-		private List<HttpStatus.Series> series = List.of(HttpStatus.Series.SERVER_ERROR);
+		private List<HttpStatus.Series> series = new ArrayList<>(List.of(HttpStatus.Series.SERVER_ERROR));
 
-		private List<Class<? extends Throwable>> exceptions = List.of(IOException.class, TimeoutException.class,
-				HttpServerErrorException.class);
+		private List<Class<? extends Throwable>> exceptions = new ArrayList<>(List.of(IOException.class, TimeoutException.class,
+				HttpServerErrorException.class));
 
 		// TODO: individual statuses
 		// TODO: support more Spring Retry policies
@@ -111,26 +112,38 @@ public abstract class RetryFilterFunctions {
 			return retries;
 		}
 
-		public void setRetries(int retries) {
+		public Config setRetries(int retries) {
 			this.retries = retries;
+			return this;
 		}
 
 		public List<HttpStatus.Series> getSeries() {
 			return series;
 		}
 
-		public void setSeries(List<HttpStatus.Series> series) {
+		public Config setSeries(List<HttpStatus.Series> series) {
 			this.series = series;
+			return this;
+		}
+
+		public Config addSeries(HttpStatus.Series... series) {
+			this.series.addAll(Arrays.asList(series));
+			return this;
 		}
 
 		public List<Class<? extends Throwable>> getExceptions() {
 			return exceptions;
 		}
 
-		public void setExceptions(List<Class<? extends Throwable>> exceptions) {
+		public Config setExceptions(List<Class<? extends Throwable>> exceptions) {
 			this.exceptions = exceptions;
+			return this;
 		}
 
+		public Config addExceptions(Class<? extends Throwable>... exceptions) {
+			this.exceptions.addAll(Arrays.asList(exceptions));
+			return this;
+		}
 	}
 
 }
