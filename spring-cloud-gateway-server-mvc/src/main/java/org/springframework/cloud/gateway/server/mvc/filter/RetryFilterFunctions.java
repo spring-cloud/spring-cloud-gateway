@@ -20,9 +20,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -100,9 +102,9 @@ public abstract class RetryFilterFunctions {
 
 		private int retries = 3;
 
-		private List<HttpStatus.Series> series = new ArrayList<>(List.of(HttpStatus.Series.SERVER_ERROR));
+		private Set<HttpStatus.Series> series = new HashSet<>(List.of(HttpStatus.Series.SERVER_ERROR));
 
-		private List<Class<? extends Throwable>> exceptions = new ArrayList<>(List.of(IOException.class, TimeoutException.class,
+		private Set<Class<? extends Throwable>> exceptions = new HashSet<>(List.of(IOException.class, TimeoutException.class,
 				HttpServerErrorException.class));
 
 		// TODO: individual statuses
@@ -117,11 +119,11 @@ public abstract class RetryFilterFunctions {
 			return this;
 		}
 
-		public List<HttpStatus.Series> getSeries() {
+		public Set<HttpStatus.Series> getSeries() {
 			return series;
 		}
 
-		public Config setSeries(List<HttpStatus.Series> series) {
+		public Config setSeries(Set<HttpStatus.Series> series) {
 			this.series = series;
 			return this;
 		}
@@ -131,11 +133,11 @@ public abstract class RetryFilterFunctions {
 			return this;
 		}
 
-		public List<Class<? extends Throwable>> getExceptions() {
+		public Set<Class<? extends Throwable>> getExceptions() {
 			return exceptions;
 		}
 
-		public Config setExceptions(List<Class<? extends Throwable>> exceptions) {
+		public Config setExceptions(Set<Class<? extends Throwable>> exceptions) {
 			this.exceptions = exceptions;
 			return this;
 		}
