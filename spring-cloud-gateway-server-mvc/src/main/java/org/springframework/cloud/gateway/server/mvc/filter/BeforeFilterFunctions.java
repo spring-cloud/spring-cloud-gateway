@@ -23,10 +23,14 @@ import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
+
+import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 public interface BeforeFilterFunctions {
 
@@ -67,6 +71,20 @@ public interface BeforeFilterFunctions {
 
 	static Function<ServerRequest, ServerRequest> removeRequestHeader(String name) {
 		return request -> ServerRequest.from(request).headers(httpHeaders -> httpHeaders.remove(name)).build();
+	}
+
+	static Function<ServerRequest, ServerRequest> removeRequestParameter(String name) {
+		return request -> {
+			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
+			queryParams.remove(name);
+
+			// remove from uri
+			URI newUri = UriComponentsBuilder.fromUri(request.uri())
+					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+
+			// remove resolved params from request
+			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
+		};
 	}
 
 	static Function<ServerRequest, ServerRequest> rewritePath(String regexp, String replacement) {

@@ -79,6 +79,10 @@ public interface FilterFunctions {
 		return ofRequestProcessor(BeforeFilterFunctions.removeRequestHeader(name));
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestParameter(String name) {
+		return ofRequestProcessor(BeforeFilterFunctions.removeRequestParameter(name));
+	}
+
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewritePath(String regexp, String replacement) {
 		return ofRequestProcessor(BeforeFilterFunctions.rewritePath(regexp, replacement));

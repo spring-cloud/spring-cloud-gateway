@@ -73,6 +73,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
@@ -415,6 +416,16 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void removeRequestParameterWorks() {
+		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange().expectStatus()
+				.isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					Map<String, Object> args = getMap(map, "args");
+					assertThat(args).doesNotContainKey("foo");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -712,6 +723,16 @@ public class ServerMvcIntegrationTests {
 			// @formatter:on
 		}
 
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestParam() {
+			// @formatter:off
+			return route("removerequestparam")
+					.route(header("test", "removerequestparam"), http())
+					.filter(new HttpbinUriResolver())
+					.before(removeRequestParameter("foo"))
+					.build();
+			// @formatter:on
+		}
 	}
 
 	@RestController
