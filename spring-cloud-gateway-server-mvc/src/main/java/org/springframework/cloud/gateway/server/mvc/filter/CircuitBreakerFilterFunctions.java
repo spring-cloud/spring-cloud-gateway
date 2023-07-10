@@ -55,10 +55,12 @@ public abstract class CircuitBreakerFilterFunctions {
 		return circuitBreaker(config -> config.setId(id).setFallbackPath(fallbackPath));
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(Consumer<Config> configConsumer) {
-		Config config = new Config();
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(
+			Consumer<CircuitBreakerConfig> configConsumer) {
+		CircuitBreakerConfig config = new CircuitBreakerConfig();
 		configConsumer.accept(config);
-		Set<HttpStatusCode> failureStatuses = config.getStatusCodes().stream().map(status -> HttpStatusHolder.valueOf(status).resolve()).collect(Collectors.toSet());
+		Set<HttpStatusCode> failureStatuses = config.getStatusCodes().stream()
+				.map(status -> HttpStatusHolder.valueOf(status).resolve()).collect(Collectors.toSet());
 		return (request, next) -> {
 			CircuitBreakerFactory<?, ?> circuitBreakerFactory = MvcUtils.getApplicationContext(request)
 					.getBean(CircuitBreakerFactory.class);
@@ -109,7 +111,8 @@ public abstract class CircuitBreakerFilterFunctions {
 		};
 	}
 
-	public static class Config {
+	public static class CircuitBreakerConfig {
+
 		private String id;
 
 		private String fallbackPath;
@@ -120,7 +123,7 @@ public abstract class CircuitBreakerFilterFunctions {
 			return id;
 		}
 
-		public Config setId(String id) {
+		public CircuitBreakerConfig setId(String id) {
 			this.id = id;
 			return this;
 		}
@@ -129,7 +132,7 @@ public abstract class CircuitBreakerFilterFunctions {
 			return fallbackPath;
 		}
 
-		public Config setFallbackPath(String fallbackPath) {
+		public CircuitBreakerConfig setFallbackPath(String fallbackPath) {
 			this.fallbackPath = fallbackPath;
 			return this;
 		}
@@ -138,10 +141,11 @@ public abstract class CircuitBreakerFilterFunctions {
 			return statusCodes;
 		}
 
-		public Config setStatusCodes(Set<String> statusCodes) {
+		public CircuitBreakerConfig setStatusCodes(Set<String> statusCodes) {
 			this.statusCodes = statusCodes;
 			return this;
 		}
+
 	}
 
 	public static class CircuitBreakerStatusCodeException extends ResponseStatusException {
