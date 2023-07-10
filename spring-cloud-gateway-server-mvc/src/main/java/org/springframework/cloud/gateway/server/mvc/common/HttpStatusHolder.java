@@ -52,6 +52,17 @@ public class HttpStatusHolder {
 		return new HttpStatusHolder(httpStatus, intStatus);
 	}
 
+	/**
+	 * Resolves an {@link HttpStatusCode}.
+	 * @return either the httpStatus field if not null, or resolves an HttpStatusCode based on the int status.
+	 */
+	public HttpStatusCode resolve() {
+		if (httpStatus != null) {
+			return httpStatus;
+		}
+		return HttpStatusCode.valueOf(status);
+	}
+
 	public HttpStatusCode getHttpStatus() {
 		return httpStatus;
 	}

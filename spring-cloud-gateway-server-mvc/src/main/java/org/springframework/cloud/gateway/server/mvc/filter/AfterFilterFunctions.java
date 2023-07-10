@@ -59,12 +59,7 @@ public interface AfterFilterFunctions {
 	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusHolder statusCode) {
 		return (request, response) -> {
 			if (response instanceof GatewayServerResponse res) {
-				if (statusCode.getStatus() != null) {
-					res.setStatusCode(HttpStatusCode.valueOf(statusCode.getStatus()));
-				}
-				else {
-					res.setStatusCode(statusCode.getHttpStatus());
-				}
+				res.setStatusCode(statusCode.resolve());
 			}
 			return response;
 		};

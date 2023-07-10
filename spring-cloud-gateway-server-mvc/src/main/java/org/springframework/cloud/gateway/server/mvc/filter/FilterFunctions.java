@@ -71,16 +71,8 @@ public interface FilterFunctions {
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
 		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
 
-		return (request, next) -> {
-			ServerResponse.BodyBuilder builder;
-			if (status.getStatus() != null) {
-				builder = ServerResponse.status(status.getStatus());
-			}
-			else {
-				builder = ServerResponse.status(status.getHttpStatus());
-			}
-			return builder.header(HttpHeaders.LOCATION, uri.toString()).build();
-		};
+		return (request, next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString())
+				.build();
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestHeader(String name) {
