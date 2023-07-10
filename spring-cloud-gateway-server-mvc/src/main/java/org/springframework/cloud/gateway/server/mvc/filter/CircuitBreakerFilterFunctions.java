@@ -20,15 +20,22 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.ServletException;
 
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -39,16 +46,31 @@ public abstract class CircuitBreakerFilterFunctions {
 	private CircuitBreakerFilterFunctions() {
 	}
 
+	@Shortcut
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(String id) {
+		return circuitBreaker(config -> config.setId(id));
+	}
+
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(String id, String fallbackPath) {
+		return circuitBreaker(config -> config.setId(id).setFallbackPath(fallbackPath));
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(Consumer<Config> configConsumer) {
+		Config config = new Config();
+		configConsumer.accept(config);
+		Set<HttpStatusCode> failureStatuses = config.getStatusCodes().stream().map(status -> HttpStatusHolder.valueOf(status).resolve()).collect(Collectors.toSet());
 		return (request, next) -> {
 			CircuitBreakerFactory<?, ?> circuitBreakerFactory = MvcUtils.getApplicationContext(request)
 					.getBean(CircuitBreakerFactory.class);
 			// TODO: cache
-			CircuitBreaker circuitBreaker = circuitBreakerFactory.create(id);
+			CircuitBreaker circuitBreaker = circuitBreakerFactory.create(config.getId());
 			return circuitBreaker.run(() -> {
 				try {
 					ServerResponse serverResponse = next.handle(request);
-					// TODO: on configured status code, throw exception
+					// on configured status code, throw exception
+					if (failureStatuses.contains(serverResponse.statusCode())) {
+						throw new CircuitBreakerStatusCodeException(serverResponse.statusCode());
+					}
 					return serverResponse;
 				}
 				catch (RuntimeException e) {
@@ -59,7 +81,7 @@ public abstract class CircuitBreakerFilterFunctions {
 				}
 			}, throwable -> {
 				// if no fallback
-				if (!StringUtils.hasText(fallbackPath)) {
+				if (!StringUtils.hasText(config.getFallbackPath())) {
 					// if timeout exception, GATEWAY_TIMEOUT
 					if (throwable instanceof TimeoutException) {
 						throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, throwable.getMessage(),
@@ -74,10 +96,9 @@ public abstract class CircuitBreakerFilterFunctions {
 				// handle fallback
 				return GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
 					try {
-						// TODO: uri template vars support
-						request.servletRequest().getServletContext().getRequestDispatcher(fallbackPath)
+						String expandedFallback = MvcUtils.expand(request, config.getFallbackPath());
+						request.servletRequest().getServletContext().getRequestDispatcher(expandedFallback)
 								.forward(httpServletRequest, httpServletResponse);
-						// TODO: what to return for ModelAndView
 						return null;
 					}
 					catch (ServletException | IOException e) {
@@ -86,6 +107,49 @@ public abstract class CircuitBreakerFilterFunctions {
 				});
 			});
 		};
+	}
+
+	public static class Config {
+		private String id;
+
+		private String fallbackPath;
+
+		private Set<String> statusCodes = new HashSet<>();
+
+		public String getId() {
+			return id;
+		}
+
+		public Config setId(String id) {
+			this.id = id;
+			return this;
+		}
+
+		public String getFallbackPath() {
+			return fallbackPath;
+		}
+
+		public Config setFallbackPath(String fallbackPath) {
+			this.fallbackPath = fallbackPath;
+			return this;
+		}
+
+		public Set<String> getStatusCodes() {
+			return statusCodes;
+		}
+
+		public Config setStatusCodes(Set<String> statusCodes) {
+			this.statusCodes = statusCodes;
+			return this;
+		}
+	}
+
+	public static class CircuitBreakerStatusCodeException extends ResponseStatusException {
+
+		public CircuitBreakerStatusCodeException(HttpStatusCode statusCode) {
+			super(statusCode);
+		}
+
 	}
 
 	public static class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
