@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
@@ -25,7 +26,10 @@ import java.util.regex.Pattern;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -41,6 +45,50 @@ public abstract class AfterFilterFunctions {
 			response.headers().addAll(name, Arrays.asList(expandedValues));
 			return response;
 		};
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> dedupeResponseHeader(String name) {
+		return dedupeResponseHeader(name, DedupeStrategy.RETAIN_FIRST);
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> dedupeResponseHeader(String name,
+			DedupeStrategy strategy) {
+		Assert.hasText(name, "name must not be null or empty");
+		Assert.notNull(strategy, "strategy must not be null");
+		return (request, response) -> {
+			dedupeHeaders(response.headers(), name, strategy);
+			return response;
+		};
+	}
+
+	private static void dedupeHeaders(HttpHeaders headers, String names, DedupeStrategy strategy) {
+		if (headers == null || names == null || strategy == null) {
+			return;
+		}
+		String[] tokens = StringUtils.tokenizeToStringArray(names, " ", true, true);
+		for (String name : tokens) {
+			dedupeHeader(headers, name.trim(), strategy);
+		}
+	}
+
+	private static void dedupeHeader(HttpHeaders headers, String name, DedupeStrategy strategy) {
+		List<String> values = headers.get(name);
+		if (values == null || values.size() <= 1) {
+			return;
+		}
+		switch (strategy) {
+			case RETAIN_FIRST:
+				headers.set(name, values.get(0));
+				break;
+			case RETAIN_LAST:
+				headers.set(name, values.get(values.size() - 1));
+				break;
+			case RETAIN_UNIQUE:
+				headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
+				break;
+			default:
+				break;
+		}
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
@@ -88,6 +136,25 @@ public abstract class AfterFilterFunctions {
 			}
 			return response;
 		};
+	}
+
+	public enum DedupeStrategy {
+
+		/**
+		 * Default: Retain the first value only.
+		 */
+		RETAIN_FIRST,
+
+		/**
+		 * Retain the last value only.
+		 */
+		RETAIN_LAST,
+
+		/**
+		 * Retain all unique values in the order of their first encounter.
+		 */
+		RETAIN_UNIQUE
+
 	}
 
 }

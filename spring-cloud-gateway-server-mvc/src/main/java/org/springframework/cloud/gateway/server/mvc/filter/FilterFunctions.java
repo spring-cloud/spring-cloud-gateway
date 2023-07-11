@@ -24,6 +24,7 @@ import java.util.Collection;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
@@ -58,6 +59,16 @@ public interface FilterFunctions {
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
 		return ofResponseProcessor(AfterFilterFunctions.addResponseHeader(name, values));
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> dedupeResponseHeader(String name) {
+		return ofResponseProcessor(AfterFilterFunctions.dedupeResponseHeader(name));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> dedupeResponseHeader(String name,
+			DedupeStrategy strategy) {
+		return ofResponseProcessor(AfterFilterFunctions.dedupeResponseHeader(name, strategy));
 	}
 
 	@Shortcut

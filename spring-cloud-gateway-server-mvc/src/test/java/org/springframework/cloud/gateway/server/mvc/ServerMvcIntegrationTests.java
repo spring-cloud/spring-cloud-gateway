@@ -69,7 +69,11 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_FIRST;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_LAST;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_UNIQUE;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
@@ -477,6 +481,15 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void dedupeResponseHeaderWorks() {
+		restClient.get().uri("/headers").header("Host", "www.deduperesponseheader.org").exchange().expectStatus().isOk()
+				.expectHeader().valueEquals("Access-Control-Allow-Credentials", "true").expectHeader()
+				.valueEquals("Access-Control-Allow-Origin", "https://example.org").expectHeader()
+				.valueEquals("Scout-Cookie", "S'mores").expectHeader()
+				.valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
+	}
+
+	@Test
 	public void addRequestHeadersIfNotPresentWorks() {
 		restClient.get().uri("/headers").header("Host", "www.addrequestheadersifnotpresent.org")
 				.header("X-Request-Beta", "Value1").exchange().expectStatus().isOk().expectBody(Map.class)
@@ -877,6 +890,29 @@ public class ServerMvcIntegrationTests {
 					.filter(new HttpbinUriResolver())
 					// normally use BeforeFilterFunctions version, but wanted to test parsing for config
 					.filter(addRequestHeadersIfNotPresent("X-Request-Acme:ValueX, X-Request-Acme:ValueY,X-Request-Acme:ValueZ, X-Request-Acme:{sub},X-Request-Beta:Value2"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsDedupeResponseHeader() {
+			// @formatter:off
+			return route("testdeduperesponseheader")
+					.route(GET("/headers").and(host("{sub}.deduperesponseheader.org")), http())
+					.filter(new HttpbinUriResolver())
+					.after(dedupeResponseHeader("Access-Control-Allow-Credentials Access-Control-Allow-Origin", RETAIN_FIRST))
+					.after(dedupeResponseHeader("Scout-Cookie", RETAIN_LAST))
+					.after(dedupeResponseHeader("Next-Week-Lottery-Numbers", RETAIN_UNIQUE))
+					.after(addResponseHeader("Access-Control-Allow-Credentials", "false"))
+					.after(setResponseHeader("Access-Control-Allow-Credentials", "true"))
+					.after(addResponseHeader("Access-Control-Allow-Origin", "*"))
+					.after(setResponseHeader("Access-Control-Allow-Origin", "https://example.org"))
+					.after(addResponseHeader("Scout-Cookie", "S'mores"))
+					.after(setResponseHeader("Scout-Cookie", "Thin Mints"))
+					.after(addResponseHeader("Next-Week-Lottery-Numbers", "42"))
+					.after(addResponseHeader("Next-Week-Lottery-Numbers", "2"))
+					.after(addResponseHeader("Next-Week-Lottery-Numbers", "2"))
+					.after(setResponseHeader("Next-Week-Lottery-Numbers", "4"))
 					.build();
 			// @formatter:on
 		}
