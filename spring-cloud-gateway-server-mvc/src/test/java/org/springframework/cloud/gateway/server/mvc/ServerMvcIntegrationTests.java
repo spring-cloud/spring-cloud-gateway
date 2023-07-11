@@ -76,6 +76,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
@@ -294,6 +295,13 @@ public class ServerMvcIntegrationTests {
 					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER).toString())
 							.asString().isEqualTo("http");
 				});
+	}
+
+	@Test
+	public void requestSizeWorks() {
+		restClient.post().uri("/post").bodyValue("123456").header("test", "requestsize").exchange()
+				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
+						.valueMatches("errormessage", "Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
 	}
 
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
@@ -770,6 +778,16 @@ public class ServerMvcIntegrationTests {
 			// @formatter:on
 		}
 
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestSize() {
+			// @formatter:off
+			return route("requestsize")
+					.POST(path("/post").and(header("test", "requestsize")), http())
+					.before(new HttpbinUriResolver())
+					.before(requestSize("5B"))
+					.build();
+			// @formatter:on
+		}
 	}
 
 	@RestController

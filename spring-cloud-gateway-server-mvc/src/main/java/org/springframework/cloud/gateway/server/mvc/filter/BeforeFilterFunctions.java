@@ -23,9 +23,13 @@ import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
@@ -33,6 +37,8 @@ import org.springframework.web.util.UriTemplate;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 public interface BeforeFilterFunctions {
+
+	String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
 
 	static Function<ServerRequest, ServerRequest> addRequestHeader(String name, String... values) {
 		return request -> {
@@ -84,6 +90,32 @@ public interface BeforeFilterFunctions {
 
 			// remove resolved params from request
 			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
+		};
+	}
+
+	static Function<ServerRequest, ServerRequest> requestSize(String maxSize) {
+		return requestSize(DataSize.parse(maxSize));
+	}
+
+	static Function<ServerRequest, ServerRequest> requestSize(DataSize maxSize) {
+		Assert.notNull(maxSize, "maxSize may not be null");
+		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
+		return request -> {
+			if (request.headers().asHttpHeaders().containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				long contentLength = request.headers().asHttpHeaders().getContentLength();
+				if (contentLength > maxSize.toBytes()) {
+					String errorMessage = String.format(REQUEST_SIZE_ERROR_MSG, DataSize.ofBytes(contentLength), maxSize);
+					throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, errorMessage) {
+						@Override
+						public HttpHeaders getHeaders() {
+							HttpHeaders httpHeaders = new HttpHeaders();
+							httpHeaders.add("errorMessage", errorMessage);
+							return httpHeaders;
+						}
+					};
+				}
+			}
+			return request;
 		};
 	}
 

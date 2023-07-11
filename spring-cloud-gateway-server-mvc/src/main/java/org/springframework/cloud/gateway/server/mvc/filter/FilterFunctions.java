@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -75,12 +76,28 @@ public interface FilterFunctions {
 				.build();
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestHeader(String name) {
 		return ofRequestProcessor(BeforeFilterFunctions.removeRequestHeader(name));
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> removeRequestParameter(String name) {
 		return ofRequestProcessor(BeforeFilterFunctions.removeRequestParameter(name));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> removeResponseHeader(String name) {
+		return ofResponseProcessor(AfterFilterFunctions.removeResponseHeader(name));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(String maxSize) {
+		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(DataSize maxSize) {
+		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
 	}
 
 	@Shortcut
@@ -88,6 +105,12 @@ public interface FilterFunctions {
 		return ofRequestProcessor(BeforeFilterFunctions.rewritePath(regexp, replacement));
 	}
 
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteResponseHeader(String name, String regexp, String replacement) {
+		return ofResponseProcessor(AfterFilterFunctions.rewriteResponseHeader(name, regexp, replacement));
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> routeId(String routeId) {
 		return ofRequestProcessor(BeforeFilterFunctions.routeId(routeId));
 	}
