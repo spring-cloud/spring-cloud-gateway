@@ -84,6 +84,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeadersIfNotPresent;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
@@ -475,6 +476,20 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void addRequestHeadersIfNotPresentWorks() {
+		restClient.get().uri("/headers").header("Host", "www.addrequestheadersifnotpresent.org")
+				.header("X-Request-Beta", "Value1").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					// this asserts that Value2 was not added
+					assertThat(headers).containsEntry("X-Request-Beta", "Value1");
+					assertThat(headers).containsKey("X-Request-Acme");
+					List<String> values = (List<String>) headers.get("X-Request-Acme");
+					assertThat(values).hasSize(4).containsOnly("ValueX", "ValueY", "ValueZ", "www");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -850,6 +865,18 @@ public class ServerMvcIntegrationTests {
 					.GET("/anything/maprequestheader", http())
 					.before(new HttpbinUriResolver())
 					.before(mapRequestHeader("X-Foo", "X-Bar"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRequestHeadersIfNotPresent() {
+			// @formatter:off
+			return route("testaddrequestheadersifnotpresent")
+					.route(GET("/headers").and(host("{sub}.addrequestheadersifnotpresent.org")), http())
+					.filter(new HttpbinUriResolver())
+					// normally use BeforeFilterFunctions version, but wanted to test parsing for config
+					.filter(addRequestHeadersIfNotPresent("X-Request-Acme:ValueX, X-Request-Acme:ValueY,X-Request-Acme:ValueZ, X-Request-Acme:{sub},X-Request-Beta:Value2"))
 					.build();
 			// @formatter:on
 		}

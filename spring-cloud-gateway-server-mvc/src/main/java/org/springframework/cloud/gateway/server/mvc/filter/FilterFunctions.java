@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
+import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -38,6 +39,15 @@ public interface FilterFunctions {
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return ofRequestProcessor(BeforeFilterFunctions.addRequestHeader(name, values));
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeadersIfNotPresent(String values) {
+		return addRequestHeadersIfNotPresent(KeyValues.valueOf(values));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeadersIfNotPresent(KeyValues keyValues) {
+		return ofRequestProcessor(BeforeFilterFunctions.addRequestHeadersIfNotPresent(keyValues.getKeyValues()));
 	}
 
 	@Shortcut

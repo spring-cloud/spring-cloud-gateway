@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.server.mvc.common.KeyValues.KeyValue;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
@@ -61,6 +63,30 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			return ServerRequest.from(request).header(name, expandedValues).build();
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> addRequestHeadersIfNotPresent(String... values) {
+		List<KeyValue> keyValues = Arrays.stream(values).map(KeyValue::valueOf).toList();
+		return addRequestHeadersIfNotPresent(keyValues);
+	}
+
+	public static Function<ServerRequest, ServerRequest> addRequestHeadersIfNotPresent(List<KeyValue> keyValues) {
+		HttpHeaders newHeaders = new HttpHeaders();
+		keyValues.forEach(keyValue -> newHeaders.add(keyValue.getKey(), keyValue.getValue()));
+		return request -> {
+			ServerRequest.Builder requestBuilder = ServerRequest.from(request);
+			newHeaders.forEach((newHeaderName, newHeaderValues) -> {
+				boolean headerIsMissingOrBlank = request.headers().asHttpHeaders().getOrEmpty(newHeaderName).stream()
+						.allMatch(h -> !StringUtils.hasText(h));
+				if (headerIsMissingOrBlank) {
+					requestBuilder.headers(httpHeaders -> {
+						List<String> expandedValues = MvcUtils.expandMultiple(request, newHeaderValues);
+						httpHeaders.addAll(newHeaderName, expandedValues);
+					});
+				}
+			});
+			return requestBuilder.build();
 		};
 	}
 

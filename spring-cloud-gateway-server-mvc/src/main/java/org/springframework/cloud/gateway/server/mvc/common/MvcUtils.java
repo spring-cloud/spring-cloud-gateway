@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,10 @@ public abstract class MvcUtils {
 		}
 		Map<String, Object> variables = getUriTemplateVariables(request);
 		return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+	}
+
+	public static List<String> expandMultiple(ServerRequest request, Collection<String> templates) {
+		return templates.stream().map(value -> MvcUtils.expand(request, value)).toList();
 	}
 
 	public static String[] expandMultiple(ServerRequest request, String... templates) {
