@@ -17,12 +17,17 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.Assert;
@@ -38,23 +43,34 @@ import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
-public interface BeforeFilterFunctions {
+public abstract class BeforeFilterFunctions {
 
-	static Function<ServerRequest, ServerRequest> addRequestHeader(String name, String... values) {
+	private static final Log log = LogFactory.getLog(BeforeFilterFunctions.class);
+
+	private static final String REQUEST_HEADER_SIZE_ERROR_PREFIX = "Request Header/s size is larger than permissible limit (%s).";
+
+	private static final String REQUEST_HEADER_SIZE_ERROR = " Request Header/s size for '%s' is %s.";
+
+	private static final String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
+
+	private BeforeFilterFunctions() {
+	}
+
+	public static Function<ServerRequest, ServerRequest> addRequestHeader(String name, String... values) {
 		return request -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			return ServerRequest.from(request).header(name, expandedValues).build();
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> addRequestParameter(String name, String... values) {
+	public static Function<ServerRequest, ServerRequest> addRequestParameter(String name, String... values) {
 		return request -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			return ServerRequest.from(request).param(name, expandedValues).build();
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> prefixPath(String prefix) {
+	public static Function<ServerRequest, ServerRequest> prefixPath(String prefix) {
 		final UriTemplate uriTemplate = new UriTemplate(prefix);
 
 		return request -> {
@@ -68,18 +84,18 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> preserveHost() {
+	public static Function<ServerRequest, ServerRequest> preserveHost() {
 		return request -> {
 			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return request;
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> removeRequestHeader(String name) {
+	public static Function<ServerRequest, ServerRequest> removeRequestHeader(String name) {
 		return request -> ServerRequest.from(request).headers(httpHeaders -> httpHeaders.remove(name)).build();
 	}
 
-	static Function<ServerRequest, ServerRequest> removeRequestParameter(String name) {
+	public static Function<ServerRequest, ServerRequest> removeRequestParameter(String name) {
 		return request -> {
 			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
 			queryParams.remove(name);
@@ -93,15 +109,11 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize) {
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize) {
 		return requestHeaderSize(DataSize.parse(maxSize));
 	}
 
-	static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
-		final String REQUEST_HEADER_SIZE_ERROR_PREFIX = "Request Header/s size is larger than permissible limit (%s).";
-
-		final String REQUEST_HEADER_SIZE_ERROR = " Request Header/s size for '%s' is %s.";
-
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		return request -> {
@@ -140,13 +152,26 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> requestSize(String maxSize) {
+	public static Function<ServerRequest, ServerRequest> requestHeaderToRequestUri(String name) {
+		return request -> {
+			if (request.headers().asHttpHeaders().containsKey(name)) {
+				String newUri = request.headers().firstHeader(name);
+				try {
+					MvcUtils.setRequestUrl(request, new URI(newUri));
+				}
+				catch (URISyntaxException e) {
+					log.info(LogMessage.format("Request url is invalid : url=%s", newUri), e);
+				}
+			}
+			return request;
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> requestSize(String maxSize) {
 		return requestSize(DataSize.parse(maxSize));
 	}
 
-	static Function<ServerRequest, ServerRequest> requestSize(DataSize maxSize) {
-		final String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
-
+	public static Function<ServerRequest, ServerRequest> requestSize(DataSize maxSize) {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		return request -> {
@@ -170,7 +195,7 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> rewritePath(String regexp, String replacement) {
+	public static Function<ServerRequest, ServerRequest> rewritePath(String regexp, String replacement) {
 		String normalizedReplacement = replacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
@@ -187,14 +212,14 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> routeId(String routeId) {
+	public static Function<ServerRequest, ServerRequest> routeId(String routeId) {
 		return request -> {
 			request.attributes().put(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 			return request;
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> setPath(String path) {
+	public static Function<ServerRequest, ServerRequest> setPath(String path) {
 		UriTemplate uriTemplate = new UriTemplate(path);
 
 		return request -> {
@@ -207,14 +232,14 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> setRequestHeader(String name, String value) {
+	public static Function<ServerRequest, ServerRequest> setRequestHeader(String name, String value) {
 		return request -> {
 			String expandedValue = MvcUtils.expand(request, value);
 			return ServerRequest.from(request).headers(httpHeaders -> httpHeaders.set(name, expandedValue)).build();
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> setRequestHostHeader(String host) {
+	public static Function<ServerRequest, ServerRequest> setRequestHostHeader(String host) {
 		return request -> {
 			String expandedValue = MvcUtils.expand(request, host);
 			ServerRequest modified = ServerRequest.from(request).headers(httpHeaders -> {
@@ -228,11 +253,11 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
-	static Function<ServerRequest, ServerRequest> stripPrefix() {
+	public static Function<ServerRequest, ServerRequest> stripPrefix() {
 		return stripPrefix(1);
 	}
 
-	static Function<ServerRequest, ServerRequest> stripPrefix(int parts) {
+	public static Function<ServerRequest, ServerRequest> stripPrefix(int parts) {
 		return request -> {
 			// TODO: gateway url attributes
 			String path = request.uri().getRawPath();

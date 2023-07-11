@@ -77,6 +77,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderToRequestUri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
@@ -458,6 +459,12 @@ public class ServerMvcIntegrationTests {
 				.expectHeader().valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
 	}
 
+	@Test
+	public void requestHeaderToRequestUriWorks() {
+		restClient.get().uri("/anything/requestheadertorequesturi").header("X-Uri", "http://localhost:" + port)
+				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -810,6 +817,18 @@ public class ServerMvcIntegrationTests {
 					.GET(path("/headers").and(header("test", "requestheadersize")), http())
 					.before(new HttpbinUriResolver())
 					.before(requestHeaderSize("79B"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestHeaderToRequestUri() {
+			// @formatter:off
+			return route("requestheadertorequesturi")
+					.GET("/anything/requestheadertorequesturi", http())
+					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
+					.before(requestHeaderToRequestUri("X-Uri"))
+					.filter(setPath("/hello"))
 					.build();
 			// @formatter:on
 		}

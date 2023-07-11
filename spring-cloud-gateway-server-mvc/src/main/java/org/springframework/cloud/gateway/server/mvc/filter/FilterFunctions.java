@@ -101,6 +101,11 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> requestHeaderToRequestUri(String name) {
+		return ofRequestProcessor(BeforeFilterFunctions.requestHeaderToRequestUri(name));
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(String maxSize) {
 		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
 	}
