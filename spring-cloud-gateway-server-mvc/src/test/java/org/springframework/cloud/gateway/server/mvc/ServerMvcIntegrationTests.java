@@ -76,6 +76,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
@@ -299,9 +300,22 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void requestSizeWorks() {
-		restClient.post().uri("/post").bodyValue("123456").header("test", "requestsize").exchange()
-				.expectStatus().isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader()
-						.valueMatches("errormessage", "Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
+		restClient.post().uri("/post").bodyValue("123456").header("test", "requestsize").exchange().expectStatus()
+				.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader().valueMatches("errormessage",
+						"Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
+	}
+
+	@Test
+	public void requestHeaderSizeWorks() {
+		restClient.get().uri("/headers").header("test", "requestheadersize")
+				.header("X-AnyHeader",
+						"11111111112222222222333333333344444444445555555555666666666677777777778888888888")
+				.exchange().expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
+				.valueMatches("errormessage",
+						"Request Header/s size is larger than permissible limit (.*). Request Header/s size for 'x-anyheader' is .*");
+		restClient.get().uri("/headers").header("test", "requestheadersize")
+				.header("X-AnyHeader", "111111111122222222223333333333444444444455555555556666666666").exchange()
+				.expectStatus().isOk();
 	}
 
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
@@ -788,6 +802,18 @@ public class ServerMvcIntegrationTests {
 					.build();
 			// @formatter:on
 		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestHeaderSize() {
+			// @formatter:off
+			return route("requestheadersize")
+					.GET(path("/headers").and(header("test", "requestheadersize")), http())
+					.before(new HttpbinUriResolver())
+					.before(requestHeaderSize("79B"))
+					.build();
+			// @formatter:on
+		}
+
 	}
 
 	@RestController

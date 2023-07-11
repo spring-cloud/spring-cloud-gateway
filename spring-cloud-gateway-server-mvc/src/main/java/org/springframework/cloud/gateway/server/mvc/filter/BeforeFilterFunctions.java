@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -29,6 +30,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
+import org.springframework.util.unit.DataUnit;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -37,8 +39,6 @@ import org.springframework.web.util.UriTemplate;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 public interface BeforeFilterFunctions {
-
-	String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
 
 	static Function<ServerRequest, ServerRequest> addRequestHeader(String name, String... values) {
 		return request -> {
@@ -93,22 +93,73 @@ public interface BeforeFilterFunctions {
 		};
 	}
 
+	static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize) {
+		return requestHeaderSize(DataSize.parse(maxSize));
+	}
+
+	static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
+		final String REQUEST_HEADER_SIZE_ERROR_PREFIX = "Request Header/s size is larger than permissible limit (%s).";
+
+		final String REQUEST_HEADER_SIZE_ERROR = " Request Header/s size for '%s' is %s.";
+
+		Assert.notNull(maxSize, "maxSize may not be null");
+		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
+		return request -> {
+			HashMap<String, Long> longHeaders = new HashMap<>();
+
+			request.headers().asHttpHeaders().forEach((key, values) -> {
+				long headerSizeInBytes = 0L;
+				headerSizeInBytes += key.getBytes().length;
+				for (String value : values) {
+					headerSizeInBytes += value.getBytes().length;
+				}
+				if (headerSizeInBytes > maxSize.toBytes()) {
+					longHeaders.put(key, headerSizeInBytes);
+				}
+			});
+
+			if (!longHeaders.isEmpty()) {
+				StringBuilder errorMessage = new StringBuilder(
+						String.format(REQUEST_HEADER_SIZE_ERROR_PREFIX, maxSize));
+				longHeaders.forEach((header, size) -> errorMessage
+						.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
+
+				throw new ResponseStatusException(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE, errorMessage.toString()) {
+					@Override
+					public HttpHeaders getHeaders() {
+						HttpHeaders httpHeaders = new HttpHeaders();
+						// TODO: customize header name
+						httpHeaders.add("errorMessage", errorMessage.toString());
+						return httpHeaders;
+					}
+				};
+
+			}
+
+			return request;
+		};
+	}
+
 	static Function<ServerRequest, ServerRequest> requestSize(String maxSize) {
 		return requestSize(DataSize.parse(maxSize));
 	}
 
 	static Function<ServerRequest, ServerRequest> requestSize(DataSize maxSize) {
+		final String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
+
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		return request -> {
 			if (request.headers().asHttpHeaders().containsKey(HttpHeaders.CONTENT_LENGTH)) {
 				long contentLength = request.headers().asHttpHeaders().getContentLength();
 				if (contentLength > maxSize.toBytes()) {
-					String errorMessage = String.format(REQUEST_SIZE_ERROR_MSG, DataSize.ofBytes(contentLength), maxSize);
+					String errorMessage = String.format(REQUEST_SIZE_ERROR_MSG, DataSize.ofBytes(contentLength),
+							maxSize);
 					throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, errorMessage) {
 						@Override
 						public HttpHeaders getHeaders() {
 							HttpHeaders httpHeaders = new HttpHeaders();
+							// TODO: customize header name
 							httpHeaders.add("errorMessage", errorMessage);
 							return httpHeaders;
 						}

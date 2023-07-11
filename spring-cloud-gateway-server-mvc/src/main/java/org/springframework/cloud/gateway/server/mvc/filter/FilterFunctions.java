@@ -92,6 +92,15 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> requestHeaderSize(String maxSize) {
+		return ofRequestProcessor(BeforeFilterFunctions.requestHeaderSize(maxSize));
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> requestHeaderSize(DataSize maxSize) {
+		return ofRequestProcessor(BeforeFilterFunctions.requestHeaderSize(maxSize));
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(String maxSize) {
 		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
 	}
@@ -106,7 +115,8 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
-	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteResponseHeader(String name, String regexp, String replacement) {
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteResponseHeader(String name, String regexp,
+			String replacement) {
 		return ofResponseProcessor(AfterFilterFunctions.rewriteResponseHeader(name, regexp, replacement));
 	}
 
