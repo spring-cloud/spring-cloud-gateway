@@ -29,9 +29,13 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public interface AfterFilterFunctions {
+public abstract class AfterFilterFunctions {
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> addResponseHeader(String name, String... values) {
+	private AfterFilterFunctions() {
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> addResponseHeader(String name,
+			String... values) {
 		return (request, response) -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			response.headers().addAll(name, Arrays.asList(expandedValues));
@@ -39,15 +43,15 @@ public interface AfterFilterFunctions {
 		};
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
 		return (request, response) -> {
 			response.headers().remove(name);
 			return response;
 		};
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteResponseHeader(String name, String regexp,
-			String originalReplacement) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteResponseHeader(String name,
+			String regexp, String originalReplacement) {
 		String replacement = originalReplacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
 		return (request, response) -> {
@@ -60,7 +64,8 @@ public interface AfterFilterFunctions {
 		};
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeader(String name, String value) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setResponseHeader(String name,
+			String value) {
 		return (request, response) -> {
 			String expandedValue = MvcUtils.expand(request, value);
 			response.headers().set(name, expandedValue);
@@ -68,15 +73,15 @@ public interface AfterFilterFunctions {
 		};
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(int statusCode) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(int statusCode) {
 		return setStatus(new HttpStatusHolder(null, statusCode));
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
 		return setStatus(new HttpStatusHolder(statusCode, null));
 	}
 
-	static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusHolder statusCode) {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusHolder statusCode) {
 		return (request, response) -> {
 			if (response instanceof GatewayServerResponse res) {
 				res.setStatusCode(statusCode.resolve());
