@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -67,6 +68,16 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			return ServerRequest.from(request).param(name, expandedValues).build();
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> mapRequestHeader(String fromHeader, String toHeader) {
+		return request -> {
+			if (request.headers().asHttpHeaders().containsKey(fromHeader)) {
+				List<String> values = request.headers().header(fromHeader);
+				return ServerRequest.from(request).header(toHeader, values.toArray(new String[0])).build();
+			}
+			return request;
 		};
 	}
 

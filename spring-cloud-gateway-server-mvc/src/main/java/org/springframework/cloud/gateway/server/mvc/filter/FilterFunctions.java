@@ -51,6 +51,11 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> mapRequestHeader(String fromHeader, String toHeader) {
+		return ofRequestProcessor(BeforeFilterFunctions.mapRequestHeader(fromHeader, toHeader));
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> prefixPath(String prefix) {
 		return ofRequestProcessor(BeforeFilterFunctions.prefixPath(prefix));
 	}

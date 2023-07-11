@@ -74,6 +74,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
@@ -465,6 +466,15 @@ public class ServerMvcIntegrationTests {
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
 	}
 
+	@Test
+	public void mapRequestHeaderWorks() {
+		restClient.get().uri("/anything/maprequestheader").header("X-Foo", "fooval").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Bar", "fooval");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -829,6 +839,17 @@ public class ServerMvcIntegrationTests {
 					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
 					.before(requestHeaderToRequestUri("X-Uri"))
 					.filter(setPath("/hello"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsMapRequestHeader() {
+			// @formatter:off
+			return route("testmaprequestheader")
+					.GET("/anything/maprequestheader", http())
+					.before(new HttpbinUriResolver())
+					.before(mapRequestHeader("X-Foo", "X-Bar"))
 					.build();
 			// @formatter:on
 		}
