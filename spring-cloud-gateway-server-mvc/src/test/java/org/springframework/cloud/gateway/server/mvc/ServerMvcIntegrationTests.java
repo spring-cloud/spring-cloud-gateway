@@ -106,6 +106,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFi
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cloudFoundryRouteService;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
@@ -480,8 +481,14 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void requestHeaderToRequestUriWorks() {
-		restClient.get().uri("/anything/requestheadertorequesturi").header("X-Uri", "http://localhost:" + port)
+		// @formatter:off
+		restClient.get().uri("/anything/requestheadertorequesturi")
+				.header("Host", "www.requestheadertorequesturi.org")
+				.header("X-CF-Forwarded-Url", "http://localhost:" + port)
+				.header("X-CF-Proxy-Signature", "fakeproxysignature")
+				.header("X-CF-Proxy-Metadata", "fakeproxymetadata")
 				.exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
+		// @formatter:on
 	}
 
 	@Test
@@ -900,9 +907,9 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestHeaderToRequestUri() {
 			// @formatter:off
 			return route("requestheadertorequesturi")
-					.GET("/anything/requestheadertorequesturi", http())
+					.route(cloudFoundryRouteService().and(host("**.requestheadertorequesturi.org")), http())
 					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
-					.before(requestHeaderToRequestUri("X-Uri"))
+					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.filter(setPath("/hello"))
 					.build();
 			// @formatter:on
@@ -1003,14 +1010,7 @@ public class ServerMvcIntegrationTests {
 	protected static class TestHandler {
 
 		public ServerResponse hello(ServerRequest request) {
-			ServerResponse.BodyBuilder response = ServerResponse.ok();
-			if (request.headers().asHttpHeaders().containsKey(CB_EXECUTION_EXCEPTION_TYPE)) {
-				String exceptionType = request.headers().firstHeader(CB_EXECUTION_EXCEPTION_TYPE);
-				response.header(CB_EXECUTION_EXCEPTION_TYPE, exceptionType);
-				String exceptionMessage = request.headers().firstHeader(CB_EXECUTION_EXCEPTION_MESSAGE);
-				response.header(CB_EXECUTION_EXCEPTION_MESSAGE, exceptionMessage);
-			}
-			return response.body("Hello");
+			return ServerResponse.ok().body("Hello");
 		}
 
 	}

@@ -54,6 +54,12 @@ public abstract class GatewayRequestPredicates {
 
 	private static final Log logger = LogFactory.getLog(GatewayRequestPredicates.class);
 
+	private static final String X_CF_FORWARDED_URL = "X-CF-Forwarded-Url";
+
+	private static final String X_CF_PROXY_SIGNATURE = "X-CF-Proxy-Signature";
+
+	private static final String X_CF_PROXY_METADATA = "X-CF-Proxy-Metadata";
+
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
 
 	private GatewayRequestPredicates() {
@@ -76,6 +82,10 @@ public abstract class GatewayRequestPredicates {
 			ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(dateTime1) && now.isBefore(dateTime2);
 		};
+	}
+
+	public static RequestPredicate cloudFoundryRouteService() {
+		return header(X_CF_FORWARDED_URL).and(header(X_CF_PROXY_METADATA)).and(header(X_CF_PROXY_SIGNATURE));
 	}
 
 	public static RequestPredicate cookie(String name) {
@@ -228,7 +238,12 @@ public abstract class GatewayRequestPredicates {
 
 		@Override
 		public void accept(RequestPredicates.Visitor visitor) {
-			visitor.header(header, pattern.pattern());
+			if (pattern != null) {
+				visitor.header(header, pattern.pattern());
+			}
+			else {
+				visitor.header(header, "");
+			}
 		}
 
 		@Override
