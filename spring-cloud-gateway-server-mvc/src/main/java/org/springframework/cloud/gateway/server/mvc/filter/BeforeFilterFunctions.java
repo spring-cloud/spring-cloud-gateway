@@ -46,6 +46,7 @@ import org.springframework.web.util.UriTemplate;
 
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
+// TODO: can TokenRelay be here and not cause CNFE?
 public abstract class BeforeFilterFunctions {
 
 	private static final Log log = LogFactory.getLog(BeforeFilterFunctions.class);

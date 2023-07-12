@@ -75,6 +75,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteLocationResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
@@ -503,6 +504,14 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void rewriteLocationResponseHeaderWorks() {
+		restClient.get().uri("/anything/rewritelocationresponseheader")
+				.header("Host", "test1.rewritelocationresponseheader.org").exchange().expectStatus().isOk()
+				.expectHeader()
+				.valueEquals("Location", "https://test1.rewritelocationresponseheader.org/some/object/id");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -913,6 +922,19 @@ public class ServerMvcIntegrationTests {
 					.after(addResponseHeader("Next-Week-Lottery-Numbers", "2"))
 					.after(addResponseHeader("Next-Week-Lottery-Numbers", "2"))
 					.after(setResponseHeader("Next-Week-Lottery-Numbers", "4"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteLocationResponseHeader() {
+			// @formatter:off
+			return route("testrewritelocationresponseheader")
+					.GET("/anything/rewritelocationresponseheader", host("**.rewritelocationresponseheader.org"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(rewriteLocationResponseHeader())
+					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
 					.build();
 			// @formatter:on
 		}

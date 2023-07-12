@@ -35,6 +35,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofRequestProcessor;
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofResponseProcessor;
 
+// TODO: can Bucket4j, CircuitBreaker, Retry be here and not cause CNFE?
 public interface FilterFunctions {
 
 	@Shortcut
@@ -138,6 +139,14 @@ public interface FilterFunctions {
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(DataSize maxSize) {
 		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
+			String locationHeaderName, String hostValue, String protocols) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
+				.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
+						.setLocationHeaderName(locationHeaderName).setHostValue(hostValue).setProtocols(protocols)));
 	}
 
 	@Shortcut

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
@@ -96,6 +97,15 @@ public abstract class AfterFilterFunctions {
 			response.headers().remove(name);
 			return response;
 		};
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader() {
+		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(config -> {});
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			Consumer<RewriteLocationResponseHeaderFilterFunctions.RewriteLocationResponseHeaderConfig> configConsumer) {
+		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(configConsumer);
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteResponseHeader(String name,
