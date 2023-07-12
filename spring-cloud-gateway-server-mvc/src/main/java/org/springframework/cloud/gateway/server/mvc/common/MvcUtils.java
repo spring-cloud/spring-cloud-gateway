@@ -36,6 +36,11 @@ import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPL
 public abstract class MvcUtils {
 
 	/**
+	 * CircuitBreaker execution exception attribute name.
+	 */
+	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify("circuitBreakerExecutionException");
+
+	/**
 	 * Gateway request URL attribute name.
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");

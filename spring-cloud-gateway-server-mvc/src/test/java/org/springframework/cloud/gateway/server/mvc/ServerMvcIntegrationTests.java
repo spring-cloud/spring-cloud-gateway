@@ -79,6 +79,9 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.CB_EXECUTION_EXCEPTION_MESSAGE;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.CB_EXECUTION_EXCEPTION_TYPE;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
@@ -233,6 +236,15 @@ public class ServerMvcIntegrationTests {
 	public void circuitBreakerFallbackWorks() {
 		restClient.get().uri("/anything/circuitbreakerfallback").exchange().expectStatus().isOk()
 				.expectBody(String.class).isEqualTo("Hello");
+	}
+
+	@Test
+	public void circuitBreakerGatewayFallbackWorks() {
+		restClient.get().uri("/anything/circuitbreakergatewayfallback").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsKeys(CB_EXECUTION_EXCEPTION_TYPE, CB_EXECUTION_EXCEPTION_MESSAGE);
+				});
 	}
 
 	@Test
@@ -643,9 +655,25 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
 			// @formatter:off
-			return route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+			return route("testcircuitbreakerfallback")
+					.route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
 					.filter(circuitBreaker("mycb1", "/hello"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakerfallback");
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallbackToGatewayRoute() {
+			// @formatter:off
+			return route("testcircuitbreakergatewayfallback")
+					.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.filter(circuitBreaker("mycb2", "/anything/gatewayfallback"))
+					.build()
+				.and(route("testgatewayfallback")
+					.route(path("/anything/gatewayfallback"), http())
+					.before(new HttpbinUriResolver())
+					.before(fallbackHeaders())
+					.build());
 			// @formatter:on
 		}
 
@@ -654,7 +682,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/anything/circuitbreakernofallback"), http())
 					.filter(new HttpbinUriResolver())
-					.filter(circuitBreaker("mycb1", null))
+					.filter(circuitBreaker("mycb3", null))
 					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
 			// @formatter:on
@@ -975,7 +1003,14 @@ public class ServerMvcIntegrationTests {
 	protected static class TestHandler {
 
 		public ServerResponse hello(ServerRequest request) {
-			return ServerResponse.ok().body("Hello");
+			ServerResponse.BodyBuilder response = ServerResponse.ok();
+			if (request.headers().asHttpHeaders().containsKey(CB_EXECUTION_EXCEPTION_TYPE)) {
+				String exceptionType = request.headers().firstHeader(CB_EXECUTION_EXCEPTION_TYPE);
+				response.header(CB_EXECUTION_EXCEPTION_TYPE, exceptionType);
+				String exceptionMessage = request.headers().firstHeader(CB_EXECUTION_EXCEPTION_MESSAGE);
+				response.header(CB_EXECUTION_EXCEPTION_MESSAGE, exceptionMessage);
+			}
+			return response.body("Hello");
 		}
 
 	}

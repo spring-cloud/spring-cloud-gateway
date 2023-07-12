@@ -18,10 +18,12 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -44,6 +46,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
 
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 // TODO: can TokenRelay be here and not cause CNFE?
@@ -56,6 +59,26 @@ public abstract class BeforeFilterFunctions {
 	private static final String REQUEST_HEADER_SIZE_ERROR = " Request Header/s size for '%s' is %s.";
 
 	private static final String REQUEST_SIZE_ERROR_MSG = "Request size is larger than permissible limit. Request size is %s where permissible limit is %s";
+
+	/**
+	 * Default CircuitBreaker Fallback Execution Exception Type header name.
+	 */
+	public static final String CB_EXECUTION_EXCEPTION_TYPE = "Execution-Exception-Type";
+
+	/**
+	 * Default CircuitBreaker Fallback Execution Exception Message header name.
+	 */
+	public static final String CB_EXECUTION_EXCEPTION_MESSAGE = "Execution-Exception-Message";
+
+	/**
+	 * Default CircuitBreaker Root Cause Execution Exception Type header name.
+	 */
+	public static final String CB_ROOT_CAUSE_EXCEPTION_TYPE = "Root-Cause-Exception-Type";
+
+	/**
+	 * Default CircuitBreaker Root Cause Execution Exception Message header name.
+	 */
+	public static final String CB_ROOT_CAUSE_EXCEPTION_MESSAGE = "Root-Cause-Exception-Message";
 
 	private BeforeFilterFunctions() {
 	}
@@ -96,6 +119,45 @@ public abstract class BeforeFilterFunctions {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);
 			return ServerRequest.from(request).param(name, expandedValues).build();
 		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> fallbackHeaders() {
+		return fallbackHeaders(config -> {
+		});
+	}
+
+	public static Function<ServerRequest, ServerRequest> fallbackHeaders(
+			Consumer<FallbackHeadersConfig> configConsumer) {
+		FallbackHeadersConfig config = new FallbackHeadersConfig();
+		configConsumer.accept(config);
+		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR).map(Throwable.class::cast)
+				.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
+					httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
+					if (throwable.getMessage() != null) {
+						httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+					}
+					Throwable rootCause = getRootCause(throwable);
+					if (rootCause != null) {
+						httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
+						if (rootCause.getMessage() != null) {
+							httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
+						}
+					}
+				}).build()).orElse(request);
+	}
+
+	private static Throwable getRootCause(Throwable throwable) {
+		List<Throwable> list = getThrowableList(throwable);
+		return list.isEmpty() ? null : list.get(list.size() - 1);
+	}
+
+	private static List<Throwable> getThrowableList(Throwable throwable) {
+		List<Throwable> list = new ArrayList<>();
+		while (throwable != null && !list.contains(throwable)) {
+			list.add(throwable);
+			throwable = throwable.getCause();
+		}
+		return list;
 	}
 
 	public static Function<ServerRequest, ServerRequest> mapRequestHeader(String fromHeader, String toHeader) {
@@ -322,6 +384,50 @@ public abstract class BeforeFilterFunctions {
 					.toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
+	}
+
+	public static class FallbackHeadersConfig {
+
+		private String executionExceptionTypeHeaderName = CB_EXECUTION_EXCEPTION_TYPE;
+
+		private String executionExceptionMessageHeaderName = CB_EXECUTION_EXCEPTION_MESSAGE;
+
+		private String rootCauseExceptionTypeHeaderName = CB_ROOT_CAUSE_EXCEPTION_TYPE;
+
+		private String rootCauseExceptionMessageHeaderName = CB_ROOT_CAUSE_EXCEPTION_MESSAGE;
+
+		public String getExecutionExceptionTypeHeaderName() {
+			return executionExceptionTypeHeaderName;
+		}
+
+		public void setExecutionExceptionTypeHeaderName(String executionExceptionTypeHeaderName) {
+			this.executionExceptionTypeHeaderName = executionExceptionTypeHeaderName;
+		}
+
+		public String getExecutionExceptionMessageHeaderName() {
+			return executionExceptionMessageHeaderName;
+		}
+
+		public void setExecutionExceptionMessageHeaderName(String executionExceptionMessageHeaderName) {
+			this.executionExceptionMessageHeaderName = executionExceptionMessageHeaderName;
+		}
+
+		public String getRootCauseExceptionTypeHeaderName() {
+			return rootCauseExceptionTypeHeaderName;
+		}
+
+		public void setRootCauseExceptionTypeHeaderName(String rootCauseExceptionTypeHeaderName) {
+			this.rootCauseExceptionTypeHeaderName = rootCauseExceptionTypeHeaderName;
+		}
+
+		public String getRootCauseExceptionMessageHeaderName() {
+			return rootCauseExceptionMessageHeaderName;
+		}
+
+		public void setRootCauseExceptionMessageHeaderName(String rootCauseExceptionMessageHeaderName) {
+			this.rootCauseExceptionMessageHeaderName = rootCauseExceptionMessageHeaderName;
+		}
+
 	}
 
 }

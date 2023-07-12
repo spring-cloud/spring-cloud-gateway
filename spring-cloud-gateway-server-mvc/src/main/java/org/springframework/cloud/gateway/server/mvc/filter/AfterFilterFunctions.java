@@ -100,7 +100,8 @@ public abstract class AfterFilterFunctions {
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader() {
-		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(config -> {});
+		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(config -> {
+		});
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(

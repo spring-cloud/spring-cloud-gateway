@@ -20,11 +20,13 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy;
+import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.FallbackHeadersConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
@@ -70,6 +72,16 @@ public interface FilterFunctions {
 	static HandlerFilterFunction<ServerResponse, ServerResponse> dedupeResponseHeader(String name,
 			DedupeStrategy strategy) {
 		return ofResponseProcessor(AfterFilterFunctions.dedupeResponseHeader(name, strategy));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> fallbackHeaders() {
+		return ofRequestProcessor(BeforeFilterFunctions.fallbackHeaders());
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> fallbackHeaders(
+			Consumer<FallbackHeadersConfig> configConsumer) {
+		return ofRequestProcessor(BeforeFilterFunctions.fallbackHeaders(configConsumer));
 	}
 
 	@Shortcut
