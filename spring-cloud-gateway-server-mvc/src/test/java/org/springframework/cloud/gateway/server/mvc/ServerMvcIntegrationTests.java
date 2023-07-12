@@ -118,9 +118,15 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.mvc.http-client.type=jdk" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class ServerMvcIntegrationTests {
+
+	static {
+		// if set type to autodetect above
+		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+	}
 
 	@LocalServerPort
 	int port;

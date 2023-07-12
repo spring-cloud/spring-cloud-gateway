@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesB
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
@@ -114,6 +115,12 @@ public class GatewayServerMvcAutoConfiguration {
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
 		return new ProxyExchangeHandlerFunction(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RemoveContentLengthRequestHeadersFilter removeContentLengthRequestHeadersFilter() {
+		return new RemoveContentLengthRequestHeadersFilter();
 	}
 
 	@Bean
