@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,8 +31,11 @@ import jakarta.servlet.http.Cookie;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier;
+import org.springframework.cloud.gateway.server.mvc.common.DefaultArgumentSuppliedEvent;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,9 +54,12 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_ROUTE_ID_ATTR;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.WEIGHT_ATTR;
+
 public abstract class GatewayRequestPredicates {
 
-	private static final Log logger = LogFactory.getLog(GatewayRequestPredicates.class);
+	private static final Log log = LogFactory.getLog(GatewayRequestPredicates.class);
 
 	private static final String X_CF_FORWARDED_URL = "X-CF-Forwarded-Url";
 
@@ -147,9 +154,20 @@ public abstract class GatewayRequestPredicates {
 		return RequestPredicates.path(pattern);
 	}
 
+	/**
+	 * A predicate which will select a route based on its assigned weight.
+	 * @param group the group the route belongs to
+	 * @param weight the weight for the route
+	 * @return a predicate that tests against the given group and weight.
+	 */
+	@Shortcut
+	public static RequestPredicate weight(String group, int weight) {
+		return new WeightPredicate(group, weight);
+	}
+
 	private static void traceMatch(String prefix, Object desired, @Nullable Object actual, boolean match) {
-		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
+		if (log.isTraceEnabled()) {
+			log.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual));
 		}
 	}
@@ -295,7 +313,7 @@ public abstract class GatewayRequestPredicates {
 			String host = request.headers().firstHeader(HttpHeaders.HOST);
 			PathContainer pathContainer = PathContainer.parsePath(host, PathContainer.Options.MESSAGE_ROUTE);
 			PathPattern.PathMatchInfo info = this.pattern.matchAndExtract(pathContainer);
-			traceMatch("Pattern", this.pattern.getPatternString(), request.path(), info != null);
+			traceMatch("Pattern", this.pattern.getPatternString(), host, info != null);
 			if (info != null) {
 				MvcUtils.putUriTemplateVariables(request, info.getUriVariables());
 				return true;
@@ -388,6 +406,66 @@ public abstract class GatewayRequestPredicates {
 
 			void changeParser(PathPatternParser parser);
 
+		}
+
+	}
+
+	private static final class WeightPredicate implements RequestPredicate, ArgumentSupplier<WeightConfig> {
+
+		final String group;
+
+		final int weight;
+
+		private WeightPredicate(String group, int weight) {
+			this.group = group;
+			this.weight = weight;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public boolean test(ServerRequest request) {
+			Map<String, String> weights = (Map<String, String>) request.attributes().getOrDefault(WEIGHT_ATTR,
+					Collections.emptyMap());
+
+			String routeId = (String) request.attributes().get(GATEWAY_ROUTE_ID_ATTR);
+			if (ObjectUtils.isEmpty(routeId)) {
+				// no routeId to test against
+				// TODO: maybe log a warning
+				return false;
+			}
+
+			// all calculations and comparison against random num happened in
+			// WeightCalculatorHandlerInterceptor
+			if (weights.containsKey(group)) {
+
+				String chosenRoute = weights.get(group);
+				if (log.isTraceEnabled()) {
+					log.trace("in group weight: " + group + ", current route: " + routeId + ", chosen route: "
+							+ chosenRoute);
+				}
+
+				return routeId.equals(chosenRoute);
+			}
+			else if (log.isTraceEnabled()) {
+				log.trace("no weights found for group: " + group + ", current route: " + routeId);
+			}
+
+			return false;
+		}
+
+		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.unknown(this);
+		}
+
+		@Override
+		public ArgumentSuppliedEvent<WeightConfig> getArgumentSuppliedEvent() {
+			return new DefaultArgumentSuppliedEvent<>(this, WeightConfig.class, new WeightConfig(null, group, weight));
+		}
+
+		@Override
+		public String toString() {
+			return String.format("Weight=%d group=%s", weight, group);
 		}
 
 	}

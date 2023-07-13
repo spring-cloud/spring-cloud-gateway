@@ -55,6 +55,11 @@ public abstract class MvcUtils {
 	 */
 	public static final String PRESERVE_HOST_HEADER_ATTRIBUTE = qualify("preserveHostHeader");
 
+	/**
+	 * Weight attribute name.
+	 */
+	public static final String WEIGHT_ATTR = qualify("routeWeight");
+
 	private MvcUtils() {
 	}
 

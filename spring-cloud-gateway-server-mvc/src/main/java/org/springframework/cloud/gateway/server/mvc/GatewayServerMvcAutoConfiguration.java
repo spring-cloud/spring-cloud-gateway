@@ -26,6 +26,7 @@ import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
+import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -35,11 +36,13 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRe
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -50,6 +53,11 @@ import org.springframework.web.client.RestClient;
 @AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
+
+	@Bean
+	public ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(ApplicationEventPublisher publisher) {
+		return new ArgumentSupplierBeanPostProcessor(publisher);
+	}
 
 	@Bean
 	public RestClientCustomizer gatewayRestClientCustomizer(ClientHttpRequestFactory requestFactory) {
@@ -139,6 +147,12 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean
 	public TransferEncodingNormalizationRequestHeadersFilter transferEncodingNormalizationRequestHeadersFilter() {
 		return new TransferEncodingNormalizationRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public WeightCalculatorFilter weightCalculatorFilter() {
+		return new WeightCalculatorFilter();
 	}
 
 	@Bean
