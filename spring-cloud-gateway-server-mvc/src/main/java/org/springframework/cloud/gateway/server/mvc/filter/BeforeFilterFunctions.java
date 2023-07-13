@@ -314,7 +314,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> routeId(String routeId) {
 		return request -> {
-			request.attributes().put(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
+			MvcUtils.setRouteId(request, routeId);
 			return request;
 		};
 	}
