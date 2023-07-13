@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -33,6 +34,8 @@ public class HttpbinUriResolver
 		ApplicationContext context = MvcUtils.getApplicationContext(request);
 		Integer port = context.getEnvironment().getProperty("httpbin.port", Integer.class);
 		String host = context.getEnvironment().getProperty("httpbin.host");
+		Assert.hasText(host, "httpbin.host is not set, did you initialize HttpbinTestcontainers?");
+		Assert.notNull(port, "httpbin.port is not set, did you initialize HttpbinTestcontainers?");
 		return URI.create(String.format("http://%s:%d", host, port));
 	}
 
