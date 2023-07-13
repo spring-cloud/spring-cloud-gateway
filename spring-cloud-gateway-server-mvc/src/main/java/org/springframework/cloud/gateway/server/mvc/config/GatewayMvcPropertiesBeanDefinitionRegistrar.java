@@ -34,6 +34,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
@@ -58,7 +59,7 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import static org.springframework.web.servlet.function.RouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 
 public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
@@ -149,16 +150,16 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	private RouterFunction getRouterFunction(RouteProperties routeProperties, String routeId) {
 		log.trace(LogMessage.format("Creating route for : %s", routeProperties));
 
-		RouterFunctions.Builder builder = route();
+		RouterFunctions.Builder builder = route(routeId);
 
 		// MVC.fn users won't need this anonymous filter as url will be set directly.
 		// Put this function first, so if a filter from a handler changes the url
 		// it is after this one.
 		builder.filter((request, next) -> {
 			MvcUtils.setRequestUrl(request, routeProperties.getUri());
-			MvcUtils.setRouteId(request, routeId);
 			return next.handle(request);
 		});
+		builder.before(BeforeFilterFunctions.routeId(routeId));
 
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
 		// TODO: cache?
