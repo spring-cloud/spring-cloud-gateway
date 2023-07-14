@@ -67,6 +67,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -587,7 +588,7 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> nonGatewayRouterFunctions(TestHandler testHandler) {
-			return route(GET("/hello"), testHandler::hello).withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello");
+			return route(GET("/hello"), testHandler).withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello");
 		}
 
 		@Bean
@@ -840,7 +841,7 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHostHeader() {
 			// @formatter:off
-			return route("testsetrequestheader")
+			return route("testsetrequesthostheader")
 					.route(host("**.setrequesthostheader.org"), http())
 					.filter(new HttpbinUriResolver())
 					.filter(setRequestHostHeader("otherhost.io"))
@@ -1087,12 +1088,16 @@ public class ServerMvcIntegrationTests {
 
 	}
 
-	protected static class TestHandler {
-
-		public ServerResponse hello(ServerRequest request) {
+	protected static class TestHandler implements HandlerFunction<ServerResponse> {
+		@Override
+		public ServerResponse handle(ServerRequest request) {
 			return ServerResponse.ok().body("Hello");
 		}
 
+		@Override
+		public String toString() {
+			return "TestHandler Hello";
+		}
 	}
 
 }
