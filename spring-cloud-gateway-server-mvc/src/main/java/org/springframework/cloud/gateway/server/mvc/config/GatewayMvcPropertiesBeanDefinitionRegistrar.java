@@ -63,7 +63,19 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
 
 public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
-	private static final RouterFunction<ServerResponse> NEVER_ROUTE = RouterFunctions.route(request -> false,
+	private static final RequestPredicate neverPredicate = new RequestPredicate() {
+		@Override
+		public boolean test(ServerRequest request) {
+			return false;
+		}
+
+		@Override
+		public String toString() {
+			return "Never";
+		}
+	};
+
+	private static final RouterFunction<ServerResponse> NEVER_ROUTE = RouterFunctions.route(neverPredicate,
 			request -> ServerResponse.notFound().build());
 
 	protected final Log log = LogFactory.getLog(getClass());
