@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.predicate;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -42,14 +39,11 @@ import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.PathContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -63,6 +57,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.WEIGHT_ATTR;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.cacheAndReadBody;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getAttribute;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.putAttribute;
 
@@ -165,9 +160,8 @@ public abstract class GatewayRequestPredicates {
 		return RequestPredicates.path(pattern);
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {
-		return new ReadBodyPredicate(inClass, (Predicate<Object>) predicate);
+		return new ReadBodyPredicate<>(inClass, predicate);
 	}
 
 	/**
@@ -426,24 +420,25 @@ public abstract class GatewayRequestPredicates {
 
 	}
 
-	private static final class ReadBodyPredicate implements RequestPredicate {
+	private static final class ReadBodyPredicate<T> implements RequestPredicate {
 
-		private final Class toRead;
+		private final Class<T> toRead;
 
-		private final Predicate<Object> predicate;
+		private final Predicate<T> predicate;
 
-		<T> ReadBodyPredicate(Class toRead, Predicate<Object> predicate) {
+		ReadBodyPredicate(Class<T> toRead, Predicate<T> predicate) {
 			this.toRead = toRead;
 			this.predicate = predicate;
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public boolean test(ServerRequest request) {
 			try {
 				Object cachedBody = getAttribute(request, READ_BODY_CACHE_OBJECT_KEY);
 
 				if (cachedBody != null) {
-					return predicate.test(cachedBody);
+					return predicate.test((T) cachedBody);
 				}
 			}
 			catch (ClassCastException e) {
@@ -453,34 +448,10 @@ public abstract class GatewayRequestPredicates {
 				}
 			}
 
-			try {
-				byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
-				ByteArrayInputStream body = new ByteArrayInputStream(bytes);
-				putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
-				HttpInputMessage inputMessage = new HttpInputMessage() {
-					@Override
-					public InputStream getBody() {
-						return body;
-					}
-
-					@Override
-					public HttpHeaders getHeaders() {
-						return request.headers().asHttpHeaders();
-					}
-				};
-				List<HttpMessageConverter<?>> httpMessageConverters = request.messageConverters();
-				for (HttpMessageConverter<?> messageConverter : httpMessageConverters) {
-					if (messageConverter.canRead(toRead, request.headers().contentType().orElse(null))) {
-						Object value = messageConverter.read(toRead, inputMessage);
-						putAttribute(request, READ_BODY_CACHE_OBJECT_KEY, value);
-						return predicate.test(value);
-					}
-				}
-			}
-			catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			return false;
+			return cacheAndReadBody(request, toRead).map(body -> {
+				putAttribute(request, READ_BODY_CACHE_OBJECT_KEY, body);
+				return predicate.test(body);
+			}).orElse(false);
 		}
 
 		@Override

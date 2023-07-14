@@ -57,4 +57,5 @@ public class GatewayDelegatingRouterFunction<T extends ServerResponse> implement
 	public String toString() {
 		return String.format("RouterFunction routeId=%s delegate=%s", routeId, delegate);
 	}
+
 }

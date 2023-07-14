@@ -17,7 +17,10 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
@@ -25,6 +28,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -39,17 +43,22 @@ import jakarta.servlet.http.Part;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriBuilder;
 
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.cacheAndReadBody;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getAttribute;
 
 public abstract class BodyFilterFunctions {
@@ -61,24 +70,106 @@ public abstract class BodyFilterFunctions {
 		return request -> {
 			Object o = getAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR);
 			if (o instanceof ByteArrayInputStream body) {
-				ByteArrayServletInputStream inputStream = new ByteArrayServletInputStream(body);
-				HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(request.servletRequest()) {
-					@Override
-					public ServletInputStream getInputStream() {
-						return inputStream;
-					}
-				};
-
-				return new ServerRequestWrapper(request) {
-					@Override
-					public HttpServletRequest servletRequest() {
-						return wrapper;
-					}
-				};
+				return wrapRequest(request, body);
 			}
 
 			return request;
 		};
+	}
+
+	private static ServerRequestWrapper wrapRequest(ServerRequest request, byte[] body) {
+		return wrapRequest(request, new ByteArrayInputStream(body));
+	}
+
+	private static ServerRequestWrapper wrapRequest(ServerRequest request, ByteArrayInputStream body) {
+		ByteArrayServletInputStream inputStream = new ByteArrayServletInputStream(body);
+		HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper(request.servletRequest()) {
+			@Override
+			public ServletInputStream getInputStream() {
+				return inputStream;
+			}
+		};
+
+		return new ServerRequestWrapper(request) {
+			@Override
+			public HttpServletRequest servletRequest() {
+				return wrapper;
+			}
+		};
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T, R> Function<ServerRequest, ServerRequest> modifyRequestBody(Class<T> inClass, Class<R> outClass,
+			String newContentType, RewriteFunction<T, R> rewriteFunction) {
+		return request -> cacheAndReadBody(request, inClass).map(body -> {
+			R convertedBody = rewriteFunction.apply(request, body);
+			// TODO: cache converted body
+
+			MediaType contentType = (StringUtils.hasText(newContentType)) ? MediaType.parseMediaType(newContentType)
+					: request.headers().contentType().orElse(null);
+
+			List<HttpMessageConverter<?>> httpMessageConverters = request.messageConverters();
+			for (HttpMessageConverter<?> messageConverter : httpMessageConverters) {
+				if (messageConverter.canWrite(outClass, contentType)) {
+					HttpHeaders headers = new HttpHeaders();
+					headers.putAll(request.headers().asHttpHeaders());
+
+					// the new content type will be computed by converter
+					// and then set in the request decorator
+					headers.remove(HttpHeaders.CONTENT_LENGTH);
+
+					// if the body is changing content types, set it here, to the
+					// bodyInserter
+					// will know about it
+					if (contentType != null) {
+						headers.setContentType(contentType);
+					}
+					try {
+						ByteArrayHttpOutputMessage outputMessage = new ByteArrayHttpOutputMessage(headers);
+						((HttpMessageConverter<R>) messageConverter).write(convertedBody, contentType, outputMessage);
+						ServerRequest modified = ServerRequest.from(request)
+								.headers(httpHeaders -> httpHeaders.putAll(headers)).build();
+						return wrapRequest(modified, outputMessage.getBytes());
+					}
+					catch (IOException e) {
+						throw new UncheckedIOException(e);
+					}
+				}
+			}
+
+			return request;
+		}).orElse(request);
+	}
+
+	private final static class ByteArrayHttpOutputMessage implements HttpOutputMessage {
+
+		private final HttpHeaders headers;
+
+		private final ByteArrayOutputStream body;
+
+		private ByteArrayHttpOutputMessage(HttpHeaders headers) {
+			this.headers = headers;
+			this.body = new ByteArrayOutputStream();
+		}
+
+		@Override
+		public OutputStream getBody() throws IOException {
+			return this.body;
+		}
+
+		@Override
+		public HttpHeaders getHeaders() {
+			return headers;
+		}
+
+		public byte[] getBytes() {
+			return this.body.toByteArray();
+		}
+
+	}
+
+	public interface RewriteFunction<T, R> extends BiFunction<ServerRequest, T, R> {
+
 	}
 
 	private static class ByteArrayServletInputStream extends ServletInputStream {

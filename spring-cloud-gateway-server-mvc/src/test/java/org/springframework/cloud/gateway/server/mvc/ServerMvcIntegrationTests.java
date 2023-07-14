@@ -88,6 +88,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.modifyRequestBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
@@ -545,7 +546,6 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void readBodyWorks() {
-
 		Event messageEvent = new Event("message", "bar");
 
 		restClient.post().uri("/events").bodyValue(messageEvent).exchange().expectStatus().isOk().expectHeader()
@@ -558,6 +558,23 @@ public class ServerMvcIntegrationTests {
 				.valueEquals("X-Channel-Foo", "message.channel").expectBody(Event.class)
 				.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageChannelEvent));
 
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void rewriteRequestBodyStringWorks() {
+		restClient.post().uri("/post").header("Host", "www.modifyrequestbodystring.org").bodyValue("hello").exchange()
+				.expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void rewriteRequestBodyObjectWorks() {
+		restClient.post().uri("/post").header("Host", "www.modifyrequestbodyobject.org").bodyValue("hello world")
+				.exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data",
+						"{\"message\":\"HELLO WORLD\"}"));
 	}
 
 	@SpringBootConfiguration
@@ -1010,15 +1027,35 @@ public class ServerMvcIntegrationTests {
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsReadBodyPredicate() {
-			// @formatter:of
+			// @formatter:off
 			return route("testreadbodypredicate")
-					.POST("/events", readBody(Event.class, eventPredicate("message")), http()).before(
-							new LocalServerPortUriResolver())
-					.filter(setPath("/do/events")).before(adaptCachedBody()).build()
-					.and(route("testreadbodypredicate2")
-							.POST("/events", readBody(Event.class, eventPredicate("message.channel")), http())
-							.before(new LocalServerPortUriResolver()).filter(setPath("/do/events/channel"))
-							.before(adaptCachedBody()).build());
+					.POST("/events", readBody(Event.class, eventPredicate("message")), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/do/events"))
+					.before(adaptCachedBody())
+					.build().and(
+				route("testreadbodypredicate2")
+					.POST("/events", readBody(Event.class, eventPredicate("message.channel")), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/do/events/channel"))
+					.before(adaptCachedBody())
+					.build());
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyRequestBody() {
+			// @formatter:off
+			return route("testmodifyrequestbodystring")
+					.POST("/post", host("**.modifyrequestbodystring.org"), http())
+					.before(new HttpbinUriResolver())
+					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase() + s.toUpperCase()))
+					.build().and(
+				route("testmodifyrequestbodyobject")
+					.POST("/post", host("**.modifyrequestbodyobject.org"), http())
+					.before(new HttpbinUriResolver())
+					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
+					.build());
 			// @formatter:on
 		}
 
@@ -1035,6 +1072,10 @@ public class ServerMvcIntegrationTests {
 				}
 			};
 		}
+
+	}
+
+	protected record Hello(String message) {
 
 	}
 
@@ -1089,6 +1130,7 @@ public class ServerMvcIntegrationTests {
 	}
 
 	protected static class TestHandler implements HandlerFunction<ServerResponse> {
+
 		@Override
 		public ServerResponse handle(ServerRequest request) {
 			return ServerResponse.ok().body("Hello");
@@ -1098,6 +1140,7 @@ public class ServerMvcIntegrationTests {
 		public String toString() {
 			return "TestHandler Hello";
 		}
+
 	}
 
 }

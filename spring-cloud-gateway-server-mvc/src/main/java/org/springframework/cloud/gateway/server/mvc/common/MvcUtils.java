@@ -16,15 +16,24 @@
 
 package org.springframework.cloud.gateway.server.mvc.common;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.support.RequestContextUtils;
@@ -75,6 +84,23 @@ public abstract class MvcUtils {
 
 	private static String qualify(String attr) {
 		return "GatewayServerMvc." + attr;
+	}
+
+	public static <T> Optional<T> cacheAndReadBody(ServerRequest request, Class<T> toClass) {
+		ByteArrayInputStream rawBody = cacheBody(request);
+		return readBody(request, rawBody, toClass);
+	}
+
+	public static ByteArrayInputStream cacheBody(ServerRequest request) {
+		try {
+			byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
+			ByteArrayInputStream body = new ByteArrayInputStream(bytes);
+			putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+			return body;
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	public static String expand(ServerRequest request, String template) {
@@ -147,6 +173,24 @@ public abstract class MvcUtils {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T> Optional<T> readBody(ServerRequest request, ByteArrayInputStream body, Class<T> toClass) {
+		try {
+			HttpInputMessage inputMessage = new ByteArrayInputMessage(request, body);
+			List<HttpMessageConverter<?>> httpMessageConverters = request.messageConverters();
+			for (HttpMessageConverter<?> messageConverter : httpMessageConverters) {
+				if (messageConverter.canRead(toClass, request.headers().contentType().orElse(null))) {
+					T convertedValue = (T) messageConverter.read((Class) toClass, inputMessage);
+					return Optional.of(convertedValue);
+				}
+			}
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+		return Optional.empty();
+	}
+
 	public static void setRouteId(ServerRequest request, String routeId) {
 		request.attributes().put(GATEWAY_ROUTE_ID_ATTR, routeId);
 		request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, routeId);
@@ -155,6 +199,29 @@ public abstract class MvcUtils {
 	public static void setRequestUrl(ServerRequest request, URI url) {
 		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
+	}
+
+	private final static class ByteArrayInputMessage implements HttpInputMessage {
+
+		private final ServerRequest request;
+
+		private final ByteArrayInputStream body;
+
+		private ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) {
+			this.request = request;
+			this.body = body;
+		}
+
+		@Override
+		public InputStream getBody() {
+			return body;
+		}
+
+		@Override
+		public HttpHeaders getHeaders() {
+			return request.headers().asHttpHeaders();
+		}
+
 	}
 
 }

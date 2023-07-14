@@ -174,6 +174,11 @@ public abstract class BeforeFilterFunctions {
 		};
 	}
 
+	public static <T, R> Function<ServerRequest, ServerRequest> modifyRequestBody(Class<T> inClass, Class<R> outClass,
+			String newContentType, BodyFilterFunctions.RewriteFunction<T, R> rewriteFunction) {
+		return BodyFilterFunctions.modifyRequestBody(inClass, outClass, newContentType, rewriteFunction);
+	}
+
 	public static Function<ServerRequest, ServerRequest> prefixPath(String prefix) {
 		final UriTemplate uriTemplate = new UriTemplate(prefix);
 
