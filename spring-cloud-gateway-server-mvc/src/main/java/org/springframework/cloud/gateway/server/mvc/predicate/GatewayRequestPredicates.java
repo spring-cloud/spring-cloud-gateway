@@ -440,7 +440,6 @@ public abstract class GatewayRequestPredicates {
 		@Override
 		public boolean test(ServerRequest request) {
 			try {
-				// TODO: RequestPredicates.restoreAttributes() erases this :-(
 				Object cachedBody = getAttribute(request, READ_BODY_CACHE_OBJECT_KEY);
 
 				if (cachedBody != null) {
