@@ -45,7 +45,7 @@ import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPL
 public abstract class MvcUtils {
 
 	/**
-	 * Cached request body key.
+	 * Cached raw request body key.
 	 */
 	public static final String CACHED_REQUEST_BODY_ATTR = qualify("cachedRequestBody");
 
