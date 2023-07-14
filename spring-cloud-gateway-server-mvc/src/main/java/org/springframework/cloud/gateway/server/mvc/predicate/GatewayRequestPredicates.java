@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc.predicate;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import jakarta.servlet.http.Cookie;
@@ -38,11 +42,14 @@ import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.PathContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -56,6 +63,8 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.WEIGHT_ATTR;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getAttribute;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.putAttribute;
 
 public abstract class GatewayRequestPredicates {
 
@@ -68,6 +77,8 @@ public abstract class GatewayRequestPredicates {
 	private static final String X_CF_PROXY_METADATA = "X-CF-Proxy-Metadata";
 
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
+
+	private static final String READ_BODY_CACHE_OBJECT_KEY = "cachedRequestBodyObject";
 
 	private GatewayRequestPredicates() {
 	}
@@ -152,6 +163,11 @@ public abstract class GatewayRequestPredicates {
 	@Shortcut
 	public static RequestPredicate path(String pattern) {
 		return RequestPredicates.path(pattern);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {
+		return new ReadBodyPredicate(inClass, (Predicate<Object>) predicate);
 	}
 
 	/**
@@ -406,6 +422,76 @@ public abstract class GatewayRequestPredicates {
 
 			void changeParser(PathPatternParser parser);
 
+		}
+
+	}
+
+	private static final class ReadBodyPredicate implements RequestPredicate {
+
+		private final Class toRead;
+
+		private final Predicate<Object> predicate;
+
+		<T> ReadBodyPredicate(Class toRead, Predicate<Object> predicate) {
+			this.toRead = toRead;
+			this.predicate = predicate;
+		}
+
+		@Override
+		public boolean test(ServerRequest request) {
+			try {
+				// TODO: RequestPredicates.restoreAttributes() erases this :-(
+				Object cachedBody = getAttribute(request, READ_BODY_CACHE_OBJECT_KEY);
+
+				if (cachedBody != null) {
+					return predicate.test(cachedBody);
+				}
+			}
+			catch (ClassCastException e) {
+				if (log.isDebugEnabled()) {
+					log.debug("Predicate test failed because class in predicate "
+							+ "does not match the cached body object", e);
+				}
+			}
+
+			try {
+				byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
+				ByteArrayInputStream body = new ByteArrayInputStream(bytes);
+				putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+				HttpInputMessage inputMessage = new HttpInputMessage() {
+					@Override
+					public InputStream getBody() {
+						return body;
+					}
+
+					@Override
+					public HttpHeaders getHeaders() {
+						return request.headers().asHttpHeaders();
+					}
+				};
+				List<HttpMessageConverter<?>> httpMessageConverters = request.messageConverters();
+				for (HttpMessageConverter<?> messageConverter : httpMessageConverters) {
+					if (messageConverter.canRead(toRead, request.headers().contentType().orElse(null))) {
+						Object value = messageConverter.read(toRead, inputMessage);
+						putAttribute(request, READ_BODY_CACHE_OBJECT_KEY, value);
+						return predicate.test(value);
+					}
+				}
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return false;
+		}
+
+		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.unknown(this);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("ReadBody=%s predicate=%s", toRead.getSimpleName(), predicate);
 		}
 
 	}

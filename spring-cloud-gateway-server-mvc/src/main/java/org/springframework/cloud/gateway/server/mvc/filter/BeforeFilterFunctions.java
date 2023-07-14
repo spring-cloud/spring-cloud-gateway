@@ -83,6 +83,10 @@ public abstract class BeforeFilterFunctions {
 	private BeforeFilterFunctions() {
 	}
 
+	public static Function<ServerRequest, ServerRequest> adaptCachedBody() {
+		return BodyFilterFunctions.adaptCachedBody();
+	}
+
 	public static Function<ServerRequest, ServerRequest> addRequestHeader(String name, String... values) {
 		return request -> {
 			String[] expandedValues = MvcUtils.expandMultiple(request, values);

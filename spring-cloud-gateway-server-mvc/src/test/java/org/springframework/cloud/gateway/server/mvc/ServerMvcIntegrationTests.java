@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.caffeine.CaffeineProxyManager;
@@ -62,6 +63,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -81,6 +84,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFun
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.CB_EXECUTION_EXCEPTION_MESSAGE;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.CB_EXECUTION_EXCEPTION_TYPE;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
@@ -110,6 +114,7 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.readBody;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
@@ -537,6 +542,23 @@ public class ServerMvcIntegrationTests {
 				.valueEquals("Location", "https://test1.rewritelocationresponseheader.org/some/object/id");
 	}
 
+	@Test
+	public void readBodyWorks() {
+
+		Event messageEvent = new Event("message", "bar");
+
+		restClient.post().uri("/events").bodyValue(messageEvent).exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-Foo", "message").expectBody(Event.class)
+				.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageEvent));
+
+		Event messageChannelEvent = new Event("message.channel", "baz");
+
+		restClient.post().uri("/events").bodyValue(messageChannelEvent).exchange().expectStatus().isOk().expectHeader()
+				.valueEquals("X-Channel-Foo", "message.channel").expectBody(Event.class)
+				.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageChannelEvent));
+
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -550,6 +572,11 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		RetryController retryController() {
 			return new RetryController();
+		}
+
+		@Bean
+		EventController eventController() {
+			return new EventController();
 		}
 
 		@Bean
@@ -978,6 +1005,53 @@ public class ServerMvcIntegrationTests {
 					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
 					.build();
 			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsReadBodyPredicate() {
+			// @formatter:of
+			return route("testreadbodypredicate")
+					.POST("/events", readBody(Event.class, eventPredicate("message")), http()).before(
+							new LocalServerPortUriResolver())
+					.filter(setPath("/do/events")).before(adaptCachedBody()).build()
+					.and(route("testreadbodypredicate2")
+							.POST("/events", readBody(Event.class, eventPredicate("message.channel")), http())
+							.before(new LocalServerPortUriResolver()).filter(setPath("/do/events/channel"))
+							.before(adaptCachedBody()).build());
+			// @formatter:on
+		}
+
+		private Predicate<Event> eventPredicate(String foo) {
+			return new Predicate<>() {
+				@Override
+				public boolean test(Event event) {
+					return event.foo().equals(foo);
+				}
+
+				@Override
+				public String toString() {
+					return "Event.foo == " + foo;
+				}
+			};
+		}
+
+	}
+
+	protected record Event(String foo, String bar) {
+
+	}
+
+	@RestController
+	protected static class EventController {
+
+		@PostMapping(path = "/do/events", produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<Event> messageEvents(@RequestBody Event e) {
+			return ResponseEntity.ok().header("X-Foo", e.foo()).body(e);
+		}
+
+		@PostMapping(path = "/do/events/channel", produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<Event> messageChannelEvents(@RequestBody Event e) {
+			return ResponseEntity.ok().header("X-Channel-Foo", e.foo()).body(e);
 		}
 
 	}

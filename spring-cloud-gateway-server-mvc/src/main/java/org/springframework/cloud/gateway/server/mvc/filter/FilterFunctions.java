@@ -41,6 +41,11 @@ import static org.springframework.web.servlet.function.HandlerFilterFunction.ofR
 public interface FilterFunctions {
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> adaptCachedBody() {
+		return ofRequestProcessor(BeforeFilterFunctions.adaptCachedBody());
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> addRequestHeader(String name, String... values) {
 		return ofRequestProcessor(BeforeFilterFunctions.addRequestHeader(name, values));
 	}

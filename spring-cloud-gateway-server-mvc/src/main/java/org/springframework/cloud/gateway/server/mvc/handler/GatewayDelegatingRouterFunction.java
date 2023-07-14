@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -41,6 +42,7 @@ public class GatewayDelegatingRouterFunction<T extends ServerResponse> implement
 	@Override
 	public Optional<HandlerFunction<T>> route(ServerRequest request) {
 		request.attributes().put(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
+		request.attributes().computeIfAbsent(MvcUtils.GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
 		Optional<HandlerFunction<T>> handlerFunction = delegate.route(request);
 		request.attributes().remove(MvcUtils.GATEWAY_ROUTE_ID_ATTR);
 		return handlerFunction;

@@ -36,9 +36,19 @@ import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPL
 public abstract class MvcUtils {
 
 	/**
+	 * Cached request body key.
+	 */
+	public static final String CACHED_REQUEST_BODY_ATTR = qualify("cachedRequestBody");
+
+	/**
 	 * CircuitBreaker execution exception attribute name.
 	 */
 	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify("circuitBreakerExecutionException");
+
+	/**
+	 * Gateway route ID attribute name.
+	 */
+	public static final String GATEWAY_ATTRIBUTES_ATTR = qualify("gatewayAttributes");
 
 	/**
 	 * Gateway request URL attribute name.
@@ -97,9 +107,30 @@ public abstract class MvcUtils {
 	}
 
 	@SuppressWarnings("unchecked")
+	public static <T> T getAttribute(ServerRequest request, String key) {
+		if (request.attributes().containsKey(key)) {
+			return (T) request.attributes().get(key);
+		}
+		return (T) getGatewayAttributes(request).get(key);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> getGatewayAttributes(ServerRequest request) {
+		// This map is made in GatewayDelegatingRouterFunction.route() and persists across
+		// attribute resetting in RequestPredicates
+		Map<String, Object> attributes = (Map<String, Object>) request.attributes().get(GATEWAY_ATTRIBUTES_ATTR);
+		return attributes;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
 		return (Map<String, Object>) request.attributes().getOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE,
 				new HashMap<>());
+	}
+
+	public static void putAttribute(ServerRequest request, String key, Object value) {
+		request.attributes().put(key, value);
+		getGatewayAttributes(request).put(key, value);
 	}
 
 	@SuppressWarnings("unchecked")
