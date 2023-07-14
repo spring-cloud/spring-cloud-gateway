@@ -53,4 +53,8 @@ public class GatewayDelegatingRouterFunction<T extends ServerResponse> implement
 		delegate.accept(visitor);
 	}
 
+	@Override
+	public String toString() {
+		return String.format("RouterFunction routeId=%s delegate=%s", routeId, delegate);
+	}
 }
