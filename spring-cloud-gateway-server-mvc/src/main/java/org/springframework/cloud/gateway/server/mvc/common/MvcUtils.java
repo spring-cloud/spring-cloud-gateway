@@ -201,16 +201,7 @@ public abstract class MvcUtils {
 		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
 	}
 
-	private final static class ByteArrayInputMessage implements HttpInputMessage {
-
-		private final ServerRequest request;
-
-		private final ByteArrayInputStream body;
-
-		private ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) {
-			this.request = request;
-			this.body = body;
-		}
+	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {
 
 		@Override
 		public InputStream getBody() {
