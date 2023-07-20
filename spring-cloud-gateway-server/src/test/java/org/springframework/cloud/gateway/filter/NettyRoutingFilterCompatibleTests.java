@@ -56,6 +56,7 @@ class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 	void getLongHandlesStringAndNumber() {
 		assertThat(NettyRoutingFilter.getLong("5")).isEqualTo(5);
 		assertThat(NettyRoutingFilter.getLong(5)).isEqualTo(5);
+		assertThat(NettyRoutingFilter.getLong(50000L)).isEqualTo(50000);
 		assertThat(NettyRoutingFilter.getLong(null)).isNull();
 		assertThatThrownBy(() -> NettyRoutingFilter.getLong("notanumber")).isInstanceOf(NumberFormatException.class);
 	}
