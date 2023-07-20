@@ -280,7 +280,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	static Long getLong(Object responseTimeoutAttr) {
 		Long responseTimeout = null;
 		if (responseTimeoutAttr instanceof Number) {
-			responseTimeout = ((Integer) responseTimeoutAttr).longValue();
+			responseTimeout = ((Number) responseTimeoutAttr).longValue();
 		}
 		else if (responseTimeoutAttr != null) {
 			responseTimeout = Long.parseLong(responseTimeoutAttr.toString());
