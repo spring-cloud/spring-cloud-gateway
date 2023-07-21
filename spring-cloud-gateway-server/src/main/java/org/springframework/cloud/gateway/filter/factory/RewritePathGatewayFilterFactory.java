@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import reactor.core.publisher.Mono;
 
@@ -59,13 +60,14 @@ public class RewritePathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		String replacement = config.replacement.replace("$\\", "$");
+		Pattern pattern = Pattern.compile(config.regexp);
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				ServerHttpRequest req = exchange.getRequest();
 				addOriginalRequestUrl(exchange, req.getURI());
 				String path = req.getURI().getRawPath();
-				String newPath = path.replaceAll(config.regexp, replacement);
+				String newPath = pattern.matcher(path).replaceAll(replacement);
 
 				ServerHttpRequest request = req.mutate().path(newPath).build();
 

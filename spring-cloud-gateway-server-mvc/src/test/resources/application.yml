@@ -1,0 +1,9 @@
+logging:
+  level:
+    org.apache.hc.client5.http: DEBUG
+    org.apache.hc.client5.http.wire: DEBUG
+    org.springframework.web: TRACE
+    org.springframework.retry: TRACE
+spring:
+  mvc:
+    log-request-details: true
