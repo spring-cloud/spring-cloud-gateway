@@ -18,9 +18,17 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
@@ -38,19 +46,25 @@ public abstract class RetryFilterFunctions {
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
+		return retry(config -> config.setRetries(retries));
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(Consumer<RetryConfig> configConsumer) {
+		RetryConfig config = new RetryConfig();
+		configConsumer.accept(config);
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
 		return (request, next) -> {
 			CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
-			// TODO: better configuration of exceptions
-			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(retries, Map.of(IOException.class, true,
-					TimeoutException.class, true, HttpServerErrorException.class, true));
+			Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
+			config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
+			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
 			compositeRetryPolicy.setPolicies(
-					Arrays.asList(simpleRetryPolicy, new HttpStatusRetryPolicy()).toArray(new RetryPolicy[0]));
+					Arrays.asList(simpleRetryPolicy, new HttpStatusRetryPolicy(config)).toArray(new RetryPolicy[0]));
 			RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
 			return retryTemplate.execute(context -> {
 				ServerResponse serverResponse = next.handle(request);
-				// TODO: better status code check and configuration
-				if (serverResponse.statusCode().is5xxServerError()) {
+
+				if (isRetryableStatusCode(serverResponse.statusCode(), config)) {
 					throw new HttpServerErrorException(serverResponse.statusCode());
 				}
 				return serverResponse;
@@ -58,16 +72,78 @@ public abstract class RetryFilterFunctions {
 		};
 	}
 
-	static class HttpStatusRetryPolicy extends NeverRetryPolicy {
+	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
+		Optional<HttpStatus.Series> seriesMatches = config.getSeries().stream()
+				.filter(series -> HttpStatus.Series.resolve(httpStatus.value()) == series).findFirst();
+		return seriesMatches.isPresent();
+	}
+
+	public static class HttpStatusRetryPolicy extends NeverRetryPolicy {
+
+		private final RetryConfig config;
+
+		public HttpStatusRetryPolicy(RetryConfig config) {
+			this.config = config;
+		}
 
 		@Override
 		public boolean canRetry(RetryContext context) {
 			// TODO: custom exception
-			// TODO: better status code check and configuration
 			if (context.getLastThrowable() instanceof HttpServerErrorException e) {
-				return e.getStatusCode().is5xxServerError();
+				return isRetryableStatusCode(e.getStatusCode(), config);
 			}
 			return super.canRetry(context);
+		}
+
+	}
+
+	public static class RetryConfig {
+
+		private int retries = 3;
+
+		private Set<HttpStatus.Series> series = new HashSet<>(List.of(HttpStatus.Series.SERVER_ERROR));
+
+		private Set<Class<? extends Throwable>> exceptions = new HashSet<>(
+				List.of(IOException.class, TimeoutException.class, HttpServerErrorException.class));
+
+		// TODO: individual statuses
+		// TODO: support more Spring Retry policies
+
+		public int getRetries() {
+			return retries;
+		}
+
+		public RetryConfig setRetries(int retries) {
+			this.retries = retries;
+			return this;
+		}
+
+		public Set<HttpStatus.Series> getSeries() {
+			return series;
+		}
+
+		public RetryConfig setSeries(Set<HttpStatus.Series> series) {
+			this.series = series;
+			return this;
+		}
+
+		public RetryConfig addSeries(HttpStatus.Series... series) {
+			this.series.addAll(Arrays.asList(series));
+			return this;
+		}
+
+		public Set<Class<? extends Throwable>> getExceptions() {
+			return exceptions;
+		}
+
+		public RetryConfig setExceptions(Set<Class<? extends Throwable>> exceptions) {
+			this.exceptions = exceptions;
+			return this;
+		}
+
+		public RetryConfig addExceptions(Class<? extends Throwable>... exceptions) {
+			this.exceptions.addAll(Arrays.asList(exceptions));
+			return this;
 		}
 
 	}

@@ -21,18 +21,22 @@ import java.util.function.Function;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.Assert;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public class LocalServerPortUriResolver
+public class HttpbinUriResolver
 		implements Function<ServerRequest, ServerRequest>, HandlerFilterFunction<ServerResponse, ServerResponse> {
 
 	protected URI uri(ServerRequest request) {
 		ApplicationContext context = MvcUtils.getApplicationContext(request);
-		Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
-		return URI.create("http://localhost:" + port);
+		Integer port = context.getEnvironment().getProperty("httpbin.port", Integer.class);
+		String host = context.getEnvironment().getProperty("httpbin.host");
+		Assert.hasText(host, "httpbin.host is not set, did you initialize HttpbinTestcontainers?");
+		Assert.notNull(port, "httpbin.port is not set, did you initialize HttpbinTestcontainers?");
+		return URI.create(String.format("http://%s:%d", host, port));
 	}
 
 	@Override

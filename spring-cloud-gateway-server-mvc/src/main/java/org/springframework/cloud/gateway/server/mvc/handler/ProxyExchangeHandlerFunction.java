@@ -83,6 +83,15 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				this.requestHttpHeadersFilters.orderedStream().map(Function.identity()),
 				serverRequest.headers().asHttpHeaders(), serverRequest);
 
+		boolean preserveHost = (boolean) serverRequest.attributes()
+				.getOrDefault(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+		if (preserveHost) {
+			filteredRequestHeaders.set(HttpHeaders.HOST, serverRequest.headers().firstHeader(HttpHeaders.HOST));
+		}
+		else {
+			filteredRequestHeaders.remove(HttpHeaders.HOST);
+		}
+
 		// @formatter:off
 		ProxyExchange.Request proxyRequest = proxyExchange.request(serverRequest).uri(url)
 				.headers(filteredRequestHeaders)

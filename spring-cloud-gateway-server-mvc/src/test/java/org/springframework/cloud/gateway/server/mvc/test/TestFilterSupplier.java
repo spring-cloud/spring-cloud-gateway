@@ -17,11 +17,10 @@
 package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -29,12 +28,15 @@ public class TestFilterSupplier implements FilterSupplier {
 
 	@Override
 	public Collection<Method> get() {
-		return Collections
-				.singleton(ReflectionUtils.findMethod(TestFilterSupplier.class, "localServerPortUriResolver"));
+		return Arrays.asList(TestFilterSupplier.class.getMethods());
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> localServerPortUriResolver() {
 		return new LocalServerPortUriResolver();
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> httpbinUriResolver() {
+		return new HttpbinUriResolver();
 	}
 
 }

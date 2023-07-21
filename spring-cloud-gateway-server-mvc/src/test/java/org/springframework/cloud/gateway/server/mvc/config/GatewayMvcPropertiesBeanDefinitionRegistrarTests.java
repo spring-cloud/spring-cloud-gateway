@@ -32,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
@@ -40,6 +41,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
 import org.springframework.web.servlet.function.RequestPredicates;
@@ -48,9 +50,11 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("propertiesbeandefinitionregistrartests")
+@ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 
 	@Autowired
@@ -153,10 +157,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	public void configuredRouteWorks() {
 		restClient.get().uri("/anything/listRoute1").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "listRoute1");
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Test", "listRoute1");
 				});
 	}
 
@@ -165,10 +167,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	public void lbRouteWorks() {
 		restClient.get().uri("/anything/listRoute3").header("MyHeaderName", "MyHeaderVal").exchange().expectStatus()
 				.isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "listRoute3");
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Test", "listRoute3");
 				});
 	}
 
@@ -180,21 +180,17 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 		TestPropertyValues.of("spring.cloud.gateway.mvc.routesMap.route3.uri=https://example3.com",
 				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].name=Path",
 				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[0].Name=LocalServerPortUriResolver",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].Name=PrefixPath",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.prefix=/httpbin",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[2].Name=AddRequestHeader",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[2].args.name=X-Test",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[2].args.values=mapRoute3").applyTo(context);
+				"spring.cloud.gateway.mvc.routesMap.route3.filters[0].Name=HttpbinUriResolver",
+				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].Name=AddRequestHeader",
+				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.name=X-Test",
+				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.values=mapRoute3").applyTo(context);
 		ContextRefresher contextRefresher = context.getBean(ContextRefresher.class);
 		contextRefresher.refresh();
 		// make http call before getRouterFunction()
 		restClient.get().uri("/anything/mapRoute3").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsKey("headers");
-					Map<String, Object> headers = (Map<String, Object>) map.get("headers");
-					assertThat(headers).containsEntry("x-test", "mapRoute3");
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Test", "mapRoute3");
 				});
 
 		GatewayMvcProperties properties = context.getBean(GatewayMvcProperties.class);
@@ -205,7 +201,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@LoadBalancerClient(name = "testservice", configuration = TestLoadBalancerConfig.class)
+	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	static class Config {
 
 	}

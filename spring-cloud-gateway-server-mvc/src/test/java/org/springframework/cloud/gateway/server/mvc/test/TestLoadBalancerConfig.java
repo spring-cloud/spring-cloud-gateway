@@ -24,13 +24,27 @@ import org.springframework.context.annotation.Bean;
 
 public class TestLoadBalancerConfig {
 
-	@LocalServerPort
-	protected int port = 0;
+	public static class Httpbin {
 
-	@Bean
-	public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-		return ServiceInstanceListSuppliers.from("testservice",
-				new DefaultServiceInstance("testservice" + "-1", "testservice", "localhost", port, false));
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("httpbin", new DefaultServiceInstance("httpbin" + "-1", "httpbin",
+					HttpbinTestcontainers.getHost(), HttpbinTestcontainers.getPort(), false));
+		}
+
+	}
+
+	public static class Local {
+
+		@LocalServerPort
+		protected int port = 0;
+
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("testservice",
+					new DefaultServiceInstance("testservice" + "-1", "testservice", "localhost", port, false));
+		}
+
 	}
 
 }

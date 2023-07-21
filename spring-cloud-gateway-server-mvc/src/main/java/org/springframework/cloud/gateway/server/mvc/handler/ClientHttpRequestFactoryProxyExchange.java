@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -24,7 +25,6 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.function.ServerResponse;
 
-// TODO: try blocking RestClient when ready https://github.com/spring-projects/spring-framework/issues/29552
 public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 
 	private final ClientHttpRequestFactory requestFactory;
@@ -38,8 +38,6 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		try {
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
 			clientHttpRequest.getHeaders().putAll(request.getHeaders());
-			// TODO: why does this help form encoding?
-			clientHttpRequest.getHeaders().remove("content-length");
 			// copy body from request to clientHttpRequest
 			StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), clientHttpRequest.getBody());
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
@@ -47,9 +45,6 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 					.build((req, httpServletResponse) -> {
 						try (clientHttpResponse) {
 							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
-						}
-						catch (IOException e) {
-							throw new RuntimeException(e);
 						}
 						return null;
 					});
@@ -60,7 +55,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 		}
 		catch (IOException e) {
 			// TODO: log error?
-			throw new RuntimeException(e);
+			throw new UncheckedIOException(e);
 		}
 	}
 

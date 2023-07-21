@@ -9,6 +9,8 @@ spring.cloud.gateway.mvc:
       uri: https://example2.com
       predicates:
         - Path=/anything/example2
+      filters:
+        - SetStatus=200
   routes:
     - id: listRoute1
       uri: https://examplel1.com
@@ -21,8 +23,7 @@ spring.cloud.gateway.mvc:
           args:
             pattern: /anything/listRoute1
       filters:
-        - LocalServerPortUriResolver=
-        - PrefixPath=/httpbin
+        - HttpbinUriResolver=
         - AddRequestHeader=X-Test,listRoute1
     - id: listRoute2
       uri: https://examplel2.com
@@ -30,18 +31,14 @@ spring.cloud.gateway.mvc:
         - Method=GET,POST
         - Path=/anything/listRoute2
       filters:
-        - LocalServerPortUriResolver=
-        - PrefixPath=/httpbin
+        - HttpbinUriResolver=
         - AddRequestHeader=X-Test,listRoute2
     - id: listRoute3
-      uri: lb://testservice
+      uri: lb://httpbin
       predicates:
         - Path=/anything/listRoute3
         - Header=MyHeaderName,MyHeader.*
       filters:
-        - name: PrefixPath
-          args:
-            prefix: /httpbin
         - name: AddRequestHeader
           args:
             name: X-Test

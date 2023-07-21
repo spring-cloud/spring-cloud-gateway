@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,6 +49,8 @@ public class GatewayMvcProperties {
 	@Valid
 	private LinkedHashMap<String, RouteProperties> routesMap = new LinkedHashMap<>();
 
+	private HttpClient httpClient = new HttpClient();
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -64,9 +67,77 @@ public class GatewayMvcProperties {
 		this.routesMap = routesMap;
 	}
 
+	public HttpClient getHttpClient() {
+		return httpClient;
+	}
+
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("routes", routes).append("routesMap", routesMap).toString();
+		return new ToStringCreator(this).append("httpClient", httpClient).append("routes", routes)
+				.append("routesMap", routesMap).toString();
+	}
+
+	public static class HttpClient {
+
+		private Duration connectTimeout;
+
+		private Duration readTimeout;
+
+		private String sslBundle;
+
+		private HttpClientType type = HttpClientType.JDK;
+
+		public Duration getConnectTimeout() {
+			return connectTimeout;
+		}
+
+		public void setConnectTimeout(Duration connectTimeout) {
+			this.connectTimeout = connectTimeout;
+		}
+
+		public Duration getReadTimeout() {
+			return readTimeout;
+		}
+
+		public void setReadTimeout(Duration readTimeout) {
+			this.readTimeout = readTimeout;
+		}
+
+		public String getSslBundle() {
+			return sslBundle;
+		}
+
+		public void setSslBundle(String sslBundle) {
+			this.sslBundle = sslBundle;
+		}
+
+		public HttpClientType getType() {
+			return type;
+		}
+
+		public void setType(HttpClientType type) {
+			this.type = type;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append("connectTimeout", connectTimeout).append("readTimeout", readTimeout)
+					.append("sslBundle", sslBundle).append("type", type).toString();
+		}
+
+	}
+
+	public enum HttpClientType {
+
+		/**
+		 * Use JDK HttpClient.
+		 */
+		JDK,
+
+		/**
+		 * Auto-detect the HttpClient.
+		 */
+		AUTODETECT
 
 	}
 

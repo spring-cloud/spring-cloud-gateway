@@ -17,11 +17,9 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.io.OutputStream;
 
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -30,75 +28,35 @@ public class RestClientProxyExchange implements ProxyExchange {
 
 	private final RestClient restClient;
 
-	private final Field clientResponseField;
-
 	public RestClientProxyExchange(RestClient restClient) {
 		this.restClient = restClient;
-		try {
-			clientResponseField = ReflectionUtils.findField(
-					ClassUtils.forName("org.springframework.web.client.DefaultRestClient$DefaultResponseSpec", null),
-					"clientResponse");
-			ReflectionUtils.makeAccessible(clientResponseField);
-		}
-		catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	@Override
 	public ServerResponse exchange(Request request) {
-		// return restClient.method(request.getMethod()).uri(request.getUri())
-		RestClient.ResponseSpec responseSpec = restClient.method(request.getMethod()).uri(request.getUri())
-				.headers(httpHeaders -> {
-					request.getHeaders().forEach((header, values) -> {
-						// TODO: why does this help form encoding?
-						if (!header.equalsIgnoreCase("content-length")) {
-							httpHeaders.put(header, values);
-						}
-					});
-				}).body(outputStream -> StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(),
-						outputStream))
-				.retrieve();
-		ClientHttpResponse clientHttpResponse = (ClientHttpResponse) ReflectionUtils.getField(clientResponseField,
-				responseSpec);
-		try {
-			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
-					.build((req, httpServletResponse) -> {
-						try (clientHttpResponse) {
-							// copy body from request to clientHttpRequest
-							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
-						}
-						catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-						return null;
-					});
-			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
-			request.getResponseConsumers()
-					.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
-			return serverResponse;
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		// @formatter:off
-		/*.exchange((clientRequest, clientResponse) -> {
-			ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
-					.build((req, httpServletResponse) -> {
-						try (clientHttpResponse) {
-							// copy body from request to clientHttpRequest
-							StreamUtils.copy(clientResponse.getBody(), httpServletResponse.getOutputStream());
-						}
-						catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-						return null;
-					});
-			serverResponse.headers()
-					.putAll(request.getResponseHeadersFilter().apply(clientResponse.getHeaders(), serverResponse));
-			return serverResponse;
-		});*/
-		// @formatter:on
+		return restClient.method(request.getMethod()).uri(request.getUri())
+				.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()))
+				.body(outputStream -> copyBody(request, outputStream))
+				.exchange((clientRequest, clientResponse) -> doExchange(request, clientResponse), false);
+	}
+
+	private static int copyBody(Request request, OutputStream outputStream) throws IOException {
+		return StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), outputStream);
+	}
+
+	private static ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
+		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
+				.build((req, httpServletResponse) -> {
+					try (clientResponse) {
+						// copy body from request to clientHttpRequest
+						StreamUtils.copy(clientResponse.getBody(), httpServletResponse.getOutputStream());
+					}
+					return null;
+				});
+		ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientResponse);
+		request.getResponseConsumers()
+				.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
+		return serverResponse;
 	}
 
 }

@@ -21,21 +21,28 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.web.client.ClientHttpRequestFactories;
+import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
-import org.springframework.cloud.gateway.server.mvc.handler.ClientHttpRequestFactoryProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -48,10 +55,8 @@ import org.springframework.web.client.RestClient;
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
-	@ConditionalOnMissingBean(ProxyExchange.class)
-	public ClientHttpRequestFactoryProxyExchange clientHttpRequestFactoryProxyExchange(
-			ClientHttpRequestFactory requestFactory) {
-		return new ClientHttpRequestFactoryProxyExchange(requestFactory);
+	public ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(ApplicationEventPublisher publisher) {
+		return new ArgumentSupplierBeanPostProcessor(publisher);
 	}
 
 	@Bean
@@ -59,8 +64,7 @@ public class GatewayServerMvcAutoConfiguration {
 		return restClientBuilder -> restClientBuilder.requestFactory(requestFactory);
 	}
 
-	// Make default when reflection is no longer needed to function
-	// @Bean
+	@Bean
 	@ConditionalOnMissingBean(ProxyExchange.class)
 	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
 		return new RestClientProxyExchange(restClientBuilder.build());
@@ -74,32 +78,32 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(RestTemplateBuilder restTemplateBuilder) {
-		// TODO: set property if jdk HttpClient
-		// TODO: temporarily force Jdk HttpClient, copied from
-		// https://github.com/spring-projects/spring-boot/pull/36118
-		String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-		if (!StringUtils.hasText(restrictedHeaders)) {
-			System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
+	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(GatewayMvcProperties gatewayMvcProperties,
+			SslBundles sslBundles) {
+		GatewayMvcProperties.HttpClient properties = gatewayMvcProperties.getHttpClient();
+
+		SslBundle sslBundle = null;
+		if (StringUtils.hasText(properties.getSslBundle())) {
+			sslBundle = sslBundles.getBundle(properties.getSslBundle());
 		}
-		else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
-			System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
+		ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(properties.getConnectTimeout(),
+				properties.getReadTimeout(), sslBundle);
+
+		if (properties.getType() == GatewayMvcProperties.HttpClientType.JDK) {
+			// TODO: customize restricted headers
+			String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
+			if (!StringUtils.hasText(restrictedHeaders)) {
+				System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
+			}
+			else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
+				System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
+			}
+
+			return ClientHttpRequestFactories.get(JdkClientHttpRequestFactory.class, settings);
 		}
-		return restTemplateBuilder.requestFactory(settings -> {
-			java.net.http.HttpClient.Builder builder = java.net.http.HttpClient.newBuilder();
-			if (settings.connectTimeout() != null) {
-				builder.connectTimeout(settings.connectTimeout());
-			}
-			if (settings.sslBundle() != null) {
-				builder.sslContext(settings.sslBundle().createSslContext());
-			}
-			java.net.http.HttpClient httpClient = builder.build();
-			JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
-			if (settings.readTimeout() != null) {
-				requestFactory.setReadTimeout(settings.readTimeout());
-			}
-			return requestFactory;
-		}).buildRequestFactory();
+
+		// Autodetect
+		return ClientHttpRequestFactories.get(settings);
 	}
 
 	@Bean
@@ -123,6 +127,12 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	public RemoveContentLengthRequestHeadersFilter removeContentLengthRequestHeadersFilter() {
+		return new RemoveContentLengthRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
 	public RemoveHopByHopRequestHeadersFilter removeHopByHopRequestHeadersFilter() {
 		return new RemoveHopByHopRequestHeadersFilter();
 	}
@@ -131,6 +141,18 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean
 	public RemoveHopByHopResponseHeadersFilter removeHopByHopResponseHeadersFilter() {
 		return new RemoveHopByHopResponseHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public TransferEncodingNormalizationRequestHeadersFilter transferEncodingNormalizationRequestHeadersFilter() {
+		return new TransferEncodingNormalizationRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public WeightCalculatorFilter weightCalculatorFilter() {
+		return new WeightCalculatorFilter();
 	}
 
 	@Bean
