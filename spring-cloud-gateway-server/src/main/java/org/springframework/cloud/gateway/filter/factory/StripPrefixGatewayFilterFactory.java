@@ -79,8 +79,11 @@ public class StripPrefixGatewayFilterFactory
 					newPath.append('/');
 				}
 
-				ServerHttpRequest newRequest = request.mutate().path(newPath.toString()).build();
-
+				ServerHttpRequest.Builder requestBuilder = request.mutate().path(newPath.toString());
+				if (!(config.getEnforceContextPath())) {
+					requestBuilder.contextPath(null);
+				}
+				ServerHttpRequest newRequest = requestBuilder.build();
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 
 				return chain.filter(exchange.mutate().request(newRequest).build());
@@ -89,7 +92,7 @@ public class StripPrefixGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(StripPrefixGatewayFilterFactory.this).append("parts", config.getParts())
-						.toString();
+						.append("enforeContextPath", config.getEnforceContextPath()).toString();
 			}
 		};
 	}
@@ -98,12 +101,22 @@ public class StripPrefixGatewayFilterFactory
 
 		private int parts = 1;
 
+		private boolean enforceContextPath = true;
+
 		public int getParts() {
 			return parts;
 		}
 
 		public void setParts(int parts) {
 			this.parts = parts;
+		}
+
+		public boolean getEnforceContextPath() {
+			return enforceContextPath;
+		}
+
+		public void setEnforceContextPath(boolean enforceContextPath) {
+			this.enforceContextPath = enforceContextPath;
 		}
 
 	}
