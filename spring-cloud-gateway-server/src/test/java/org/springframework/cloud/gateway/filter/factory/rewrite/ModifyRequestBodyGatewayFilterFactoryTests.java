@@ -28,6 +28,7 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,6 +70,14 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 				.isEqualTo("Exceeded limit on max bytes to buffer : 13");
 	}
 
+	@Test
+	public void modifyRequestBodyParameterizedTypeReference() {
+		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyspacetounderscore.org")
+				.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+				.body(BodyInserters.fromValue("foo bar baz")).exchange().expectStatus().isEqualTo(HttpStatus.OK)
+				.expectBody().jsonPath("data").isEqualTo("FOO_BAR_BAZ");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -102,6 +111,13 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 														"tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge");
 											}))
 									.uri(uri))
+					.route("test_modify_request_body_with_parameterizedtypereference",
+							r -> r.order(-1).host("**.modifyrequestbodyspacetounderscore.org")
+									.filters(f -> f.modifyRequestBody(new ParameterizedTypeReference<String>() {
+									}, new ParameterizedTypeReference<String>() {
+									}, (swe, body) -> {
+										return Mono.just(body.replaceAll(" ", "_").toUpperCase());
+									})).uri(uri))
 					.build();
 		}
 
