@@ -88,14 +88,14 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			return lookupRoute(exchange)
 					// .log("route-predicate-handler-mapping", Level.FINER) //name this
-					.flatMap((Function<Route, Mono<?>>) r -> {
+					.map((Function<Route, ?>) r -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						if (logger.isDebugEnabled()) {
 							logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 						}
 
 						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-						return Mono.just(webHandler);
+						return webHandler;
 					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						if (logger.isTraceEnabled()) {
