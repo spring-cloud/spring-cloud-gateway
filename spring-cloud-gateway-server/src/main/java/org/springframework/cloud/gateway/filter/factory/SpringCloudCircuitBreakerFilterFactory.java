@@ -42,7 +42,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -144,8 +143,9 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError);
 
 	private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
-		ofNullable(t).ifPresent(
-				exception -> exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
+		if (t != null) {
+			exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, t);
+		}
 	}
 
 	@Override
