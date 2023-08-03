@@ -270,6 +270,10 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void retryWorks() {
 		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
+		// test for: java.lang.IllegalArgumentException: You have already selected another
+		// retry policy
+		restClient.get().uri("/retry?key=get2").exchange().expectStatus().isOk().expectBody(String.class)
+				.isEqualTo("3");
 	}
 
 	@Test

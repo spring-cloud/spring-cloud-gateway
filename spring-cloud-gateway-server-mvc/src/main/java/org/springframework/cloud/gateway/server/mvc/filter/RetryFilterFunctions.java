@@ -53,23 +53,21 @@ public abstract class RetryFilterFunctions {
 		RetryConfig config = new RetryConfig();
 		configConsumer.accept(config);
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
-		return (request, next) -> {
-			CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
-			Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
-			config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
-			SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
-			compositeRetryPolicy.setPolicies(
-					Arrays.asList(simpleRetryPolicy, new HttpStatusRetryPolicy(config)).toArray(new RetryPolicy[0]));
-			RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
-			return retryTemplate.execute(context -> {
-				ServerResponse serverResponse = next.handle(request);
+		CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
+		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
+		config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
+		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
+		compositeRetryPolicy.setPolicies(
+				Arrays.asList(simpleRetryPolicy, new HttpStatusRetryPolicy(config)).toArray(new RetryPolicy[0]));
+		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
+		return (request, next) -> retryTemplate.execute(context -> {
+			ServerResponse serverResponse = next.handle(request);
 
-				if (isRetryableStatusCode(serverResponse.statusCode(), config)) {
-					throw new HttpServerErrorException(serverResponse.statusCode());
-				}
-				return serverResponse;
-			});
-		};
+			if (isRetryableStatusCode(serverResponse.statusCode(), config)) {
+				throw new HttpServerErrorException(serverResponse.statusCode());
+			}
+			return serverResponse;
+		});
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
