@@ -127,11 +127,11 @@ public class RouteDefinition {
 		this.metadata = metadata;
 	}
 
-	boolean isEnabled() {
+	public boolean isEnabled() {
 		return enabled;
 	}
 
-	void setEnabled(boolean enabled) {
+	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
