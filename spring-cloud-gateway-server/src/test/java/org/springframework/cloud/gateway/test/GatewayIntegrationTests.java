@@ -87,7 +87,7 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 	void checkDisabledFilterNotPresent() {
 		Optional<RouteDefinition> disabledRoute = properties.getRoutes().stream()
 				.filter(r -> "disabled_config_test".equals(r.getId()))
-						.findFirst();
+				.findFirst();
 		assertThat(disabledRoute).as("Disabled route is not present")
 				.isEmpty();
 	}
