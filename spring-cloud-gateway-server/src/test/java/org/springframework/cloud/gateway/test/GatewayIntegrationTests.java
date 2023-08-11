@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,8 @@ import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -78,6 +81,15 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 		int routeLocatorIndex = applicationListeners.indexOf(context.getBean(CachingRouteLocator.class));
 		assertThat(weightFilterIndex > routeLocatorIndex).as("CachingRouteLocator is after WeightCalculatorWebFilter")
 				.isTrue();
+	}
+
+	@Test
+	void checkDisabledFilterNotPresent() {
+		Optional<RouteDefinition> disabledRoute = properties.getRoutes().stream()
+				.filter(r -> "disabled_config_test".equals(r.getId()))
+						.findFirst();
+		assertThat(disabledRoute).as("Disabled route is not present")
+				.isEmpty();
 	}
 
 	@Test
