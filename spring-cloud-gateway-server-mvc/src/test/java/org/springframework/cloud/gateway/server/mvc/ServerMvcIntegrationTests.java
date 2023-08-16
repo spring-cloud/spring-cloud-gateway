@@ -111,6 +111,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.forward;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cloudFoundryRouteService;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
@@ -581,6 +582,17 @@ public class ServerMvcIntegrationTests {
 						"{\"message\":\"HELLO WORLD\"}"));
 	}
 
+	@Test
+	public void forwardWorks() {
+		restClient.get().uri("/doforward").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
+	}
+
+	@Test
+	public void forwardNon200StatusWorks() {
+		restClient.get().uri("/doforward2").exchange().expectStatus().isCreated().expectBody(String.class)
+				.isEqualTo("hello2");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -610,6 +622,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> nonGatewayRouterFunctions(TestHandler testHandler) {
 			return route(GET("/hello"), testHandler).withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello");
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> nonGatewayRouterFunctions2() {
+			return route(GET("/hello2"), request -> ServerResponse.status(HttpStatus.CREATED).body("hello2"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello2");
 		}
 
 		@Bean
@@ -1060,6 +1078,26 @@ public class ServerMvcIntegrationTests {
 					.before(new HttpbinUriResolver())
 					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
 					.build());
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForward() {
+			// @formatter:off
+			return route("testforward")
+					.GET("/doforward", forward("/hello"))
+					.before(new LocalServerPortUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForwardNon200Status() {
+			// @formatter:off
+			return route("testforwardnon200status")
+					.GET("/doforward2", forward("/hello2"))
+					.before(new LocalServerPortUriResolver())
+					.build();
 			// @formatter:on
 		}
 

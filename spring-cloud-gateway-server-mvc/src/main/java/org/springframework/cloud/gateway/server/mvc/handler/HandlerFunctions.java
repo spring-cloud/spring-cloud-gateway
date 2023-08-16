@@ -16,11 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
+
+import jakarta.servlet.ServletException;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -31,6 +34,21 @@ public abstract class HandlerFunctions {
 
 	private HandlerFunctions() {
 
+	}
+
+	public static HandlerFunction<ServerResponse> forward(String path) {
+		// ok() is wrong, but can be overridden by the forwarded request.
+		return request -> GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
+			try {
+				String expandedFallback = MvcUtils.expand(request, path);
+				request.servletRequest().getServletContext().getRequestDispatcher(expandedFallback)
+						.forward(httpServletRequest, httpServletResponse);
+				return null;
+			}
+			catch (ServletException | IOException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	// TODO: current discovery only goes by method name

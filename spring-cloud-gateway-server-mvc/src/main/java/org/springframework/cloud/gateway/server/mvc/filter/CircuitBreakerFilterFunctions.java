@@ -101,6 +101,7 @@ public abstract class CircuitBreakerFilterFunctions {
 				request.attributes().put(MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, throwable);
 
 				// handle fallback
+				// ok() is wrong, but will be overwritten by the forwarded request
 				return GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
 					try {
 						String expandedFallback = MvcUtils.expand(request, config.getFallbackPath());
