@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,22 +60,25 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				String host = exchange.getRequest().getHeaders().getFirst("Host");
-				String match = null;
-				for (int i = 0; i < config.getPatterns().size(); i++) {
-					String pattern = config.getPatterns().get(i);
-					if (pathMatcher.match(pattern, host)) {
-						match = pattern;
-						break;
+				InetSocketAddress address = exchange.getRequest().getHeaders().getHost();
+				if (address != null) {
+					String match = null;
+					String host = address.getHostName();
+					for (int i = 0; i < config.getPatterns().size(); i++) {
+						String pattern = config.getPatterns().get(i);
+						if (pathMatcher.match(pattern, host)) {
+							match = pattern;
+							break;
+						}
 					}
-				}
 
-				if (match != null) {
-					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
-					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
-					return true;
-				}
+					if (match != null) {
+						Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
+						ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+						return true;
+					}
 
+				}
 				return false;
 			}
 
