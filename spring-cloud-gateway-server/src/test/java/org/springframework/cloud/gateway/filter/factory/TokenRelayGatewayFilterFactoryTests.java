@@ -22,15 +22,18 @@ import java.util.Collections;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -46,6 +49,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,7 +68,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 
 	private GatewayFilterChain filterChain;
 
-	private GatewayFilter filter;
+	private ObjectProvider<ReactiveOAuth2AuthorizedClientManager> objectProvider;
 
 	public TokenRelayGatewayFilterFactoryTests() {
 	}
@@ -78,9 +82,8 @@ public class TokenRelayGatewayFilterFactoryTests {
 		when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
 		authorizedClientManager = mock(ReactiveOAuth2AuthorizedClientManager.class);
-		ObjectProvider<ReactiveOAuth2AuthorizedClientManager> objectProvider = mock(ObjectProvider.class);
+		objectProvider = mock(ObjectProvider.class);
 		when(objectProvider.getIfAvailable()).thenReturn(authorizedClientManager);
-		filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 	}
 
 	@AfterEach
@@ -89,6 +92,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 
 	@Test
 	public void emptyPrincipal() {
+		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(mockExchange, filterChain).block(TIMEOUT);
 		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
 	}
@@ -112,10 +116,58 @@ public class TokenRelayGatewayFilterFactoryTests {
 		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
 				Mono.just(securityContext));
 
+		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
 		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
 				Collections.singletonList("Bearer mytoken"));
+
+		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
+				.forClass(OAuth2AuthorizeRequest.class);
+		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
+
+		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();
+		assertThat(authorizeRequest.getClientRegistrationId())
+				.isEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
+		assertThat(authorizeRequest.getClientRegistrationId()).isNotEqualTo(clientRegistration.getRegistrationId());
+	}
+
+	@Test
+	public void whenClientRegistrationIdConfiguredAuthorizationHeaderAdded() {
+		OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+		when(accessToken.getTokenValue()).thenReturn("mytoken");
+
+		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
+				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
+				.tokenUri("mytokenuri").build();
+		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "steve", accessToken);
+
+		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
+				.thenReturn(Mono.just(authorizedClient));
+
+		OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class),
+				Collections.emptyList(), "myId");
+		SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
+		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
+				Mono.just(securityContext));
+
+		NameConfig config = new NameConfig();
+		config.setName(clientRegistration.getRegistrationId());
+
+		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply(config);
+		filter.filter(exchange, filterChain).block(TIMEOUT);
+
+		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
+				Collections.singletonList("Bearer mytoken"));
+
+		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
+				.forClass(OAuth2AuthorizeRequest.class);
+		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
+
+		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();
+		assertThat(authorizeRequest.getClientRegistrationId()).isEqualTo(clientRegistration.getRegistrationId());
+		assertThat(authorizeRequest.getClientRegistrationId())
+				.isNotEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
 	}
 
 	@Test
@@ -124,9 +176,45 @@ public class TokenRelayGatewayFilterFactoryTests {
 		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
 				Mono.just(securityContext));
 
+		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
 		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
+	}
+
+	@Test
+	public void whenPrincipalIsNotOAuth2AuthenticationTokenAndClientRegistrationIdConfiguredAuthorizationHeaderAdded() {
+		OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+		when(accessToken.getTokenValue()).thenReturn("mytoken");
+
+		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
+				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
+				.tokenUri("mytokenuri").build();
+		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "steve", accessToken);
+
+		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
+				.thenReturn(Mono.just(authorizedClient));
+
+		Authentication authenticationToken = new TestingAuthenticationToken("my", null);
+		SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
+		SecurityContextServerWebExchange exchange = new SecurityContextServerWebExchange(mockExchange,
+				Mono.just(securityContext));
+
+		NameConfig config = new NameConfig();
+		config.setName(clientRegistration.getRegistrationId());
+
+		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply(config);
+		filter.filter(exchange, filterChain).block(TIMEOUT);
+
+		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
+				Collections.singletonList("Bearer mytoken"));
+
+		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
+				.forClass(OAuth2AuthorizeRequest.class);
+		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
+
+		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();
+		assertThat(authorizeRequest.getClientRegistrationId()).isEqualTo(clientRegistration.getRegistrationId());
 	}
 
 }
