@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 import java.util.List;
 import java.util.function.Function;
 
+import org.springframework.core.ParameterizedTypeReference;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -64,7 +65,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				Class inClass = config.getInClass();
+				ParameterizedTypeReference inClass = config.getInClass();
 				ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
 
 				// TODO: flux or mono
@@ -98,8 +99,9 @@ public class ModifyRequestBodyGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(ModifyRequestBodyGatewayFilterFactory.this)
-						.append("Content type", config.getContentType()).append("In class", config.getInClass())
-						.append("Out class", config.getOutClass()).toString();
+						.append("Content type", config.getContentType())
+						.append("In class", config.getInClass().getType()).append("Out class", config.getOutClass())
+						.toString();
 			}
 		};
 	}
@@ -140,29 +142,39 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 	public static class Config {
 
-		private Class inClass;
+		private ParameterizedTypeReference inClass;
 
-		private Class outClass;
+		private ParameterizedTypeReference outClass;
 
 		private String contentType;
 
 		private RewriteFunction rewriteFunction;
 
-		public Class getInClass() {
+		public ParameterizedTypeReference getInClass() {
 			return inClass;
 		}
 
-		public Config setInClass(Class inClass) {
+		public Config setInClass(ParameterizedTypeReference inClass) {
 			this.inClass = inClass;
 			return this;
 		}
 
-		public Class getOutClass() {
+		public ParameterizedTypeReference getOutClass() {
 			return outClass;
 		}
 
-		public Config setOutClass(Class outClass) {
+		public Config setOutClass(ParameterizedTypeReference outClass) {
 			this.outClass = outClass;
+			return this;
+		}
+
+		public Config setInClass(Class inClass) {
+			this.inClass = ParameterizedTypeReference.forType(inClass);
+			return this;
+		}
+
+		public Config setOutClass(Class outClass) {
+			this.outClass = ParameterizedTypeReference.forType(outClass);
 			return this;
 		}
 
@@ -177,6 +189,14 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction) {
+			setInClass(inClass);
+			setOutClass(outClass);
+			setRewriteFunction(rewriteFunction);
+			return this;
+		}
+
+		public <T, R> Config setRewriteFunction(ParameterizedTypeReference<T> inClass,
+				ParameterizedTypeReference<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
