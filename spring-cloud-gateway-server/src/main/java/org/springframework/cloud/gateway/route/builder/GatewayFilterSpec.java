@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -288,6 +289,23 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can be used to modify the request body.
+	 * @param inClass the parameterized type reference to convert the incoming request
+	 * body to
+	 * @param outClass the parameterized type reference the Gateway will add to the
+	 * request before it is routed
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
+			ParameterizedTypeReference<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+	}
+
+	/**
+	 * A filter that can be used to modify the request body.
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param newContentType the new Content-Type header to be sent
@@ -298,6 +316,24 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType,
 			RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+	}
+
+	/**
+	 * A filter that can be used to modify the request body.
+	 * @param inClass the parameterized type reference to convert the incoming request
+	 * body to
+	 * @param outClass the parameterized type reference the Gateway will add to the
+	 * request before it is routed
+	 * @param newContentType the new Content-Type header to be sent
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
+			ParameterizedTypeReference<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
