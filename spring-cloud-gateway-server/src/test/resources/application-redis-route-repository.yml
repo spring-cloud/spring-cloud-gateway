@@ -1,5 +1,0 @@
-spring:
-  cloud:
-    gateway:
-      redis-route-definition-repository:
-        enabled: true
