@@ -1,5 +1,6 @@
 [[glossary]]
 = Glossary
+:page-section-summary-toc: 1
 
 * *Route*: The basic building block of the gateway.
 It is defined by an ID, a destination URI, a collection of predicates, and a collection of filters. A route is matched if the aggregate predicate is true.

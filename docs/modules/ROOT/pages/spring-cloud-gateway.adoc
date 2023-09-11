@@ -1,5 +1,6 @@
 [[spring-cloud-gateway]]
 = Spring Cloud Gateway
+:page-section-summary-toc: 1
 
 *{spring-cloud-version}*
 

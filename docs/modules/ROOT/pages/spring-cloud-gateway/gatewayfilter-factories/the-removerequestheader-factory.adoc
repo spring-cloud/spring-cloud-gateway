@@ -1,5 +1,6 @@
 [[the-removerequestheader-gatewayfilter-factory]]
 = The `RemoveRequestHeader` GatewayFilter Factory
+:page-section-summary-toc: 1
 
 The `RemoveRequestHeader` `GatewayFilter` factory takes a `name` parameter.
 It is the name of the header to be removed.

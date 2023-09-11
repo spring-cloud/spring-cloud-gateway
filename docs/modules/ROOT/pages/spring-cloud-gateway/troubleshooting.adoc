@@ -1,5 +1,6 @@
 [[troubleshooting]]
 = Troubleshooting
+:page-section-summary-toc: 1
 
 This section covers common problems that may arise when you use Spring Cloud Gateway.
 
