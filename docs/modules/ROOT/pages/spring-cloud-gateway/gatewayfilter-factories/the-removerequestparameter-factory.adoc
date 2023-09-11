@@ -1,5 +1,6 @@
 [[the-removerequestparameter-gatewayfilter-factory]]
 = The `RemoveRequestParameter` `GatewayFilter` Factory
+:page-section-summary-toc: 1
 
 The `RemoveRequestParameter` `GatewayFilter` factory takes a `name` parameter.
 It is the name of the query parameter to be removed.

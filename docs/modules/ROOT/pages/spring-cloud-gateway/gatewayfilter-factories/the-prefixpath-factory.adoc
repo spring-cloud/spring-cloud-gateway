@@ -1,5 +1,6 @@
 [[the-prefixpath-gatewayfilter-factory]]
 = The `PrefixPath` `GatewayFilter` Factory
+:page-section-summary-toc: 1
 
 The `PrefixPath` `GatewayFilter` factory takes a single `prefix` parameter.
 The following example configures a `PrefixPath` `GatewayFilter`:

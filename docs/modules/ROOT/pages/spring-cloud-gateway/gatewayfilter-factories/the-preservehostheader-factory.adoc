@@ -1,5 +1,6 @@
 [[the-preservehostheader-gatewayfilter-factory]]
 = The `PreserveHostHeader` `GatewayFilter` Factory
+:page-section-summary-toc: 1
 
 The `PreserveHostHeader` `GatewayFilter` factory has no parameters.
 This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent rather than the host header determined by the HTTP client.

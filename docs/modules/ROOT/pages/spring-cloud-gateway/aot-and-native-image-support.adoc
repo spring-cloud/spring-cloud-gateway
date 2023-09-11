@@ -1,5 +1,6 @@
 [[aot-and-native-image-support]]
 = AOT and Native Image Support
+:page-section-summary-toc: 1
 
 Since `4.0.0`, Spring Cloud Gateway supports Spring AOT transformations and native images.
 

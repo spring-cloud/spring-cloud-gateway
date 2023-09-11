@@ -1,5 +1,6 @@
 [[gateway-how-it-works]]
 = How It Works
+:page-section-summary-toc: 1
 
 The following diagram provides a high-level overview of how Spring Cloud Gateway works:
 

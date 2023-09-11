@@ -1,5 +1,6 @@
 [[gateway-starter]]
 = How to Include Spring Cloud Gateway
+:page-section-summary-toc: 1
 
 To include Spring Cloud Gateway in your project, use the starter with a group ID of `org.springframework.cloud` and an artifact ID of `spring-cloud-starter-gateway`.
 See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page] for details on setting up your build system with the current Spring Cloud Release Train.

@@ -1,5 +1,6 @@
 [[the-rewriteresponseheader-gatewayfilter-factory]]
 = The `RewriteResponseHeader` `GatewayFilter` Factory
+:page-section-summary-toc: 1
 
 The `RewriteResponseHeader` `GatewayFilter` factory takes `name`, `regexp`, and `replacement` parameters.
 It uses Java regular expressions for a flexible way to rewrite the response header value.

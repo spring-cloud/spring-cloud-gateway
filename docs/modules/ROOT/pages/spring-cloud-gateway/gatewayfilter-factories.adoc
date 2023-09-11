@@ -1,5 +1,6 @@
 [[gatewayfilter-factories]]
 = `GatewayFilter` Factories
+:page-section-summary-toc: 1
 
 Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner.
 Route filters are scoped to a particular route.
