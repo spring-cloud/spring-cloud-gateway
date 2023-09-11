@@ -779,6 +779,20 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * Strips the prefix from the path of the request before it is routed by the Gateway.
+	 * @param parts the number of parts of the path to remove
+	 * @param enforeContextPath whether the resulting path must contain the context-path
+	 * defined for the application
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec stripPrefix(int parts, boolean enforceContextPath) {
+		return filter(getBean(StripPrefixGatewayFilterFactory.class).apply(c -> {
+			c.setParts(parts);
+			c.setEnforceContextPath(enforceContextPath);
+		}));
+	}
+
+	/**
 	 * A filter which changes the URI the request will be routed to by the Gateway by
 	 * pulling it from a header on the request.
 	 * @param headerName the header name containing the URI
