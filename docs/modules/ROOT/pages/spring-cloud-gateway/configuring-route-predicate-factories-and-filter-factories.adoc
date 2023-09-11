@@ -1,0 +1,50 @@
+[[configuring-route-predicate-factories-and-gateway-filter-factories]]
+= Configuring Route Predicate Factories and Gateway Filter Factories
+
+There are two ways to configure predicates and filters: shortcuts and fully expanded arguments. Most examples below use the shortcut way.
+
+The name and argument names are listed as `code` in the first sentence or two of each section. The arguments are typically listed in the order that are needed for the shortcut configuration.
+
+[[shortcut-configuration]]
+== Shortcut Configuration
+
+Shortcut configuration is recognized by the filter name, followed by an equals sign (`=`), followed by argument values separated by commas (`,`).
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - Cookie=mycookie,mycookievalue
+----
+
+The previous sample defines the `Cookie` Route Predicate Factory with two arguments, the cookie name, `mycookie` and the value to match `mycookievalue`.
+
+[[fully-expanded-arguments]]
+== Fully Expanded Arguments
+
+Fully expanded arguments appear more like standard yaml configuration with name/value pairs. Typically, there will be a `name` key and an `args` key. The `args` key is a map of key value pairs to configure the predicate or filter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - name: Cookie
+          args:
+            name: mycookie
+            regexp: mycookievalue
+----
+
+This is the full configuration of the shortcut configuration of the `Cookie` predicate shown above.
+
