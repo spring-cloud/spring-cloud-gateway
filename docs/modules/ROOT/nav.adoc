@@ -1,4 +1,3 @@
-* xref:intro.adoc[]
 * xref:spring-cloud-gateway.adoc[]
 ** xref:spring-cloud-gateway/starter.adoc[]
 ** xref:spring-cloud-gateway/glossary.adoc[]
