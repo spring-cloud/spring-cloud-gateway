@@ -20,7 +20,7 @@ image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph
 [[building]]
 = Building
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/modules/ROOT/partials/contributing.adoc[]
 
 [[contributing]]
 = Contributing

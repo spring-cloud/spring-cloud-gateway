@@ -11,20 +11,19 @@
 	<artifactId>spring-cloud-gateway-docs</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Cloud Gateway Docs</name>
-	<description>Spring Cloud Docs</description>
+	<description>Spring Cloud Gateway Docs</description>
 	<properties>
 		<docs.main>spring-cloud-gateway</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
 		<configprops.inclusionPattern>spring.cloud.gateway.*</configprops.inclusionPattern>
-		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 		<!-- Don't upload docs jar to central / repo.spring.io -->
 		<maven-deploy-plugin-default.phase>none</maven-deploy-plugin-default.phase>
 
 		<!-- Observability -->
-		<micrometer-docs-generator.version>1.0.0</micrometer-docs-generator.version>
-		<micrometer-docs-generator.inputPath>${maven.multiModuleProjectDirectory}/spring-cloud-gateway-server/</micrometer-docs-generator.inputPath>
+		<micrometer-docs-generator.version>1.0.2</micrometer-docs-generator.version>
+		<micrometer-docs-generator.inputPath>${maven.multiModuleProjectDirectory}/</micrometer-docs-generator.inputPath>
 		<micrometer-docs-generator.inclusionPattern>.*</micrometer-docs-generator.inclusionPattern>
-		<micrometer-docs-generator.outputPath>${maven.multiModuleProjectDirectory}/docs/target/observability/</micrometer-docs-generator.outputPath>
+		<micrometer-docs-generator.outputPath>${maven.multiModuleProjectDirectory}/docs/modules/ROOT/partials/</micrometer-docs-generator.outputPath>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -39,6 +38,12 @@
 		<profile>
 			<id>docs</id>
 			<build>
+				<resources>
+					<resource>
+						<directory>src/main/antora/resources/antora-resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
 				<plugins>
 					<plugin>
 						<groupId>pl.project13.maven</groupId>
@@ -49,8 +54,8 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>generate-docs</id>
-								<phase>prepare-package</phase>
+								<id>generate-observability-docs</id>
+								<phase>${generate-docs.phase}</phase>
 								<goals>
 									<goal>java</goal>
 								</goals>
@@ -79,12 +84,12 @@
 						<artifactId>maven-dependency-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-resources-plugin</artifactId>
+						<groupId>io.spring.maven.antora</groupId>
+						<artifactId>antora-component-version-maven-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>org.asciidoctor</groupId>
-						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<groupId>io.spring.maven.antora</groupId>
+						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>

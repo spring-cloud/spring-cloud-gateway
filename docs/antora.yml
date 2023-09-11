@@ -1,6 +1,6 @@
-name: PROJECT_WITHOUT_SPRING
+name: cloud-gateway
 version: true
-title: PROJECT_NAME
+title: spring-cloud-gateway
 nav:
   - modules/ROOT/nav.adoc
 ext:
