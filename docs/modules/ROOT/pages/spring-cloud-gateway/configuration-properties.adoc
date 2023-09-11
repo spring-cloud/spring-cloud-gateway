@@ -1,0 +1,4 @@
+[[configuration-properties]]
+= Configuration properties
+
+To see the list of all Spring Cloud Gateway related configuration properties, see link:appendix.html[the appendix].
