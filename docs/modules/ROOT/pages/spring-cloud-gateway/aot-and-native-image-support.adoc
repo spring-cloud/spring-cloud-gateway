@@ -1,0 +1,8 @@
+[[aot-and-native-image-support]]
+= AOT and Native Image Support
+:page-section-summary-toc: 1
+
+Since `4.0.0`, Spring Cloud Gateway supports Spring AOT transformations and native images.
+
+TIP: If you're using load-balanced routes, you need to explicitly define your `LoadBalancerClient` service IDs. You can do so by using the `value` or `name` attributes of the `@LoadBalancerClient` annotation or as values of the `spring.cloud.loadbalancer.eager-load.clients` property.
+

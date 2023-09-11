@@ -1,0 +1,41 @@
+[[fluent-java-routes-api]]
+= Fluent Java Routes API
+
+To allow for simple configuration in Java, the `RouteLocatorBuilder` bean includes a fluent API.
+The following listing shows how it works:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+// static imports from GatewayFilters and RoutePredicates
+@Bean
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGatewayFilterFactory throttle) {
+    return builder.routes()
+            .route(r -> r.host("**.abc.org").and().path("/image/png")
+                .filters(f ->
+                        f.addResponseHeader("X-TestHeader", "foobar"))
+                .uri("http://httpbin.org:80")
+            )
+            .route(r -> r.path("/image/webp")
+                .filters(f ->
+                        f.addResponseHeader("X-AnotherHeader", "baz"))
+                .uri("http://httpbin.org:80")
+                .metadata("key", "value")
+            )
+            .route(r -> r.order(-1)
+                .host("**.throttle.org").and().path("/get")
+                .filters(f -> f.filter(throttle.apply(1,
+                        1,
+                        10,
+                        TimeUnit.SECONDS)))
+                .uri("http://httpbin.org:80")
+                .metadata("key", "value")
+            )
+            .build();
+}
+----
+
+This style also allows for more custom predicate assertions.
+The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`.
+By using the fluent Java API, you can use the `and()`, `or()`, and `negate()` operators on the `Predicate` class.
+
