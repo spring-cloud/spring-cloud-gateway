@@ -1,0 +1,46 @@
+[[observability-metrics]]
+=== Observability - Metrics
+
+Below you can find a list of all metrics declared by this project.
+
+[[observability-metrics-gateway-http-client-observation]]
+==== Gateway Http Client Observation
+
+____
+Observation created when sending a request through the gateway.
+____
+
+
+**Metric name** `http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `timer`.
+
+**Metric name** `http.client.requests.active` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `long task timer`.
+
+
+IMPORTANT: KeyValues that are added after starting the Observation might be missing from the *.active metrics.
+
+
+IMPORTANT: Micrometer internally uses `nanoseconds` for the baseunit. However, each backend determines the actual baseunit. (i.e. Prometheus uses seconds)
+
+
+Fully qualified name of the enclosing class `org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation`.
+
+
+
+.Low cardinality Keys
+[cols="a,a"]
+|===
+|Name | Description
+|`http.method` _(required)_|HTTP Method.
+|`http.status_code` _(required)_|HTTP Status.
+|`spring.cloud.gateway.route.id` _(required)_|Route ID.
+|`spring.cloud.gateway.route.uri` _(required)_|HTTP URI taken from the Route.
+|===
+
+.High cardinality Keys
+[cols="a,a"]
+|===
+|Name | Description
+|`http.uri` _(required)_|Full HTTP URI.
+|===
+
+
