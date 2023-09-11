@@ -29,12 +29,10 @@ The following properties are available:
 To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
 The following example shows how to do so:
 
-====
 [source]
 ----
 spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security
 ----
-====
 
 NOTE: The lowercase full name of the secure header needs to be used to disable it..
 

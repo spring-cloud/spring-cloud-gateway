@@ -5,7 +5,6 @@ The `SetResponseHeader` `GatewayFilter` factory takes `name` and `value` paramet
 The following listing configures a `SetResponseHeader` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -17,7 +16,6 @@ spring:
         filters:
         - SetResponseHeader=X-Response-Red, Blue
 ----
-====
 
 This GatewayFilter replaces (rather than adding) all headers with the given name.
 So, if the downstream server responded with `X-Response-Red:1234`, it will be replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
@@ -27,7 +25,6 @@ URI variables may be used in the value and will be expanded at runtime.
 The following example configures an `SetResponseHeader` `GatewayFilter` that uses a variable:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -41,5 +38,4 @@ spring:
         filters:
         - SetResponseHeader=foo, bar-{segment}
 ----
-====
 

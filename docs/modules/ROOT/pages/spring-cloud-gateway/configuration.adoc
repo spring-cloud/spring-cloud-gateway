@@ -5,14 +5,12 @@ Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefini
 The following listing shows the definition of the `RouteDefinitionLocator` interface:
 
 .RouteDefinitionLocator.java
-====
 [source,java]
 ----
 public interface RouteDefinitionLocator {
 	Flux<RouteDefinition> getRouteDefinitions();
 }
 ----
-====
 
 By default, a `PropertiesRouteDefinitionLocator` loads properties by using Spring Boot's `@ConfigurationProperties` mechanism.
 
@@ -20,7 +18,6 @@ The earlier configuration examples all use a shortcut notation that uses positio
 The following two examples are equivalent:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -38,7 +35,6 @@ spring:
         filters:
         - SetStatus=401
 ----
-====
 
 For some usages of the gateway, properties are adequate, but some production use cases benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories, such as Redis, MongoDB, and Cassandra.
 

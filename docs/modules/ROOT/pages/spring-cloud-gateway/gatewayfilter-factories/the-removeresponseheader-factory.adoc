@@ -6,7 +6,6 @@ It is the name of the header to be removed.
 The following listing configures a `RemoveResponseHeader` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -18,7 +17,6 @@ spring:
         filters:
         - RemoveResponseHeader=X-Response-Foo
 ----
-====
 
 This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
 

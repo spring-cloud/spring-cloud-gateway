@@ -27,3 +27,7 @@ node_modules
 build
 package.json
 package-lock.json
+_configprops.adoc
+_spans.adoc
+_metrics.adoc
+_conventions.adoc

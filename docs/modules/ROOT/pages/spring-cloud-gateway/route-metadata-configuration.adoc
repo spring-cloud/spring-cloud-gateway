@@ -4,7 +4,6 @@
 You can configure additional parameters for each route by using metadata, as follows:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -19,11 +18,9 @@ spring:
             name: "value"
           iAmNumber: 1
 ----
-====
 
 You could acquire all metadata properties from an exchange, as follows:
 
-====
 [source]
 ----
 Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
@@ -32,5 +29,4 @@ route.getMetadata();
 // get a single metadata property
 route.getMetadata(someKey);
 ----
-====
 

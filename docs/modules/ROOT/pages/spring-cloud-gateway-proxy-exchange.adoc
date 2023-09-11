@@ -1,7 +1,7 @@
-[[building-a-simple-gateway-by-using-spring-mvc-or-webflux]]
-= Building a Simple Gateway by Using Spring MVC or Webflux
+[[proxy-exchange-gateway]]
+= Proxy Exchange Gateway with Spring MVC or Webflux
 
-WARNING: The following describes an alternative style gateway. None of the prior documentation applies to what follows.
+WARNING: The following describes an alternative style gateway. None of the Spring Cloud Gateway Server documentation applies to what follows.
 
 Spring Cloud Gateway provides a utility object called `ProxyExchange`.
 You can use it inside a regular Spring web handler as a method parameter.
@@ -11,7 +11,6 @@ To use the `ProxyExchange`, include the right module in your classpath (either `
 
 The following MVC example proxies a request to `/test` downstream to a remote server:
 
-====
 [source,java]
 ----
 @RestController
@@ -28,11 +27,9 @@ public class GatewaySampleApplication {
 
 }
 ----
-====
 
 The following example does the same thing with Webflux:
 
-====
 [source,java]
 ----
 @RestController
@@ -49,12 +46,10 @@ public class GatewaySampleApplication {
 
 }
 ----
-====
 
 Convenience methods on the `ProxyExchange` enable the handler method to discover and enhance the URI path of the incoming request.
 For example, you might want to extract the trailing elements of a path to pass them downstream:
 
-====
 [source,java]
 ----
 @GetMapping("/proxy/path/**")
@@ -63,7 +58,6 @@ public ResponseEntity<?> proxyPath(ProxyExchange<byte[]> proxy) throws Exception
   return proxy.uri(home.toString() + "/foos/" + path).get();
 }
 ----
-====
 
 All the features of Spring MVC and Webflux are available to gateway handler methods.
 As a result, you can inject request headers and query parameters, for instance, and you can constrain the incoming requests with declarations in the mapping annotation.

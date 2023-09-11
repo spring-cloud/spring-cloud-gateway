@@ -1,5 +1,5 @@
 [[spring-cloud-gateway]]
-= Spring Cloud Gateway
+= Spring Cloud Gateway Reactive Server
 :page-section-summary-toc: 1
 
 *{spring-cloud-version}*

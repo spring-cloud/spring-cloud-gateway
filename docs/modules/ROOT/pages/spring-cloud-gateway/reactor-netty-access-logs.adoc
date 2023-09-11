@@ -8,7 +8,6 @@ IMPORTANT: It must be a Java System Property, not a Spring Boot property.
 You can configure the logging system to have a separate access log file. The following example creates a Logback configuration:
 
 .logback.xml
-====
 [source,xml]
 ----
     <appender name="accessLog" class="ch.qos.logback.core.FileAppender">
@@ -25,5 +24,4 @@ You can configure the logging system to have a separate access log file. The fol
         <appender-ref ref="async"/>
     </logger>
 ----
-====
 

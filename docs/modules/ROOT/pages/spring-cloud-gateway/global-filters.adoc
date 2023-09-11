@@ -17,7 +17,6 @@ As Spring Cloud Gateway distinguishes between "`pre`" and "`post`" phases for fi
 The following listing configures a filter chain:
 
 .ExampleConfiguration.java
-====
 [source,java]
 ----
 @Bean
@@ -39,7 +38,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
     }
 }
 ----
-====
 
 [[the-gateway-metrics-filter]]
 == The Gateway Metrics Filter
@@ -127,7 +125,6 @@ If so, the same rules apply.
 The following listing configures a `ReactiveLoadBalancerClientFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -139,7 +136,6 @@ spring:
         predicates:
         - Path=/service/**
 ----
-====
 
 NOTE: By default, when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` is returned.
 You can configure the gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
@@ -173,7 +169,6 @@ NOTE: If you use https://github.com/sockjs[SockJS] as a fallback over normal HTT
 The following listing configures a websocket routing filter:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -191,7 +186,6 @@ spring:
         predicates:
         - Path=/websocket/**
 ----
-====
 
 [[marking-an-exchange-as-routed]]
 == Marking An Exchange As Routed

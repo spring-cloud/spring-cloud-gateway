@@ -7,7 +7,6 @@ The `maxSize` parameter is the maximum data size allowed by the request header (
 The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -19,7 +18,6 @@ spring:
         filters:
         - RequestHeaderSize=1000B
 ----
-====
 
 This will send a status 431 if size of any request header is greater than 1000 Bytes.
 

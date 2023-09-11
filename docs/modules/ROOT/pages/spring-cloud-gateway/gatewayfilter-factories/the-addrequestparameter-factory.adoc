@@ -5,7 +5,6 @@ The `AddRequestParameter` `GatewayFilter` Factory takes a `name` and `value` par
 The following example configures an `AddRequestParameter` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -17,7 +16,6 @@ spring:
         filters:
         - AddRequestParameter=red, blue
 ----
-====
 
 This will add `red=blue` to the downstream request's query string for all matching requests.
 
@@ -26,7 +24,6 @@ URI variables may be used in the value and are expanded at runtime.
 The following example configures an `AddRequestParameter` `GatewayFilter` that uses a variable:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -40,5 +37,4 @@ spring:
         filters:
         - AddRequestParameter=foo, bar-{segment}
 ----
-====
 

@@ -8,7 +8,6 @@ If the new named header already exists, its values are augmented with the new va
 The following example configures a `MapRequestHeader`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -20,7 +19,6 @@ spring:
         filters:
         - MapRequestHeader=Blue, X-Request-Red
 ----
-====
 
 This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
 

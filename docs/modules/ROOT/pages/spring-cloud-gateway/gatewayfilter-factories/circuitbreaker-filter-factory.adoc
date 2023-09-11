@@ -8,7 +8,6 @@ To enable the Spring Cloud CircuitBreaker filter, you need to place `spring-clou
 The following example configures a Spring Cloud CircuitBreaker `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -20,7 +19,6 @@ spring:
         filters:
         - CircuitBreaker=myCircuitBreaker
 ----
-====
 
 To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
 
@@ -32,7 +30,6 @@ If the fallback is called, the request is forwarded to the controller matched by
 The following example configures such a fallback:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -50,12 +47,10 @@ spring:
             fallbackUri: forward:/inCaseOfFailureUseThis
         - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
 ----
-====
 
 The following listing does the same thing in Java:
 
 .Application.java
-====
 [source,java]
 ----
 @Bean
@@ -67,7 +62,6 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .build();
 }
 ----
-====
 
 This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
 Note that this example also demonstrates the (optional) Spring Cloud LoadBalancer load-balancing (defined by the `lb` prefix on the destination URI).
@@ -78,7 +72,6 @@ This allows more complex routing options, like forwarding sections of the origin
 In the example below the call `consumingServiceEndpoint/users/1` will be redirected to `inCaseOfFailureUseThis/users/1`.
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -95,13 +88,11 @@ spring:
             name: myCircuitBreaker
             fallbackUri: forward:/inCaseOfFailureUseThis/{segments}
 ----
-====
 
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
 However, you can also reroute the request to a controller or handler in an external application, as follows:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -122,7 +113,6 @@ spring:
         predicates:
         - Path=/fallback
 ----
-====
 
 In this example, there is no `fallback` endpoint or handler in the gateway application.
 However, there is one in another application, registered under `http://localhost:9994`.
@@ -143,7 +133,6 @@ status codes you want to trip the circuit breaker you can either use an integer 
 value or the String representation of the `HttpStatus` enumeration.
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -163,10 +152,8 @@ spring:
               - 500
               - "NOT_FOUND"
 ----
-====
 
 .Application.java
-====
 [source,java]
 ----
 @Bean
@@ -178,5 +165,4 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
         .build();
 }
 ----
-====
 

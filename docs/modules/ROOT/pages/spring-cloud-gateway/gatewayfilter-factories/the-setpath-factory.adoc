@@ -8,7 +8,6 @@ Multiple matching segments are allowed.
 The following example configures a `SetPath` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -22,7 +21,6 @@ spring:
         filters:
         - SetPath=/{segment}
 ----
-====
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request.
 

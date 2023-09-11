@@ -125,7 +125,6 @@ This applies the filter to all requests.
 
 The following examples show how to set up global pre- and post-filters, respectively:
 
-====
 [source,java]
 ----
 @Bean
@@ -154,5 +153,4 @@ public GlobalFilter customGlobalPostFilter() {
         .then();
 }
 ----
-====
 

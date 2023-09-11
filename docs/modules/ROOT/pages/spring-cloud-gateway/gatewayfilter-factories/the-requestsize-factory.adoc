@@ -8,7 +8,6 @@ It is the permissible size limit of the request defined in bytes.
 The following listing configures a `RequestSize` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -24,16 +23,13 @@ spring:
           args:
             maxSize: 5000000
 ----
-====
 
 The `RequestSize` `GatewayFilter` factory sets the response status as `413 Payload Too Large` with an additional header `errorMessage` when the request is rejected due to size. The following example shows such an `errorMessage`:
 
-====
 [source]
 ----
 errorMessage : Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB
 ----
-====
 
 NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
 

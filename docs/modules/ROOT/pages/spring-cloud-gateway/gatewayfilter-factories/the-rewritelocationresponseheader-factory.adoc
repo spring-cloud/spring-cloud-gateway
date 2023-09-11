@@ -6,7 +6,6 @@ It takes the `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protoco
 The following listing configures a `RewriteLocationResponseHeader` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -18,7 +17,6 @@ spring:
         filters:
         - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
 ----
-====
 
 For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.
 

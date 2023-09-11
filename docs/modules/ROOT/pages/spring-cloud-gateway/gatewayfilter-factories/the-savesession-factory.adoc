@@ -6,7 +6,6 @@ This is of particular use when using something like https://projects.spring.io/s
 The following example configures a `SaveSession` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -20,7 +19,6 @@ spring:
         filters:
         - SaveSession
 ----
-====
 
 If you integrate https://projects.spring.io/spring-security/[Spring Security] with Spring Session and want to ensure security details have been forwarded to the remote process, this is critical.
 

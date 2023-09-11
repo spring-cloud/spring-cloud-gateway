@@ -6,7 +6,6 @@ This uses Java regular expressions for a flexible way to rewrite the request pat
 The following listing configures a `RewritePath` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -20,7 +19,6 @@ spring:
         filters:
         - RewritePath=/red/?(?<segment>.*), /$\{segment}
 ----
-====
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request. Note that the `$` should be replaced with `$\` because of the YAML specification.
 

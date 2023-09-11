@@ -7,7 +7,6 @@ It is the name of the query parameter to be removed.
 The following example configures a `RemoveRequestParameter` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -19,7 +18,6 @@ spring:
         filters:
         - RemoveRequestParameter=red
 ----
-====
 
 This will remove the `red` parameter before it is sent downstream.
 

@@ -6,7 +6,6 @@ The filter takes a `host` parameter.
 The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -22,7 +21,6 @@ spring:
           args:
             host: example.org
 ----
-====
 
 The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
 

@@ -7,7 +7,6 @@ This filter sets a request attribute that the routing filter inspects to determi
 The following example configures a `PreserveHostHeader` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -19,5 +18,4 @@ spring:
         filters:
         - PreserveHostHeader
 ----
-====
 

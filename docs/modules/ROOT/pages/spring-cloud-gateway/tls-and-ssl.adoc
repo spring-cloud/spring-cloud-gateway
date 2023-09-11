@@ -5,7 +5,6 @@ The gateway can listen for requests on HTTPS by following the usual Spring serve
 The following example shows how to do so:
 
 .application.yml
-====
 [source,yaml]
 ----
 server:
@@ -16,13 +15,11 @@ server:
     key-store: classpath:scg-keystore.p12
     key-store-type: PKCS12
 ----
-====
 
 You can route gateway routes to both HTTP and HTTPS backends.
 If you are routing to an HTTPS backend, you can configure the gateway to trust all downstream certificates with the following configuration:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -32,13 +29,11 @@ spring:
         ssl:
           useInsecureTrustManager: true
 ----
-====
 
 Using an insecure trust manager is not suitable for production.
 For a production deployment, you can configure the gateway with a set of known certificates that it can trust with the following configuration:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -50,7 +45,6 @@ spring:
           - cert1.pem
           - cert2.pem
 ----
-====
 
 If the Spring Cloud Gateway is not provisioned with trusted certificates, the default trust store is used (which you can override by setting the `javax.net.ssl.trustStore` system property).
 
@@ -63,7 +57,6 @@ A number of timeouts are associated with this handshake.
 You can configure these timeouts can be configured (defaults shown) as follows:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -75,5 +68,4 @@ spring:
           close-notify-flush-timeout-millis: 3000
           close-notify-read-timeout-millis: 0
 ----
-====
 

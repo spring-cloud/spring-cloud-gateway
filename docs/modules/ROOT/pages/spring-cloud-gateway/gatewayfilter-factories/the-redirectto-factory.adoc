@@ -9,7 +9,6 @@ For relative redirects, you should use `uri: no://op` as the uri of your route d
 The following listing configures a `RedirectTo` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -21,7 +20,6 @@ spring:
         filters:
         - RedirectTo=302, https://acme.org
 ----
-====
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
 

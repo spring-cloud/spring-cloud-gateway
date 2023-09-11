@@ -14,7 +14,6 @@ It accepts the first parameter to override the time to expire a cache entry (exp
 
 The following listing shows how to add local response cache `GatewayFilter`:
 
-====
 [source,java]
 ----
 @Bean
@@ -44,7 +43,6 @@ spring:
         filters:
         - LocalResponseCache=30m,500MB
 ----
-====
 
 NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
 Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.

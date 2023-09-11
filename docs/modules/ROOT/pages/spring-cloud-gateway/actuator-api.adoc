@@ -6,13 +6,11 @@ To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-
 The following listing shows how to do so:
 
 .application.properties
-====
 [source,properties]
 ----
 management.endpoint.gateway.enabled=true # default value
 management.endpoints.web.exposure.include=gateway
 ----
-====
 
 [[verbose-actuator-format]]
 == Verbose Actuator Format
@@ -21,7 +19,6 @@ A new, more verbose format has been added to Spring Cloud Gateway.
 It adds more detail to each route, letting you view the predicates and filters associated with each route along with any configuration that is available.
 The following example configures `/actuator/gateway/routes`:
 
-====
 [source,json]
 ----
 [
@@ -38,17 +35,14 @@ The following example configures `/actuator/gateway/routes`:
   }
 ]
 ----
-====
 
 This feature is enabled by default. To disable it, set the following property:
 
 .application.properties
-====
 [source,properties]
 ----
 spring.cloud.gateway.actuator.verbose.enabled=false
 ----
-====
 
 This will default to `true` in a future release.
 
@@ -65,7 +59,6 @@ This section details how to retrieve route filters, including:
 
 To retrieve the xref:spring-cloud-gateway/global-filters.adoc[global filters] applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
 
-====
 ----
 {
   "org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5": 10100,
@@ -78,7 +71,6 @@ To retrieve the xref:spring-cloud-gateway/global-filters.adoc[global filters] ap
   "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
 }
 ----
-====
 
 The response contains the details of the global filters that are in place.
 For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding xref:spring-cloud-gateway/global-filters.adoc#gateway-combined-global-filter-and-gatewayfilter-ordering[order] in the filter chain.
@@ -88,7 +80,6 @@ For each global filter, there is a string representation of the filter object (f
 To retrieve the xref:spring-cloud-gateway/gatewayfilter-factories.adoc[`GatewayFilter` factories] applied to routes, make a `GET` request to `/actuator/gateway/routefilters`.
 The resulting response is similar to the following:
 
-====
 ----
 {
   "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
@@ -96,7 +87,6 @@ The resulting response is similar to the following:
   "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
 }
 ----
-====
 
 The response contains the details of the `GatewayFilter` factories applied to any particular route.
 For each factory there is a string representation of the corresponding object (for example, `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`).
@@ -112,7 +102,6 @@ To clear the routes with specific metadata values, add the Query parameter `meta
 If an error is produced during the asynchronous refresh, the refresh will not modify the existing routes.
 
 Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` will only refresh the routes whose `group` metadata is `group-1`: `first_route` and `third_route`.
-====
 [source,json]
 ----
 [{
@@ -137,7 +126,6 @@ Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` wil
   "metadata": { "group": "group-1" }
 }]
 ----
-====
 
 [[retrieving-the-routes-defined-in-the-gateway]]
 == Retrieving the Routes Defined in the Gateway
@@ -145,7 +133,6 @@ Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` wil
 To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`.
 The resulting response is similar to the following:
 
-====
 ----
 [{
   "route_id": "first_route",
@@ -166,7 +153,6 @@ The resulting response is similar to the following:
   "order": 0
 }]
 ----
-====
 
 The response contains the details of all the routes defined in the gateway.
 The following table describes the structure of each element (each is a route) of the response:
@@ -196,10 +182,9 @@ The following table describes the structure of each element (each is a route) of
 [[gateway-retrieving-information-about-a-particular-route]]
 == Retrieving Information about a Particular Route
 
-To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (for example, `/actuator/gateway/routes/first_route`).
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/\{id}` (for example, `/actuator/gateway/routes/first_route`).
 The resulting response is similar to the following:
 
-====
 ----
 {
   "id": "first_route",
@@ -212,7 +197,6 @@ The resulting response is similar to the following:
   "order": 0
 }
 ----
-====
 
 The following table describes the structure of the response:
 
@@ -245,9 +229,9 @@ The following table describes the structure of the response:
 [[creating-and-deleting-a-particular-route-definition]]
 == Creating and Deleting a Particular Route Definition
 
-To create a route definition, make a `POST` request to `/gateway/routes/{id_route_to_create}` with a JSON body that specifies the fields of the route (see xref:spring-cloud-gateway/actuator-api.adoc#gateway-retrieving-information-about-a-particular-route[Retrieving Information about a Particular Route]).
+To create a route definition, make a `POST` request to `/gateway/routes/\{id_route_to_create}` with a JSON body that specifies the fields of the route (see xref:spring-cloud-gateway/actuator-api.adoc#gateway-retrieving-information-about-a-particular-route[Retrieving Information about a Particular Route]).
 
-To delete a route definition, make a `DELETE` request to `/gateway/routes/{id_route_to_delete}`.
+To delete a route definition, make a `DELETE` request to `/gateway/routes/\{id_route_to_delete}`.
 
 [[creating-multiple-route-definitions]]
 == Creating multiple Route Definitions
@@ -281,15 +265,15 @@ The following table below summarizes the Spring Cloud Gateway actuator endpoints
 |GET
 | Displays the list of routes defined in the gateway.
 
-|`routes/{id}`
+|`routes/\{id}`
 |GET
 | Displays information about a particular route.
 
-|`routes/{id}`
+|`routes/\{id}`
 |POST
 | Adds a new route to the gateway.
 
-|`routes/{id}`
+|`routes/\{id}`
 |DELETE
 | Removes an existing route from the gateway.
 

@@ -7,7 +7,6 @@ It may be the integer value `404` or the string representation of the enumeratio
 The following listing configures a `SetStatus` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -23,7 +22,6 @@ spring:
         filters:
         - SetStatus=401
 ----
-====
 
 In either case, the HTTP status of the response is set to 401.
 
@@ -31,7 +29,6 @@ You can configure the `SetStatus` `GatewayFilter` to return the original HTTP st
 The header is added to the response if configured with the following property:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -40,5 +37,4 @@ spring:
       set-status:
         original-status-header-name: original-http-status
 ----
-====
 

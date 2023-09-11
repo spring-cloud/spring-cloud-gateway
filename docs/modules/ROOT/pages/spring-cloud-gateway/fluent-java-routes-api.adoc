@@ -5,7 +5,6 @@ To allow for simple configuration in Java, the `RouteLocatorBuilder` bean includ
 The following listing shows how it works:
 
 .GatewaySampleApplication.java
-====
 [source,java]
 ----
 // static imports from GatewayFilters and RoutePredicates
@@ -35,7 +34,6 @@ public RouteLocator customRouteLocator(RouteLocatorBuilder builder, ThrottleGate
             .build();
 }
 ----
-====
 
 This style also allows for more custom predicate assertions.
 The predicates defined by `RouteDefinitionLocator` beans are combined using logical `and`.

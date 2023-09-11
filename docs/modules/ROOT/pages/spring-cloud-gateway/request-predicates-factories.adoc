@@ -14,7 +14,6 @@ This predicate matches requests that happen after the specified datetime.
 The following example configures an after route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -26,7 +25,6 @@ spring:
         predicates:
         - After=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
-====
 
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver).
 
@@ -38,7 +36,6 @@ This predicate matches requests that happen before the specified `datetime`.
 The following example configures a before route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -50,7 +47,6 @@ spring:
         predicates:
         - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
-====
 
 This route matches any request made before Jan 20, 2017 17:42 Mountain Time (Denver).
 
@@ -64,7 +60,6 @@ The `datetime2` parameter must be after `datetime1`.
 The following example configures a between route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -76,7 +71,6 @@ spring:
         predicates:
         - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
 ----
-====
 
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver).
 This could be useful for maintenance windows.
@@ -89,7 +83,6 @@ This predicate matches cookies that have the given name and whose values match t
 The following example configures a cookie route predicate factory:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -101,7 +94,6 @@ spring:
         predicates:
         - Cookie=chocolate, ch.p
 ----
-====
 
 This route matches requests that have a cookie named `chocolate` whose value matches the `ch.p` regular expression.
 
@@ -113,7 +105,6 @@ This predicate matches with a header that has the given name whose value matches
 The following example configures a header route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -125,7 +116,6 @@ spring:
         predicates:
         - Header=X-Request-Id, \d+
 ----
-====
 
 This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (that is, it has a value of one or more digits).
 
@@ -138,7 +128,6 @@ This predicates matches the `Host` header that matches the pattern.
 The following example configures a host route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -150,9 +139,8 @@ spring:
         predicates:
         - Host=**.somehost.org,**.anotherhost.org
 ----
-====
 
-URI template variables (such as `{sub}.myhost.org`) are supported as well.
+URI template variables (such as `\{sub}.myhost.org`) are supported as well.
 
 This route matches if the request has a `Host` header with a value of `www.somehost.org` or `beta.somehost.org` or `www.anotherhost.org`.
 
@@ -167,7 +155,6 @@ The `Method` Route Predicate Factory takes a `methods` argument which is one or 
 The following example configures a method route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -179,7 +166,6 @@ spring:
         predicates:
         - Method=GET,POST
 ----
-====
 
 This route matches if the request method was a `GET` or a `POST`.
 
@@ -190,7 +176,6 @@ The `Path` Route Predicate Factory takes two parameters: a list of Spring `PathM
 The following example configures a path route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -202,7 +187,6 @@ spring:
         predicates:
         - Path=/red/{segment},/blue/{segment}
 ----
-====
 
 This route matches if the request path was, for example: `/red/1` or `/red/1/` or `/red/blue` or `/blue/green`.
 
@@ -214,14 +198,12 @@ Those values are then available for use by <<gateway-route-filters,`GatewayFilte
 A utility method (called `get`) is available to make access to these variables easier.
 The following example shows how to use the `get` method:
 
-====
 [source,java]
 ----
 Map<String, String> uriVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
 
 String segment = uriVariables.get("segment");
 ----
-====
 
 [[the-query-route-predicate-factory]]
 == The Query Route Predicate Factory
@@ -230,7 +212,6 @@ The `Query` route predicate factory takes two parameters: a required `param` and
 The following example configures a query route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -242,7 +223,6 @@ spring:
         predicates:
         - Query=green
 ----
-====
 
 The preceding route matches if the request contained a `green` query parameter.
 
@@ -269,7 +249,6 @@ The `RemoteAddr` route predicate factory takes a list (min size 1) of `sources`,
 The following example configures a RemoteAddr route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -281,7 +260,6 @@ spring:
         predicates:
         - RemoteAddr=192.168.1.1/24
 ----
-====
 
 This route matches if the remote address of the request was, for example, `192.168.1.10`.
 
@@ -305,12 +283,10 @@ If two hops of trusted infrastructure are required before Spring Cloud Gateway i
 
 Consider the following header value:
 
-====
 [source]
 ----
 X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3
 ----
-====
 
 The following `maxTrustedIndex` values yield the following remote addresses:
 
@@ -323,12 +299,11 @@ The following `maxTrustedIndex` values yield the following remote addresses:
 |3                           | 0.0.0.1
 |[4, `Integer.MAX_VALUE`]    | 0.0.0.1
 |===
-[[gateway-route-filters]]
 
+[[gateway-route-filters]]
 The following example shows how to achieve the same configuration with Java:
 
 .GatewayConfig.java
-====
 [source,java]
 ----
 RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
@@ -344,7 +319,6 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
         .uri("https://downstream2")
 )
 ----
-====
 
 [[the-weight-route-predicate-factory]]
 == The Weight Route Predicate Factory
@@ -353,7 +327,6 @@ The `Weight` route predicate factory takes two arguments: `group` and `weight` (
 The following example configures a weight route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -369,7 +342,6 @@ spring:
         predicates:
         - Weight=group1, 2
 ----
-====
 
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
@@ -388,7 +360,6 @@ reverse proxies.
 The following example configures a XForwardedRemoteAddr route predicate:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -400,7 +371,6 @@ spring:
         predicates:
         - XForwardedRemoteAddr=192.168.1.1/24
 ----
-====
 
 This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.
 

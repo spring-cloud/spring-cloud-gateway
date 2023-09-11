@@ -6,7 +6,6 @@ The `parts` parameter indicates the number of parts in the path to strip from th
 The following listing configures a `StripPrefix` `GatewayFilter`:
 
 .application.yml
-====
 [source,yaml]
 ----
 spring:
@@ -20,7 +19,6 @@ spring:
         filters:
         - StripPrefix=2
 ----
-====
 
 When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
 
