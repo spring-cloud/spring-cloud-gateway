@@ -1,5 +1,5 @@
 [[local-cache-response-filter]]
-= The `LocalResponseCache` `GatewayFilter` Factory
+= `LocalResponseCache` `GatewayFilter` Factory
 
 This filter allows caching the response body and headers to follow these rules:
 

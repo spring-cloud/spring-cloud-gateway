@@ -1,0 +1,25 @@
+[[deduperesponseheader-gatewayfilter-factory]]
+= `DedupeResponseHeader` `GatewayFilter` Factory
+
+The `DedupeResponseHeader` GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
+The following example configures a `DedupeResponseHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: https://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+----
+
+This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
+
+The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
+The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
+
+

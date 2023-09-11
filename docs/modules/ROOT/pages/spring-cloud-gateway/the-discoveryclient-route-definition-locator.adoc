@@ -1,5 +1,5 @@
-[[the-discoveryclient-route-definition-locator]]
-= The `DiscoveryClient` Route Definition Locator
+[[discoveryclient-route-definition-locator]]
+= `DiscoveryClient` Route Definition Locator
 
 You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
 

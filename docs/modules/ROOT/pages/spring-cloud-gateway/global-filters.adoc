@@ -39,7 +39,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 }
 ----
 
-[[the-gateway-metrics-filter]]
+[[gateway-metrics-filter]]
 == The Gateway Metrics Filter
 
 To enable gateway metrics, add `spring-boot-starter-actuator` as a project dependency. Then, by default, the gateway metrics filter runs as long as the `spring.cloud.gateway.metrics.enabled` property is not set to `false`.
@@ -99,7 +99,7 @@ If the URL has a `forward` scheme (such as `forward:///localendpoint`), it uses 
 The path part of the request URL is overridden with the path in the forward URL.
 The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
 
-[[the-netty-routing-filter]]
+[[netty-routing-filter]]
 == The Netty Routing Filter
 
 The Netty routing filter runs if the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme.
@@ -107,7 +107,7 @@ It uses the Netty `HttpClient` to make the downstream proxy request.
 The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter.
 (There is also an experimental `WebClientHttpRoutingFilter` that performs the same function but does not require Netty.)
 
-[[the-netty-write-response-filter]]
+[[netty-write-response-filter]]
 == The Netty Write Response Filter
 
 The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute.
@@ -115,7 +115,7 @@ It runs after all other filters have completed and writes the proxy response bac
 (There is also an experimental `WebClientWriteResponseFilter` that performs the same function but does not require Netty.)
 
 [[reactive-loadbalancer-client-filter]]
-== The `ReactiveLoadBalancerClientFilter`
+== `ReactiveLoadBalancerClientFilter`
 
 The `ReactiveLoadBalancerClientFilter` looks for a URI in the exchange attribute named `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
 If the URL has a `lb` scheme (such as `lb://myservice`), it uses the Spring Cloud `ReactorLoadBalancer` to resolve the name (`myservice` in this example) to an actual host and port and replaces the URI in the same attribute.
@@ -148,8 +148,8 @@ However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gatew
 
 TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
-[[the-routetorequesturl-filter]]
-== The `RouteToRequestUrl` Filter
+[[routetorequesturl-filter]]
+== `RouteToRequestUrl` Filter
 
 If there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute, the `RouteToRequestUrlFilter` runs.
 It creates a new URI, based off of the request URI but updated with the URI attribute of the `Route` object.
@@ -157,7 +157,7 @@ The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` e
 
 If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is stripped from the URI and placed in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` for use later in the filter chain.
 
-[[the-websocket-routing-filter]]
+[[websocket-routing-filter]]
 == The Websocket Routing Filter
 
 If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing filter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.

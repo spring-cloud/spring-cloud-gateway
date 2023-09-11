@@ -6,7 +6,7 @@ Spring Cloud Gateway includes many built-in route predicate factories.
 All of these predicates match on different attributes of the HTTP request.
 You can combine multiple route predicate factories with logical `and` statements.
 
-[[the-after-route-predicate-factory]]
+[[after-route-predicate-factory]]
 == The After Route Predicate Factory
 
 The `After` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
@@ -28,7 +28,7 @@ spring:
 
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver).
 
-[[the-before-route-predicate-factory]]
+[[before-route-predicate-factory]]
 == The Before Route Predicate Factory
 
 The `Before` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
@@ -50,7 +50,7 @@ spring:
 
 This route matches any request made before Jan 20, 2017 17:42 Mountain Time (Denver).
 
-[[the-between-route-predicate-factory]]
+[[between-route-predicate-factory]]
 == The Between Route Predicate Factory
 
 The `Between` route predicate factory takes two parameters, `datetime1` and `datetime2`
@@ -75,7 +75,7 @@ spring:
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver).
 This could be useful for maintenance windows.
 
-[[the-cookie-route-predicate-factory]]
+[[cookie-route-predicate-factory]]
 == The Cookie Route Predicate Factory
 
 The `Cookie` route predicate factory takes two parameters, the cookie `name` and a `regexp` (which is a Java regular expression).
@@ -97,7 +97,7 @@ spring:
 
 This route matches requests that have a cookie named `chocolate` whose value matches the `ch.p` regular expression.
 
-[[the-header-route-predicate-factory]]
+[[header-route-predicate-factory]]
 == The Header Route Predicate Factory
 
 The `Header` route predicate factory takes two parameters, the `header` and a `regexp` (which is a Java regular expression).
@@ -119,7 +119,7 @@ spring:
 
 This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (that is, it has a value of one or more digits).
 
-[[the-host-route-predicate-factory]]
+[[host-route-predicate-factory]]
 == The Host Route Predicate Factory
 
 The `Host` route predicate factory takes one parameter: a list of host name `patterns`.
@@ -148,7 +148,7 @@ This predicate extracts the URI template variables (such as `sub`, defined in th
 Those values are then available for use by <<gateway-route-filters,`GatewayFilter` factories>>
 
 
-[[the-method-route-predicate-factory]]
+[[method-route-predicate-factory]]
 == The Method Route Predicate Factory
 
 The `Method` Route Predicate Factory takes a `methods` argument which is one or more parameters: the HTTP methods to match.
@@ -169,7 +169,7 @@ spring:
 
 This route matches if the request method was a `GET` or a `POST`.
 
-[[the-path-route-predicate-factory]]
+[[path-route-predicate-factory]]
 == The Path Route Predicate Factory
 
 The `Path` Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` `patterns` and an optional flag called `matchTrailingSlash` (defaults to `true`).
@@ -205,7 +205,7 @@ Map<String, String> uriVariables = ServerWebExchangeUtils.getUriTemplateVariable
 String segment = uriVariables.get("segment");
 ----
 
-[[the-query-route-predicate-factory]]
+[[query-route-predicate-factory]]
 == The Query Route Predicate Factory
 
 The `Query` route predicate factory takes two parameters: a required `param` and an optional `regexp` (which is a Java regular expression).
@@ -242,7 +242,7 @@ spring:
 The preceding route matches if the request contained a `red` query parameter whose value matched the `gree.` regexp, so `green` and `greet` would match.
 
 
-[[the-remoteaddr-route-predicate-factory]]
+[[remoteaddr-route-predicate-factory]]
 == The RemoteAddr Route Predicate Factory
 
 The `RemoteAddr` route predicate factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, such as `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
@@ -320,7 +320,7 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 )
 ----
 
-[[the-weight-route-predicate-factory]]
+[[weight-route-predicate-factory]]
 == The Weight Route Predicate Factory
 
 The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
@@ -345,7 +345,7 @@ spring:
 
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
 
-[[the-xforwarded-remote-addr-route-predicate-factory]]
+[[xforwarded-remote-addr-route-predicate-factory]]
 == The XForwarded Remote Addr Route Predicate Factory
 
 The `XForwarded Remote Addr` route predicate factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, such as `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).

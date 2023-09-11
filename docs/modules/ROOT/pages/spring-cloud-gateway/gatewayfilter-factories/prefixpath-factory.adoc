@@ -1,0 +1,23 @@
+[[prefixpath-gatewayfilter-factory]]
+= `PrefixPath` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+The `PrefixPath` `GatewayFilter` factory takes a single `prefix` parameter.
+The following example configures a `PrefixPath` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: prefixpath_route
+        uri: https://example.org
+        filters:
+        - PrefixPath=/mypath
+----
+
+This prefixes `/mypath` to the path of all matching requests.
+So a request to `/hello` is sent to `/mypath/hello`.
+

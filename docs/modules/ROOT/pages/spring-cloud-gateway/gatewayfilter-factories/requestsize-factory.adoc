@@ -1,0 +1,35 @@
+[[requestsize-gatewayfilter-factory]]
+= `RequestSize` `GatewayFilter` Factory
+
+When the request size is greater than the permissible limit, the `RequestSize` `GatewayFilter` factory can restrict a request from reaching the downstream service.
+The filter takes a `maxSize` parameter.
+The `maxSize` is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
+It is the permissible size limit of the request defined in bytes.
+The following listing configures a `RequestSize` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: request_size_route
+        uri: http://localhost:8080/upload
+        predicates:
+        - Path=/upload
+        filters:
+        - name: RequestSize
+          args:
+            maxSize: 5000000
+----
+
+The `RequestSize` `GatewayFilter` factory sets the response status as `413 Payload Too Large` with an additional header `errorMessage` when the request is rejected due to size. The following example shows such an `errorMessage`:
+
+[source]
+----
+errorMessage : Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB
+----
+
+NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
+

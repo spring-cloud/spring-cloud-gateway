@@ -1,0 +1,40 @@
+[[addrequestparameter-gatewayfilter-factory]]
+= `AddRequestParameter` `GatewayFilter` Factory
+
+The `AddRequestParameter` `GatewayFilter` Factory takes a `name` and `value` parameter.
+The following example configures an `AddRequestParameter` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: https://example.org
+        filters:
+        - AddRequestParameter=red, blue
+----
+
+This will add `red=blue` to the downstream request's query string for all matching requests.
+
+`AddRequestParameter` is aware of the URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddRequestParameter` `GatewayFilter` that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_parameter_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - AddRequestParameter=foo, bar-{segment}
+----
+

@@ -1,5 +1,5 @@
 [[spring-cloud-circuitbreaker-filter-factory]]
-= The `CircuitBreaker` `GatewayFilter` Factory
+= `CircuitBreaker` `GatewayFilter` Factory
 
 The Spring Cloud CircuitBreaker GatewayFilter factory uses the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
 a circuit breaker. Spring Cloud CircuitBreaker supports multiple libraries that can be used with Spring Cloud Gateway. Spring Cloud supports Resilience4J out of the box.
