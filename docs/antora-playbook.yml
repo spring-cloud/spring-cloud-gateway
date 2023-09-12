@@ -7,11 +7,6 @@ antora:
     - '@antora/atlas-extension'
     - require: '@springio/antora-extensions/root-component-extension'
       root_component_name: 'cloud-gateway'
-      # FIXME: Run antora once using this extension to migrate to the Asciidoc Tabs syntax
-      # and then remove this extension
-    - require: '@springio/antora-extensions/tabs-migration-extension'
-      unwrap_example_block: always
-      save_result: true
 site:
   title: Spring Cloud Gateway
   url: https://docs.spring.io/spring-cloud-gateway/reference/
