@@ -1,6 +1,6 @@
 name: cloud-gateway
 version: true
-title: spring-cloud-gateway
+title: Spring Cloud Gateway
 nav:
   - modules/ROOT/nav.adoc
 ext:
