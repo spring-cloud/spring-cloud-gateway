@@ -11,6 +11,8 @@ This appendix provides a list of common Spring Cloud Gateway properties and refe
 NOTE: Property contributions can come from additional jar files on your classpath, so you should not consider this an exhaustive list.
 Also, you can define your own properties.
 
+include::partial$_configprops.adoc[]
+
 [[observability]]
 == Observability metadata
 
