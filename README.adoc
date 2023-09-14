@@ -271,4 +271,4 @@ If you need to add `ignoredClassPatterns` or `ignoredResourcePatterns` to your s
 [[contributing]]
 = Contributing
 
-Unresolved directive in <stdin> - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
+Unresolved directive in <stdin> - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/contributing.adoc[]
