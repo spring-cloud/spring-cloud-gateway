@@ -46,12 +46,13 @@
       "name": "spring.cloud.gateway.filter.local-response-cache.size",
       "type": "org.springframework.util.unit.DataSize",
       "description": "Maximum size of the cache to evict entries for this route (in KB, MB and GB).",
-      "defaultValue": "5m"
+      "defaultValue": "null"
     },
     {
       "name": "spring.cloud.gateway.filter.local-response-cache.time-to-live",
       "type": "java.time.Duration",
-      "description": "Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours)."
+      "description": "Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).",
+      "defaultValue": "5m"
     },
     {
       "name": "spring.cloud.gateway.filter.dedupe-response-header.enabled",
