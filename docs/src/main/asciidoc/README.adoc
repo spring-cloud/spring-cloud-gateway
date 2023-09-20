@@ -1,5 +1,5 @@
 image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badge.svg?style=svg["Actions Status", link="https://github.com/spring-cloud/spring-cloud-gateway/actions"]
-image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
+image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/4.0.x/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
 include::intro.adoc[]
@@ -19,8 +19,8 @@ include::intro.adoc[]
 
 == Building
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/4.0.x/docs/src/main/asciidoc/building.adoc[]
 
 == Contributing
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/4.0.x/docs/src/main/asciidoc/contributing.adoc[]
