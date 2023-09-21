@@ -1,5 +1,6 @@
 image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badge.svg?style=svg["Actions Status", link="https://github.com/spring-cloud/spring-cloud-gateway/actions"]
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
+image::https://sourcespy.com/shield.svg["Repository Map", link="https://sourcespy.com/github/springcloudspringcloudgateway/"]
 
 
 
@@ -25,4 +26,4 @@ include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/
 [[contributing]]
 = Contributing
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/contributing.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/modules/ROOT/partials/contributing.adoc[]
