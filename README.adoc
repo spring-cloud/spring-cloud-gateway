@@ -191,13 +191,13 @@ The following files can be found in the https://github.com/spring-cloud/spring-c
 
 .Code style
 
-image::cloud-build:ROOT:intellij-code-style.png[Code style]
+image::intellij-code-style.png[Code style]
 
 Go to `File` -> `Settings` -> `Editor` -> `Code style`. There click on the icon next to the `Scheme` section. There, click on the `Import Scheme` value and pick the `Intellij IDEA code style XML` option. Import the `spring-cloud-build-tools/src/main/resources/intellij/Intellij_Spring_Boot_Java_Conventions.xml` file.
 
 .Inspection profiles
 
-image::cloud-build:ROOT:intellij-inspections.png[Code style]
+image::intellij-inspections.png[Code style]
 
 Go to `File` -> `Settings` -> `Editor` -> `Inspections`. There click on the icon next to the `Profile` section. There, click on the `Import Profile` and import the `spring-cloud-build-tools/src/main/resources/intellij/Intellij_Project_Defaults.xml` file.
 
@@ -205,7 +205,7 @@ Go to `File` -> `Settings` -> `Editor` -> `Inspections`. There click on the icon
 
 To have Intellij work with Checkstyle, you have to install the `Checkstyle` plugin. It's advisable to also install the `Assertions2Assertj` to automatically convert the JUnit assertions
 
-image::cloud-build:ROOT:intellij-checkstyle.png[Checkstyle]
+image::intellij-checkstyle.png[Checkstyle]
 
 Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on the `+` icon in the `Configuration file` section. There, you'll have to define where the checkstyle rules should be picked from. In the image above, we've picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build's GitHub repository (e.g. for the `checkstyle.xml` : `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/spring-cloud-build-tools/src/main/resources/checkstyle.xml`). We need to provide the following variables:
 
