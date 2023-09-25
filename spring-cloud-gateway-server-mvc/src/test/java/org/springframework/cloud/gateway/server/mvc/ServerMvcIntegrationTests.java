@@ -412,6 +412,13 @@ public class ServerMvcIntegrationTests {
 				.expectHeader().valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
 	}
 
+	@Test
+	public void redirectToWithQueryParamsWorks() {
+		restClient.get().uri("/anything/redirectqueryparams?page=3").exchange()
+				.expectStatus().isEqualTo(HttpStatus.MOVED_PERMANENTLY)
+				.expectHeader().valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com?page=3");
+	}
+
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
 		ClassPathResource part = new ClassPathResource("test/1x1.png");
 		MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -852,6 +859,15 @@ public class ServerMvcIntegrationTests {
 			return route(path("/anything/redirect"), http())
 					.filter(redirectTo(HttpStatus.MOVED_PERMANENTLY, URI.create("https://exampleredirect.com")))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirectto");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithQueryParams() {
+			// @formatter:off
+			return route(path("/anything/redirectqueryparams"), http())
+					.filter(redirectTo(HttpStatus.MOVED_PERMANENTLY, URI.create("https://exampleredirect.com"), true))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttoqueryparams");
 			// @formatter:on
 		}
 

@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofRequestProcessor;
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofResponseProcessor;
@@ -105,19 +106,43 @@ public interface FilterFunctions {
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri) {
-		return redirectTo(new HttpStatusHolder(null, status), uri);
+		return redirectTo(new HttpStatusHolder(null, status), uri, false);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri,
+			boolean includeRequestParams) {
+		return redirectTo(new HttpStatusHolder(null, status), uri, includeRequestParams);
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri) {
-		return redirectTo(new HttpStatusHolder(status, null), uri);
+		return redirectTo(new HttpStatusHolder(status, null), uri, false);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri,
+			boolean includeRequestParams) {
+		return redirectTo(new HttpStatusHolder(status, null), uri, includeRequestParams);
 	}
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
+		return redirectTo(status, uri, false);
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri,
+			boolean includeRequestParams) {
 		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
 
-		return (request, next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString())
-				.build();
+		return (request, next) -> {
+			String location;
+			if (includeRequestParams) {
+				location = UriComponentsBuilder.fromUri(uri).queryParams(request.params()).build().toUri().toString();
+			}
+			else {
+				location = uri.toString();
+			}
+			return ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, location).build();
+		};
 	}
 
 	@Shortcut

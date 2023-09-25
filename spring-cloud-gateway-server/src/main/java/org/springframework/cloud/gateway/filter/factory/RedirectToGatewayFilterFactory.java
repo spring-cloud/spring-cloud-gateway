@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
@@ -50,40 +51,66 @@ public class RedirectToGatewayFilterFactory
 	 */
 	public static final String URL_KEY = "url";
 
+	/**
+	 * IncludeRequestParams key.
+	 */
+	public static final String INCLUDE_REQUEST_PARAMS_KEY = "includeRequestParams";
+
 	public RedirectToGatewayFilterFactory() {
 		super(Config.class);
 	}
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(STATUS_KEY, URL_KEY);
+		return Arrays.asList(STATUS_KEY, URL_KEY, INCLUDE_REQUEST_PARAMS_KEY);
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return apply(config.status, config.url);
+		return apply(config.status, config.url, config.includeRequestParams);
 	}
 
 	public GatewayFilter apply(String statusString, String urlString) {
+		return apply(statusString, urlString, false);
+	}
+
+	public GatewayFilter apply(String statusString, String urlString, boolean includeRequestParams) {
 		HttpStatusHolder httpStatus = HttpStatusHolder.parse(statusString);
 		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
 		final URI url = URI.create(urlString);
-		return apply(httpStatus, url);
+		return apply(httpStatus, url, includeRequestParams);
 	}
 
 	public GatewayFilter apply(HttpStatus httpStatus, URI uri) {
-		return apply(new HttpStatusHolder(httpStatus, null), uri);
+		return apply(new HttpStatusHolder(httpStatus, null), uri, false);
+	}
+
+	public GatewayFilter apply(HttpStatus httpStatus, URI uri, boolean includeRequestParams) {
+		return apply(new HttpStatusHolder(httpStatus, null), uri, includeRequestParams);
 	}
 
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
+		return apply(httpStatus, uri, false);
+	}
+
+	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri, boolean includeRequestParams) {
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 
+					String location;
+					if (includeRequestParams) {
+						location = UriComponentsBuilder.fromUri(uri).queryParams(exchange.getRequest().getQueryParams())
+								.build().toUri().toString();
+					}
+					else {
+						location = uri.toString();
+					}
+
 					final ServerHttpResponse response = exchange.getResponse();
-					response.getHeaders().set(HttpHeaders.LOCATION, uri.toString());
+					response.getHeaders().set(HttpHeaders.LOCATION, location);
 					return response.setComplete();
 				}
 				return Mono.empty();
@@ -98,7 +125,8 @@ public class RedirectToGatewayFilterFactory
 				else {
 					status = httpStatus.getStatus().toString();
 				}
-				return filterToStringCreator(RedirectToGatewayFilterFactory.this).append(status, uri).toString();
+				return filterToStringCreator(RedirectToGatewayFilterFactory.this).append(status, uri)
+						.append(INCLUDE_REQUEST_PARAMS_KEY, includeRequestParams).toString();
 			}
 		};
 	}
@@ -108,6 +136,8 @@ public class RedirectToGatewayFilterFactory
 		String status;
 
 		String url;
+
+		boolean includeRequestParams;
 
 		public String getStatus() {
 			return status;
@@ -123,6 +153,14 @@ public class RedirectToGatewayFilterFactory
 
 		public void setUrl(String url) {
 			this.url = url;
+		}
+
+		public boolean isIncludeRequestParams() {
+			return includeRequestParams;
+		}
+
+		public void setIncludeRequestParams(boolean includeRequestParams) {
+			this.includeRequestParams = includeRequestParams;
 		}
 
 	}
