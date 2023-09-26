@@ -16,26 +16,18 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache;
 
-import java.time.Duration;
+import java.util.Optional;
 
-import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 
-/**
- * @author Marta Medio
- * @author Ignacio Lozano
- */
-public class ResponseCacheManagerFactory {
+public final class LocalResponseCacheUtils {
 
-	private final CacheKeyGenerator cacheKeyGenerator;
-
-	public ResponseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
-		this.cacheKeyGenerator = cacheKeyGenerator;
+	private LocalResponseCacheUtils() {
 	}
 
-	public ResponseCacheManager create(Cache cache, Duration timeToLive,
-			LocalResponseCacheRequestOptions requestOptions) {
-		return new ResponseCacheManager(cacheKeyGenerator, cache, timeToLive, requestOptions);
+	public static boolean isNoCacheRequest(ServerHttpRequest request) {
+		return Optional.ofNullable(request.getHeaders().getCacheControl())
+				.filter(cc -> cc.matches(".*(\s|,|^)no-cache(\\s|,|$).*")).isPresent();
 	}
 
 }

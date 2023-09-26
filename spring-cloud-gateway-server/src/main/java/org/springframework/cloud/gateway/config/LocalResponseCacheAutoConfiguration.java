@@ -65,7 +65,7 @@ public class LocalResponseCacheAutoConfiguration {
 			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
 			LocalResponseCacheProperties properties) {
 		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
-				properties.getTimeToLive());
+				properties.getTimeToLive(), properties.getRequest());
 	}
 
 	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
@@ -78,7 +78,7 @@ public class LocalResponseCacheAutoConfiguration {
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
 			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties) {
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
-				properties.getSize());
+				properties.getSize(), properties.getRequest());
 	}
 
 	@Bean

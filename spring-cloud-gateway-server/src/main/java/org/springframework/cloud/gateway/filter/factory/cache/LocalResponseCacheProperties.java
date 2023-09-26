@@ -40,6 +40,8 @@ public class LocalResponseCacheProperties {
 
 	private Duration timeToLive;
 
+	private LocalResponseCacheRequestOptions request = new LocalResponseCacheRequestOptions();
+
 	public DataSize getSize() {
 		return size;
 	}
@@ -64,9 +66,18 @@ public class LocalResponseCacheProperties {
 		this.timeToLive = timeToLive;
 	}
 
+	public LocalResponseCacheRequestOptions getRequest() {
+		return request;
+	}
+
+	public void setRequest(LocalResponseCacheRequestOptions request) {
+		this.request = request;
+	}
+
 	@Override
 	public String toString() {
-		return "LocalResponseCacheProperties{" + "timeToLive=" + getTimeToLive() + '\'' + ", size='" + getSize() + '}';
+		return "LocalResponseCacheProperties{" + "size=" + size + ", timeToLive=" + timeToLive + ", request=" + request
+				+ '}';
 	}
 
 }

@@ -41,9 +41,9 @@ public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Orde
 	private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
 
 	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
-			Duration configuredTimeToLive) {
+			Duration configuredTimeToLive, LocalResponseCacheRequestOptions requestOptions) {
 		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
-				cacheManagerFactory.create(globalCache, configuredTimeToLive));
+				cacheManagerFactory.create(globalCache, configuredTimeToLive, requestOptions));
 	}
 
 	@Override
