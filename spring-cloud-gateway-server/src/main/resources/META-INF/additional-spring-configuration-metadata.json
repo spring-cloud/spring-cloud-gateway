@@ -168,6 +168,12 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.filter.rewrite-request-parameter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the rewrite-request-parameter filter.",
+      "defaultValue": "true"
+    },
+    {
       "name": "spring.cloud.gateway.filter.set-status.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the set-status filter.",

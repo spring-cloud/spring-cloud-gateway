@@ -342,6 +342,14 @@ spring:
           - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
 
         # =====================================
+      - id: rewrite_request_parameter_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.rewriterequestparameter.org
+        filters:
+          - RewriteRequestParameter=campaign,fall2023
+
+        # =====================================
       - id: rewrite_response_header_test
         uri: ${test.uri}
         predicates:
