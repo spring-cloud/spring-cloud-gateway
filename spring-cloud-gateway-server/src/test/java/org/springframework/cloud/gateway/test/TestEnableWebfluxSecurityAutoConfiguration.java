@@ -43,7 +43,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  we need an explicit @EnableWebFluxSecurity and a ReactiveUserDetailsService
  */
 @AutoConfiguration(before = ReactiveSecurityAutoConfiguration.class)
-@ConditionalOnClass(DispatcherHandler.class)
+@ConditionalOnClass({ DispatcherHandler.class, MapReactiveUserDetailsService.class })
 @EnableWebFluxSecurity
 public class TestEnableWebfluxSecurityAutoConfiguration {
 
