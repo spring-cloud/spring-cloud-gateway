@@ -1,4 +1,7 @@
 * xref:index.adoc[Introduction]
+
+// begin Gateway Reactive Server
+
 * xref:spring-cloud-gateway.adoc[]
 ** xref:spring-cloud-gateway/starter.adoc[]
 ** xref:spring-cloud-gateway/glossary.adoc[]
@@ -58,7 +61,16 @@
 ** xref:spring-cloud-gateway/developer-guide.adoc[]
 ** xref:spring-cloud-gateway/aot-and-native-image-support.adoc[]
 ** xref:spring-cloud-gateway/configuration-properties.adoc[]
+
+// begin Gateway Server MVC
+
 * xref:spring-cloud-gateway-server-mvc.adoc[]
 ** xref:spring-cloud-gateway-server-mvc/starter.adoc[]
+** xref:spring-cloud-gateway-server-mvc/glossary.adoc[]
+** xref:spring-cloud-gateway-server-mvc/how-it-works.adoc[]
+** xref:spring-cloud-gateway-server-mvc/java-routes-api.adoc[]
+
+// begin Gateway Proxy Exchange
+
 * xref:spring-cloud-gateway-proxy-exchange.adoc[]
 * xref:appendix.adoc[]
