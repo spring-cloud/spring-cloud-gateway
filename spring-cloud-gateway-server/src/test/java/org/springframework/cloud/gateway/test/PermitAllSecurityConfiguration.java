@@ -18,14 +18,10 @@ package org.springframework.cloud.gateway.test;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration(proxyBeanMethods = false)
-// TODO: remove when below is fixed
-// https://github.com/spring-projects/spring-boot/commit/ee9c74556d45b39f097aff8a5fa65c6394d060b5
-@EnableWebFluxSecurity
 public class PermitAllSecurityConfiguration {
 
 	@Bean

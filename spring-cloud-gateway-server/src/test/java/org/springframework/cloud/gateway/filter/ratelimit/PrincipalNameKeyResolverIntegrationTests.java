@@ -37,9 +37,6 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.TestSocketUtils;
@@ -52,7 +49,9 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.web.reactive.function.client.ExchangeFilterFunctions.basicAuthentication;
 
-@SpringBootTest(webEnvironment = DEFINED_PORT)
+@SpringBootTest(webEnvironment = DEFINED_PORT,
+		properties = { "spring.security.user.name=user", "spring.security.user.password={noop}password",
+				"spring.security.user.roles=USER" })
 @ActiveProfiles("principalname")
 public class PrincipalNameKeyResolverIntegrationTests {
 
@@ -118,12 +117,6 @@ public class PrincipalNameKeyResolverIntegrationTests {
 		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
 			return http.httpBasic().and().authorizeExchange().pathMatchers("/myapi/**").authenticated().anyExchange()
 					.permitAll().and().build();
-		}
-
-		@Bean
-		public MapReactiveUserDetailsService reactiveUserDetailsService() {
-			UserDetails user = User.withUsername("user").password("{noop}password").roles("USER").build();
-			return new MapReactiveUserDetailsService(user);
 		}
 
 		class MyRateLimiter implements RateLimiter<Object> {
