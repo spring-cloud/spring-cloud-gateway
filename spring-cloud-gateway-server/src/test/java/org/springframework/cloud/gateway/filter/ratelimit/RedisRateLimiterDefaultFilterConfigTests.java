@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.ratelimit;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -28,7 +27,6 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Spencer Gibb
  * @author Denis Cutic
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("redis-rate-limiter-default-config")
@@ -48,7 +45,7 @@ public class RedisRateLimiterDefaultFilterConfigTests {
 	@Autowired
 	private RouteLocator routeLocator;
 
-	@Before
+	@BeforeEach
 	public void init() {
 		// prime routes since getRoutes() no longer blocks
 		routeLocator.getRoutes().collectList().block();

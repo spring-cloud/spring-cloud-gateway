@@ -36,11 +36,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.core.io.buffer.PooledDataBuffer;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.codec.max-in-memory-size=25")
@@ -114,7 +117,8 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 					.route("cache_request_body_java_test",
 							r -> r.path("/post").and().host("**.cacherequestbody.org")
 									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE)))
+											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
+											.filter(new CheckCachedRequestBodyReleasedGatewayFilter()))
 									.uri(uri))
 					.route("cache_request_body_empty_java_test",
 							r -> r.path("/post").and().host("**.cacherequestbodyempty.org")
@@ -170,6 +174,27 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, bodyToSetCache);
 			return chain.filter(exchange);
+		}
+
+	}
+
+	private static class CheckCachedRequestBodyReleasedGatewayFilter implements GatewayFilter {
+
+		CheckCachedRequestBodyReleasedGatewayFilter() {
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			return chain.filter(exchange).doAfterTerminate(() -> {
+				Object o = exchange.getAttributes()
+						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
+				if (o instanceof PooledDataBuffer dataBuffer) {
+					if (dataBuffer.isAllocated()) {
+						exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+						fail("DataBuffer is not released");
+					}
+				}
+			});
 		}
 
 	}

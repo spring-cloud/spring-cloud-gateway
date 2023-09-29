@@ -1,0 +1,154 @@
+|===
+|Name | Default | Description
+
+|spring.cloud.gateway.default-filters |  | List of filter definitions that are applied to every route.
+|spring.cloud.gateway.discovery.locator.enabled | `+++false+++` | Flag that enables DiscoveryClient gateway integration.
+|spring.cloud.gateway.discovery.locator.filters |  | 
+|spring.cloud.gateway.discovery.locator.include-expression | `+++true+++` | SpEL expression that will evaluate whether to include a service in gateway integration or not, defaults to: true.
+|spring.cloud.gateway.discovery.locator.lower-case-service-id | `+++false+++` | Option to lower case serviceId in predicates and filters, defaults to false. Useful with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match /myservice/**
+|spring.cloud.gateway.discovery.locator.predicates |  | 
+|spring.cloud.gateway.discovery.locator.route-id-prefix |  | The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName() + "_". Service Id will be appended to create the routeId.
+|spring.cloud.gateway.discovery.locator.url-expression | `+++'lb://'+serviceId+++` | SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
+|spring.cloud.gateway.enabled | `+++true+++` | Enables gateway functionality.
+|spring.cloud.gateway.fail-on-route-definition-error | `+++true+++` | Option to fail on route definition errors, defaults to true. Otherwise, a warning is logged.
+|spring.cloud.gateway.filter.add-request-header.enabled | `+++true+++` | Enables the add-request-header filter.
+|spring.cloud.gateway.filter.add-request-parameter.enabled | `+++true+++` | Enables the add-request-parameter filter.
+|spring.cloud.gateway.filter.add-response-header.enabled | `+++true+++` | Enables the add-response-header filter.
+|spring.cloud.gateway.filter.circuit-breaker.enabled | `+++true+++` | Enables the circuit-breaker filter.
+|spring.cloud.gateway.filter.dedupe-response-header.enabled | `+++true+++` | Enables the dedupe-response-header filter.
+|spring.cloud.gateway.filter.fallback-headers.enabled | `+++true+++` | Enables the fallback-headers filter.
+|spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
+|spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
+|spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter.
+|spring.cloud.gateway.filter.local-response-cache.size | `+++5m+++` | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
+|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+|spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
+|spring.cloud.gateway.filter.modify-request-body.enabled | `+++true+++` | Enables the modify-request-body filter.
+|spring.cloud.gateway.filter.modify-response-body.enabled | `+++true+++` | Enables the modify-response-body filter.
+|spring.cloud.gateway.filter.prefix-path.enabled | `+++true+++` | Enables the prefix-path filter.
+|spring.cloud.gateway.filter.preserve-host-header.enabled | `+++true+++` | Enables the preserve-host-header filter.
+|spring.cloud.gateway.filter.redirect-to.enabled | `+++true+++` | Enables the redirect-to filter.
+|spring.cloud.gateway.filter.remove-hop-by-hop.headers |  | 
+|spring.cloud.gateway.filter.remove-hop-by-hop.order | `+++0+++` | 
+|spring.cloud.gateway.filter.remove-request-header.enabled | `+++true+++` | Enables the remove-request-header filter.
+|spring.cloud.gateway.filter.remove-request-parameter.enabled | `+++true+++` | Enables the remove-request-parameter filter.
+|spring.cloud.gateway.filter.remove-response-header.enabled | `+++true+++` | Enables the remove-response-header filter.
+|spring.cloud.gateway.filter.request-header-size.enabled | `+++true+++` | Enables the request-header-size filter.
+|spring.cloud.gateway.filter.request-header-to-request-uri.enabled | `+++true+++` | Enables the request-header-to-request-uri filter.
+|spring.cloud.gateway.filter.request-rate-limiter.default-key-resolver |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.default-rate-limiter |  | 
+|spring.cloud.gateway.filter.request-rate-limiter.enabled | `+++true+++` | Enables the request-rate-limiter filter.
+|spring.cloud.gateway.filter.request-size.enabled | `+++true+++` | Enables the request-size filter.
+|spring.cloud.gateway.filter.retry.enabled | `+++true+++` | Enables the retry filter.
+|spring.cloud.gateway.filter.rewrite-location-response-header.enabled | `+++true+++` | Enables the rewrite-location-response-header filter.
+|spring.cloud.gateway.filter.rewrite-location.enabled | `+++true+++` | Enables the rewrite-location filter.
+|spring.cloud.gateway.filter.rewrite-path.enabled | `+++true+++` | Enables the rewrite-path filter.
+|spring.cloud.gateway.filter.rewrite-response-header.enabled | `+++true+++` | Enables the rewrite-response-header filter.
+|spring.cloud.gateway.filter.save-session.enabled | `+++true+++` | Enables the save-session filter.
+|spring.cloud.gateway.filter.secure-headers.content-security-policy | `+++default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'+++` | 
+|spring.cloud.gateway.filter.secure-headers.content-type-options | `+++nosniff+++` | 
+|spring.cloud.gateway.filter.secure-headers.disable |  | 
+|spring.cloud.gateway.filter.secure-headers.download-options | `+++noopen+++` | 
+|spring.cloud.gateway.filter.secure-headers.enabled | `+++true+++` | Enables the secure-headers filter.
+|spring.cloud.gateway.filter.secure-headers.frame-options | `+++DENY+++` | 
+|spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | `+++none+++` | 
+|spring.cloud.gateway.filter.secure-headers.referrer-policy | `+++no-referrer+++` | 
+|spring.cloud.gateway.filter.secure-headers.strict-transport-security | `+++max-age=631138519+++` | 
+|spring.cloud.gateway.filter.secure-headers.xss-protection-header | `+++1 ; mode=block+++` | 
+|spring.cloud.gateway.filter.set-path.enabled | `+++true+++` | Enables the set-path filter.
+|spring.cloud.gateway.filter.set-request-header.enabled | `+++true+++` | Enables the set-request-header filter.
+|spring.cloud.gateway.filter.set-request-host-header.enabled | `+++true+++` | Enables the set-request-host-header filter.
+|spring.cloud.gateway.filter.set-response-header.enabled | `+++true+++` | Enables the set-response-header filter.
+|spring.cloud.gateway.filter.set-status.enabled | `+++true+++` | Enables the set-status filter.
+|spring.cloud.gateway.filter.strip-prefix.enabled | `+++true+++` | Enables the strip-prefix filter.
+|spring.cloud.gateway.forwarded.enabled | `+++true+++` | Enables the ForwardedHeadersFilter.
+|spring.cloud.gateway.global-filter.adapt-cached-body.enabled | `+++true+++` | Enables the adapt-cached-body global filter.
+|spring.cloud.gateway.global-filter.forward-path.enabled | `+++true+++` | Enables the forward-path global filter.
+|spring.cloud.gateway.global-filter.forward-routing.enabled | `+++true+++` | Enables the forward-routing global filter.
+|spring.cloud.gateway.global-filter.load-balancer-client.enabled | `+++true+++` | Enables the load-balancer-client global filter.
+|spring.cloud.gateway.global-filter.local-response-cache.enabled | `+++true+++` | Enables the local-response-cache filter for all routes, it allows to add a specific configuration at route level using LocalResponseCache filter.
+|spring.cloud.gateway.global-filter.netty-routing.enabled | `+++true+++` | Enables the netty-routing global filter.
+|spring.cloud.gateway.global-filter.netty-write-response.enabled | `+++true+++` | Enables the netty-write-response global filter.
+|spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled | `+++true+++` | Enables the reactive-load-balancer-client global filter.
+|spring.cloud.gateway.global-filter.remove-cached-body.enabled | `+++true+++` | Enables the remove-cached-body global filter.
+|spring.cloud.gateway.global-filter.route-to-request-url.enabled | `+++true+++` | Enables the route-to-request-url global filter.
+|spring.cloud.gateway.global-filter.websocket-routing.enabled | `+++true+++` | Enables the websocket-routing global filter.
+|spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping | `+++false+++` | If global CORS config should be added to the URL handler.
+|spring.cloud.gateway.globalcors.cors-configurations |  | 
+|spring.cloud.gateway.handler-mapping.order | `+++1+++` | The order of RoutePredicateHandlerMapping.
+|spring.cloud.gateway.httpclient.compression | `+++false+++` | Enables compression for Netty HttpClient.
+|spring.cloud.gateway.httpclient.connect-timeout |  | The connect timeout in millis, the default is 30s.
+|spring.cloud.gateway.httpclient.max-header-size |  | The max response header size.
+|spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
+|spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for acquiring.
+|spring.cloud.gateway.httpclient.pool.eviction-interval | `+++0+++` | Perform regular eviction checks in the background at a specified interval. Disabled by default ({@link Duration#ZERO})
+|spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
+|spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
+|spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
+|spring.cloud.gateway.httpclient.pool.metrics | `+++false+++` | Enables channel pools metrics to be collected and registered in Micrometer. Disabled by default.
+|spring.cloud.gateway.httpclient.pool.name | `+++proxy+++` | The channel pool map name, defaults to proxy.
+|spring.cloud.gateway.httpclient.pool.type |  | Type of pool for HttpClient to use, defaults to ELASTIC.
+|spring.cloud.gateway.httpclient.proxy.host |  | Hostname for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
+|spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type |  | proxyType for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
+|spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.
+|spring.cloud.gateway.httpclient.ssl.close-notify-read-timeout | `+++0+++` | SSL close_notify read timeout. Default to 0 ms.
+|spring.cloud.gateway.httpclient.ssl.handshake-timeout | `+++10000ms+++` | SSL handshake timeout. Default to 10000 ms
+|spring.cloud.gateway.httpclient.ssl.key-password |  | Key password, default is same as keyStorePassword.
+|spring.cloud.gateway.httpclient.ssl.key-store |  | Keystore path for Netty HttpClient.
+|spring.cloud.gateway.httpclient.ssl.key-store-password |  | Keystore password.
+|spring.cloud.gateway.httpclient.ssl.key-store-provider |  | Keystore provider for Netty HttpClient, optional field.
+|spring.cloud.gateway.httpclient.ssl.key-store-type | `+++JKS+++` | Keystore type for Netty HttpClient, default is JKS.
+|spring.cloud.gateway.httpclient.ssl.trusted-x509-certificates |  | Trusted certificates for verifying the remote endpoint's certificate.
+|spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager | `+++false+++` | Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production.
+|spring.cloud.gateway.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
+|spring.cloud.gateway.httpclient.websocket.proxy-ping | `+++true+++` | Proxy ping frames to downstream services, defaults to true.
+|spring.cloud.gateway.httpclient.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpClient.
+|spring.cloud.gateway.httpserver.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpServer.
+|spring.cloud.gateway.loadbalancer.use404 | `+++false+++` | 
+|spring.cloud.gateway.metrics.enabled | `+++false+++` | Enables the collection of metrics data.
+|spring.cloud.gateway.metrics.prefix | `+++spring.cloud.gateway+++` | The prefix of all metrics emitted by gateway.
+|spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.observability.enabled | `+++true+++` | If Micrometer Observability support should be turned on.
+|spring.cloud.gateway.predicate.after.enabled | `+++true+++` | Enables the after predicate.
+|spring.cloud.gateway.predicate.before.enabled | `+++true+++` | Enables the before predicate.
+|spring.cloud.gateway.predicate.between.enabled | `+++true+++` | Enables the between predicate.
+|spring.cloud.gateway.predicate.cloud-foundry-route-service.enabled | `+++true+++` | Enables the cloud-foundry-route-service predicate.
+|spring.cloud.gateway.predicate.cookie.enabled | `+++true+++` | Enables the cookie predicate.
+|spring.cloud.gateway.predicate.header.enabled | `+++true+++` | Enables the header predicate.
+|spring.cloud.gateway.predicate.host.enabled | `+++true+++` | Enables the host predicate.
+|spring.cloud.gateway.predicate.method.enabled | `+++true+++` | Enables the method predicate.
+|spring.cloud.gateway.predicate.path.enabled | `+++true+++` | Enables the path predicate.
+|spring.cloud.gateway.predicate.query.enabled | `+++true+++` | Enables the query predicate.
+|spring.cloud.gateway.predicate.read-body.enabled | `+++true+++` | Enables the read-body predicate.
+|spring.cloud.gateway.predicate.remote-addr.enabled | `+++true+++` | Enables the remote-addr predicate.
+|spring.cloud.gateway.predicate.weight.enabled | `+++true+++` | Enables the weight predicate.
+|spring.cloud.gateway.predicate.xforwarded-remote-addr.enabled | `+++true+++` | Enables the xforwarded-remote-addr predicate.
+|spring.cloud.gateway.redis-rate-limiter.burst-capacity-header | `+++X-RateLimit-Burst-Capacity+++` | The name of the header that returns the burst capacity configuration.
+|spring.cloud.gateway.redis-rate-limiter.config |  | 
+|spring.cloud.gateway.redis-rate-limiter.include-headers | `+++true+++` | Whether or not to include headers containing rate limiter information, defaults to true.
+|spring.cloud.gateway.redis-rate-limiter.remaining-header | `+++X-RateLimit-Remaining+++` | The name of the header that returns number of remaining requests during the current second.
+|spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | `+++X-RateLimit-Replenish-Rate+++` | The name of the header that returns the replenish rate configuration.
+|spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `+++X-RateLimit-Requested-Tokens+++` | The name of the header that returns the requested tokens configuration.
+|spring.cloud.gateway.restrictive-property-accessor.enabled | `+++true+++` | Restricts method and property access in SpEL.
+|spring.cloud.gateway.routes |  | List of Routes.
+|spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
+|spring.cloud.gateway.streaming-media-types |  | 
+|spring.cloud.gateway.x-forwarded.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
+|spring.cloud.gateway.x-forwarded.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
+|spring.cloud.gateway.x-forwarded.for-enabled | `+++true+++` | If X-Forwarded-For is enabled.
+|spring.cloud.gateway.x-forwarded.host-append | `+++true+++` | If appending X-Forwarded-Host as a list is enabled.
+|spring.cloud.gateway.x-forwarded.host-enabled | `+++true+++` | If X-Forwarded-Host is enabled.
+|spring.cloud.gateway.x-forwarded.order | `+++0+++` | The order of the XForwardedHeadersFilter.
+|spring.cloud.gateway.x-forwarded.port-append | `+++true+++` | If appending X-Forwarded-Port as a list is enabled.
+|spring.cloud.gateway.x-forwarded.port-enabled | `+++true+++` | If X-Forwarded-Port is enabled.
+|spring.cloud.gateway.x-forwarded.prefix-append | `+++true+++` | If appending X-Forwarded-Prefix as a list is enabled.
+|spring.cloud.gateway.x-forwarded.prefix-enabled | `+++true+++` | If X-Forwarded-Prefix is enabled.
+|spring.cloud.gateway.x-forwarded.proto-append | `+++true+++` | If appending X-Forwarded-Proto as a list is enabled.
+|spring.cloud.gateway.x-forwarded.proto-enabled | `+++true+++` | If X-Forwarded-Proto is enabled.
+
+|===

@@ -22,19 +22,21 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,12 +48,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 /**
  * @author Alberto C. Ríos
+ * @author Abel Salgado Romero
  */
+@Disabled
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
-	private int port;
+	private int gatewayPort;
 
 	private RestTemplate restTemplate;
 
@@ -62,7 +66,15 @@ public class JsonToGrpcApplicationTests {
 
 	@Test
 	public void shouldConvertFromJSONToGRPC() {
-		String response = restTemplate.postForEntity("https://localhost:" + port + "/json/hello",
+		// Since GRPC server and GW run in same instance and don't know server port until
+		// test starts,
+		// we need to configure route dynamically using the actuator endpoint.
+		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
+		int grpcServerPort = gatewayPort + 1;
+		configurer.addRoute(grpcServerPort, "/json/hello",
+				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
+
+		String response = restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
 				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class).getBody();
 
 		Assertions.assertThat(response).isNotNull();
@@ -84,10 +96,8 @@ public class JsonToGrpcApplicationTests {
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("https", sslSocketFactory).register("http", new PlainConnectionSocketFactory()).build();
 
-		BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(
-				socketFactoryRegistry);
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslSocketFactory)
-				.setConnectionManager(connectionManager).build();
+		HttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
+		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();
 
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
 

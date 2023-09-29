@@ -1,16 +1,3 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.gateway.config.GatewayClassPathWarningAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayResilience4JCircuitBreakerAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayNoLoadBalancerClientAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayRedisAutoConfiguration,\
-org.springframework.cloud.gateway.discovery.GatewayDiscoveryClientAutoConfiguration,\
-org.springframework.cloud.gateway.config.SimpleUrlHandlerMappingGlobalCorsAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayReactiveLoadBalancerClientAutoConfiguration,\
-org.springframework.cloud.gateway.config.GatewayReactiveOAuth2AutoConfiguration
-
 org.springframework.boot.env.EnvironmentPostProcessor=\
 org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
 

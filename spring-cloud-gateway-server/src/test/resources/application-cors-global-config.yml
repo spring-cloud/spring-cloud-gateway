@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            maxAge: 10
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET

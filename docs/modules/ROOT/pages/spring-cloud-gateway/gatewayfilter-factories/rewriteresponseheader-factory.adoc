@@ -1,0 +1,24 @@
+[[rewriteresponseheader-gatewayfilter-factory]]
+= `RewriteResponseHeader` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+The `RewriteResponseHeader` `GatewayFilter` factory takes `name`, `regexp`, and `replacement` parameters.
+It uses Java regular expressions for a flexible way to rewrite the response header value.
+The following example configures a `RewriteResponseHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriteresponseheader_route
+        uri: https://example.org
+        filters:
+        - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
+----
+
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` after making the downstream request.
+You must use `$\` to mean `$` because of the YAML specification.
+

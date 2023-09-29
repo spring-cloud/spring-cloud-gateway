@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_headers_if_not_present_test
+        uri: ${test.uri}
+        predicates:
+          - Path=/headers
+        filters:
+          - AddRequestHeadersIfNotPresent=X-Request-Example:ValueA
+      - id: add_multiple_requests_if_not_present_header_test
+        uri: ${test.uri}
+        predicates:
+          - Path=/multivalueheaders
+        filters:
+          - AddRequestHeadersIfNotPresent=X-Request-Example:ValueA,X-Request-Second-Example:ValueC
+          - AddRequestHeadersIfNotPresent=X-Request-Example:ValueB,X-Request-Second-Example:ValueD

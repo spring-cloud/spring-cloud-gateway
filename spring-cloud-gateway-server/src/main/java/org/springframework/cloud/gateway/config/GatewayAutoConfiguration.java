@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
-import io.grpc.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -33,6 +32,10 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 import reactor.netty.http.server.WebsocketServerSpec;
 
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,6 +62,7 @@ import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabled
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledPredicate;
 import org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.ForwardPathFilter;
 import org.springframework.cloud.gateway.filter.ForwardRoutingFilter;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -68,7 +72,10 @@ import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
+import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
@@ -79,6 +86,7 @@ import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RemoveJsonAttributesResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
@@ -126,6 +134,7 @@ import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
@@ -144,6 +153,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.cloud.gateway.support.KeyValueConverter;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -159,6 +169,7 @@ import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.util.ClassUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -173,6 +184,7 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Ziemowit Stolarczyk
  * @author Mete Alpaslan Katırcıoğlu
  * @author Alberto C. Ríos
+ * @author Olga Maciaszek-Sharma
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -186,6 +198,11 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
+	}
+
+	@Bean
+	public KeyValueConverter keyValueConverter() {
+		return new KeyValueConverter();
 	}
 
 	@Bean
@@ -241,6 +258,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
 	}
@@ -248,6 +266,15 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GlobalCorsProperties globalCorsProperties() {
 		return new GlobalCorsProperties();
+	}
+
+	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
+	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
+			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
+			RouteLocator routeLocator) {
+		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
+				routeLocator);
 	}
 
 	@Bean
@@ -303,22 +330,23 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
-	@ConditionalOnClass(Channel.class)
-	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GRPCSSLContext gRPCSSLContext,
+	@ConditionalOnClass(name = "io.grpc.Channel")
+	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GrpcSslConfigurer gRPCSSLContext,
 			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
 	}
 
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
-	@ConditionalOnMissingBean(GRPCSSLContext.class)
-	@ConditionalOnClass(Channel.class)
-	public GRPCSSLContext gRPCSSLContext() throws KeyStoreException, NoSuchAlgorithmException {
+	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
+	@ConditionalOnClass(name = "io.grpc.Channel")
+	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties)
+			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
-		return new GRPCSSLContext(trustManagerFactory.getTrustManagers()[0]);
+		return new GrpcSslConfigurer(properties.getSsl());
 	}
 
 	@Bean
@@ -475,6 +503,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
+	public AddRequestHeadersIfNotPresentGatewayFilterFactory addRequestHeadersIfNotPresentGatewayFilterFactory() {
+		return new AddRequestHeadersIfNotPresentGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
 	public MapRequestHeaderGatewayFilterFactory mapRequestHeaderGatewayFilterFactory() {
 		return new MapRequestHeaderGatewayFilterFactory();
 	}
@@ -535,6 +569,15 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public RedirectToGatewayFilterFactory redirectToGatewayFilterFactory() {
 		return new RedirectToGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public RemoveJsonAttributesResponseBodyGatewayFilterFactory removeJsonAttributesResponseBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
+			Set<MessageBodyEncoder> bodyEncoders) {
+		return new RemoveJsonAttributesResponseBodyGatewayFilterFactory(
+				new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(), bodyDecoders, bodyEncoders));
 	}
 
 	@Bean
@@ -666,6 +709,11 @@ public class GatewayAutoConfiguration {
 		return new GzipMessageBodyResolver();
 	}
 
+	@Bean
+	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
+		return new ConfigurableHintsRegistrationProcessor();
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HttpClient.class)
 	protected static class NettyConfiguration {
@@ -686,10 +734,18 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
+		public HttpClientSslConfigurer httpClientSslConfigurer(ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
+			return new HttpClientSslConfigurer(httpClientProperties.getSsl(), serverProperties) {
+			};
+		}
+
+		@Bean
 		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
 		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new HttpClientFactory(properties, serverProperties, customizers);
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
+				HttpClientSslConfigurer sslConfigurer) {
+			return new HttpClientFactory(properties, serverProperties, sslConfigurer, customizers);
 		}
 
 		@Bean
@@ -797,6 +853,31 @@ public class GatewayAutoConfiguration {
 			return new TokenRelayGatewayFilterFactory(clientManager);
 		}
 
+	}
+
+}
+
+class GatewayHints implements RuntimeHintsRegistrar {
+
+	@Override
+	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+		if (!ClassUtils.isPresent("org.springframework.cloud.gateway.route.RouteLocator", classLoader)) {
+			return;
+		}
+		hints.reflection()
+				.registerType(TypeReference.of(FilterDefinition.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(PredicateDefinition.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+				.registerType(TypeReference.of(
+						"org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
+						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 	}
 
 }

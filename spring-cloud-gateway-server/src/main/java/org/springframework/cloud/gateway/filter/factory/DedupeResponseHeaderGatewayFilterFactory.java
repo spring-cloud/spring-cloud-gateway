@@ -137,17 +137,17 @@ public class DedupeResponseHeaderGatewayFilterFactory
 			return;
 		}
 		switch (strategy) {
-		case RETAIN_FIRST:
-			headers.set(name, values.get(0));
-			break;
-		case RETAIN_LAST:
-			headers.set(name, values.get(values.size() - 1));
-			break;
-		case RETAIN_UNIQUE:
-			headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
-			break;
-		default:
-			break;
+			case RETAIN_FIRST:
+				headers.set(name, values.get(0));
+				break;
+			case RETAIN_LAST:
+				headers.set(name, values.get(values.size() - 1));
+				break;
+			case RETAIN_UNIQUE:
+				headers.put(name, new ArrayList<>(new LinkedHashSet<>(values)));
+				break;
+			default:
+				break;
 		}
 	}
 

@@ -1,0 +1,24 @@
+[[stripprefix-gatewayfilter-factory]]
+= `StripPrefix` `GatewayFilter` Factory
+
+The `StripPrefix` `GatewayFilter` factory takes one parameter, `parts`.
+The `parts` parameter indicates the number of parts in the path to strip from the request before sending it downstream.
+The following listing configures a `StripPrefix` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: nameRoot
+        uri: https://nameservice
+        predicates:
+        - Path=/name/**
+        filters:
+        - StripPrefix=2
+----
+
+When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
+

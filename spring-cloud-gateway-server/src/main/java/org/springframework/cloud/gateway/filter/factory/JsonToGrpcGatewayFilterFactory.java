@@ -45,8 +45,7 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
-import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -54,7 +53,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.config.GRPCSSLContext;
+import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -70,7 +69,6 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import static io.grpc.netty.shaded.io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -85,13 +83,13 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 public class JsonToGrpcGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config> {
 
-	private final GRPCSSLContext sslContext;
+	private final GrpcSslConfigurer grpcSslConfigurer;
 
 	private final ResourceLoader resourceLoader;
 
-	public JsonToGrpcGatewayFilterFactory(GRPCSSLContext sslContext, ResourceLoader resourceLoader) {
+	public JsonToGrpcGatewayFilterFactory(GrpcSslConfigurer grpcSslConfigurer, ResourceLoader resourceLoader) {
 		super(Config.class);
-		this.sslContext = sslContext;
+		this.grpcSslConfigurer = grpcSslConfigurer;
 		this.resourceLoader = resourceLoader;
 	}
 
@@ -194,9 +192,12 @@ public class JsonToGrpcGatewayFilterFactory
 				descriptor = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorFile.getInputStream())
 						.getDescriptorForType();
 
-				Descriptors.Descriptor outputType = getOutputTypeDescriptor(config, descriptorFile.getInputStream());
+				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config,
+						descriptorFile.getInputStream());
+				Descriptors.ServiceDescriptor serviceDescriptor = methodDescriptor.getService();
+				Descriptors.Descriptor outputType = methodDescriptor.getOutputType();
 
-				clientCall = createClientCallForType(config, outputType);
+				clientCall = createClientCallForType(config, serviceDescriptor, outputType);
 
 				ProtobufSchema schema = ProtobufSchemaLoader.std.load(protoFile.getInputStream());
 				ProtobufSchema responseType = schema.withRootType(outputType.getName());
@@ -222,18 +223,19 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
-				Descriptors.Descriptor outputType) {
+				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
 					.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
 					.<DynamicMessage, DynamicMessage>newBuilder().setType(MethodDescriptor.MethodType.UNKNOWN)
-					.setFullMethodName(MethodDescriptor.generateFullMethodName(config.getService(), config.getMethod()))
+					.setFullMethodName(MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(),
+							config.getMethod()))
 					.setRequestMarshaller(marshaller).setResponseMarshaller(marshaller).build();
 			Channel channel = createChannel();
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
 
-		private Descriptors.Descriptor getOutputTypeDescriptor(Config config, InputStream descriptorFile)
+		private Descriptors.MethodDescriptor getMethodDescriptor(Config config, InputStream descriptorFile)
 				throws IOException, Descriptors.DescriptorValidationException {
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
 					.parseFrom(descriptorFile);
@@ -241,11 +243,15 @@ public class JsonToGrpcGatewayFilterFactory
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
 					new Descriptors.FileDescriptor[0]);
 
-			List<Descriptors.MethodDescriptor> methods = fileDescriptor.findServiceByName(config.getService())
-					.getMethods();
+			Descriptors.ServiceDescriptor serviceDescriptor = fileDescriptor.findServiceByName(config.getService());
+			if (serviceDescriptor == null) {
+				throw new NoSuchElementException("No Service found");
+			}
+
+			List<Descriptors.MethodDescriptor> methods = serviceDescriptor.getMethods();
 
 			return methods.stream().filter(method -> method.getName().equals(config.getMethod())).findFirst()
-					.orElseThrow(() -> new NoSuchElementException("No Method found")).getOutputType();
+					.orElseThrow(() -> new NoSuchElementException("No Method found"));
 		}
 
 		private ManagedChannel createChannel() {
@@ -298,11 +304,11 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
+		// We are creating this on every call, should optimize?
 		private ManagedChannel createChannelChannel(String host, int port) {
+			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
 			try {
-				return NettyChannelBuilder.forAddress(host, port).useTransportSecurity()
-						.sslContext(GrpcSslContexts.forClient().trustManager(sslContext.getTrustManager()).build())
-						.negotiationType(TLS).build();
+				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
 			}
 			catch (SSLException e) {
 				throw new RuntimeException(e);

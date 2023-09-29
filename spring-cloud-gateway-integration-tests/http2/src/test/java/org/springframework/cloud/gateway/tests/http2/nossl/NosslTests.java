@@ -29,9 +29,9 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.tests.http2.Http2Application;
-import org.springframework.cloud.test.TestSocketUtils;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.TestSocketUtils;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import static org.springframework.cloud.gateway.tests.http2.Http2ApplicationTests.assertResponse;

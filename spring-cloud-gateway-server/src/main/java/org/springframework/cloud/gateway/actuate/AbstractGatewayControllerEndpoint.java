@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.actuate;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,11 +44,14 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
@@ -92,9 +96,26 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	// TODO: Add uncommited or new but not active routes endpoint
 
 	@PostMapping("/refresh")
-	public Mono<Void> refresh() {
-		this.publisher.publishEvent(new RefreshRoutesEvent(this));
+	public Mono<Void> refresh(@RequestParam(value = "metadata", required = false) List<String> byMetadata) {
+		publishRefreshEvent(byMetadata);
 		return Mono.empty();
+	}
+
+	private void publishRefreshEvent(List<String> byMetadata) {
+		RefreshRoutesEvent event;
+		if (!CollectionUtils.isEmpty(byMetadata)) {
+			event = new RefreshRoutesEvent(this, convertToMap(byMetadata));
+		}
+		else {
+			event = new RefreshRoutesEvent(this);
+		}
+
+		this.publisher.publishEvent(event);
+	}
+
+	private Map<String, Object> convertToMap(List<String> byMetadata) {
+		return byMetadata.stream().map(keyValueStr -> keyValueStr.split(":"))
+				.collect(Collectors.toMap(kv -> kv[0], kv -> kv.length > 1 ? kv[1] : null));
 	}
 
 	@GetMapping("/globalfilters")
@@ -144,6 +165,28 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
 	}
 
+	@PostMapping("/routes")
+	@SuppressWarnings("unchecked")
+	public Mono<ResponseEntity<Object>> save(@RequestBody List<RouteDefinition> routes) {
+		routes.stream().forEach(routeDef -> {
+			validateRouteDefinition(routeDef);
+			validateRouteId(routeDef);
+		});
+
+		return Flux.fromIterable(routes)
+				.flatMap(routeDefinition -> this.routeDefinitionWriter.save(Mono.just(routeDefinition).map(r -> {
+					log.debug("Saving route: " + routeDefinition);
+					return r;
+				}))).then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
+				.switchIfEmpty(Mono.defer(() -> Mono.just(ResponseEntity.badRequest().build())));
+	}
+
+	private void validateRouteId(RouteDefinition routeDefinition) {
+		if (routeDefinition.getId() == null) {
+			handleError("Saving multiple routes require specifying the ID for every route");
+		}
+	}
+
 	private void validateRouteDefinition(RouteDefinition routeDefinition) {
 		Set<String> unavailableFilterDefinitions = routeDefinition.getFilters().stream().filter(rd -> !isAvailable(rd))
 				.map(FilterDefinition::getName).collect(Collectors.toSet());
@@ -156,10 +199,27 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		else if (!unavailablePredicatesDefinitions.isEmpty()) {
 			handleUnavailableDefinition(PredicateDefinition.class.getSimpleName(), unavailablePredicatesDefinitions);
 		}
+
+		validateRouteUri(routeDefinition.getUri());
+	}
+
+	private void validateRouteUri(URI uri) {
+		if (uri == null) {
+			handleError("The URI can not be empty");
+		}
+
+		if (!StringUtils.hasText(uri.getScheme())) {
+			handleError(String.format("The URI format [%s] is incorrect, scheme can not be empty", uri));
+		}
 	}
 
 	private void handleUnavailableDefinition(String simpleName, Set<String> unavailableDefinitions) {
 		final String errorMessage = String.format("Invalid %s: %s", simpleName, unavailableDefinitions);
+		log.warn(errorMessage);
+		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+	}
+
+	private void handleError(String errorMessage) {
 		log.warn(errorMessage);
 		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
 	}

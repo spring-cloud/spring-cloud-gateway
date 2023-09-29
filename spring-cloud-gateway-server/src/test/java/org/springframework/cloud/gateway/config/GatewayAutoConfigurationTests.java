@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import javax.net.ssl.TrustManagerFactory;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientConfig;
@@ -51,6 +51,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
+import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
@@ -96,7 +97,7 @@ public class GatewayAutoConfigurationTests {
 					assertThat(factory.connectionProvider.maxConnections()).isEqualTo(Integer.MAX_VALUE); // elastic
 
 					assertThat(factory.proxyProvider).isNull();
-					assertThat(factory.sslConfigured).isFalse();
+					assertThat(factory.isSslConfigured()).isFalse();
 
 					assertThat(httpClient.configuration().isAcceptGzip()).isFalse();
 					assertThat(httpClient.configuration().loggingHandler()).isNull();
@@ -147,8 +148,8 @@ public class GatewayAutoConfigurationTests {
 					assertThat(factory.proxyProvider).isNotNull();
 					assertThat(factory.proxyProvider.build().getAddress().get().getHostName()).isEqualTo("myhost");
 
-					assertThat(factory.sslConfigured).isTrue();
-					assertThat(factory.insecureTrustManagerSet).isTrue();
+					assertThat(factory.isSslConfigured()).isTrue();
+					assertThat(factory.isInsecureTrustManagerSet()).isTrue();
 
 					assertThat(context).hasSingleBean(ReactorNettyRequestUpgradeStrategy.class);
 					ReactorNettyRequestUpgradeStrategy upgradeStrategy = context
@@ -197,6 +198,25 @@ public class GatewayAutoConfigurationTests {
 				.run(context -> {
 					assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
 					assertThat(context).hasSingleBean(TokenRelayGatewayFilterFactory.class);
+				});
+	}
+
+	@Test
+	public void gatewayReactiveOAuth2AuthorizedClientManagerBacksOffForCustomBean() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
+						ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class))
+				.withUserConfiguration(TestReactiveOAuth2AuthorizedClientManagerConfig.class)
+				.withPropertyValues(
+						"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
+						"spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
+						"spring.security.oauth2.client.registration[test].provider=testprovider",
+						"spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
+						"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
+						"spring.security.oauth2.client.registration[test].client-id=login-client")
+				.run(context -> {
+					assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
+					assertThat(context).hasBean("myReactiveOAuth2AuthorizedClientManager");
 				});
 	}
 
@@ -286,7 +306,7 @@ public class GatewayAutoConfigurationTests {
 				.withPropertyValues("server.http2.enabled=true").run(context -> {
 					assertThat(context).hasSingleBean(HttpClient.class);
 					CustomHttpClientFactory factory = context.getBean(CustomHttpClientFactory.class);
-					assertThat(factory.insecureTrustManagerSet).isFalse();
+					assertThat(factory.isInsecureTrustManagerSet()).isFalse();
 				});
 	}
 
@@ -311,25 +331,32 @@ public class GatewayAutoConfigurationTests {
 		@Bean
 		@Primary
 		CustomHttpClientFactory customHttpClientFactory(HttpClientProperties properties,
-				ServerProperties serverProperties, List<HttpClientCustomizer> customizers) {
-			return new CustomHttpClientFactory(properties, serverProperties, customizers);
+				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
+				HttpClientSslConfigurer sslConfigurer) {
+			return new CustomHttpClientFactory(properties, serverProperties, sslConfigurer, customizers);
+		}
+
+		@Bean
+		@Primary
+		CustomSslConfigurer customSslContextFactory(ServerProperties serverProperties,
+				HttpClientProperties httpClientProperties) {
+			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties);
 		}
 
 	}
 
 	protected static class CustomHttpClientFactory extends HttpClientFactory {
 
-		boolean insecureTrustManagerSet;
-
-		boolean sslConfigured;
-
 		private ConnectionProvider connectionProvider;
 
 		private ProxyProvider.Builder proxyProvider;
 
+		private CustomSslConfigurer customSslContextFactory;
+
 		public CustomHttpClientFactory(HttpClientProperties properties, ServerProperties serverProperties,
-				List<HttpClientCustomizer> customizers) {
-			super(properties, serverProperties, customizers);
+				HttpClientSslConfigurer sslConfigurer, List<HttpClientCustomizer> customizers) {
+			super(properties, serverProperties, sslConfigurer, customizers);
+			this.customSslContextFactory = (CustomSslConfigurer) sslConfigurer;
 		}
 
 		@Override
@@ -345,16 +372,37 @@ public class GatewayAutoConfigurationTests {
 			return proxyProvider;
 		}
 
-		@Override
-		protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
-			sslConfigured = true;
-			super.configureSslContext(ssl, sslContextSpec);
+		public boolean isSslConfigured() {
+			return customSslContextFactory.sslConfigured;
 		}
 
-		@Override
-		protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
-			insecureTrustManagerSet = factory == InsecureTrustManagerFactory.INSTANCE;
-			super.setTrustManager(sslContextBuilder, factory);
+		public boolean isInsecureTrustManagerSet() {
+			return customSslContextFactory.insecureTrustManagerSet;
+		}
+
+		protected static class CustomSslConfigurer extends HttpClientSslConfigurer {
+
+			boolean sslConfigured;
+
+			boolean insecureTrustManagerSet;
+
+			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
+				super(sslProperties, serverProperties);
+			}
+
+			@Override
+			protected void configureSslContext(HttpClientProperties.Ssl ssl,
+					SslProvider.SslContextSpec sslContextSpec) {
+				sslConfigured = true;
+				super.configureSslContext(getSslProperties(), sslContextSpec);
+			}
+
+			@Override
+			protected void setTrustManager(SslContextBuilder sslContextBuilder, TrustManagerFactory factory) {
+				insecureTrustManagerSet = factory == InsecureTrustManagerFactory.INSTANCE;
+				super.setTrustManager(sslContextBuilder, factory);
+			}
+
 		}
 
 	}
@@ -416,6 +464,16 @@ public class GatewayAutoConfigurationTests {
 				called.compareAndSet(false, true);
 				return httpClient;
 			};
+		}
+
+	}
+
+	@Configuration
+	protected static class TestReactiveOAuth2AuthorizedClientManagerConfig {
+
+		@Bean
+		ReactiveOAuth2AuthorizedClientManager myReactiveOAuth2AuthorizedClientManager() {
+			return authorizeRequest -> null;
 		}
 
 	}

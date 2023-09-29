@@ -27,10 +27,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
-import org.springframework.cloud.test.TestSocketUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,6 +58,13 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	public void requestsToManagementPortReturn404() {
 		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").exchange()
 				.expectStatus().isNotFound();
+	}
+
+	@Test
+	public void requestsToManagementPortAndHostHeaderReturn404() {
+		String host = "example.com:8888";
+		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").header("host", host)
+				.exchange().expectStatus().isNotFound();
 	}
 
 	@Test

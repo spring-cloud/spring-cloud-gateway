@@ -19,17 +19,29 @@ package org.springframework.cloud.gateway.config;
 import java.util.List;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.tracing.TracingProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
+import org.springframework.cloud.gateway.filter.headers.observation.GatewayObservationConvention;
+import org.springframework.cloud.gateway.filter.headers.observation.GatewayPropagatingSenderTracingObservationHandler;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingWebExceptionHandler;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservedRequestHttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservedResponseHttpHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionMetrics;
 import org.springframework.cloud.gateway.support.tagsprovider.GatewayHttpTagsProvider;
@@ -39,13 +51,16 @@ import org.springframework.cloud.gateway.support.tagsprovider.GatewayTagsProvide
 import org.springframework.cloud.gateway.support.tagsprovider.PropertiesTagsProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 @EnableConfigurationProperties(GatewayMetricsProperties.class)
 @AutoConfigureBefore(HttpHandlerAutoConfiguration.class)
-@AutoConfigureAfter({ MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class })
+@AutoConfigureAfter({ MetricsAutoConfiguration.class, CompositeMeterRegistryAutoConfiguration.class,
+		ObservationAutoConfiguration.class })
 @ConditionalOnClass({ DispatcherHandler.class, MeterRegistry.class, MetricsAutoConfiguration.class })
 public class GatewayMetricsAutoConfiguration {
 
@@ -86,6 +101,50 @@ public class GatewayMetricsAutoConfiguration {
 	public RouteDefinitionMetrics routeDefinitionMetrics(MeterRegistry meterRegistry,
 			RouteDefinitionLocator routeDefinitionLocator, GatewayMetricsProperties properties) {
 		return new RouteDefinitionMetrics(meterRegistry, routeDefinitionLocator, properties.getPrefix());
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnBean(ObservationRegistry.class)
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".observability.enabled", matchIfMissing = true)
+	static class ObservabilityConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		ObservedRequestHttpHeadersFilter observedRequestHttpHeadersFilter(ObservationRegistry observationRegistry,
+				ObjectProvider<GatewayObservationConvention> gatewayObservationConvention) {
+			return new ObservedRequestHttpHeadersFilter(observationRegistry,
+					gatewayObservationConvention.getIfAvailable(() -> null));
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		ObservedResponseHttpHeadersFilter observedResponseHttpHeadersFilter() {
+			return new ObservedResponseHttpHeadersFilter();
+		}
+
+		@Bean
+		@Order(Ordered.HIGHEST_PRECEDENCE)
+		ObservationClosingWebExceptionHandler observationClosingWebExceptionHandler() {
+			return new ObservationClosingWebExceptionHandler();
+		}
+
+		@Configuration(proxyBeanMethods = false)
+		@ConditionalOnClass(Tracer.class)
+		@ConditionalOnBean(Tracer.class)
+		static class GatewayTracingConfiguration {
+
+			@Bean
+			@ConditionalOnMissingBean
+			@ConditionalOnBean({ Propagator.class, TracingProperties.class })
+			@Order(Ordered.HIGHEST_PRECEDENCE + 5)
+			GatewayPropagatingSenderTracingObservationHandler gatewayPropagatingSenderTracingObservationHandler(
+					Tracer tracer, Propagator propagator, TracingProperties tracingProperties) {
+				return new GatewayPropagatingSenderTracingObservationHandler(tracer, propagator,
+						tracingProperties.getBaggage().getRemoteFields());
+			}
+
+		}
+
 	}
 
 }

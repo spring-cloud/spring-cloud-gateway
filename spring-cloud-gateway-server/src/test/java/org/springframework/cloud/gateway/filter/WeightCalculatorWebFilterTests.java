@@ -19,11 +19,9 @@ package org.springframework.cloud.gateway.filter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.function.Supplier;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnJre;
 
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
@@ -35,7 +33,6 @@ import org.springframework.web.server.WebFilterChain;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.condition.JRE.JAVA_17;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,25 +89,22 @@ public class WeightCalculatorWebFilterTests {
 		}
 	}
 
-	@NotNull
 	private String route(int i) {
 		return "route" + i;
 	}
 
-	// TODO: modify implementation for testability on JDK17 for Spring 6
 	@Test
-	@DisabledOnJre(JAVA_17)
 	public void testChooseRouteWithRandom() {
 		WeightCalculatorWebFilter filter = createFilter();
 		filter.addWeightConfig(new WeightConfig("groupa", "route1", 1));
 		filter.addWeightConfig(new WeightConfig("groupa", "route2", 3));
 		filter.addWeightConfig(new WeightConfig("groupa", "route3", 6));
 
-		Random random = mock(Random.class);
+		Supplier<Double> random = mock(Supplier.class);
 
-		when(random.nextDouble()).thenReturn(0.05).thenReturn(0.2).thenReturn(0.6);
+		when(random.get()).thenReturn(0.05).thenReturn(0.2).thenReturn(0.6);
 
-		filter.setRandom(random);
+		filter.setRandomSupplier(random);
 
 		MockServerWebExchange exchange = MockServerWebExchange
 				.from(MockServerHttpRequest.get("http://localhost").build());

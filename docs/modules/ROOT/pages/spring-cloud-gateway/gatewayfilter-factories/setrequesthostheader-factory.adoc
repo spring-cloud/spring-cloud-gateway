@@ -1,0 +1,27 @@
+[[setrequesthostheader-gatewayfilter-factory]]
+= `SetRequestHostHeader` `GatewayFilter` Factory
+
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` `GatewayFilter` factory can replace the existing host header with a specified value.
+The filter takes a `host` parameter.
+The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: set_request_host_header_route
+        uri: http://localhost:8080/headers
+        predicates:
+        - Path=/headers
+        filters:
+        - name: SetRequestHostHeader
+          args:
+            host: example.org
+----
+
+The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.
+
+

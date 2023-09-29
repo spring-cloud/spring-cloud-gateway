@@ -61,6 +61,19 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	}
 
 	@Test
+	public void filterWithVariables() {
+		testClient.get().uri("/delay/3/extra?a=b").header("Host", "www.circuitbreakervariables.org").exchange()
+				.expectStatus().isOk().expectBody()
+				.json("{\"uri\":\"/circuitbreakerUriFallbackController/3/extra/www?a=b\"}");
+	}
+
+	@Test
+	public void filterFallbackPath() {
+		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerfallbackpath.org").exchange()
+				.expectStatus().isOk().expectBody().jsonPath("$.headers").exists();
+	}
+
+	@Test
 	public void filterWorksJavaDsl() {
 		testClient.get().uri("/get").header("Host", "www.circuitbreakerjava.org").exchange().expectStatus().isOk()
 				.expectHeader().valueEquals(ROUTE_ID_HEADER, "circuitbreaker_java");

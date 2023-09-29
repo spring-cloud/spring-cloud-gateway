@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -48,7 +47,6 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 	int port;
 
 	@Test
-	@Disabled
 	public void changeUriWorkWithProperties() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange()
@@ -56,7 +54,6 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 	}
 
 	@Test
-	@Disabled
 	public void changeUriWorkWithDsl() {
 		testClient.get().uri("/").header("Host", "www.changeuri.org")
 				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange()
