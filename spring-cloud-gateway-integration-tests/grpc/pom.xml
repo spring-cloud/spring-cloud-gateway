@@ -11,7 +11,7 @@
 	<description>Spring Cloud Gateway gRPC Integration Test</description>
 
 	<properties>
-		<grpc.version>1.47.0</grpc.version>
+		<grpc.version>1.47.1</grpc.version>
 	</properties>
 
 	<parent>
