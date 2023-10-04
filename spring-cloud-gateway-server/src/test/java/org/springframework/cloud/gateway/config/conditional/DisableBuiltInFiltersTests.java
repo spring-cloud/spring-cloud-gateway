@@ -103,6 +103,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location.enabled=false",
+					"spring.cloud.gateway.filter.rewrite-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.set-status.enabled=false",
 					"spring.cloud.gateway.filter.save-session.enabled=false",
 					"spring.cloud.gateway.filter.strip-prefix.enabled=false",

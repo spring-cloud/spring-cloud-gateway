@@ -65,6 +65,7 @@ import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactor
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -720,6 +721,17 @@ public class GatewayFilterSpec extends UriSpec {
 		return filter(getBean(RewriteLocationResponseHeaderGatewayFilterFactory.class).apply(
 				c -> c.setStripVersion(StripVersion.valueOf(stripVersionMode)).setLocationHeaderName(locationHeaderName)
 						.setHostValue(hostValue).setProtocols(protocolsRegex)));
+	}
+
+	/**
+	 * A filter that rewrites the value of a request parameter
+	 * @param name The name of the request parameter to replace
+	 * @param replacement The new value for the request parameter
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteRequestParameter(String name, String replacement) {
+		return filter(getBean(RewriteRequestParameterGatewayFilterFactory.class)
+				.apply(c -> c.setReplacement(replacement).setName(name)));
 	}
 
 	/**
