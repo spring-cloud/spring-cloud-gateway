@@ -30,8 +30,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cache.Cache;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.NoCacheStrategy;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.AfterCacheExchangeMutator;
+import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetMaxAgeHeaderAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetResponseHeadersAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetStatusCodeAfterCacheExchangeMutator;
@@ -63,12 +66,28 @@ public class ResponseCacheManager {
 
 	private final Cache cache;
 
+	private final boolean ignoreNoCacheUpdate;
+
+	@Deprecated
 	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive) {
+		this(cacheKeyGenerator, cache, configuredTimeToLive, new RequestOptions());
+	}
+
+	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive,
+			RequestOptions requestOptions) {
 		this.cacheKeyGenerator = cacheKeyGenerator;
 		this.cache = cache;
+		this.ignoreNoCacheUpdate = isSkipNoCacheUpdateActive(requestOptions);
 		this.afterCacheExchangeMutators = List.of(new SetResponseHeadersAfterCacheExchangeMutator(),
 				new SetStatusCodeAfterCacheExchangeMutator(),
-				new SetMaxAgeHeaderAfterCacheExchangeMutator(configuredTimeToLive, Clock.systemDefaultZone()));
+				new SetMaxAgeHeaderAfterCacheExchangeMutator(configuredTimeToLive, Clock.systemDefaultZone(),
+						ignoreNoCacheUpdate),
+				new SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator());
+	}
+
+	private static boolean isSkipNoCacheUpdateActive(RequestOptions requestOptions) {
+		return requestOptions != null
+				&& requestOptions.getNoCacheStrategy().equals(NoCacheStrategy.SKIP_UPDATE_CACHE_ENTRY);
 	}
 
 	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
@@ -132,13 +151,8 @@ public class ResponseCacheManager {
 		afterCacheExchangeMutators.forEach(processor -> processor.accept(exchange, cachedResponse));
 		saveMetadataInCache(metadataKey, new CachedResponseMetadata(cachedResponse.headers().getVary()));
 
-		if (HttpStatus.NOT_MODIFIED.equals(response.getStatusCode())) {
-			return response.writeWith(Mono.empty());
-		}
-		else {
-			return response.writeWith(
-					Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
-		}
+		return response
+				.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
 	}
 
 	private CachedResponseMetadata retrieveMetadata(String metadataKey) {
@@ -155,6 +169,10 @@ public class ResponseCacheManager {
 
 	boolean isResponseCacheable(ServerHttpResponse response) {
 		return isStatusCodeToCache(response) && isCacheControlAllowed(response) && !isVaryWildcard(response);
+	}
+
+	boolean isNoCacheRequestWithoutUpdate(ServerHttpRequest request) {
+		return LocalResponseCacheUtils.isNoCacheRequest(request) && ignoreNoCacheUpdate;
 	}
 
 	private boolean isStatusCodeToCache(ServerHttpResponse response) {
