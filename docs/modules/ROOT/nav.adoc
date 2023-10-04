@@ -33,6 +33,7 @@
 *** xref:spring-cloud-gateway/gatewayfilter-factories/requestratelimiter-factory.adoc[]
 *** xref:spring-cloud-gateway/gatewayfilter-factories/rewritelocationresponseheader-factory.adoc[]
 *** xref:spring-cloud-gateway/gatewayfilter-factories/rewritepath-factory.adoc[]
+*** xref:spring-cloud-gateway/gatewayfilter-factories/rewriterequestparameter-factory.adoc[]
 *** xref:spring-cloud-gateway/gatewayfilter-factories/rewriteresponseheader-factory.adoc[]
 *** xref:spring-cloud-gateway/gatewayfilter-factories/savesession-factory.adoc[]
 *** xref:spring-cloud-gateway/gatewayfilter-factories/secureheaders-factory.adoc[]
