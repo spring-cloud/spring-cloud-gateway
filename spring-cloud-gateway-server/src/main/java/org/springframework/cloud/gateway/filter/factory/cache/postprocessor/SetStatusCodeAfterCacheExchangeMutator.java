@@ -17,38 +17,21 @@
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * It sets HTTP Status Code depending {@literal no-cache}
- * {@link HttpHeaders#CACHE_CONTROL} header.
+ * It sets HTTP Status Code.
  *
  * @author Marta Medio
  * @author Ignacio Lozano
  */
 public class SetStatusCodeAfterCacheExchangeMutator implements AfterCacheExchangeMutator {
 
-	private static final String NO_CACHE_VALUE = "no-cache";
-
 	@Override
 	public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
-		HttpHeaders requestHeaders = exchange.getRequest().getHeaders();
 		ServerHttpResponse response = exchange.getResponse();
-
-		if (!CollectionUtils.isEmpty(cachedResponse.body()) && isRequestNoCache(requestHeaders)) {
-			response.setStatusCode(HttpStatus.NOT_MODIFIED);
-		}
-		else {
-			response.setStatusCode(cachedResponse.statusCode());
-		}
-	}
-
-	private boolean isRequestNoCache(HttpHeaders requestHeaders) {
-		return requestHeaders.getCacheControl() != null && requestHeaders.getCacheControl().contains(NO_CACHE_VALUE);
+		response.setStatusCode(cachedResponse.statusCode());
 	}
 
 }

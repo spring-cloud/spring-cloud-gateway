@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -44,6 +45,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 
 /**
  * @author Ignacio Lozano
@@ -53,12 +55,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles(profiles = "local-cache-filter")
 public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
-	private static final String CUSTOM_HEADER = "X-Custom-Date";
+	private static final String CUSTOM_HEADER = "X-Custom-Header";
+
+	private static Long parseMaxAge(String cacheControlValue) {
+		if (StringUtils.hasText(cacheControlValue)) {
+			Pattern maxAgePattern = Pattern.compile("\\bmax-age=(\\d+)\\b");
+			Matcher matcher = maxAgePattern.matcher(cacheControlValue);
+			if (matcher.find()) {
+				return Long.parseLong(matcher.group(1));
+			}
+		}
+		return null;
+	}
 
 	@Nested
 	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class LocalResponseCacheUsingFilterParams extends BaseWebClientTests {
+	public class UsingFilterParams extends BaseWebClientTests {
 
 		@Test
 		void shouldNotCacheResponseWhenGetRequestHasBody() {
@@ -101,17 +114,18 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		}
 
 		@Test
-		void shouldCacheAndReturnNotModifiedStatusWhenCacheControlIsNoCache() {
+		void shouldNotIncludeMustRevalidateNoStoreAndNoCacheDirectivesWhenMaxAgeIsPositive() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			var response = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+					.expectBody().returnResult();
+			var maxAge = response.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
-					// Cache-Control asks to not return cached content because it is
-					// HttpHeaders.NotModified
-					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange()
-					.expectStatus().isNotModified().expectBody().isEmpty();
+			assertThat(maxAge).isGreaterThan(0L);
+			assertThat(response.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL)).doesNotContain("no-store",
+					"must-revalidate", "no-cache");
 		}
 
 		@Test
@@ -163,11 +177,13 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
 			Thread.sleep(2000);
 			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
 
 			assertThat(maxAgeRequest2).isLessThan(maxAgeRequest1);
 		}
@@ -211,17 +227,6 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
 					.header(HttpHeaders.AUTHORIZATION, "2").header(CUSTOM_HEADER, "2").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER, "2");
-		}
-
-		private Long parseMaxAge(String cacheControlValue) {
-			if (StringUtils.hasText(cacheControlValue)) {
-				Pattern maxAgePattern = Pattern.compile("\\bmax-age=(\\d+)\\b");
-				Matcher matcher = maxAgePattern.matcher(cacheControlValue);
-				if (matcher.find()) {
-					return Long.parseLong(matcher.group(1));
-				}
-			}
-			return null;
 		}
 
 		void assertNonVaryHeaderInContent(String uri, String varyHeader, String varyHeaderValue, String nonVaryHeader,
@@ -275,34 +280,185 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
 					"spring.cloud.gateway.filter.local-response-cache.timeToLive=20s" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class LocalResponseCacheUsingDefaultProperties extends BaseWebClientTests {
+	public class UsingPropertiesAsDefault extends BaseWebClientTests {
 
 		@Test
 		void shouldApplyMaxAgeFromPropertiesWhenFilterHasNoParams() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
 			assertThat(maxAgeRequest1).isLessThanOrEqualTo(20L);
 
 			Thread.sleep(2000);
 
 			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
 
 			assertThat(maxAgeRequest2).isLessThan(maxAgeRequest1);
 		}
 
-		private Long parseMaxAge(String cacheControlValue) {
-			if (StringUtils.hasText(cacheControlValue)) {
-				Pattern maxAgePattern = Pattern.compile("\\bmax-age=(\\d+)\\b");
-				Matcher matcher = maxAgePattern.matcher(cacheControlValue);
-				if (matcher.find()) {
-					return Long.parseLong(matcher.group(1));
-				}
+		@Test
+		void shouldNotCacheWhenPrivateDirectiveIsInRequest() {
+			testClient = testClient.mutate().responseTimeout(Duration.ofHours(1)).build();
+
+			String uri = "/" + UUID.randomUUID() + "/cache/headers";
+
+			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue())
+					.header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+
+			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
+					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+
+			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "3") // second
+																												// request
+																												// cached
+																												// "2"
+																												// ->
+																												// "3"
+																												// will
+																												// be
+																												// ignored
+					.exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+		}
+
+		@EnableAutoConfiguration
+		@SpringBootConfiguration
+		@Import(DefaultTestConfig.class)
+		public static class TestConfig {
+
+			@Value("${test.uri}")
+			String uri;
+
+			@Bean
+			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+				return builder.routes().route("local_response_cache_java_test",
+						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
+								.uri(uri))
+						.build();
 			}
-			return null;
+
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
+			"spring.cloud.gateway.filter.local-response-cache.time-to-live=2m",
+			"spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy=skip-update-cache-entry" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+	public class DirectiveNoCacheSkippingUpdate extends BaseWebClientTests {
+
+		@Test
+		void shouldNotCacheWhenCacheControlAsksToValidateWithNotCache_refreshCacheWhenDirectiveNoCache()
+				throws InterruptedException {
+			String uri = "/" + UUID.randomUUID() + "/cache/headers";
+
+			// 1. Store in cache - max-age ~= 2m AND NOT
+			// (must-revalidate,no-cache,no-store)
+			final Instant when1stRequest = Instant.now();
+			var firstResponse = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+					.header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
+					.isEqualTo("1").returnResult();
+			var maxAge1st = firstResponse.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAge1st).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
+			assertThat(firstResponse.getResponseHeaders().getCacheControl()).doesNotContain("must-revalidate",
+					"no-cache", "no-store");
+
+			// 2. "no-cache" should return max-age=0 & must-revalidate,no-cache,no-store
+			var secondResponse = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+					.header(CUSTOM_HEADER, "2")
+					// Cache-Control asks to not use the cached content
+					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange().expectBody()
+					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2").returnResult();
+			var maxAge2nd = secondResponse.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAge2nd).isZero();
+
+			// 3. After 2s, max-age = (when1stRequest) - 1s - offset_delay
+			var waitDuration = Duration.ofSeconds(1);
+			Thread.sleep(waitDuration.toMillis()); // Wait 2s to check max-age renewed
+			final Instant when3rdRequest = Instant.now();
+			var thirdResponseCached = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+					.header(CUSTOM_HEADER, "3").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
+					.isEqualTo("1").returnResult();
+			var maxAge3rd = thirdResponseCached.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAge3rd).isCloseTo(
+					Duration.ofMinutes(2).minus(Duration.between(when1stRequest, when3rdRequest)).getSeconds(),
+					offset(10L));
+			assertThat(maxAge3rd).isNotZero();
+		}
+
+		@EnableAutoConfiguration
+		@SpringBootConfiguration
+		@Import(DefaultTestConfig.class)
+		public static class TestConfig {
+
+			@Value("${test.uri}")
+			String uri;
+
+			@Bean
+			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
+				return builder.routes().route("local_response_cache_java_test",
+						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
+								.uri(uri))
+						.build();
+			}
+
+		}
+
+	}
+
+	@Nested
+	@SpringBootTest(
+			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
+					"spring.cloud.gateway.filter.local-response-cache.time-to-live=2m",
+					"spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy=update-cache-entry" },
+			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+	public class DirectiveNoCacheWithUpdate extends BaseWebClientTests {
+
+		@Test
+		void oldMaxAgeWhenNoCacheRequest() throws InterruptedException {
+			testClient = testClient.mutate().responseTimeout(Duration.ofHours(1)).build();
+
+			String uri = "/" + UUID.randomUUID() + "/cache/headers";
+			// First request -> cache miss
+			final Instant when1stRequest = Instant.now();
+			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAgeRequest1).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
+
+			// Second request + no-cache -> skip cache and ignore update
+			Thread.sleep(1000);
+			final Duration between1stAnd2ndRequest = Duration.between(when1stRequest, Instant.now());
+			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange().expectBody()
+					.returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAgeRequest2).isCloseTo(Duration.ofMinutes(2).minus(between1stAnd2ndRequest).getSeconds(),
+					offset(10L));
+
+			// Third request -> cache hit -> entry (and max-age) is updated
+			Thread.sleep(1000);
+			Long maxAgeRequest3 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
+					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
+					.orElse(null);
+			assertThat(maxAgeRequest3).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
 		}
 
 		@EnableAutoConfiguration

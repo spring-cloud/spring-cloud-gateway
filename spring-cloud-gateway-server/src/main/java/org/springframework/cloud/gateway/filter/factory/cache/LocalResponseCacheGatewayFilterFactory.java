@@ -24,17 +24,16 @@ import org.springframework.cache.Cache;
 import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.util.unit.DataSize;
 import org.springframework.validation.annotation.Validated;
 
 /**
  * {@link org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory} of
- * {@link ResponseCacheGatewayFilter}.
- *
- * By default, a global cache (defined as properties in the application) is used. For
- * specific route configuration, parameters can be added following
- * {@link RouteCacheConfiguration} class.
+ * {@link ResponseCacheGatewayFilter}. By default, a global cache (defined as properties
+ * in the application) is used. For specific route configuration, parameters can be added
+ * following {@link RouteCacheConfiguration} class.
  *
  * @author Marta Medio
  * @author Ignacio Lozano
@@ -49,23 +48,27 @@ public class LocalResponseCacheGatewayFilterFactory
 	 */
 	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
-	private ResponseCacheManagerFactory cacheManagerFactory;
+	private final ResponseCacheManagerFactory cacheManagerFactory;
 
-	private Duration defaultTimeToLive;
+	private final Duration defaultTimeToLive;
 
-	private DataSize defaultSize;
+	private final DataSize defaultSize;
 
+	private final RequestOptions requestOptions;
+
+	@Deprecated
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive) {
-		this(cacheManagerFactory, defaultTimeToLive, null);
+			Duration defaultTimeToLive, DataSize defaultSize) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, new RequestOptions());
 	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize) {
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;
 		this.defaultSize = defaultSize;
+		this.requestOptions = requestOptions;
 	}
 
 	@Override
@@ -74,7 +77,8 @@ public class LocalResponseCacheGatewayFilterFactory
 
 		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
 				.getCache(config.getRouteId() + "-cache");
-		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
+		return new ResponseCacheGatewayFilter(
+				cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive(), requestOptions));
 
 	}
 
