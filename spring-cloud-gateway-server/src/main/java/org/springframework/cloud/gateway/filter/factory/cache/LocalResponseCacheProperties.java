@@ -40,7 +40,7 @@ public class LocalResponseCacheProperties {
 
 	private Duration timeToLive;
 
-	private LocalResponseCacheRequestOptions request = new LocalResponseCacheRequestOptions();
+	private RequestOptions request = new RequestOptions();
 
 	public DataSize getSize() {
 		return size;
@@ -66,11 +66,11 @@ public class LocalResponseCacheProperties {
 		this.timeToLive = timeToLive;
 	}
 
-	public LocalResponseCacheRequestOptions getRequest() {
+	public RequestOptions getRequest() {
 		return request;
 	}
 
-	public void setRequest(LocalResponseCacheRequestOptions request) {
+	public void setRequest(RequestOptions request) {
 		this.request = request;
 	}
 
@@ -78,6 +78,45 @@ public class LocalResponseCacheProperties {
 	public String toString() {
 		return "LocalResponseCacheProperties{" + "size=" + size + ", timeToLive=" + timeToLive + ", request=" + request
 				+ '}';
+	}
+
+	public static class RequestOptions {
+
+		private NoCacheStrategy noCacheStrategy = NoCacheStrategy.SKIP_UPDATE_CACHE_ENTRY;
+
+		public NoCacheStrategy getNoCacheStrategy() {
+			return noCacheStrategy;
+		}
+
+		public void setNoCacheStrategy(NoCacheStrategy noCacheStrategy) {
+			this.noCacheStrategy = noCacheStrategy;
+		}
+
+		@Override
+		public String toString() {
+			return "RequestOptions{" + "noCacheStrategy=" + noCacheStrategy + '}';
+		}
+
+	}
+
+	/**
+	 * When client sends "no-cache" directive in "Cache-Control" header, the response
+	 * should be re-validated from upstream. There are several strategies that indicates
+	 * what to do with the new fresh response.
+	 */
+	public enum NoCacheStrategy {
+
+		/**
+		 * Update the cache entry by the fresh response coming from upstream with a new
+		 * time to live.
+		 */
+		UPDATE_CACHE_ENTRY,
+		/**
+		 * Skip the update. The client will receive the fresh response, other clients will
+		 * receive the old entry in cache.
+		 */
+		SKIP_UPDATE_CACHE_ENTRY
+
 	}
 
 }

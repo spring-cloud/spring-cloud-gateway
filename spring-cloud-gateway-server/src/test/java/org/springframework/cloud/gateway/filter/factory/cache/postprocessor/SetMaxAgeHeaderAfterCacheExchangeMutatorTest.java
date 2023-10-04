@@ -35,6 +35,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -142,8 +143,8 @@ class SetMaxAgeHeaderAfterCacheExchangeMutatorTest {
 				clock, false);
 		toTest.accept(inputExchange, inputCachedResponse);
 
-		String[] cacheControlValues = Optional.ofNullable(inputExchange.getResponse().getHeaders().getCacheControl())
-				.map(s -> s.split("\\s*,\\s*")).orElse(null);
+		String[] cacheControlValues = StringUtils
+				.tokenizeToStringArray(inputExchange.getResponse().getHeaders().getCacheControl(), ",");
 		assertThat(cacheControlValues).contains("max-stale=12", "min-stale=1");
 	}
 

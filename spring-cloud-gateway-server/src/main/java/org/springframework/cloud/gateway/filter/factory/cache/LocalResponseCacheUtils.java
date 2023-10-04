@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache;
 
-import java.util.Optional;
-
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.StringUtils;
 
 public final class LocalResponseCacheUtils {
 
@@ -26,8 +25,8 @@ public final class LocalResponseCacheUtils {
 	}
 
 	public static boolean isNoCacheRequest(ServerHttpRequest request) {
-		return Optional.ofNullable(request.getHeaders().getCacheControl())
-				.filter(cc -> cc.matches(".*(\s|,|^)no-cache(\\s|,|$).*")).isPresent();
+		String cacheControl = request.getHeaders().getCacheControl();
+		return StringUtils.hasText(cacheControl) && cacheControl.matches(".*(\s|,|^)no-cache(\\s|,|$).*");
 	}
 
 }

@@ -24,6 +24,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.util.unit.DataSize;
 import org.springframework.validation.annotation.Validated;
@@ -53,10 +54,16 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final DataSize defaultSize;
 
-	private final LocalResponseCacheRequestOptions requestOptions;
+	private final RequestOptions requestOptions;
+
+	@Deprecated
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive, DataSize defaultSize) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, new RequestOptions());
+	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize, LocalResponseCacheRequestOptions requestOptions) {
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;

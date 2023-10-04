@@ -348,10 +348,9 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	}
 
 	@Nested
-	@SpringBootTest(
-			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
-					"spring.cloud.gateway.filter.local-response-cache.time-to-live=2m",
-					"spring.cloud.gateway.filter.local-response-cache.request.no-cache=skip-update-cache-entry" },
+	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
+			"spring.cloud.gateway.filter.local-response-cache.time-to-live=2m",
+			"spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy=skip-update-cache-entry" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class DirectiveNoCacheSkippingUpdate extends BaseWebClientTests {
 
@@ -425,7 +424,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	@SpringBootTest(
 			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
 					"spring.cloud.gateway.filter.local-response-cache.time-to-live=2m",
-					"spring.cloud.gateway.filter.local-response-cache.request.no-cache=update-cache-entry" },
+					"spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy=update-cache-entry" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class DirectiveNoCacheWithUpdate extends BaseWebClientTests {
 

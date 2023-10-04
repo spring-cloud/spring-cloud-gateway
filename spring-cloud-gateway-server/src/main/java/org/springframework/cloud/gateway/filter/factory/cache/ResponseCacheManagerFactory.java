@@ -33,8 +33,13 @@ public class ResponseCacheManagerFactory {
 		this.cacheKeyGenerator = cacheKeyGenerator;
 	}
 
+	@Deprecated
+	public ResponseCacheManager create(Cache cache, Duration timeToLive) {
+		return new ResponseCacheManager(cacheKeyGenerator, cache, timeToLive);
+	}
+
 	public ResponseCacheManager create(Cache cache, Duration timeToLive,
-			LocalResponseCacheRequestOptions requestOptions) {
+			LocalResponseCacheProperties.RequestOptions requestOptions) {
 		return new ResponseCacheManager(cacheKeyGenerator, cache, timeToLive, requestOptions);
 	}
 

@@ -49,7 +49,7 @@ class SetStatusCodeAfterCacheExchangeMutatorTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(ints = {200, 400, 404, 500})
+	@ValueSource(ints = { 200, 400, 404, 500 })
 	void statusCodeIsSetFromCachedResponse(int statusCode) {
 		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.valueOf(statusCode)).body("some-data").build();
 		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this").build();
@@ -61,4 +61,5 @@ class SetStatusCodeAfterCacheExchangeMutatorTest {
 
 		assertThat(inputExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.valueOf(statusCode));
 	}
+
 }

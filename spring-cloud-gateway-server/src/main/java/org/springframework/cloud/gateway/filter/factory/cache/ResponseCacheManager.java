@@ -30,6 +30,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cache.Cache;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.NoCacheStrategy;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.AfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator;
@@ -66,8 +68,13 @@ public class ResponseCacheManager {
 
 	private final boolean ignoreNoCacheUpdate;
 
+	@Deprecated
+	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive) {
+		this(cacheKeyGenerator, cache, configuredTimeToLive, new RequestOptions());
+	}
+
 	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive,
-			LocalResponseCacheRequestOptions requestOptions) {
+			RequestOptions requestOptions) {
 		this.cacheKeyGenerator = cacheKeyGenerator;
 		this.cache = cache;
 		this.ignoreNoCacheUpdate = isSkipNoCacheUpdateActive(requestOptions);
@@ -78,9 +85,9 @@ public class ResponseCacheManager {
 				new SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator());
 	}
 
-	private static boolean isSkipNoCacheUpdateActive(LocalResponseCacheRequestOptions requestOptions) {
-		return Optional.ofNullable(requestOptions).map(LocalResponseCacheRequestOptions::getNoCache)
-				.filter(RequestNoCacheDirectiveStrategy.SKIP_UPDATE_CACHE_ENTRY::equals).isPresent();
+	private static boolean isSkipNoCacheUpdateActive(RequestOptions requestOptions) {
+		return requestOptions != null
+				&& requestOptions.getNoCacheStrategy().equals(NoCacheStrategy.SKIP_UPDATE_CACHE_ENTRY);
 	}
 
 	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,

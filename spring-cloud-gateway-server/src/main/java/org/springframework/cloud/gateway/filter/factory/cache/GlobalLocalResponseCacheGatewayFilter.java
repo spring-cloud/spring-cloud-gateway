@@ -40,8 +40,15 @@ public class GlobalLocalResponseCacheGatewayFilter implements GlobalFilter, Orde
 
 	private final ResponseCacheGatewayFilter responseCacheGatewayFilter;
 
+	@Deprecated
 	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
-			Duration configuredTimeToLive, LocalResponseCacheRequestOptions requestOptions) {
+			Duration configuredTimeToLive) {
+		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
+				cacheManagerFactory.create(globalCache, configuredTimeToLive));
+	}
+
+	public GlobalLocalResponseCacheGatewayFilter(ResponseCacheManagerFactory cacheManagerFactory, Cache globalCache,
+			Duration configuredTimeToLive, LocalResponseCacheProperties.RequestOptions requestOptions) {
 		responseCacheGatewayFilter = new ResponseCacheGatewayFilter(
 				cacheManagerFactory.create(globalCache, configuredTimeToLive, requestOptions));
 	}

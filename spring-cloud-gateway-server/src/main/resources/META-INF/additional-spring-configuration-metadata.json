@@ -45,8 +45,7 @@
     {
       "name": "spring.cloud.gateway.filter.local-response-cache.size",
       "type": "org.springframework.util.unit.DataSize",
-      "description": "Maximum size of the cache to evict entries for this route (in KB, MB and GB).",
-      "defaultValue": "null"
+      "description": "Maximum size of the cache to evict entries for this route (in KB, MB and GB)."
     },
     {
       "name": "spring.cloud.gateway.filter.local-response-cache.time-to-live",
