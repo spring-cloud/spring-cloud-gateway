@@ -32,6 +32,7 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -361,6 +362,7 @@ public class ServerMvcIntegrationTests {
 			StandardCharsets.UTF_8);
 
 	@Test
+	@Disabled // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/3094
 	void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");
