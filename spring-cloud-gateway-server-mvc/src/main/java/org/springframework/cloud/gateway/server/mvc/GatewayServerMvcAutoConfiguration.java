@@ -57,7 +57,8 @@ import org.springframework.web.client.RestClient;
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
-	public ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(ApplicationEventPublisher publisher) {
+	public static ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(
+			ApplicationEventPublisher publisher) {
 		return new ArgumentSupplierBeanPostProcessor(publisher);
 	}
 
