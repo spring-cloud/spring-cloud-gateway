@@ -71,9 +71,8 @@ public abstract class RetryFilterFunctions {
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
-		Optional<HttpStatus.Series> seriesMatches = config.getSeries().stream()
-				.filter(series -> HttpStatus.Series.resolve(httpStatus.value()) == series).findFirst();
-		return seriesMatches.isPresent();
+		return config.getSeries().stream()
+				.anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series)
 	}
 
 	public static class HttpStatusRetryPolicy extends NeverRetryPolicy {
