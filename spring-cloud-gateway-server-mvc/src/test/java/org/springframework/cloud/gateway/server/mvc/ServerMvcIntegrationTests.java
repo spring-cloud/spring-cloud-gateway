@@ -32,7 +32,6 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -362,14 +361,13 @@ public class ServerMvcIntegrationTests {
 			StandardCharsets.UTF_8);
 
 	@Test
-	@Disabled // FIXME: https://github.com/spring-cloud/spring-cloud-gateway/issues/3094
 	void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("foo", "bar");
 		formData.add("baz", "bam");
 
 		// @formatter:off
-		restClient.post().uri("/post").header("test", "form").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
+		restClient.post().uri("/post?foo=fooquery").header("test", "formurlencoded").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
 				.bodyValue(formData)
 				.exchange()
 				.expectStatus().isOk()
@@ -844,6 +842,17 @@ public class ServerMvcIntegrationTests {
 					.before(new LocalServerPortUriResolver())
 					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsFormUrlEncoded() {
+			// @formatter:off
+			return route("testform")
+					.POST("/post", header("test", "formurlencoded"), http())
+					.before(new HttpbinUriResolver())
+					.filter(addRequestHeader("X-Test", "formurlencoded"))
 					.build();
 			// @formatter:on
 		}

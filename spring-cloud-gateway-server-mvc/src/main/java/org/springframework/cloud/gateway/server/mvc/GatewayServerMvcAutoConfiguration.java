@@ -30,6 +30,7 @@ import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
@@ -71,6 +72,12 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean(ProxyExchange.class)
 	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
 		return new RestClientProxyExchange(restClientBuilder.build());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public FormFilter formFilter() {
+		return new FormFilter();
 	}
 
 	@Bean
