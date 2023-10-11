@@ -256,13 +256,15 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder resources(String pattern, Resource location, BiConsumer<Resource, HttpHeaders> headersConsumer) {
+	public RouterFunctions.Builder resources(String pattern, Resource location,
+			BiConsumer<Resource, HttpHeaders> headersConsumer) {
 		builder.resources(pattern, location, headersConsumer);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder resources(Function<ServerRequest, Optional<Resource>> lookupFunction, BiConsumer<Resource, HttpHeaders> headersConsumer) {
+	public RouterFunctions.Builder resources(Function<ServerRequest, Optional<Resource>> lookupFunction,
+			BiConsumer<Resource, HttpHeaders> headersConsumer) {
 		builder.resources(lookupFunction, headersConsumer);
 		return this;
 	}
