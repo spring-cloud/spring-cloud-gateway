@@ -27,6 +27,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.handler.predicate.OpenGrayRoutePredicateFactory;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -492,6 +493,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledPredicate
 	public CloudFoundryRouteServiceRoutePredicateFactory cloudFoundryRouteServiceRoutePredicateFactory() {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledPredicate
+	public OpenGrayRoutePredicateFactory openGrayRoutePredicateFactory() {
+		return new OpenGrayRoutePredicateFactory();
 	}
 
 	// GatewayFilter Factory beans
