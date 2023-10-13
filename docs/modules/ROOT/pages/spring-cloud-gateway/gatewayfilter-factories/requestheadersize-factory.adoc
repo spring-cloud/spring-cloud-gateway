@@ -1,0 +1,23 @@
+[[requestheadersize-gatewayfilter-factory]]
+= `RequestHeaderSize` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+The `RequestHeaderSize` `GatewayFilter` factory takes `maxSize` and `errorHeaderName` parameters.
+The `maxSize` parameter is the maximum data size allowed by the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
+The following listing configures a `RequestHeaderSize` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestheadersize_route
+        uri: https://example.org
+        filters:
+        - RequestHeaderSize=1000B
+----
+
+This will send a status 431 if size of any request header is greater than 1000 Bytes.
+

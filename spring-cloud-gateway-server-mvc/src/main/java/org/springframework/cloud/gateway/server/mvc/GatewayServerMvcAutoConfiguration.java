@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.ssl.SslBundle;
@@ -29,6 +30,7 @@ import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
@@ -51,11 +53,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 @AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
+@ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
-	public ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(ApplicationEventPublisher publisher) {
+	public static ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(
+			ApplicationEventPublisher publisher) {
 		return new ArgumentSupplierBeanPostProcessor(publisher);
 	}
 
@@ -68,6 +72,12 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean(ProxyExchange.class)
 	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
 		return new RestClientProxyExchange(restClientBuilder.build());
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public FormFilter formFilter() {
+		return new FormFilter();
 	}
 
 	@Bean

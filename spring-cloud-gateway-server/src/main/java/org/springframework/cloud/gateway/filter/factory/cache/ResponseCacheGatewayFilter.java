@@ -66,7 +66,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
 		final String metadataKey = responseCacheManager.resolveMetadataKey(exchange);
-		Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+		Optional<CachedResponse> cached = getCachedResponse(exchange, metadataKey);
 
 		if (cached.isPresent()) {
 			return responseCacheManager.processFromCache(exchange, metadataKey, cached.get());
@@ -75,6 +75,22 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 			return chain
 					.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
 		}
+	}
+
+	private Optional<CachedResponse> getCachedResponse(ServerWebExchange exchange, String metadataKey) {
+		Optional<CachedResponse> cached;
+		if (shouldRevalidate(exchange)) {
+			cached = Optional.empty();
+		}
+		else {
+			cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+		}
+
+		return cached;
+	}
+
+	private boolean shouldRevalidate(ServerWebExchange exchange) {
+		return LocalResponseCacheUtils.isNoCacheRequest(exchange.getRequest());
 	}
 
 	private class CachingResponseDecorator extends ServerHttpResponseDecorator {
@@ -94,7 +110,8 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 			final ServerHttpResponse response = exchange.getResponse();
 
 			Flux<DataBuffer> decoratedBody;
-			if (responseCacheManager.isResponseCacheable(response)) {
+			if (responseCacheManager.isResponseCacheable(response)
+					&& !responseCacheManager.isNoCacheRequestWithoutUpdate(exchange.getRequest())) {
 				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
 			}
 			else {

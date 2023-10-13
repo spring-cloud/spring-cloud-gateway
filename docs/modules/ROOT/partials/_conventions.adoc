@@ -1,0 +1,11 @@
+[[observability-conventions]]
+=== Observability - Conventions
+
+Below you can find a list of all `GlobalObservationConvention` and `ObservationConvention` declared by this project.
+
+.ObservationConvention implementations
+|===
+|ObservationConvention Class Name | Applicable ObservationContext Class Name
+|`org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`|`GatewayContext`
+|`org.springframework.cloud.gateway.filter.headers.observation.GatewayObservationConvention`|`GatewayContext`
+|===

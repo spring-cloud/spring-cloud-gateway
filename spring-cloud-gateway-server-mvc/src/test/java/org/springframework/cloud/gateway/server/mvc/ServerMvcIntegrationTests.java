@@ -111,6 +111,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.forward;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cloudFoundryRouteService;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
@@ -270,6 +271,10 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void retryWorks() {
 		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
+		// test for: java.lang.IllegalArgumentException: You have already selected another
+		// retry policy
+		restClient.get().uri("/retry?key=get2").exchange().expectStatus().isOk().expectBody(String.class)
+				.isEqualTo("3");
 	}
 
 	@Test
@@ -362,7 +367,7 @@ public class ServerMvcIntegrationTests {
 		formData.add("baz", "bam");
 
 		// @formatter:off
-		restClient.post().uri("/post").header("test", "form").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
+		restClient.post().uri("/post?foo=fooquery").header("test", "formurlencoded").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
 				.bodyValue(formData)
 				.exchange()
 				.expectStatus().isOk()
@@ -577,6 +582,17 @@ public class ServerMvcIntegrationTests {
 						"{\"message\":\"HELLO WORLD\"}"));
 	}
 
+	@Test
+	public void forwardWorks() {
+		restClient.get().uri("/doforward").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("Hello");
+	}
+
+	@Test
+	public void forwardNon200StatusWorks() {
+		restClient.get().uri("/doforward2").exchange().expectStatus().isCreated().expectBody(String.class)
+				.isEqualTo("hello2");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -606,6 +622,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> nonGatewayRouterFunctions(TestHandler testHandler) {
 			return route(GET("/hello"), testHandler).withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello");
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> nonGatewayRouterFunctions2() {
+			return route(GET("/hello2"), request -> ServerResponse.status(HttpStatus.CREATED).body("hello2"))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello2");
 		}
 
 		@Bean
@@ -820,6 +842,17 @@ public class ServerMvcIntegrationTests {
 					.before(new LocalServerPortUriResolver())
 					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsFormUrlEncoded() {
+			// @formatter:off
+			return route("testform")
+					.POST("/post", header("test", "formurlencoded"), http())
+					.before(new HttpbinUriResolver())
+					.filter(addRequestHeader("X-Test", "formurlencoded"))
 					.build();
 			// @formatter:on
 		}
@@ -1056,6 +1089,26 @@ public class ServerMvcIntegrationTests {
 					.before(new HttpbinUriResolver())
 					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
 					.build());
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForward() {
+			// @formatter:off
+			return route("testforward")
+					.GET("/doforward", forward("/hello"))
+					.before(new LocalServerPortUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsForwardNon200Status() {
+			// @formatter:off
+			return route("testforwardnon200status")
+					.GET("/doforward2", forward("/hello2"))
+					.before(new LocalServerPortUriResolver())
+					.build();
 			// @formatter:on
 		}
 

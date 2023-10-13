@@ -9,10 +9,9 @@ image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badg
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
-This project provides an API Gateway built on top of the Spring Ecosystem, including: Spring 6, Spring Boot 3 and Project Reactor. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
-
-== Features
+[[features]]
+= Features
 
 * Java 17
 * Spring Framework 6
@@ -25,99 +24,20 @@ This project provides an API Gateway built on top of the Spring Ecosystem, inclu
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
-== Building
+[[building]]
+= Building
 
-:jdkversion: 17
-
-=== Basic Compile and Test
-
-To build the source you will need to install JDK {jdkversion}.
-
-Spring Cloud uses Maven for most build-related activities, and you
-should be able to get off the ground quite quickly by cloning the
-project you are interested in and typing
-
-----
-$ ./mvnw install
-----
-
-NOTE: You can also install Maven (>=3.3.3) yourself and run the `mvn` command
-in place of `./mvnw` in the examples below. If you do that you also
-might need to add `-P spring` if your local Maven settings do not
-contain repository declarations for spring pre-release artifacts.
-
-NOTE: Be aware that you might need to increase the amount of memory
-available to Maven by setting a `MAVEN_OPTS` environment variable with
-a value like `-Xmx512m -XX:MaxPermSize=128m`. We try to cover this in
-the `.mvn` configuration, so if you find you have to do it to make a
-build succeed, please raise a ticket to get the settings added to
-source control.
-
-The projects that require middleware (i.e. Redis) for testing generally
-require that a local instance of [Docker](https://www.docker.com/get-started) is installed and running.
-
-
-=== Documentation
-
-The spring-cloud-build module has a "docs" profile, and if you switch
-that on it will try to build asciidoc sources from
-`src/main/asciidoc`. As part of that process it will look for a
-`README.adoc` and process it by loading all the includes, but not
-parsing or rendering it, just copying it to `${main.basedir}`
-(defaults to `${basedir}`, i.e. the root of the project). If there are
-any changes in the README it will then show up after a Maven build as
-a modified file in the correct place. Just commit it and push the change.
-
-=== Working with the code
-If you don't have an IDE preference we would recommend that you use
-https://www.springsource.com/developer/sts[Spring Tools Suite] or
-https://eclipse.org[Eclipse] when working with the code. We use the
-https://eclipse.org/m2e/[m2eclipse] eclipse plugin for maven support. Other IDEs and tools
-should also work without issue as long as they use Maven 3.3.3 or better.
-
-==== Activate the Spring Maven profile
-Spring Cloud projects require the 'spring' Maven profile to be activated to resolve
-the spring milestone and snapshot repositories. Use your preferred IDE to set this
-profile to be active, or you may experience build errors.
-
-==== Importing into eclipse with m2eclipse
-We recommend the https://eclipse.org/m2e/[m2eclipse] eclipse plugin when working with
-eclipse. If you don't already have m2eclipse installed it is available from the "eclipse
-marketplace".
-
-NOTE: Older versions of m2e do not support Maven 3.3, so once the
-projects are imported into Eclipse you will also need to tell
-m2eclipse to use the right profile for the projects.  If you
-see many different errors related to the POMs in the projects, check
-that you have an up to date installation.  If you can't upgrade m2e,
-add the "spring" profile to your `settings.xml`. Alternatively you can
-copy the repository settings from the "spring" profile of the parent
-pom into your `settings.xml`.
-
-==== Importing into eclipse without m2eclipse
-If you prefer not to use m2eclipse you can generate eclipse project metadata using the
-following command:
-
-[indent=0]
-----
-	$ ./mvnw eclipse:eclipse
-----
-
-The generated eclipse projects can be imported by selecting `import existing projects`
-from the `file` menu.
-
-
-== Contributing
-
-:spring-cloud-build-branch: master
+:spring-cloud-build-branch: main
 
 Spring Cloud is released under the non-restrictive Apache 2.0 license,
 and follows a very standard Github development process, using Github
-tracker for issues and merging pull requests into master. If you want
+tracker for issues and merging pull requests into main. If you want
 to contribute even something trivial please do not hesitate, but
 follow the guidelines below.
 
-=== Sign the Contributor License Agreement
+[[sign-the-contributor-license-agreement]]
+== Sign the Contributor License Agreement
+
 Before we accept a non-trivial patch or pull request we will need you to sign the
 https://cla.pivotal.io/sign/spring[Contributor License Agreement].
 Signing the contributor's agreement does not grant anyone commit rights to the main
@@ -125,19 +45,21 @@ repository, but it does mean that we can accept your contributions, and you will
 author credit if we do.  Active contributors might be asked to join the core team, and
 given the ability to merge pull requests.
 
-=== Code of Conduct
-This project adheres to the Contributor Covenant https://github.com/spring-cloud/spring-cloud-build/blob/master/docs/src/main/asciidoc/code-of-conduct.adoc[code of
+[[code-of-conduct]]
+== Code of Conduct
+This project adheres to the Contributor Covenant https://github.com/spring-cloud/spring-cloud-build/blob/main/docs/src/main/asciidoc/code-of-conduct.adoc[code of
 conduct]. By participating, you  are expected to uphold this code. Please report
 unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
-=== Code Conventions and Housekeeping
+[[code-conventions-and-housekeeping]]
+== Code Conventions and Housekeeping
 None of these is essential for a pull request, but they will all help.  They can also be
 added after the original pull request but before a merge.
 
 * Use the Spring Framework code format conventions. If you use Eclipse
   you can import formatter settings using the
   `eclipse-code-formatter.xml` file from the
-  https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-dependencies-parent/eclipse-code-formatter.xml[Spring
+  https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/spring-cloud-dependencies-parent/eclipse-code-formatter.xml[Spring
   Cloud Build] project. If using IntelliJ, you can use the
   https://plugins.jetbrains.com/plugin/6546[Eclipse Code Formatter
   Plugin] to import the same file.
@@ -150,13 +72,14 @@ added after the original pull request but before a merge.
   than cosmetic changes).
 * Add some Javadocs and, if you change the namespace, some XSD doc elements.
 * A few unit tests would help a lot as well -- someone has to do it.
-* If no-one else is using your branch, please rebase it against the current master (or
+* If no-one else is using your branch, please rebase it against the current main (or
   other target branch in the main project).
 * When writing a commit message please follow https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html[these conventions],
   if you are fixing an existing issue please add `Fixes gh-XXXX` at the end of the commit
   message (where XXXX is the issue number).
 
-=== Checkstyle
+[[checkstyle]]
+== Checkstyle
 
 Spring Cloud Build comes with a set of checkstyle rules. You can find them in the `spring-cloud-build-tools` module. The most notable files under the module are:
 
@@ -174,7 +97,8 @@ Spring Cloud Build comes with a set of checkstyle rules. You can find them in th
 <2> File header setup
 <3> Default suppression rules
 
-==== Checkstyle configuration
+[[checkstyle-configuration]]
+=== Checkstyle configuration
 
 Checkstyle rules are *disabled by default*. To add checkstyle to your project just define the following properties and plugins.
 
@@ -233,16 +157,18 @@ If you need to suppress some rules (e.g. line length needs to be longer), then i
 It's advisable to copy the `${spring-cloud-build.rootFolder}/.editorconfig` and `${spring-cloud-build.rootFolder}/.springformat` to your project. That way, some default formatting rules will be applied. You can do so by running this script:
 
 ```bash
-$ curl https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/.editorconfig -o .editorconfig
+$ curl https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/.editorconfig -o .editorconfig
 $ touch .springformat
 ```
 
-=== IDE setup
+[[ide-setup]]
+== IDE setup
 
-==== Intellij IDEA
+[[intellij-idea]]
+=== Intellij IDEA
 
 In order to setup Intellij you should import our coding conventions, inspection profiles and set up the checkstyle plugin.
-The following files can be found in the https://github.com/spring-cloud/spring-cloud-build/tree/master/spring-cloud-build-tools[Spring Cloud Build] project.
+The following files can be found in the https://github.com/spring-cloud/spring-cloud-build/tree/main/spring-cloud-build-tools[Spring Cloud Build] project.
 
 .spring-cloud-build-tools/
 ----
@@ -265,13 +191,13 @@ The following files can be found in the https://github.com/spring-cloud/spring-c
 
 .Code style
 
-image::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/{spring-cloud-build-branch}/docs/src/main/asciidoc/images/intellij-code-style.png[Code style]
+image::intellij-code-style.png[Code style]
 
 Go to `File` -> `Settings` -> `Editor` -> `Code style`. There click on the icon next to the `Scheme` section. There, click on the `Import Scheme` value and pick the `Intellij IDEA code style XML` option. Import the `spring-cloud-build-tools/src/main/resources/intellij/Intellij_Spring_Boot_Java_Conventions.xml` file.
 
 .Inspection profiles
 
-image::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/{spring-cloud-build-branch}/docs/src/main/asciidoc/images/intellij-inspections.png[Code style]
+image::intellij-inspections.png[Code style]
 
 Go to `File` -> `Settings` -> `Editor` -> `Inspections`. There click on the icon next to the `Profile` section. There, click on the `Import Profile` and import the `spring-cloud-build-tools/src/main/resources/intellij/Intellij_Project_Defaults.xml` file.
 
@@ -279,21 +205,23 @@ Go to `File` -> `Settings` -> `Editor` -> `Inspections`. There click on the icon
 
 To have Intellij work with Checkstyle, you have to install the `Checkstyle` plugin. It's advisable to also install the `Assertions2Assertj` to automatically convert the JUnit assertions
 
-image::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/{spring-cloud-build-branch}/docs/src/main/asciidoc/images/intellij-checkstyle.png[Checkstyle]
+image::intellij-checkstyle.png[Checkstyle]
 
-Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on the `+` icon in the `Configuration file` section. There, you'll have to define where the checkstyle rules should be picked from. In the image above, we've picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build's GitHub repository (e.g. for the `checkstyle.xml` : `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle.xml`). We need to provide the following variables:
+Go to `File` -> `Settings` -> `Other settings` -> `Checkstyle`. There click on the `+` icon in the `Configuration file` section. There, you'll have to define where the checkstyle rules should be picked from. In the image above, we've picked the rules from the cloned Spring Cloud Build repository. However, you can point to the Spring Cloud Build's GitHub repository (e.g. for the `checkstyle.xml` : `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/spring-cloud-build-tools/src/main/resources/checkstyle.xml`). We need to provide the following variables:
 
-- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
-- `checkstyle.suppressions.file` - default suppressions. Please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` URL.
+- `checkstyle.header.file` - please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/spring-cloud-build-tools/src/main/resources/checkstyle-header.txt` URL.
+- `checkstyle.suppressions.file` - default suppressions. Please point it to the Spring Cloud Build's, `spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` file either in your cloned repo or via the `https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/spring-cloud-build-tools/src/checkstyle/checkstyle-suppressions.xml` URL.
 - `checkstyle.additional.suppressions.file` - this variable corresponds to suppressions in your local project. E.g. you're working on `spring-cloud-contract`. Then point to the `project-root/src/checkstyle/checkstyle-suppressions.xml` folder. Example for `spring-cloud-contract` would be: `/home/username/spring-cloud-contract/src/checkstyle/checkstyle-suppressions.xml`.
 
 IMPORTANT: Remember to set the `Scan Scope` to `All sources` since we apply checkstyle rules for production and test sources.
 
-=== Duplicate Finder
+[[duplicate-finder]]
+== Duplicate Finder
 
 Spring Cloud Build brings along the  `basepom:duplicate-finder-maven-plugin`, that enables flagging duplicate and conflicting classes and resources on the java classpath.
 
-==== Duplicate Finder configuration
+[[duplicate-finder-configuration]]
+=== Duplicate Finder configuration
 
 Duplicate finder is *enabled by default* and will run in the `verify` phase of your Maven build, but it will only take effect in your project if you add the `duplicate-finder-maven-plugin` to the `build` section of the projecst's `pom.xml`.
 
@@ -339,3 +267,8 @@ If you need to add `ignoredClassPatterns` or `ignoredResourcePatterns` to your s
 
 ----
 
+
+[[contributing]]
+= Contributing
+
+Unresolved directive in <stdin> - include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/contributing.adoc[]

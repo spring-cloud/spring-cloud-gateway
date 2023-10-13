@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -26,6 +27,7 @@ import java.util.function.Supplier;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
@@ -250,6 +252,20 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	@Override
 	public RouterFunctions.Builder resources(Function<ServerRequest, Optional<Resource>> lookupFunction) {
 		builder.resources(lookupFunction);
+		return this;
+	}
+
+	@Override
+	public RouterFunctions.Builder resources(String pattern, Resource location,
+			BiConsumer<Resource, HttpHeaders> headersConsumer) {
+		builder.resources(pattern, location, headersConsumer);
+		return this;
+	}
+
+	@Override
+	public RouterFunctions.Builder resources(Function<ServerRequest, Optional<Resource>> lookupFunction,
+			BiConsumer<Resource, HttpHeaders> headersConsumer) {
+		builder.resources(lookupFunction, headersConsumer);
 		return this;
 	}
 

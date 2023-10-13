@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -64,6 +65,7 @@ import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactor
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory.StripVersion;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -288,6 +290,23 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can be used to modify the request body.
+	 * @param inClass the parameterized type reference to convert the incoming request
+	 * body to
+	 * @param outClass the parameterized type reference the Gateway will add to the
+	 * request before it is routed
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
+			ParameterizedTypeReference<R> outClass, RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+	}
+
+	/**
+	 * A filter that can be used to modify the request body.
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param newContentType the new Content-Type header to be sent
@@ -298,6 +317,24 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType,
 			RewriteFunction<T, R> rewriteFunction) {
+		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
+				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+	}
+
+	/**
+	 * A filter that can be used to modify the request body.
+	 * @param inClass the parameterized type reference to convert the incoming request
+	 * body to
+	 * @param outClass the parameterized type reference the Gateway will add to the
+	 * request before it is routed
+	 * @param newContentType the new Content-Type header to be sent
+	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
+	 * @param <T> the original request body class
+	 * @param <R> the new request body class
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
+			ParameterizedTypeReference<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
@@ -687,6 +724,17 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that rewrites the value of a request parameter
+	 * @param name The name of the request parameter to replace
+	 * @param replacement The new value for the request parameter
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec rewriteRequestParameter(String name, String replacement) {
+		return filter(getBean(RewriteRequestParameterGatewayFilterFactory.class)
+				.apply(c -> c.setReplacement(replacement).setName(name)));
+	}
+
+	/**
 	 * A filter that sets the status on the response before it is returned to the client
 	 * by the Gateway.
 	 * @param status the status to set on the response
@@ -796,13 +844,31 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that enables token relay.
+	 * A filter that enables token relay by extracting the access token from the currently
+	 * authenticated user and puts it in a request header for downstream requests.
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec tokenRelay() {
 		try {
-			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(o -> {
+			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(c -> {
 			}));
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			throw new IllegalStateException("No TokenRelayGatewayFilterFactory bean was found. Did you include the "
+					+ "org.springframework.boot:spring-boot-starter-oauth2-client dependency?");
+		}
+	}
+
+	/**
+	 * A filter that enables token relay by extracting the access token of a specified
+	 * {@code ClientRegistration} and puts it in a request header for downstream requests.
+	 * @param clientRegistrationId the client registration id to use for building the
+	 * authorization request
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec tokenRelay(String clientRegistrationId) {
+		try {
+			return filter(getBean(TokenRelayGatewayFilterFactory.class).apply(c -> c.setName(clientRegistrationId)));
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			throw new IllegalStateException("No TokenRelayGatewayFilterFactory bean was found. Did you include the "

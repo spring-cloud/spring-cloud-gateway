@@ -26,6 +26,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.BodyInserterContext;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -64,7 +65,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				Class inClass = config.getInClass();
+				ParameterizedTypeReference inClass = config.getInClass();
 				ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
 
 				// TODO: flux or mono
@@ -140,28 +141,36 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 	public static class Config {
 
-		private Class inClass;
+		private ParameterizedTypeReference inClass;
 
-		private Class outClass;
+		private ParameterizedTypeReference outClass;
 
 		private String contentType;
 
 		private RewriteFunction rewriteFunction;
 
-		public Class getInClass() {
+		public ParameterizedTypeReference getInClass() {
 			return inClass;
 		}
 
 		public Config setInClass(Class inClass) {
-			this.inClass = inClass;
+			return setInClass(ParameterizedTypeReference.forType(inClass));
+		}
+
+		public Config setInClass(ParameterizedTypeReference inTypeReference) {
+			this.inClass = inTypeReference;
 			return this;
 		}
 
-		public Class getOutClass() {
+		public ParameterizedTypeReference getOutClass() {
 			return outClass;
 		}
 
 		public Config setOutClass(Class outClass) {
+			return setOutClass(ParameterizedTypeReference.forType(outClass));
+		}
+
+		public Config setOutClass(ParameterizedTypeReference outClass) {
 			this.outClass = outClass;
 			return this;
 		}
@@ -177,6 +186,14 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction) {
+			setInClass(inClass);
+			setOutClass(outClass);
+			setRewriteFunction(rewriteFunction);
+			return this;
+		}
+
+		public <T, R> Config setRewriteFunction(ParameterizedTypeReference<T> inClass,
+				ParameterizedTypeReference<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);

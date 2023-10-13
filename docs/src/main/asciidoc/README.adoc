@@ -2,9 +2,9 @@ image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badg
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
-include::intro.adoc[]
 
-== Features
+[[features]]
+= Features
 
 * Java 17
 * Spring Framework 6
@@ -17,10 +17,12 @@ include::intro.adoc[]
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
-== Building
+[[building]]
+= Building
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/building.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/modules/ROOT/partials/contributing.adoc[]
 
-== Contributing
+[[contributing]]
+= Contributing
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing.adoc[]
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/contributing.adoc[]

@@ -20,8 +20,9 @@
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
 |spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter.
-|spring.cloud.gateway.filter.local-response-cache.size | `+++5m+++` | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
-|spring.cloud.gateway.filter.local-response-cache.time-to-live |  | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+|spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy |  | 
+|spring.cloud.gateway.filter.local-response-cache.size |  | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
+|spring.cloud.gateway.filter.local-response-cache.time-to-live | `+++5m+++` | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
 |spring.cloud.gateway.filter.modify-request-body.enabled | `+++true+++` | Enables the modify-request-body filter.
 |spring.cloud.gateway.filter.modify-response-body.enabled | `+++true+++` | Enables the modify-response-body filter.
@@ -43,6 +44,7 @@
 |spring.cloud.gateway.filter.rewrite-location-response-header.enabled | `+++true+++` | Enables the rewrite-location-response-header filter.
 |spring.cloud.gateway.filter.rewrite-location.enabled | `+++true+++` | Enables the rewrite-location filter.
 |spring.cloud.gateway.filter.rewrite-path.enabled | `+++true+++` | Enables the rewrite-path filter.
+|spring.cloud.gateway.filter.rewrite-request-parameter.enabled | `+++true+++` | Enables the rewrite-request-parameter filter.
 |spring.cloud.gateway.filter.rewrite-response-header.enabled | `+++true+++` | Enables the rewrite-response-header filter.
 |spring.cloud.gateway.filter.save-session.enabled | `+++true+++` | Enables the save-session filter.
 |spring.cloud.gateway.filter.secure-headers.content-security-policy | `+++default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'+++` | 

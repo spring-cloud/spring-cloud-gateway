@@ -1,0 +1,24 @@
+[[maprequestheader-gatewayfilter-factory]]
+= `MapRequestHeader` `GatewayFilter` Factory
+
+The `MapRequestHeader` `GatewayFilter` factory takes `fromHeader` and `toHeader` parameters.
+It creates a new named header (`toHeader`), and the value is extracted out of an existing named header (`fromHeader`) from the incoming http request.
+If the input header does not exist, the filter has no impact.
+If the new named header already exists, its values are augmented with the new values.
+The following example configures a `MapRequestHeader`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: map_request_header_route
+        uri: https://example.org
+        filters:
+        - MapRequestHeader=Blue, X-Request-Red
+----
+
+This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+
