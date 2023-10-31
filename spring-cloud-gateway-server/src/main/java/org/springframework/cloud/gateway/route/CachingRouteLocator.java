@@ -88,8 +88,9 @@ public class CachingRouteLocator
 						.onErrorResume(s -> Mono.just(List.of()));
 
 				scopedRoutes.subscribe(scopedRoutesList -> {
-					Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event)).materialize()
-							.collect(Collectors.toList()).subscribe(signals -> {
+					Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
+							.sort(AnnotationAwareOrderComparator.INSTANCE).materialize().collect(Collectors.toList())
+							.subscribe(signals -> {
 								applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 								cache.put(CACHE_KEY, signals);
 							}, this::handleRefreshError);
