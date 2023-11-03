@@ -122,6 +122,11 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 		return KeyValueConfig.class;
 	}
 
+	/**
+	 * @deprecated in favour of
+	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConfig}
+	 */
+	@Deprecated
 	public static class KeyValueConfig {
 
 		private KeyValue[] keyValues;
@@ -136,6 +141,11 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 
 	}
 
+	/**
+	 * @deprecated in favour of
+	 * {@link org.springframework.cloud.gateway.support.config.KeyValue}
+	 */
+	@Deprecated
 	public static class KeyValue {
 
 		private final String key;
