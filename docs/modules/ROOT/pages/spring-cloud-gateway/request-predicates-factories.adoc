@@ -343,7 +343,7 @@ spring:
         - Weight=group1, 2
 ----
 
-This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weighlow.org
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org
 
 [[xforwarded-remote-addr-route-predicate-factory]]
 == The XForwarded Remote Addr Route Predicate Factory
