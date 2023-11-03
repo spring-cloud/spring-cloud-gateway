@@ -226,10 +226,8 @@ public class GatewayControllerEndpointTests {
 				.expectBodyList(Map.class).consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 
-					List ids = responseBody.stream()
-									.map(route -> route.get("route_id"))
-											.filter(id -> id.equals(routeId1) || id.equals(routeId2))
-													.collect(Collectors.toList());
+					List ids = responseBody.stream().map(route -> route.get("route_id"))
+							.filter(id -> id.equals(routeId1) || id.equals(routeId2)).collect(Collectors.toList());
 					assertThat(ids).containsExactly(routeId2, routeId1);
 				});
 
@@ -242,10 +240,8 @@ public class GatewayControllerEndpointTests {
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
 				.expectBodyList(Map.class).consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
-					List ids = responseBody.stream()
-							.map(route -> route.get("route_id"))
-							.filter(id -> id.equals(routeId1) || id.equals(routeId2))
-							.collect(Collectors.toList());
+					List ids = responseBody.stream().map(route -> route.get("route_id"))
+							.filter(id -> id.equals(routeId1) || id.equals(routeId2)).collect(Collectors.toList());
 					assertThat(ids).containsExactly(routeId1, routeId2);
 				});
 	}
