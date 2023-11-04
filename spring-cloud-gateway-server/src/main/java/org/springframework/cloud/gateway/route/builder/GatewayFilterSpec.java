@@ -817,7 +817,8 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that sets the maximum permissible size of a Content-Length header value in the Request.
+	 * A filter that sets the maximum permissible size of a Content-Length header value in
+	 * the Request.
 	 * @param size the maximum size of a request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
@@ -826,7 +827,8 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that sets the maximum permissible size of a Content-Length header value in the Request.
+	 * A filter that sets the maximum permissible size of a Content-Length header value in
+	 * the Request.
 	 * @param size the maximum size of a request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
