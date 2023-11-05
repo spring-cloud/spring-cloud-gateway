@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
@@ -182,9 +183,12 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private final ObjectNode objectNode;
 
+		private final ConcurrentHashMap<String, ManagedChannel> ManagedChannelContainer;
+
 		GRPCResponseDecorator(ServerWebExchange exchange, Config config) {
 			super(exchange.getResponse());
 			this.exchange = exchange;
+			this.ManagedChannelContainer = new ConcurrentHashMap<>();
 			try {
 				Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 				Resource protoFile = resourceLoader.getResource(config.getProtoFile());
@@ -223,7 +227,7 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
-				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
+																				   Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
 					.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
@@ -304,13 +308,20 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
-		// We are creating this on every call, should optimize?
 		private ManagedChannel createChannelChannel(String host, int port) {
-			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
+			String key = host + ":" + port;
+			ManagedChannel managedChannel = ManagedChannelContainer.get(key);
 			try {
-				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
-			}
-			catch (SSLException e) {
+				if (managedChannel == null) {
+					NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
+					managedChannel = grpcSslConfigurer.configureSsl(nettyChannelBuilder);
+					if (ManagedChannelContainer.putIfAbsent(key, managedChannel) != null) {
+						managedChannel.shutdown();
+						return ManagedChannelContainer.get(key);
+					};
+				}
+				return managedChannel;
+			} catch (SSLException e) {
 				throw new RuntimeException(e);
 			}
 		}
