@@ -50,7 +50,7 @@ spring:
         predicates:
         - Path=/service/**
         metadata:
-          cors
+          cors:
             allowedOrigins: '*'
             allowedMethods:
               - GET
