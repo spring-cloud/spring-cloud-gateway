@@ -52,7 +52,7 @@ public final class CachedResponse implements Serializable {
 
 	private Date timestamp;
 
-	private CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, List<ByteBuffer> body, Date timestamp) {
+	public CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, List<ByteBuffer> body, Date timestamp) {
 		this.statusCode = statusCode;
 		this.headers = headers;
 		this.body = body;
@@ -104,7 +104,7 @@ public final class CachedResponse implements Serializable {
 		return bodyStream.toByteArray();
 	}
 
-	String bodyAsString() throws IOException {
+	public String bodyAsString() throws IOException {
 		InputStream byteStream = new ByteArrayInputStream(bodyAsByteArray());
 		if (headers.getOrEmpty(HttpHeaders.CONTENT_ENCODING).contains("gzip")) {
 			byteStream = new GZIPInputStream(byteStream);

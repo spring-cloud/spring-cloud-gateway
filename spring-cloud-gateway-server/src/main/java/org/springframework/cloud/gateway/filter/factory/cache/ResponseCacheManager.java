@@ -74,7 +74,8 @@ public class ResponseCacheManager {
 	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
 			HttpStatus.MOVED_PERMANENTLY);
 
-	public Optional<CachedResponse> getFromCache(ServerHttpRequest request, String metadataKey) {
+	public Optional<CachedResponse> getFromCache(ServerWebExchange exchange, String metadataKey) {
+		ServerHttpRequest request = exchange.getRequest();
 		CachedResponseMetadata metadata = retrieveMetadata(metadataKey);
 		String key = cacheKeyGenerator.generateKey(request,
 				metadata != null ? metadata.varyOnHeaders() : Collections.emptyList());
@@ -106,7 +107,7 @@ public class ResponseCacheManager {
 		});
 	}
 
-	private Optional<CachedResponse> getFromCache(String key) {
+	protected Optional<CachedResponse> getFromCache(String key) {
 		CachedResponse cachedResponse;
 		try {
 			cachedResponse = cache.get(key, CachedResponse.class);
@@ -153,26 +154,26 @@ public class ResponseCacheManager {
 		return metadata;
 	}
 
-	boolean isResponseCacheable(ServerHttpResponse response) {
+	protected boolean isResponseCacheable(ServerHttpResponse response) {
 		return isStatusCodeToCache(response) && isCacheControlAllowed(response) && !isVaryWildcard(response);
 	}
 
-	private boolean isStatusCodeToCache(ServerHttpResponse response) {
+	protected boolean isStatusCodeToCache(ServerHttpResponse response) {
 		return statusesToCache.contains(response.getStatusCode());
 	}
 
-	boolean isRequestCacheable(ServerHttpRequest request) {
+	protected boolean isRequestCacheable(ServerHttpRequest request) {
 		return HttpMethod.GET.equals(request.getMethod()) && !hasRequestBody(request) && isCacheControlAllowed(request);
 	}
 
-	private boolean isVaryWildcard(ServerHttpResponse response) {
+	protected boolean isVaryWildcard(ServerHttpResponse response) {
 		HttpHeaders headers = response.getHeaders();
 		List<String> varyValues = headers.getOrEmpty(HttpHeaders.VARY);
 
 		return varyValues.stream().anyMatch(VARY_WILDCARD::equals);
 	}
 
-	private boolean isCacheControlAllowed(HttpMessage request) {
+	protected boolean isCacheControlAllowed(HttpMessage request) {
 		HttpHeaders headers = request.getHeaders();
 		List<String> cacheControlHeader = headers.getOrEmpty(HttpHeaders.CACHE_CONTROL);
 

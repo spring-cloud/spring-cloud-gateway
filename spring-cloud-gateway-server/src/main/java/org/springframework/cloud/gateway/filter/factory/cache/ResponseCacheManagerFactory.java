@@ -27,7 +27,7 @@ import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.Cache
  */
 public class ResponseCacheManagerFactory {
 
-	private final CacheKeyGenerator cacheKeyGenerator;
+	protected final CacheKeyGenerator cacheKeyGenerator;
 
 	public ResponseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
 		this.cacheKeyGenerator = cacheKeyGenerator;

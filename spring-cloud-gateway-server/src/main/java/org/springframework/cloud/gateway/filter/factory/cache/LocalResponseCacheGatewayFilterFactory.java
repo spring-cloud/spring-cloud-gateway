@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
+import org.springframework.cache.CacheManager;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -55,25 +55,27 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private DataSize defaultSize;
 
+	private CacheManager cacheManager;
+
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive) {
-		this(cacheManagerFactory, defaultTimeToLive, null);
+			Duration defaultTimeToLive, CacheManager cacheManager) {
+		this(cacheManagerFactory, defaultTimeToLive, null, cacheManager);
 	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize) {
+			Duration defaultTimeToLive, DataSize defaultSize, CacheManager cacheManager) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;
 		this.defaultSize = defaultSize;
+		this.cacheManager = cacheManager;
 	}
 
 	@Override
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
-				.getCache(config.getRouteId() + "-cache");
+		Cache routeCache = cacheManager.getCache(config.getRouteId() + "-cache");
 		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
 
 	}

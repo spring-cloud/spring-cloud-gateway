@@ -23,9 +23,9 @@ import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
@@ -61,27 +61,22 @@ public class LocalResponseCacheAutoConfiguration {
 	@Bean
 	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 	public GlobalLocalResponseCacheGatewayFilter globalLocalResponseCacheGatewayFilter(
-			ResponseCacheManagerFactory responseCacheManagerFactory,
-			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
+			ResponseCacheManagerFactory responseCacheManagerFactory, CacheManager cacheManager,
 			LocalResponseCacheProperties properties) {
 		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
 				properties.getTimeToLive());
 	}
 
-	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
-	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
-	public CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		return createGatewayCacheManager(cacheProperties);
-	}
-
 	@Bean
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
-			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties) {
+			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties,
+			CacheManager cacheManager) {
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
-				properties.getSize());
+				properties.getSize(), cacheManager);
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
 	public ResponseCacheManagerFactory responseCacheManagerFactory(CacheKeyGenerator cacheKeyGenerator) {
 		return new ResponseCacheManagerFactory(cacheKeyGenerator);
 	}

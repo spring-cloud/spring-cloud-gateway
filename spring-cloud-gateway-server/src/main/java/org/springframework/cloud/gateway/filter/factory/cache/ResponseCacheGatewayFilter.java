@@ -66,7 +66,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
 		final String metadataKey = responseCacheManager.resolveMetadataKey(exchange);
-		Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+		Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange, metadataKey);
 
 		if (cached.isPresent()) {
 			return responseCacheManager.processFromCache(exchange, metadataKey, cached.get());
