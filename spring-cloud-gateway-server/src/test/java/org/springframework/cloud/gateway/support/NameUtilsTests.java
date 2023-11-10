@@ -32,7 +32,7 @@ import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFi
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
@@ -91,7 +91,7 @@ class NameUtilsTests {
 		List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(
 				AddRequestHeaderGatewayFilterFactory.class, DedupeResponseHeaderGatewayFilterFactory.class,
 				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class,
-				JsonToGrpcGatewayFilterFactory.class, LocalResponseCacheGatewayFilterFactory.class);
+				JsonToGrpcGatewayFilterFactory.class, ResponseCacheGatewayFilterFactory.class);
 
 		List<String> resultNames = predicates.stream().map(NameUtils::normalizeFilterFactoryNameAsProperty)
 				.collect(Collectors.toList());

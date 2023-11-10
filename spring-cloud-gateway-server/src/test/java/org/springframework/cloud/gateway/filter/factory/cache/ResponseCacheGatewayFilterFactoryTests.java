@@ -51,7 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DirtiesContext
 @ActiveProfiles(profiles = "local-cache-filter")
-public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
+public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	private static final String CUSTOM_HEADER = "X-Custom-Date";
 

@@ -9,3 +9,4 @@ org.springframework.cloud.gateway.config.SimpleUrlHandlerMappingGlobalCorsAutoCo
 org.springframework.cloud.gateway.config.GatewayReactiveLoadBalancerClientAutoConfiguration
 org.springframework.cloud.gateway.config.GatewayReactiveOAuth2AutoConfiguration
 org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration
+org.springframework.cloud.gateway.config.RedisResponseCacheAutoConfiguration

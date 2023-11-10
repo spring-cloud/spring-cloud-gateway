@@ -31,7 +31,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
+import static org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
  * {@literal LocalResponseCache} Gateway Filter that stores HTTP Responses in a cache, so

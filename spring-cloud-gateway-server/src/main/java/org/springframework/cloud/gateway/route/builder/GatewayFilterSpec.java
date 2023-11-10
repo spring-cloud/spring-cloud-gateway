@@ -75,7 +75,7 @@ import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFa
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
@@ -233,8 +233,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec localResponseCache(Duration timeToLive, DataSize size) {
-		return filter(getBean(LocalResponseCacheGatewayFilterFactory.class)
-				.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
+		return filter(
+				getBean(ResponseCacheGatewayFilterFactory.class).apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
 	}
 
 	/**

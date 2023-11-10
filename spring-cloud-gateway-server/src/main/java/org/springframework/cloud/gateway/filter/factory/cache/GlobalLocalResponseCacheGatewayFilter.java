@@ -27,11 +27,11 @@ import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
+import static org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
 
 /**
  * Caches responses for routes that don't have the
- * {@link LocalResponseCacheGatewayFilterFactory} configured.
+ * {@link ResponseCacheGatewayFilterFactory} configured.
  *
  * @author Ignacio Lozano
  * @author Marta Medio

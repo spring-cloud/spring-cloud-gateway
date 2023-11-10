@@ -16,14 +16,9 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.time.Duration;
-
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,17 +26,17 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheSizeWeigher;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCache;
+import org.springframework.data.redis.cache.RedisCacheManager;
 
 /**
  * @author Ignacio Lozano
@@ -49,36 +44,29 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
-@ConditionalOnClass({ Weigher.class, Caffeine.class, CaffeineCacheManager.class })
+@ConditionalOnClass({ RedisCache.class, RedisCacheManager.class })
 @ConditionalOnEnabledFilter(ResponseCacheGatewayFilterFactory.class)
-public class LocalResponseCacheAutoConfiguration {
+public class RedisResponseCacheAutoConfiguration {
 
-	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheAutoConfiguration.class);
+	private static final Log LOGGER = LogFactory.getLog(RedisResponseCacheAutoConfiguration.class);
 
 	private static final String RESPONSE_CACHE_NAME = "response-cache";
 
 	/* for testing */ static final String RESPONSE_CACHE_MANAGER_NAME = "gatewayCacheManager";
 
 	@Bean
-	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
+	@Conditional(RedisResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 	public GlobalLocalResponseCacheGatewayFilter globalLocalResponseCacheGatewayFilter(
-			ResponseCacheManagerFactory responseCacheManagerFactory,
-			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
+			ResponseCacheManagerFactory responseCacheManagerFactory, RedisCacheManager cacheManager,
 			LocalResponseCacheProperties properties) {
 		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
 				properties.getTimeToLive());
 	}
 
-	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
-	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
-	public CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		return createGatewayCacheManager(cacheProperties);
-	}
-
 	@Bean
 	public ResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
 			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties,
-			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager) {
+			CacheManager cacheManager) {
 		return new ResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
 				properties.getSize(), cacheManager);
 	}
@@ -95,23 +83,6 @@ public class LocalResponseCacheAutoConfiguration {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static CaffeineCacheManager createGatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		Caffeine caffeine = Caffeine.newBuilder();
-		LOGGER.info("Initializing Caffeine");
-		Duration ttlSeconds = cacheProperties.getTimeToLive();
-		caffeine.expireAfterWrite(ttlSeconds);
-
-		if (cacheProperties.getSize() != null) {
-			caffeine.maximumWeight(cacheProperties.getSize().toBytes()).weigher(responseCacheSizeWeigher());
-		}
-		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-		caffeineCacheManager.setCaffeine(caffeine);
-		return caffeineCacheManager;
-	}
-
-	private static ResponseCacheSizeWeigher responseCacheSizeWeigher() {
-		return new ResponseCacheSizeWeigher();
-	}
 
 	Cache responseCache(CacheManager cacheManager) {
 		return cacheManager.getCache(RESPONSE_CACHE_NAME);

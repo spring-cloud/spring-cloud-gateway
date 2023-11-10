@@ -40,8 +40,8 @@ import org.springframework.validation.annotation.Validated;
  * @author Ignacio Lozano
  */
 @ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true")
-public class LocalResponseCacheGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration> {
+public class ResponseCacheGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<ResponseCacheGatewayFilterFactory.RouteCacheConfiguration> {
 
 	/**
 	 * Exchange attribute name to track if the request has been already process by cache
@@ -57,12 +57,12 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private CacheManager cacheManager;
 
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+	public ResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, CacheManager cacheManager) {
 		this(cacheManagerFactory, defaultTimeToLive, null, cacheManager);
 	}
 
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+	public ResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, CacheManager cacheManager) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
