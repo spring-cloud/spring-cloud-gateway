@@ -21,13 +21,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          cache: 'maven'
       - name: Build with Maven
         run: ./mvnw clean install -B -U -Pspring -Dmaven.test.redirectTestOutputToFile=true -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
       - name: Publish Test Report
