@@ -51,7 +51,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<bucket4j.version>8.6.0</bucket4j.version>
+		<bucket4j.version>8.7.0</bucket4j.version>
 		<blockhound.version>1.0.6.RELEASE</blockhound.version>
 		<java.version>17</java.version>
 		<junit-pioneer.version>1.9.1</junit-pioneer.version>
