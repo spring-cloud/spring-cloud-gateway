@@ -48,6 +48,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 @EnableConfigurationProperties({ LocalResponseCacheProperties.class })
 @ConditionalOnClass({ RedisCache.class, RedisConnectionFactory.class })
 @ConditionalOnEnabledFilter(ResponseCacheGatewayFilterFactory.class)
+@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.cache-implementation",
+		havingValue = "redis")
 public class RedisResponseCacheAutoConfiguration {
 
 	private static final Log LOGGER = LogFactory.getLog(RedisResponseCacheAutoConfiguration.class);

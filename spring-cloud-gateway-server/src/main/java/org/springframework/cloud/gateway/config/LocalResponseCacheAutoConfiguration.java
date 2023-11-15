@@ -70,7 +70,6 @@ public class LocalResponseCacheAutoConfiguration {
 	}
 
 	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
-	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 	public CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
 		return createGatewayCacheManager(cacheProperties);
 	}
