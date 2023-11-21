@@ -97,7 +97,7 @@ class NameUtilsTests {
 				.collect(Collectors.toList());
 
 		List<String> expectedNames = Arrays.asList("add-request-header", "dedupe-response-header", "fallback-headers",
-				"map-request-header", "json-to-grpc", "local-response-cache");
+				"map-request-header", "json-to-grpc", "response-cache");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}
