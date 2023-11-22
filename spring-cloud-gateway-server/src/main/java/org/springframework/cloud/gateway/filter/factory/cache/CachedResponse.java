@@ -42,7 +42,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Marta Medio
  * @author Ignacio Lozano
  */
-public final class CachedResponse implements Serializable {
+public class CachedResponse implements Serializable {
 
 	private HttpStatusCode statusCode;
 
