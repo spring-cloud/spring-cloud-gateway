@@ -12,6 +12,50 @@ management.endpoint.gateway.enabled=true # default value
 management.endpoints.web.exposure.include=gateway
 ----
 
+This endpoint provides an overview of what is available on the child actuator endpoint and the available methods for each reference. The resulting response is similar to the following:
+
+[source,json]
+----
+[
+   {
+      "href":"/actuator/gateway/",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routedefinitions",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/globalfilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routefilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routes",
+      "methods":[ "POST", "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routepredicates",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/refresh",
+      "methods":[ "POST" ]
+   },
+   {
+      "href":"/actuator/gateway/routes/route-id-1/combinedfilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routes/route-id-1",
+      "methods":[ "POST", "DELETE", "GET" ]
+   }
+]
+----
+
 [[verbose-actuator-format]]
 == Verbose Actuator Format
 
