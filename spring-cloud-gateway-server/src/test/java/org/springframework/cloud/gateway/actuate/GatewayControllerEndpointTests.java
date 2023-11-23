@@ -69,6 +69,15 @@ public class GatewayControllerEndpointTests {
 	int port;
 
 	@Test
+	public void testEndpoints() {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway").exchange().expectStatus().isOk()
+				.expectBody(List.class).consumeWith(result -> {
+					List<String> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+				});
+	}
+
+	@Test
 	public void testRefresh() {
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh").exchange().expectStatus()
 				.isOk();
