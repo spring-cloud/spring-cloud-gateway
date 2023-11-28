@@ -32,6 +32,7 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -267,6 +268,18 @@ public class ServerMvcIntegrationTests {
 		restClient.get().uri("/anything/circuitbreakernofallback").exchange().expectStatus()
 				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 	}
+
+	@Test
+	public void circuitBreakerInvalidFallbackThrowsException() {
+		// @formatter:off
+		Assertions.assertThatThrownBy(() -> route("testcircuitbreakergatewayfallback")
+				.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+				.filter(circuitBreaker("mycb2", URI.create("http://example.com")))
+				.build()).isInstanceOf(IllegalArgumentException.class);
+		// @formatter:on
+	}
+
+
 
 	@Test
 	public void retryWorks() {
@@ -747,7 +760,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testcircuitbreakergatewayfallback")
 					.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
-					.filter(circuitBreaker("mycb2", "/anything/gatewayfallback"))
+					.filter(circuitBreaker("mycb2", URI.create("forward:/anything/gatewayfallback")))
 					.build()
 				.and(route("testgatewayfallback")
 					.route(path("/anything/gatewayfallback"), http())
