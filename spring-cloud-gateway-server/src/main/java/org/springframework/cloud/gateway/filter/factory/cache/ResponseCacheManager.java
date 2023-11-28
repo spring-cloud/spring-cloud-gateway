@@ -74,13 +74,24 @@ public class ResponseCacheManager {
 	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
 			HttpStatus.MOVED_PERMANENTLY);
 
-	public Optional<CachedResponse> getFromCache(ServerWebExchange exchange, String metadataKey) {
-		ServerHttpRequest request = exchange.getRequest();
+	public Optional<CachedResponse> getFromCache(ServerHttpRequest request, String metadataKey) {
 		CachedResponseMetadata metadata = retrieveMetadata(metadataKey);
 		String key = cacheKeyGenerator.generateKey(request,
 				metadata != null ? metadata.varyOnHeaders() : Collections.emptyList());
 
 		return getFromCache(key);
+	}
+
+	/**
+	 * This method operates on a {@link ServerWebExchange} to facilitate overrides/functionality extensions that may
+	 * need to use more data than just a {@link ServerHttpRequest} provides.
+	 *
+	 * @param exchange
+	 * @param metadataKey
+	 * @return
+	 */
+	public Optional<CachedResponse> getFromCache(ServerWebExchange exchange, String metadataKey) {
+		return getFromCache(exchange.getRequest(), metadataKey);
 	}
 
 	public Flux<DataBuffer> processFromUpstream(String metadataKey, ServerWebExchange exchange, Flux<DataBuffer> body) {

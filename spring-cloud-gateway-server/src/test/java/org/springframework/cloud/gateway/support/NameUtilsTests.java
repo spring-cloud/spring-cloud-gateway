@@ -32,7 +32,8 @@ import org.springframework.cloud.gateway.filter.factory.FallbackHeadersGatewayFi
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.RedisResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.CloudFoundryRouteServiceRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
@@ -91,13 +92,14 @@ class NameUtilsTests {
 		List<Class<? extends GatewayFilterFactory<?>>> predicates = Arrays.asList(
 				AddRequestHeaderGatewayFilterFactory.class, DedupeResponseHeaderGatewayFilterFactory.class,
 				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class,
-				JsonToGrpcGatewayFilterFactory.class, ResponseCacheGatewayFilterFactory.class);
+				JsonToGrpcGatewayFilterFactory.class, LocalResponseCacheGatewayFilterFactory.class,
+				RedisResponseCacheGatewayFilterFactory.class);
 
 		List<String> resultNames = predicates.stream().map(NameUtils::normalizeFilterFactoryNameAsProperty)
 				.collect(Collectors.toList());
 
 		List<String> expectedNames = Arrays.asList("add-request-header", "dedupe-response-header", "fallback-headers",
-				"map-request-header", "json-to-grpc", "response-cache");
+				"map-request-header", "json-to-grpc", "local-response-cache", "redis-response-cache");
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}

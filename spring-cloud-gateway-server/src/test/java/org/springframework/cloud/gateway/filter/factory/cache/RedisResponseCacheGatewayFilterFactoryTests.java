@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2023-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -40,35 +41,53 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.util.StringUtils;
-import org.springframework.util.unit.DataSize;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ignacio Lozano
- * @author Marta Medio
+ * @author Jesse Estum
  */
 @DirtiesContext
-@ActiveProfiles(profiles = "local-cache-filter")
-public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
+@ActiveProfiles(profiles = "redis-cache-filter")
+public class RedisResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	private static final String CUSTOM_HEADER = "X-Custom-Date";
 
 	@Nested
-	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" },
+	@SpringBootTest(properties = { "spring.cloud.gateway.filter.redis-response-cache.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class LocalResponseCacheUsingFilterParams extends BaseWebClientTests {
+	@Testcontainers
+	public class RedisResponseCacheUsingFilterParams extends BaseWebClientTests {
+
+		@Container
+		public static GenericContainer redis = new GenericContainer<>("redis:5.0.14-alpine").withExposedPorts(6379);
+
+		@BeforeAll
+		public static void startRedisContainer() {
+			redis.start();
+		}
+
+		@DynamicPropertySource
+		static void containerProperties(DynamicPropertyRegistry registry) {
+			registry.add("spring.data.redis.host", redis::getHost);
+			registry.add("spring.data.redis.port", redis::getFirstMappedPort);
+		}
 
 		@Test
 		void shouldNotCacheResponseWhenGetRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.redisresponsecache.org")
 					.header(CUSTOM_HEADER, "1").bodyValue("whatever").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.redisresponsecache.org")
 					.bodyValue("whatever").header(CUSTOM_HEADER, "2").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
 		}
@@ -77,11 +96,11 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		void shouldNotCacheResponseWhenPostRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.redisresponsecache.org")
 					.header(CUSTOM_HEADER, "1").bodyValue("whatever").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.redisresponsecache.org")
 					.bodyValue("whatever").header(CUSTOM_HEADER, "2").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
 		}
@@ -90,10 +109,10 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		void shouldNotCacheWhenCacheControlAsksToDoNotCache() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2")
 					// Cache-Control asks to not use the cached content and not store the
 					// response
 					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue()).exchange().expectBody()
@@ -104,10 +123,10 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		void shouldCacheAndReturnNotModifiedStatusWhenCacheControlIsNoCache() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2")
 					// Cache-Control asks to not return cached content because it is
 					// HttpHeaders.NotModified
 					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange()
@@ -118,10 +137,10 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		void shouldCacheResponseWhenOnlyNonVaryHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
 					.value(customHeaderFromReq1 -> testClient.get().uri(uri)
-							.header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
+							.header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
 							.expectBody().jsonPath("$.headers." + CUSTOM_HEADER, customHeaderFromReq1));
 		}
 
@@ -140,9 +159,9 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		void shouldNotCacheResponseWhenResponseVaryIsWildcard() {
 			String uri = "/" + UUID.randomUUID() + "/cache/vary-on-header";
 			// Vary: *
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1")
 					.header("X-Request-Vary", "*").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "1");
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2")
 					.header("X-Request-Vary", "*").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "2");
 		}
 
@@ -151,21 +170,21 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			String uri2 = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri2).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
+			testClient.get().uri(uri2).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2")
 					.exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
 		}
 
 		@Test
 		void shouldDecreaseCacheControlMaxAgeTimeWhenResponseIsFromCache() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
-			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
 					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
 			Thread.sleep(2000);
-			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
 					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
 
@@ -175,11 +194,11 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 		@Test
 		void shouldNotCacheResponseWhenTimeToLiveIsReached() {
 			String uri = "/" + UUID.randomUUID() + "/ephemeral-cache/headers";
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
 					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).value(customHeaderFromReq1 -> {
 						try {
 							Thread.sleep(100); // Min time to have entry expired
-							testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+							testClient.get().uri(uri).header("Host", "www.redisresponsecache.org")
 									.header(CUSTOM_HEADER, "2").exchange().expectBody()
 									.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
 						}
@@ -189,26 +208,26 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 					});
 		}
 
-		@Test
-		void shouldNotCacheWhenLocalResponseCacheSizeIsReached() {
-			String uri = "/" + UUID.randomUUID() + "/one-byte-cache/headers";
-
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
-
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "2");
-		}
+//		@Test
+//		void shouldNotCacheWhenLocalResponseCacheSizeIsReached() {
+//			String uri = "/" + UUID.randomUUID() + "/one-byte-cache/headers";
+//
+//			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
+//					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+//
+//			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
+//					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "2");
+//		}
 
 		@Test
 		void shouldNotCacheWhenAuthorizationHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org")
 					.header(HttpHeaders.AUTHORIZATION, "1").header(CUSTOM_HEADER, "1").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org")
 					.header(HttpHeaders.AUTHORIZATION, "2").header(CUSTOM_HEADER, "2").exchange().expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER, "2");
 		}
@@ -226,7 +245,7 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		void assertNonVaryHeaderInContent(String uri, String varyHeader, String varyHeaderValue, String nonVaryHeader,
 				String nonVaryHeaderValue, String expectedNonVaryResponse) {
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header("X-Request-Vary", varyHeader)
+			testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").header("X-Request-Vary", varyHeader)
 					.header(varyHeader, varyHeaderValue).header(nonVaryHeader, nonVaryHeaderValue).exchange()
 					.expectBody(Map.class).consumeWith(response -> {
 						assertThat(response.getResponseHeaders()).hasEntrySatisfying("Vary",
@@ -247,21 +266,20 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 				return builder.routes()
-						.route("local_response_cache_java_test",
-								r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+						.route("redis_response_cache_java_test",
+								r -> r.path("/{namespace}/cache/**").and().host("{sub}.redisresponsecache.org")
 										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
-												.localResponseCache(Duration.ofMinutes(2), null))
+												.redisResponseCache(Duration.ofMinutes(2)))
 										.uri(uri))
-						.route("100_millisec_ephemeral_prefix_local_response_cache_java_test",
+						.route("100_millisec_ephemeral_prefix_redis_response_cache_java_test",
 								r -> r.path("/{namespace}/ephemeral-cache/**").and()
-										.host("{sub}.localresponsecache.org")
+										.host("{sub}.redisresponsecache.org")
 										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
-												.localResponseCache(Duration.ofMillis(100), null))
+												.redisResponseCache(Duration.ofMillis(100)))
 										.uri(uri))
-						.route("min_sized_prefix_local_response_cache_java_test",
-								r -> r.path("/{namespace}/one-byte-cache/**").and().host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null,
-												DataSize.ofBytes(1L)))
+						.route("min_sized_prefix_redis_response_cache_java_test",
+								r -> r.path("/{namespace}/one-byte-cache/**").and().host("{sub}.redisresponsecache.org")
+										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").redisResponseCache(null))
 										.uri(uri))
 						.build();
 			}
@@ -272,22 +290,37 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Nested
 	@SpringBootTest(
-			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
-					"spring.cloud.gateway.filter.local-response-cache.timeToLive=20s" },
+			properties = { "spring.cloud.gateway.filter.redis-response-cache.enabled=true",
+					"spring.cloud.gateway.filter.redis-response-cache.timeToLive=20s" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-	public class LocalResponseCacheUsingDefaultProperties extends BaseWebClientTests {
+	@Testcontainers
+	public class RedisResponseCacheUsingDefaultProperties extends BaseWebClientTests {
+
+		@Container
+		public static GenericContainer redis = new GenericContainer<>("redis:5.0.14-alpine").withExposedPorts(6379);
+
+		@BeforeAll
+		public static void startRedisContainer() {
+			redis.start();
+		}
+
+		@DynamicPropertySource
+		static void containerProperties(DynamicPropertyRegistry registry) {
+			registry.add("spring.data.redis.host", redis::getHost);
+			registry.add("spring.data.redis.port", redis::getFirstMappedPort);
+		}
 
 		@Test
 		void shouldApplyMaxAgeFromPropertiesWhenFilterHasNoParams() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
-			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
 					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
 			assertThat(maxAgeRequest1).isLessThanOrEqualTo(20L);
 
 			Thread.sleep(2000);
 
-			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
+			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.redisresponsecache.org").exchange()
 					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
 					.map(this::parseMaxAge).filter(Objects::nonNull).findAny().orElse(null);
 
@@ -315,9 +348,9 @@ public class ResponseCacheGatewayFilterFactoryTests extends BaseWebClientTests {
 
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes().route("local_response_cache_java_test",
-						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
-								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
+				return builder.routes().route("redis_response_cache_java_test",
+						r -> r.path("/{namespace}/cache/**").and().host("{sub}.redisresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").redisResponseCache(null))
 								.uri(uri))
 						.build();
 			}

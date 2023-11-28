@@ -17,122 +17,20 @@
 package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
-import java.util.List;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.provider.CacheManagerProvider;
-import org.springframework.cloud.gateway.support.HasRouteId;
-import org.springframework.util.unit.DataSize;
-import org.springframework.validation.annotation.Validated;
 
 /**
- * {@link org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory} of
- * {@link ResponseCacheGatewayFilter}.
- *
- * By default, a global cache (defined as properties in the application) is used. For
- * specific route configuration, parameters can be added following
- * {@link RouteCacheConfiguration} class.
- *
- * @author Marta Medio
- * @author Ignacio Lozano
+ * Base class for of response caching implementations.
  */
-@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true")
-public class ResponseCacheGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<ResponseCacheGatewayFilterFactory.RouteCacheConfiguration> {
+public abstract class ResponseCacheGatewayFilterFactory<C> extends AbstractGatewayFilterFactory<C> {
 
-	/**
-	 * Exchange attribute name to track if the request has been already process by cache
-	 * at route filter level.
-	 */
-	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
+	protected ResponseCacheManagerFactory cacheManagerFactory;
 
-	private ResponseCacheManagerFactory cacheManagerFactory;
+	protected Duration defaultTimeToLive;
 
-	private Duration defaultTimeToLive;
-
-	private DataSize defaultSize;
-
-	private CacheManagerProvider cacheManagerProvider;
-
-	public ResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, CacheManagerProvider cacheManagerProvider) {
-		this(cacheManagerFactory, defaultTimeToLive, null, cacheManagerProvider);
-	}
-
-	public ResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize, CacheManagerProvider cacheManagerProvider) {
-		super(RouteCacheConfiguration.class);
-		this.cacheManagerFactory = cacheManagerFactory;
-		this.defaultTimeToLive = defaultTimeToLive;
-		this.defaultSize = defaultSize;
-		this.cacheManagerProvider = cacheManagerProvider;
-	}
-
-	@Override
-	public GatewayFilter apply(RouteCacheConfiguration config) {
-		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
-
-		Cache routeCache = cacheManagerProvider.getCacheManager(cacheProperties)
-				.getCache(config.getRouteId() + "-cache");
-		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
-
-	}
-
-	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {
-		Duration timeToLive = config.getTimeToLive() != null ? config.getTimeToLive() : defaultTimeToLive;
-		DataSize size = config.getSize() != null ? config.getSize() : defaultSize;
-
-		LocalResponseCacheProperties responseCacheProperties = new LocalResponseCacheProperties();
-		responseCacheProperties.setTimeToLive(timeToLive);
-		responseCacheProperties.setSize(size);
-		return responseCacheProperties;
-	}
-
-	@Override
-	public List<String> shortcutFieldOrder() {
-		return List.of("timeToLive", "size");
-	}
-
-	@Validated
-	public static class RouteCacheConfiguration implements HasRouteId {
-
-		private DataSize size;
-
-		private Duration timeToLive;
-
-		private String routeId;
-
-		public DataSize getSize() {
-			return size;
-		}
-
-		public RouteCacheConfiguration setSize(DataSize size) {
-			this.size = size;
-			return this;
-		}
-
-		public Duration getTimeToLive() {
-			return timeToLive;
-		}
-
-		public RouteCacheConfiguration setTimeToLive(Duration timeToLive) {
-			this.timeToLive = timeToLive;
-			return this;
-		}
-
-		@Override
-		public void setRouteId(String routeId) {
-			this.routeId = routeId;
-		}
-
-		@Override
-		public String getRouteId() {
-			return this.routeId;
-		}
-
+	protected ResponseCacheGatewayFilterFactory(Class configClass) {
+		super(configClass);
 	}
 
 }

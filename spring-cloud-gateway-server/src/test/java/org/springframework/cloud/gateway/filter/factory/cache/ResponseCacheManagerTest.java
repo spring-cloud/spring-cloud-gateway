@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Ignacio Lozano
  */
-class ResponseCacheGatewayFilterTest {
+class ResponseCacheManagerTest {
 
 	ResponseCacheManager cacheManagerToTest = new ResponseCacheManager(null, null, null);
 
