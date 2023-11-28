@@ -1100,6 +1100,49 @@ NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `
 
 WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
 
+[[redis-cache-response-filter]]
+=== The `RedisResponseCache` `GatewayFilter` Factory
+
+This filter allows caching the response body and headers following the same rules as <<local-cache-response-filter, except Redis is used for the cache storage.
+
+This filter configures the local response cache per route and is available only if the `spring.cloud.gateway.filter.redis-response-cache.enabled` property is enabled. And a <<redis-cache-response-global-filter, redis response cache configured globally>> is also available as feature.
+
+The following listing shows how to add redis response cache `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.redisResponseCache(Duration.ofMinutes(30))
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - RedisResponseCache=30m
+----
+====
+
+NOTE: To enable this feature, add `spring-boot-starter-data-redis-reactive` and `spring-boot-starter-cache` as project dependencies.
+
 
 === The `MapRequestHeader` `GatewayFilter` Factory
 
@@ -2198,6 +2241,30 @@ Setting `spring.cloud.gateway.global-filter.local-response-cache.enabled` to `fa
 NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
 
 WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
+[[redis-cache-response-global-filter]]
+=== The Redis Response Cache Filter
+
+The `RedisResponseCache` runs if associated properties are enabled:
+
+* `spring.cloud.gateway.global-filter.redis-response-cache.enabled`: Activates the global cache for all routes
+* `spring.cloud.gateway.filter.redis-response-cache.enabled`: Activates the associated filter to use at route level
+
+This feature enables a cache using Redis for all responses that meet the criteria as spelled out in <<local-cache-response-global-filter.
+
+It accepts one configuration parameter:
+
+* `spring.cloud.gateway.filter.redis-response-cache.time-to-live` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+
+If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
+
+This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header.
+If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
+
+Setting `spring.cloud.gateway.global-filter.redis-response-cache.enabled` to `false` deactivates the redis response cache for all routes, the <<redis-cache-response-filter, RedisResponseCache filter>> allows to use this functionality at route level.
+
+NOTE: To enable this feature, add `spring-boot-starter-data-redis-reactive` and `spring-boot-starter-cache` as project dependencies.
 
 === Forward Routing Filter
 
