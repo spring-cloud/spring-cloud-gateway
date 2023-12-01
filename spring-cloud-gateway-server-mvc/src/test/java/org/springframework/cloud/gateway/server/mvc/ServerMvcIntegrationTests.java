@@ -279,8 +279,6 @@ public class ServerMvcIntegrationTests {
 		// @formatter:on
 	}
 
-
-
 	@Test
 	public void retryWorks() {
 		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
@@ -776,6 +774,7 @@ public class ServerMvcIntegrationTests {
 			return route(path("/anything/circuitbreakernofallback"), http())
 					.filter(new HttpbinUriResolver())
 					.filter(circuitBreaker("mycb3"))
+					//.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setFallbackUri("forward:/inCaseOfFailureUseThis").setStatusCodes("500", "NOT_FOUND")))
 					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
 			// @formatter:on

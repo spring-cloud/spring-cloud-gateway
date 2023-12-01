@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -149,9 +150,11 @@ public abstract class CircuitBreakerFilterFunctions {
 			setFallbackUri(URI.create(fallbackUri));
 			return this;
 		}
+
 		public CircuitBreakerConfig setFallbackUri(URI fallbackUri) {
 			if (fallbackUri != null) {
-				Assert.isTrue(fallbackUri.getScheme().equalsIgnoreCase("forward"), () -> "Scheme must be forward, but is " + fallbackUri.getScheme());
+				Assert.isTrue(fallbackUri.getScheme().equalsIgnoreCase("forward"),
+						() -> "Scheme must be forward, but is " + fallbackUri.getScheme());
 				fallbackPath = fallbackUri.getPath();
 			}
 			else {
@@ -167,6 +170,10 @@ public abstract class CircuitBreakerFilterFunctions {
 
 		public Set<String> getStatusCodes() {
 			return statusCodes;
+		}
+
+		public CircuitBreakerConfig setStatusCodes(String... statusCodes) {
+			return setStatusCodes(new LinkedHashSet<>(Arrays.asList(statusCodes)));
 		}
 
 		public CircuitBreakerConfig setStatusCodes(Set<String> statusCodes) {
