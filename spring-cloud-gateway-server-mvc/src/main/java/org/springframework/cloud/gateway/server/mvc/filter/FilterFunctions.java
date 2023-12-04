@@ -101,7 +101,7 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHost() {
-		return ofRequestProcessor(BeforeFilterFunctions.preserveHost());
+		return ofRequestProcessor(BeforeFilterFunctions.preserveHostHeader());
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri) {

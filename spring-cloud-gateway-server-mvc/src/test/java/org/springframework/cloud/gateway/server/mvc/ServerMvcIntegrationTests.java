@@ -90,7 +90,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.modifyRequestBody;
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderToRequestUri;
@@ -737,7 +737,7 @@ public class ServerMvcIntegrationTests {
 			return route("testhostpredicate")
 					.route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
 					.before(new HttpbinUriResolver())
-					.before(preserveHost())
+					.before(preserveHostHeader())
 					.after(addResponseHeader("X-SubDomain", "{sub}"))
 					.build();
 			// @formatter:on
