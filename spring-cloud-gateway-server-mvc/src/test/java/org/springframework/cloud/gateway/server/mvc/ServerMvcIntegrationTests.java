@@ -1065,6 +1065,7 @@ public class ServerMvcIntegrationTests {
 					.before(new HttpbinUriResolver())
 					// reverse order for "post" filters
 					.after(rewriteLocationResponseHeader())
+					//.after(rewriteLocationResponseHeader(config -> config.setLocationHeaderName("Location").setStripVersion(RewriteLocationResponseHeaderFilterFunctions.StripVersion.AS_IN_REQUEST)))
 					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
 					.build();
 			// @formatter:on
