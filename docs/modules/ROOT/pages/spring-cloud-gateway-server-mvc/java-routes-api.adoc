@@ -39,3 +39,8 @@ class SimpleGateway {
     }
 }
 ----
+
+[[gateway-handlerfunctions]]
+== Gateway MVC Handler Functions
+
+Various `RouterFunctions.Builder` methods require a `HandlerFunction<ServerResponse>`. To create a route that is proxied by the MVC Gateway, `HandlerFunction` implementations are supplied in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`. The most basic is the `http()` `HandlerFunction`. If a `URI` is supplied as a parameter, that is the `URI` used as the downstream target for sending the HTTP requests (as seen in the example above). If no parameter is passed, the function looks for a `URI` in the `org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_REQUEST_URL_ATTR` request attribute. This allows for dynamic targets such as load balancing to set the `URI`.
