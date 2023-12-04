@@ -222,9 +222,18 @@ public abstract class BeforeFilterFunctions {
 		return requestHeaderSize(DataSize.parse(maxSize));
 	}
 
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize, String errorHeaderName) {
+		return requestHeaderSize(DataSize.parse(maxSize), errorHeaderName);
+	}
+
 	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
+		return requestHeaderSize(maxSize, "errorMessage");
+	}
+
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize, String errorHeaderName) {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
+		Assert.hasText(errorHeaderName, "errorHeaderName may not be empty");
 		return request -> {
 			HashMap<String, Long> longHeaders = new HashMap<>();
 
@@ -249,8 +258,7 @@ public abstract class BeforeFilterFunctions {
 					@Override
 					public HttpHeaders getHeaders() {
 						HttpHeaders httpHeaders = new HttpHeaders();
-						// TODO: customize header name
-						httpHeaders.add("errorMessage", errorMessage.toString());
+						httpHeaders.add(errorHeaderName, errorMessage.toString());
 						return httpHeaders;
 					}
 				};
