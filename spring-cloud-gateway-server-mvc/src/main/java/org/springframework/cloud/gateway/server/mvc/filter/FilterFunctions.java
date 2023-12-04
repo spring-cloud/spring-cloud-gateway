@@ -108,6 +108,10 @@ public interface FilterFunctions {
 		return redirectTo(new HttpStatusHolder(null, status), uri);
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(String status, URI uri) {
+		return redirectTo(HttpStatusHolder.valueOf(status), uri);
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri) {
 		return redirectTo(new HttpStatusHolder(status, null), uri);
 	}
