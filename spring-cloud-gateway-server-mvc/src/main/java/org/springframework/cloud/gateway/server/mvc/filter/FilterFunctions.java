@@ -164,10 +164,10 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
-			String locationHeaderName, String hostValue, String protocols) {
-		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
-				.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
-						.setLocationHeaderName(locationHeaderName).setHostValue(hostValue).setProtocols(protocols)));
+			String locationHeaderName, String hostValue, String protocolsRegex) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(
+				config -> config.setStripVersion(stripVersion).setLocationHeaderName(locationHeaderName)
+						.setHostValue(hostValue).setProtocolsRegex(protocolsRegex)));
 	}
 
 	@Shortcut
