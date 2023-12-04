@@ -126,10 +126,20 @@ public abstract class GatewayRequestPredicates {
 		return RequestPredicates.methods(methods);
 	}
 
-	@Shortcut
 	public static RequestPredicate host(String pattern) {
 		Assert.notNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
+	}
+
+	@Shortcut
+	public static RequestPredicate host(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[i]));
+		}
+		return requestPredicate;
 	}
 
 	/**
@@ -155,9 +165,25 @@ public abstract class GatewayRequestPredicates {
 	 * @return a predicate that tests against the given path pattern
 	 */
 	// TODO: find a different way to add shortcut to RequestPredicates.*
-	@Shortcut
 	public static RequestPredicate path(String pattern) {
 		return RequestPredicates.path(pattern);
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the request path against the given
+	 * path pattern.
+	 * @param patterns the list of patterns to match
+	 * @return a predicate that tests against the given path pattern
+	 */
+	@Shortcut
+	public static RequestPredicate path(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = RequestPredicates.path(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(RequestPredicates.path(patterns[i]));
+		}
+		return requestPredicate;
 	}
 
 	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {

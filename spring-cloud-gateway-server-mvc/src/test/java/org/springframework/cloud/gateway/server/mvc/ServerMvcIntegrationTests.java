@@ -45,6 +45,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
@@ -735,7 +736,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
 			// @formatter:off
 			return route("testhostpredicate")
-					.route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
+					.route(host("{sub}.somehotherhost.com", "{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
 					.before(new HttpbinUriResolver())
 					.before(preserveHostHeader())
 					.after(addResponseHeader("X-SubDomain", "{sub}"))
@@ -818,7 +819,7 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCookiePredicate() {
 			// @formatter:off
-			return route(path("/cookieregex").and(cookie("mycookie", "fo.")), http())
+			return route(GatewayRequestPredicates.path("/dummypath", "/cookieregex").and(cookie("mycookie", "fo.")), http())
 					.filter(new HttpbinUriResolver())
 					.filter(setPath("/headers"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcookiepredicate");
