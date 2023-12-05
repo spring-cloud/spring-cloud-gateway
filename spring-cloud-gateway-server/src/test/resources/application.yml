@@ -296,6 +296,14 @@ spring:
         filters:
           - SetPath=/anything/{digits}
 
+        # =====================================
+      - id: redirect_to_include_query_params_test
+        uri: ${test.uri}
+        predicates:
+          - Host=queryparams.redirectto.org
+        filters:
+          - RedirectTo=302, https://example.org, true
+
       # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
