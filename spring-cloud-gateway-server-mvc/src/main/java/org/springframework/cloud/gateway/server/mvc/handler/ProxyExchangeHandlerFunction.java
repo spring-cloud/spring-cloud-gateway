@@ -72,7 +72,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort())
-				.replacePath(uri.getPath())
+				.replacePath(uri.getPath() + serverRequest.path())
 				.replaceQueryParams(serverRequest.params())
 				.build(encoded)
 				.toUri();
