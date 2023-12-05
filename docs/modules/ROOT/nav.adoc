@@ -97,7 +97,6 @@
 //*** xref:spring-cloud-gateway-server-mvc/filters/rewriterequestparameter.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/rewriteresponseheader.adoc[]
 //*** xref:spring-cloud-gateway-server-mvc/filters/savesession.adoc[]
-//*** xref:spring-cloud-gateway-server-mvc/filters/secureheaders.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/setpath.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/setrequestheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/setresponseheader.adoc[]
