@@ -92,7 +92,7 @@
 *** xref:spring-cloud-gateway-server-mvc/filters/removerequestparameter.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/removeresponseheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/requestheadersize.adoc[]
-*** xref:spring-cloud-gateway-server-mvc/filters/requestratelimiter.adoc[]
+*** xref:spring-cloud-gateway-server-mvc/filters/ratelimiter.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/rewritelocationresponseheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/rewritepath.adoc[]
 //*** xref:spring-cloud-gateway-server-mvc/filters/rewriterequestparameter.adoc[]
