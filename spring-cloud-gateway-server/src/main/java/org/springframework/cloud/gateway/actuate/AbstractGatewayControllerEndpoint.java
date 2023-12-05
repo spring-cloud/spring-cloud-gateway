@@ -96,8 +96,8 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
 			RouteLocator routeLocator) {
-		this(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates,
-				routeDefinitionWriter, routeLocator, new WebEndpointProperties());
+		this(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
+				routeLocator, new WebEndpointProperties());
 	}
 
 	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
@@ -126,8 +126,7 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 				.collectList();
 	}
 
-	private List<GatewayEndpointInfo> mergeEndpoints(List<GatewayEndpointInfo> listA,
-			List<GatewayEndpointInfo> listB) {
+	private List<GatewayEndpointInfo> mergeEndpoints(List<GatewayEndpointInfo> listA, List<GatewayEndpointInfo> listB) {
 		Map<String, List<String>> mergedMap = new HashMap<>();
 
 		Stream.concat(listA.stream(), listB.stream()).forEach(e -> mergedMap
