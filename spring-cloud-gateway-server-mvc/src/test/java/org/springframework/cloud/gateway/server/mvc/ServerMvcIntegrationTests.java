@@ -817,6 +817,9 @@ public class ServerMvcIntegrationTests {
 					.filter(rateLimit(c -> c.setCapacity(1)
 							.setPeriod(Duration.ofMinutes(1))
 							.setKeyResolver(request -> "ratelimitttest1min")))
+					/*.filter(rateLimit(c -> c.setCapacity(100)
+							.setPeriod(Duration.ofMinutes(1))
+							.setKeyResolver(request -> request.servletRequest().getUserPrincipal().getName())))*/
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testratelimit");
 			// @formatter:on
 		}
