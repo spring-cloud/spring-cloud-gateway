@@ -11,13 +11,14 @@ The following listing configures a `StripPrefix` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: nameRoot
-        uri: https://nameservice
-        predicates:
-        - Path=/name/**
-        filters:
-        - StripPrefix=2
+      mvc:
+        routes:
+        - id: nameRoot
+          uri: https://nameservice
+          predicates:
+          - Path=/name/**
+          filters:
+          - StripPrefix=2
 ----
 
 .GatewaySampleApplication.java

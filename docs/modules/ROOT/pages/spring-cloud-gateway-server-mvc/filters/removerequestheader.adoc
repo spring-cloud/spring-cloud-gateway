@@ -12,11 +12,12 @@ The following listing configures a `RemoveRequestHeader` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removerequestheader_route
-        uri: https://example.org
-        filters:
-        - RemoveRequestHeader=X-Request-Foo
+      mvc:
+        routes:
+        - id: removerequestheader_route
+          uri: https://example.org
+          filters:
+          - RemoveRequestHeader=X-Request-Foo
 ----
 
 .GatewaySampleApplication.java

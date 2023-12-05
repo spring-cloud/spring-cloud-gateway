@@ -12,11 +12,12 @@ The following example configures a `PreserveHostHeader` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: preserve_host_route
-        uri: https://example.org
-        filters:
-        - PreserveHostHeader
+      mvc:
+        routes:
+        - id: preserve_host_route
+          uri: https://example.org
+          filters:
+          - PreserveHostHeader
 ----
 
 .GatewaySampleApplication.java

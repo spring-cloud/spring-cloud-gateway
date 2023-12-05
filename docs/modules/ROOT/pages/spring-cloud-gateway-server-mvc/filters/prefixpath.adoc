@@ -11,11 +11,12 @@ The following example configures a `PrefixPath` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: prefixpath_route
-        uri: https://example.org
-        filters:
-        - PrefixPath=/mypath
+      mvc:
+        routes:
+        - id: prefixpath_route
+          uri: https://example.org
+          filters:
+          - PrefixPath=/mypath
 ----
 
 .GatewaySampleApplication.java

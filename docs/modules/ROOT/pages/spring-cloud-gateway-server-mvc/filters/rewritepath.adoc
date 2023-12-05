@@ -11,13 +11,14 @@ The following listing configures a `RewritePath` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewritepath_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/**
-        filters:
-        - RewritePath=/red/?(?<segment>.*), /$\{segment}
+      mvc:
+        routes:
+        - id: rewritepath_route
+          uri: https://example.org
+          predicates:
+          - Path=/red/**
+          filters:
+          - RewritePath=/red/?(?<segment>.*), /$\{segment}
 ----
 
 .GatewaySampleApplication.java

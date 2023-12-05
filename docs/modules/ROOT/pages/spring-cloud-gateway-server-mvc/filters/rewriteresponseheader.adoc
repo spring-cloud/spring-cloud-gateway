@@ -12,11 +12,12 @@ The following example configures a `RewriteResponseHeader` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewriteresponseheader_route
-        uri: https://example.org
-        filters:
-        - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
+      mvc:
+        routes:
+        - id: rewriteresponseheader_route
+          uri: https://example.org
+          filters:
+          - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
 ----
 
 .GatewaySampleApplication.java

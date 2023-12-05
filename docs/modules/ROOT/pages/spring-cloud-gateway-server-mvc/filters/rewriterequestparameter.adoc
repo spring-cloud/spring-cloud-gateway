@@ -12,13 +12,14 @@ The following listing configures a `RewriteRequestParameter` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewriterequestparameter_route
-        uri: https://example.org
-        predicates:
-        - Path=/products
-        filters:
-        - RewriteRequestParameter=campaign,fall2023
+      mvc:
+        routes:
+        - id: rewriterequestparameter_route
+          uri: https://example.org
+          predicates:
+          - Path=/products
+          filters:
+          - RewriteRequestParameter=campaign,fall2023
 ----
 
 .GatewaySampleApplication.java

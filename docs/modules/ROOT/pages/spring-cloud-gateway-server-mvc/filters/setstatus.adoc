@@ -12,15 +12,16 @@ The following listing configures a `SetStatus` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setstatusstring_route
-        uri: https://example.org
-        filters:
-        - SetStatus=UNAUTHORIZED
-      - id: setstatusint_route
-        uri: https://example.org
-        filters:
-        - SetStatus=401
+      mvc:
+        routes:
+        - id: setstatusstring_route
+          uri: https://example.org
+          filters:
+          - SetStatus=UNAUTHORIZED
+        - id: setstatusint_route
+          uri: https://example.org
+          filters:
+          - SetStatus=401
 ----
 
 .GatewaySampleApplication.java

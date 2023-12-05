@@ -14,11 +14,12 @@ The following listing configures a `RedirectTo` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: redirectto_route
-        uri: https://example.org
-        filters:
-        - RedirectTo=302, https://acme.org
+      mvc:
+        routes:
+        - id: redirectto_route
+          uri: https://example.org
+          filters:
+          - RedirectTo=302, https://acme.org
 ----
 
 .GatewaySampleApplication.java

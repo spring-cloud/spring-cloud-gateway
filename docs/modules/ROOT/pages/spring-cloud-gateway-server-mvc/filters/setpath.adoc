@@ -13,13 +13,14 @@ The following example configures a `SetPath` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setpath_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment}
-        filters:
-        - SetPath=/{segment}
+      mvc:
+        routes:
+        - id: setpath_route
+          uri: https://example.org
+          predicates:
+          - Path=/red/{segment}
+          filters:
+          - SetPath=/{segment}
 ----
 
 .GatewaySampleApplication.java

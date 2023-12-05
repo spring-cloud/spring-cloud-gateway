@@ -11,15 +11,16 @@ The following listing configures a `SetRequestHostHeader` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: set_request_host_header_route
-        uri: http://localhost:8080
-        predicates:
-        - Path=/headers
-        filters:
-        - name: SetRequestHostHeader
-          args:
-            host: example.org
+      mvc:
+        routes:
+        - id: set_request_host_header_route
+          uri: http://localhost:8080
+          predicates:
+          - Path=/headers
+          filters:
+          - name: SetRequestHostHeader
+            args:
+              host: example.org
 ----
 
 .GatewaySampleApplication.java
