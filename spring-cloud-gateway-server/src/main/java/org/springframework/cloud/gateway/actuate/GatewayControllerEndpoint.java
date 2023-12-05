@@ -50,8 +50,8 @@ public class GatewayControllerEndpoint extends AbstractGatewayControllerEndpoint
 			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
 			RouteLocator routeLocator, RouteDefinitionLocator routeDefinitionLocator,
 			WebEndpointProperties webEndpointProperties) {
-		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates,
-				routeDefinitionWriter, routeLocator, webEndpointProperties);
+		super(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
+				routeLocator, webEndpointProperties);
 	}
 
 	@GetMapping("/routedefinitions")
