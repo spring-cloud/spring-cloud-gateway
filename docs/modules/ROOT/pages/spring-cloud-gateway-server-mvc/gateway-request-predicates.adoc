@@ -390,8 +390,6 @@ Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 String segment = uriVariables.get("segment");
 ----
 
-////
-TODO: query predicate
 [[query-request-predicate]]
 == The Query Request Predicate
 
@@ -411,6 +409,26 @@ spring:
         - Query=green
 ----
 
+.GatewaySampleApplication.java
+[source,java]
+----
+import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
+		return route("query_route")
+			.route(query("green"), http("https://example.org"))
+			.build();
+    }
+}
+----
+
 The preceding route matches if the request contained a `green` query parameter.
 
 .application.yml
@@ -426,8 +444,29 @@ spring:
         - Query=red, gree.
 ----
 
+.GatewaySampleApplication.java
+[source,java]
+----
+import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
+		return route("query_route")
+			.route(query("red", "gree."), http("https://example.org"))
+			.build();
+    }
+}
+----
+
 The preceding route matches if the request contained a `red` query parameter whose value matched the `gree.` regexp, so `green` and `greet` would match.
 
+////
 TODO: remoteAddr predicate
 [[remoteaddr-request-predicate]]
 == The RemoteAddr Request Predicate
@@ -511,7 +550,7 @@ RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
 [[weight-request-predicate]]
 == The Weight Request Predicate
 
-The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
+The `Weight` route predicate factory takes two arguments: `group` and `weight` (an `int`). The weights are calculated per group.
 The following example configures a weight route predicate:
 
 .application.yml
@@ -554,7 +593,7 @@ class RouteConfiguration {
 }
 ----
 
-This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org.
 
 ////
 TODO: XForwardedRemoteAddr predicate

@@ -119,6 +119,7 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.readBody;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
@@ -603,6 +604,19 @@ public class ServerMvcIntegrationTests {
 	public void forwardNon200StatusWorks() {
 		restClient.get().uri("/doforward2").exchange().expectStatus().isCreated().expectBody(String.class)
 				.isEqualTo("hello2");
+	}
+
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void queryParamWorks() {
+		restClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map responseBody = result.getResponseBody();
+					assertThat(responseBody).containsKey("args");
+					Map args = getMap(responseBody, "args");
+					assertThat(args).containsKey("foo");
+					assertThat(args.get("foo")).isEqualTo("bar");
+				});
 	}
 
 	@SpringBootConfiguration
@@ -1122,6 +1136,16 @@ public class ServerMvcIntegrationTests {
 			return route("testforwardnon200status")
 					.GET("/doforward2", forward("/hello2"))
 					.before(new LocalServerPortUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
+			// @formatter:off
+			return route("testqueryparam")
+					.route(query("foo", "bar"), http())
+					.before(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}

@@ -186,6 +186,32 @@ public abstract class GatewayRequestPredicates {
 		return requestPredicate;
 	}
 
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter.
+	 * @param param the name of the query parameter
+	 * @return a predicate that tests for the presence of a given param
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param) {
+		return query(param, null);
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter if
+	 * the regexp is empty, or, otherwise finds if any value of the parameter matches the
+	 * regexp.
+	 * @param param the name of the query parameter
+	 * @param regexp an optional regular expression to match.
+	 * @return a predicate that tests for the given param and regexp.
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param, String regexp) {
+		if (!StringUtils.hasText(regexp)) {
+			return request -> request.param(param).isPresent();
+		}
+		return request -> request.param(param).stream().anyMatch(value -> value.matches(regexp));
+	}
+
 	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {
 		return new ReadBodyPredicate<>(inClass, predicate);
 	}
