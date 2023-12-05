@@ -802,6 +802,7 @@ public class ServerMvcIntegrationTests {
 					.route(path("/retry"), http())
 					.before(new LocalServerPortUriResolver())
 					.filter(retry(3))
+					//.filter(retry(config -> config.setRetries(3).setSeries(Set.of(HttpStatus.Series.SERVER_ERROR)).setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))))
 					.filter(prefixPath("/do"))
 					.build();
 			// @formatter:on
