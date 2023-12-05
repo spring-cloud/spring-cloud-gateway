@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -71,8 +72,6 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	private static final Log log = LogFactory.getLog(GatewayControllerEndpoint.class);
 
-	private static final String ENDPOINT_PREFIX = "/actuator/gateway";
-
 	protected RouteDefinitionLocator routeDefinitionLocator;
 
 	protected List<GlobalFilter> globalFilters;
@@ -88,25 +87,55 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected ApplicationEventPublisher publisher;
 
+	protected WebEndpointProperties webEndpointProperties;
+
+	private final SimpleMetadataReaderFactory simpleMetadataReaderFactory = new SimpleMetadataReaderFactory();
+
 	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
-			RouteLocator routeLocator) {
+			RouteLocator routeLocator, WebEndpointProperties webEndpointProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = gatewayFilters;
 		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
+		this.webEndpointProperties = webEndpointProperties;
+	}
+
+	@GetMapping("/")
+	Mono<List<GatewayEndpointInfo>> getEndpoints() {
+		List<GatewayEndpointInfo> endpoints = mergeEndpoints(
+				getAvailableEndpointsForClass(AbstractGatewayControllerEndpoint.class.getName()),
+				getAvailableEndpointsForClass(GatewayControllerEndpoint.class.getName()));
+
+		return Flux.fromIterable(endpoints).map(p -> p)
+				.flatMap(path -> this.routeLocator.getRoutes().map(r -> generateHref(r, path)).distinct().collectList()
+						.flatMapMany(Flux::fromIterable))
+				.distinct() // Ensure overall uniqueness
+				.collectList();
+	}
+
+	private List<GatewayEndpointInfo> mergeEndpoints(List<GatewayEndpointInfo> listA,
+			List<GatewayEndpointInfo> listB) {
+		Map<String, List<String>> mergedMap = new HashMap<>();
+
+		Stream.concat(listA.stream(), listB.stream()).forEach(e -> mergedMap
+				.computeIfAbsent(e.getHref(), k -> new ArrayList<>()).addAll(Arrays.asList(e.getMethods())));
+
+		return mergedMap.entrySet().stream().map(entry -> new GatewayEndpointInfo(entry.getKey(), entry.getValue()))
+				.collect(Collectors.toList());
 	}
 
 	private List<GatewayEndpointInfo> getAvailableEndpointsForClass(String className) {
 		try {
-			MetadataReader metadataReader = new SimpleMetadataReaderFactory().getMetadataReader(className);
+			MetadataReader metadataReader = simpleMetadataReaderFactory.getMetadataReader(className);
 			Set<MethodMetadata> annotatedMethods = metadataReader.getAnnotationMetadata()
 					.getAnnotatedMethods(RequestMapping.class.getName());
 
-			return annotatedMethods.stream().map(method -> new GatewayEndpointInfo(ENDPOINT_PREFIX
+			String gatewayActuatorPath = webEndpointProperties.getBasePath() + "/gateway";
+			return annotatedMethods.stream().map(method -> new GatewayEndpointInfo(gatewayActuatorPath
 					+ ((String[]) method.getAnnotationAttributes(RequestMapping.class.getName()).get("path"))[0],
 					((RequestMethod[]) method.getAnnotationAttributes(RequestMapping.class.getName()).get("method"))[0]
 							.name()))
@@ -118,33 +147,8 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 		}
 	}
 
-	public static List<GatewayEndpointInfo> mergeEndpoints(List<GatewayEndpointInfo> listA,
-			List<GatewayEndpointInfo> listB) {
-		Map<String, List<String>> mergedMap = new HashMap<>();
-
-		Stream.concat(listA.stream(), listB.stream()).forEach(e -> mergedMap
-				.computeIfAbsent(e.getHref(), k -> new ArrayList<>()).addAll(Arrays.asList(e.getMethods())));
-
-		return mergedMap.entrySet().stream().map(entry -> new GatewayEndpointInfo(entry.getKey(), entry.getValue()))
-				.collect(Collectors.toList());
-	}
-
-	GatewayEndpointInfo generateHref(Route r, GatewayEndpointInfo path) {
+	private GatewayEndpointInfo generateHref(Route r, GatewayEndpointInfo path) {
 		return new GatewayEndpointInfo(path.getHref().replace("{id}", r.getId()), Arrays.asList(path.getMethods()));
-	}
-
-	@GetMapping("/")
-	public Mono<List<GatewayEndpointInfo>> getEndpoints() {
-		List<GatewayEndpointInfo> endpoints = mergeEndpoints(
-				getAvailableEndpointsForClass(AbstractGatewayControllerEndpoint.class.getName()),
-				getAvailableEndpointsForClass(GatewayControllerEndpoint.class.getName()));
-
-		return Flux.fromIterable(endpoints).map(p -> p)
-				.flatMap(path -> this.routeLocator.getRoutes().map(r -> generateHref(r, path)).distinct().collectList()
-						.flatMapMany(Flux::fromIterable))
-				.distinct() // Ensure overall uniqueness
-				.collectList();
-
 	}
 
 	@Override

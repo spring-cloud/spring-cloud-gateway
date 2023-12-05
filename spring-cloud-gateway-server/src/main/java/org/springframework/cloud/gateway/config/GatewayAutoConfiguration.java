@@ -40,6 +40,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -817,9 +818,9 @@ public class GatewayAutoConfiguration {
 		public GatewayControllerEndpoint gatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
-				RouteDefinitionLocator routeDefinitionLocator) {
+				RouteDefinitionLocator routeDefinitionLocator, WebEndpointProperties webEndpointProperties) {
 			return new GatewayControllerEndpoint(globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-					routeLocator, routeDefinitionLocator);
+					routeLocator, routeDefinitionLocator, webEndpointProperties);
 		}
 
 		@Bean
@@ -828,9 +829,10 @@ public class GatewayAutoConfiguration {
 		public GatewayLegacyControllerEndpoint gatewayLegacyControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
-				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
+				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
+				WebEndpointProperties webEndpointProperties) {
 			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator, globalFilters, gatewayFilters,
-					routePredicates, routeDefinitionWriter, routeLocator);
+					routePredicates, routeDefinitionWriter, routeLocator, webEndpointProperties);
 		}
 
 	}
