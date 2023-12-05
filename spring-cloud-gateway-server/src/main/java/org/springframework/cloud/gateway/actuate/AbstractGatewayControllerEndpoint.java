@@ -16,24 +16,30 @@
 
 package org.springframework.cloud.gateway.actuate;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
@@ -42,6 +48,9 @@ import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.Ordered;
+import org.springframework.core.type.MethodMetadata;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.SimpleMetadataReaderFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
@@ -51,6 +60,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -76,16 +87,77 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	protected ApplicationEventPublisher publisher;
 
+	protected WebEndpointProperties webEndpointProperties;
+
+	private final SimpleMetadataReaderFactory simpleMetadataReaderFactory = new SimpleMetadataReaderFactory();
+
+	@Deprecated
 	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
 			RouteLocator routeLocator) {
+		this(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates,
+				routeDefinitionWriter, routeLocator, new WebEndpointProperties());
+	}
+
+	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
+			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
+			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
+			RouteLocator routeLocator, WebEndpointProperties webEndpointProperties) {
 		this.routeDefinitionLocator = routeDefinitionLocator;
 		this.globalFilters = globalFilters;
 		this.GatewayFilters = gatewayFilters;
 		this.routePredicates = routePredicates;
 		this.routeDefinitionWriter = routeDefinitionWriter;
 		this.routeLocator = routeLocator;
+		this.webEndpointProperties = webEndpointProperties;
+	}
+
+	@GetMapping("/")
+	Mono<List<GatewayEndpointInfo>> getEndpoints() {
+		List<GatewayEndpointInfo> endpoints = mergeEndpoints(
+				getAvailableEndpointsForClass(AbstractGatewayControllerEndpoint.class.getName()),
+				getAvailableEndpointsForClass(GatewayControllerEndpoint.class.getName()));
+
+		return Flux.fromIterable(endpoints).map(p -> p)
+				.flatMap(path -> this.routeLocator.getRoutes().map(r -> generateHref(r, path)).distinct().collectList()
+						.flatMapMany(Flux::fromIterable))
+				.distinct() // Ensure overall uniqueness
+				.collectList();
+	}
+
+	private List<GatewayEndpointInfo> mergeEndpoints(List<GatewayEndpointInfo> listA,
+			List<GatewayEndpointInfo> listB) {
+		Map<String, List<String>> mergedMap = new HashMap<>();
+
+		Stream.concat(listA.stream(), listB.stream()).forEach(e -> mergedMap
+				.computeIfAbsent(e.getHref(), k -> new ArrayList<>()).addAll(Arrays.asList(e.getMethods())));
+
+		return mergedMap.entrySet().stream().map(entry -> new GatewayEndpointInfo(entry.getKey(), entry.getValue()))
+				.collect(Collectors.toList());
+	}
+
+	private List<GatewayEndpointInfo> getAvailableEndpointsForClass(String className) {
+		try {
+			MetadataReader metadataReader = simpleMetadataReaderFactory.getMetadataReader(className);
+			Set<MethodMetadata> annotatedMethods = metadataReader.getAnnotationMetadata()
+					.getAnnotatedMethods(RequestMapping.class.getName());
+
+			String gatewayActuatorPath = webEndpointProperties.getBasePath() + "/gateway";
+			return annotatedMethods.stream().map(method -> new GatewayEndpointInfo(gatewayActuatorPath
+					+ ((String[]) method.getAnnotationAttributes(RequestMapping.class.getName()).get("path"))[0],
+					((RequestMethod[]) method.getAnnotationAttributes(RequestMapping.class.getName()).get("method"))[0]
+							.name()))
+					.collect(Collectors.toList());
+		}
+		catch (IOException exception) {
+			log.warn(exception.getMessage());
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+		}
+	}
+
+	private GatewayEndpointInfo generateHref(Route r, GatewayEndpointInfo path) {
+		return new GatewayEndpointInfo(path.getHref().replace("{id}", r.getId()), Arrays.asList(path.getMethods()));
 	}
 
 	@Override
