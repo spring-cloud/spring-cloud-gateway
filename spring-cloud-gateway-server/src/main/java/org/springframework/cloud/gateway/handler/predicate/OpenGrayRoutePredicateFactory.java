@@ -17,16 +17,12 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
-
-
 import org.apache.commons.codec.digest.MurmurHash3;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
