@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 
-
+import org.apache.commons.codec.digest.MurmurHash3;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpCookie;
@@ -82,8 +82,8 @@ public class OpenGrayRoutePredicateFactory extends AbstractRoutePredicateFactory
                 }
 
 
-                long weightStart = Math.max(0, config.getStart());
-                long weightEnd = Math.min(MAX_WEIGHT_RANGE, config.getEnd());
+                int weightStart = Math.max(0, config.getStart());
+				int weightEnd = Math.min(MAX_WEIGHT_RANGE, config.getEnd());
 
                 if (weightEnd < weightStart) {
                     // invalid match range
@@ -91,7 +91,7 @@ public class OpenGrayRoutePredicateFactory extends AbstractRoutePredicateFactory
                 }
 
 
-                long hash = Math.abs(getMuHashString(patternValue)) % MAX_WEIGHT_RANGE;
+				int hash = Math.abs(MurmurHash3.hash32x86(patternValue.getBytes(StandardCharsets.UTF_8))) % MAX_WEIGHT_RANGE;
 
 				return hash >= weightStart && hash < weightEnd;
             }
@@ -130,13 +130,6 @@ public class OpenGrayRoutePredicateFactory extends AbstractRoutePredicateFactory
             return "";
         }
     }
-
-
-    private Long getMuHashString(String str) {
-        HashFunction hashFunction = Hashing.murmur3_128();
-        return hashFunction.hashString(str, StandardCharsets.UTF_8).asLong();
-    }
-
 
     /**
      * match range [start, end) range. [0, 1000) full match range
