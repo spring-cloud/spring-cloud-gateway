@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Assertions;
@@ -66,6 +67,26 @@ public class GatewayControllerEndpointTests {
 
 	@LocalServerPort
 	int port;
+
+	@Test
+	public void testEndpoints() {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+					assertThat(responseBody).contains(Map.of("href", "/actuator/gateway/", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/globalfilters", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/refresh", "methods", List.of("POST")),
+							Map.of("href", "/actuator/gateway/routedefinitions", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routefilters", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routepredicates", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routes", "methods", List.of("POST", "GET")),
+							Map.of("href", "/actuator/gateway/routes/test-service", "methods",
+									List.of("POST", "DELETE", "GET")),
+							Map.of("href", "/actuator/gateway/routes/route_with_metadata", "methods",
+									List.of("POST", "DELETE", "GET")));
+				});
+	}
 
 	@Test
 	public void testRefresh() {
@@ -190,6 +211,58 @@ public class GatewayControllerEndpointTests {
 				.expectBodyList(Map.class).consumeWith(result -> {
 					List<Map> responseBody = result.getResponseBody();
 					assertThat(responseBody).extracting("route_id").contains(routeId1).doesNotContain(routeId2);
+				});
+	}
+
+	@Test
+	public void testOrderOfRefreshByGroup() {
+		RouteDefinition testRouteDefinition = new RouteDefinition();
+		testRouteDefinition.setUri(URI.create("http://example.org"));
+		testRouteDefinition.setOrder(1000);
+		String group1 = "group-1_" + UUID.randomUUID();
+		testRouteDefinition.setMetadata(Map.of("groupBy", group1));
+
+		String routeId1 = "route-1_" + UUID.randomUUID();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition)).exchange()
+				.expectStatus().isCreated();
+
+		RouteDefinition testRouteDefinition2 = new RouteDefinition();
+		testRouteDefinition2.setUri(URI.create("http://example.org"));
+		testRouteDefinition2.setOrder(0);
+		String group2 = "group-2_" + UUID.randomUUID();
+		testRouteDefinition2.setMetadata(Map.of("groupBy", group2));
+		String routeId2 = "route-2_" + UUID.randomUUID();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId2)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition2)).exchange()
+				.expectStatus().isCreated();
+
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
+				.exchange().expectStatus().isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group2)
+				.exchange().expectStatus().isOk();
+
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+
+					List ids = responseBody.stream().map(route -> route.get("route_id"))
+							.filter(id -> id.equals(routeId1) || id.equals(routeId2)).collect(Collectors.toList());
+					assertThat(ids).containsExactly(routeId2, routeId1);
+				});
+
+		testRouteDefinition2.setOrder(testRouteDefinition.getOrder() + 1);
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId2)
+				.accept(MediaType.APPLICATION_JSON).body(BodyInserters.fromValue(testRouteDefinition2)).exchange()
+				.expectStatus().isCreated();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group2)
+				.exchange().expectStatus().isOk();
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					List ids = responseBody.stream().map(route -> route.get("route_id"))
+							.filter(id -> id.equals(routeId1) || id.equals(routeId2)).collect(Collectors.toList());
+					assertThat(ids).containsExactly(routeId1, routeId2);
 				});
 	}
 

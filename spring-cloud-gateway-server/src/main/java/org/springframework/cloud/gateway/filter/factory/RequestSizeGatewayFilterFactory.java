@@ -30,8 +30,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * This filter blocks the request, if the request size is more than the permissible size.
- * The default request size is 5 MB.
+ * This filter blocks the request if the size in Content-Length header value is more than
+ * the permissible size. Has no effect if Content-Length header is missing. The default
+ * request size is 5 MB.
  *
  * @author Arpan
  */

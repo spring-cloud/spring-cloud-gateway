@@ -18,9 +18,11 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -36,6 +38,7 @@ import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -49,6 +52,10 @@ public abstract class CircuitBreakerFilterFunctions {
 	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(String id) {
 		return circuitBreaker(config -> config.setId(id));
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(String id, URI fallbackUri) {
+		return circuitBreaker(config -> config.setId(id).setFallbackUri(fallbackUri));
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(String id, String fallbackPath) {
@@ -138,6 +145,24 @@ public abstract class CircuitBreakerFilterFunctions {
 			return fallbackPath;
 		}
 
+		public CircuitBreakerConfig setFallbackUri(String fallbackUri) {
+			Assert.notNull(fallbackUri, "fallbackUri String may not be null");
+			setFallbackUri(URI.create(fallbackUri));
+			return this;
+		}
+
+		public CircuitBreakerConfig setFallbackUri(URI fallbackUri) {
+			if (fallbackUri != null) {
+				Assert.isTrue(fallbackUri.getScheme().equalsIgnoreCase("forward"),
+						() -> "Scheme must be forward, but is " + fallbackUri.getScheme());
+				fallbackPath = fallbackUri.getPath();
+			}
+			else {
+				fallbackPath = null;
+			}
+			return this;
+		}
+
 		public CircuitBreakerConfig setFallbackPath(String fallbackPath) {
 			this.fallbackPath = fallbackPath;
 			return this;
@@ -145,6 +170,10 @@ public abstract class CircuitBreakerFilterFunctions {
 
 		public Set<String> getStatusCodes() {
 			return statusCodes;
+		}
+
+		public CircuitBreakerConfig setStatusCodes(String... statusCodes) {
+			return setStatusCodes(new LinkedHashSet<>(Arrays.asList(statusCodes)));
 		}
 
 		public CircuitBreakerConfig setStatusCodes(Set<String> statusCodes) {

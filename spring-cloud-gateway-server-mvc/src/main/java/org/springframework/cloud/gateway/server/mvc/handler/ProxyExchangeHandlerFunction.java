@@ -69,11 +69,10 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		boolean encoded = containsEncodedQuery(serverRequest.uri());
 		// @formatter:off
 		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
-				// .uri(routeUri)
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort())
-				.queryParams(serverRequest.params())
+				.replaceQueryParams(serverRequest.params())
 				.build(encoded)
 				.toUri();
 		// @formatter:on

@@ -41,7 +41,9 @@ import org.springframework.cloud.client.loadbalancer.ResponseData;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -73,16 +75,16 @@ public abstract class LoadBalancerFilterFunctions {
 
 			LoadBalancerClient loadBalancerClient = clientFactory.getInstance(serviceId, LoadBalancerClient.class);
 			if (loadBalancerClient == null) {
-				// TODO: type, return 500 error?
-				throw new RuntimeException("No loadbalancer available for " + serviceId);
+				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
+						"No loadbalancer available for " + serviceId);
 			}
 			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStart(lbRequest));
 			ServiceInstance retrievedInstance = loadBalancerClient.choose(serviceId, lbRequest);
 			if (retrievedInstance == null) {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
 						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
-				// TODO: type, return 500 error?
-				throw new RuntimeException("Unable to find instance for " + serviceId);
+				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
+						"Unable to find instance for " + serviceId);
 				// throw NotFoundException.create(properties.isUse404(), "Unable to find
 				// instance for " + serviceId);
 			}

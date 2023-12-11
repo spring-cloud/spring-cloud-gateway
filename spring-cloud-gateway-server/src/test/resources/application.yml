@@ -214,6 +214,15 @@ spring:
         predicates:
           - Header=Foo, .*
 
+
+        # =====================================
+      - id: without_pattern
+        uri: ${test.uri}
+        predicates:
+          - name: Host
+            args:
+              pattern: 'hostpatternarg.org'
+
       # =====================================
       - id: host_backwards_compatible_test
         uri: ${test.uri}
@@ -295,6 +304,14 @@ spring:
           - Path=/regex/{digits:\d+}
         filters:
           - SetPath=/anything/{digits}
+
+        # =====================================
+      - id: redirect_to_include_query_params_test
+        uri: ${test.uri}
+        predicates:
+          - Host=queryparams.redirectto.org
+        filters:
+          - RedirectTo=302, https://example.org, true
 
       # =====================================
       - id: redirect_to_test
