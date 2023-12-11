@@ -75,6 +75,11 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void sameHostWithPort() {
+		expectHostRoute("hostpatternarg.org:8080", "without_pattern");
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("pattern1", "pattern2"));
 		Predicate predicate = new HostRoutePredicateFactory().apply(config);

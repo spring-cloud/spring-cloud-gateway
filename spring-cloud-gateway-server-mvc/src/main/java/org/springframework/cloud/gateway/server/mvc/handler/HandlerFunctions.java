@@ -53,6 +53,10 @@ public abstract class HandlerFunctions {
 
 	// TODO: current discovery only goes by method name
 	// so last one wins, so put parameterless last
+	public static HandlerFunction<ServerResponse> http(String uri) {
+		return http(URI.create(uri));
+	}
+
 	public static HandlerFunction<ServerResponse> http(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}

@@ -182,6 +182,32 @@ public class ShortcutConfigurableTests {
 		}
 	}
 
+	@Test
+	public void testNormalizeGatherListTailFlagFlagIsNull() {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("values", "flag");
+			}
+
+			@Override
+			public ShortcutType shortcutType() {
+				return ShortcutType.GATHER_LIST_TAIL_FLAG;
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("1", "val0");
+		args.put("2", "val1");
+		args.put("3", "val2");
+		args.put("4", null);
+		Map<String, Object> map = ShortcutType.GATHER_LIST_TAIL_FLAG.normalize(args, shortcutConfigurable, parser,
+				this.beanFactory);
+		assertThat(map).isNotNull().containsKey("values");
+		assertThat((List) map.get("values")).containsExactly("val0", "val1", "val2");
+		assertThat(map.get("flag")).isNull();
+	}
+
 	@SpringBootConfiguration
 	protected static class TestConfig {
 

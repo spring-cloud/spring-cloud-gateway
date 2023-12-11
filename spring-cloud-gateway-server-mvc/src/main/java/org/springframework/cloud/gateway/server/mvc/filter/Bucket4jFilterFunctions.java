@@ -35,6 +35,7 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -47,7 +48,9 @@ public abstract class Bucket4jFilterFunctions {
 	public static final String DEFAULT_HEADER_NAME = "X-RateLimit-Remaining";
 
 	private static final Function<RateLimitConfig, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
-			.builder().addLimit(Bandwidth.simple(config.getCapacity(), config.getPeriod())).build();
+			.builder().addLimit(Bandwidth.builder().capacity(config.getCapacity())
+					.refillGreedy(config.getCapacity(), config.getPeriod()).build())
+			.build();
 
 	private Bucket4jFilterFunctions() {
 	}
@@ -65,8 +68,12 @@ public abstract class Bucket4jFilterFunctions {
 		BucketConfiguration bucketConfiguration = config.getConfigurationBuilder().apply(config);
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
-			AsyncBucketProxy bucket = proxyManager.builder().build(config.getKeyResolver().apply(request),
-					bucketConfiguration);
+			String key = config.getKeyResolver().apply(request);
+			if (!StringUtils.hasText(key)) {
+				// TODO: configurable empty key status code
+				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
+			}
+			AsyncBucketProxy bucket = proxyManager.builder().build(key, bucketConfiguration);
 			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(config.getTokens());
 			ConsumptionProbe consumptionProbe;
 			if (config.getTimeout() != null) {

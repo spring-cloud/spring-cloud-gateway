@@ -32,6 +32,7 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
@@ -89,7 +91,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.modifyRequestBody;
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHost;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderToRequestUri;
@@ -117,6 +119,7 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.readBody;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
@@ -266,6 +269,16 @@ public class ServerMvcIntegrationTests {
 	public void circuitBreakerNoFallbackWorks() {
 		restClient.get().uri("/anything/circuitbreakernofallback").exchange().expectStatus()
 				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+	}
+
+	@Test
+	public void circuitBreakerInvalidFallbackThrowsException() {
+		// @formatter:off
+		Assertions.assertThatThrownBy(() -> route("testcircuitbreakergatewayfallback")
+				.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+				.filter(circuitBreaker("mycb2", URI.create("http://example.com")))
+				.build()).isInstanceOf(IllegalArgumentException.class);
+		// @formatter:on
 	}
 
 	@Test
@@ -593,6 +606,19 @@ public class ServerMvcIntegrationTests {
 				.isEqualTo("hello2");
 	}
 
+	@Test
+	@SuppressWarnings("rawtypes")
+	public void queryParamWorks() {
+		restClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map responseBody = result.getResponseBody();
+					assertThat(responseBody).containsKey("args");
+					Map args = getMap(responseBody, "args");
+					assertThat(args).containsKey("foo");
+					assertThat(args.get("foo")).isEqualTo("bar");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -724,9 +750,9 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
 			// @formatter:off
 			return route("testhostpredicate")
-					.route(host("{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
+					.route(host("{sub}.somehotherhost.com", "{sub}.myjavadslhost.com").and(path("/anything/hostpredicate")), http())
 					.before(new HttpbinUriResolver())
-					.before(preserveHost())
+					.before(preserveHostHeader())
 					.after(addResponseHeader("X-SubDomain", "{sub}"))
 					.build();
 			// @formatter:on
@@ -747,7 +773,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testcircuitbreakergatewayfallback")
 					.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
-					.filter(circuitBreaker("mycb2", "/anything/gatewayfallback"))
+					.filter(circuitBreaker("mycb2", URI.create("forward:/anything/gatewayfallback")))
 					.build()
 				.and(route("testgatewayfallback")
 					.route(path("/anything/gatewayfallback"), http())
@@ -762,7 +788,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route(path("/anything/circuitbreakernofallback"), http())
 					.filter(new HttpbinUriResolver())
-					.filter(circuitBreaker("mycb3", null))
+					.filter(circuitBreaker("mycb3"))
+					//.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setFallbackUri("forward:/inCaseOfFailureUseThis").setStatusCodes("500", "NOT_FOUND")))
 					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
 			// @formatter:on
@@ -775,6 +802,7 @@ public class ServerMvcIntegrationTests {
 					.route(path("/retry"), http())
 					.before(new LocalServerPortUriResolver())
 					.filter(retry(3))
+					//.filter(retry(config -> config.setRetries(3).setSeries(Set.of(HttpStatus.Series.SERVER_ERROR)).setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))))
 					.filter(prefixPath("/do"))
 					.build();
 			// @formatter:on
@@ -789,6 +817,9 @@ public class ServerMvcIntegrationTests {
 					.filter(rateLimit(c -> c.setCapacity(1)
 							.setPeriod(Duration.ofMinutes(1))
 							.setKeyResolver(request -> "ratelimitttest1min")))
+					/*.filter(rateLimit(c -> c.setCapacity(100)
+							.setPeriod(Duration.ofMinutes(1))
+							.setKeyResolver(request -> request.servletRequest().getUserPrincipal().getName())))*/
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testratelimit");
 			// @formatter:on
 		}
@@ -806,7 +837,7 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCookiePredicate() {
 			// @formatter:off
-			return route(path("/cookieregex").and(cookie("mycookie", "fo.")), http())
+			return route(GatewayRequestPredicates.path("/dummypath", "/cookieregex").and(cookie("mycookie", "fo.")), http())
 					.filter(new HttpbinUriResolver())
 					.filter(setPath("/headers"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcookiepredicate");
@@ -1053,6 +1084,7 @@ public class ServerMvcIntegrationTests {
 					.before(new HttpbinUriResolver())
 					// reverse order for "post" filters
 					.after(rewriteLocationResponseHeader())
+					//.after(rewriteLocationResponseHeader(config -> config.setLocationHeaderName("Location").setStripVersion(RewriteLocationResponseHeaderFilterFunctions.StripVersion.AS_IN_REQUEST)))
 					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
 					.build();
 			// @formatter:on
@@ -1108,6 +1140,16 @@ public class ServerMvcIntegrationTests {
 			return route("testforwardnon200status")
 					.GET("/doforward2", forward("/hello2"))
 					.before(new LocalServerPortUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
+			// @formatter:off
+			return route("testqueryparam")
+					.route(query("foo", "bar"), http())
+					.before(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}

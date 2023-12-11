@@ -151,7 +151,8 @@ public interface ShortcutConfigurable {
 					// strip boolean flag if last entry is true or false
 					int lastIdx = values.size() - 1;
 					String lastValue = values.get(lastIdx);
-					if (lastValue.equalsIgnoreCase("true") || lastValue.equalsIgnoreCase("false")) {
+					if ("true".equalsIgnoreCase(lastValue) || "false".equalsIgnoreCase(lastValue)
+							|| lastValue == null) {
 						values = values.subList(0, lastIdx);
 						map.put(fieldOrder.get(1), getValue(parser, beanFactory, lastValue));
 					}

@@ -1,0 +1,16 @@
+[[gateway-handler-filter-functions]]
+= Gateway Handler Filter Functions
+
+[[beforefilterfunctions]]
+== Before Filter Functions
+
+The WebMvc.fn API has the concept of a "before" filter function, a `java.util.Function<ServerRequest, ServerRequest>` that only acts on the request. Many before filter functions are referenced in `org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions` as static factory methods. They are adapted to generic `org.springframework.web.servlet.function.HandlerFilterFunction<ServerResponse, ServerResponse>` in `org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions`. Either may be used, but the more specific `BeforeFilterFunctions` is preferred, where possible, as it is more explicit.
+
+[[afterfilterfunctions]]
+== After Filter Functions
+
+The WebMvc.fn API has the concept of a "after" filter function, a `java.util.BiFunction<ServerRequest, ServerResponse, ServerResponse>` that can modify the response. Many after filter functions are referenced in `org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions` as static factory methods. They are adapted to generic `org.springframework.web.servlet.function.HandlerFilterFunction<ServerResponse, ServerResponse>` in `org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions`. Either may be used, but the more specific `AfterFilterFunctions` is preferred, where possible, as it is more explicit.
+
+== Advanced Filter Functions
+
+Some filters can not be classified as a simple before or after filter. These filters do work both prior to and after the proxy request has been made. Some of these include filters located in `BodyFilterFunctions`, `Bucket4jFilterFunctions, `CircuitBreakerFilterFunctions`, `LoadBalancerFilterFunctions`, `RetryFilterFunctions`, and `TokenRelayFilterFunctions`, all located in the `org.springframework.cloud.gateway.server.mvc.filter` package.
