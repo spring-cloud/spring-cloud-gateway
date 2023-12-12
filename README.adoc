@@ -9,6 +9,7 @@ image::https://github.com/spring-cloud/spring-cloud-gateway/workflows/Build/badg
 image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph/badge.svg["Codecov", link="https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main"]
 
 
+
 [[features]]
 = Features
 
