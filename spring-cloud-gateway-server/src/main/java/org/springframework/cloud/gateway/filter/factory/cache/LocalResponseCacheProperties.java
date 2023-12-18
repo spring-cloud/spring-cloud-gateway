@@ -53,7 +53,7 @@ public class LocalResponseCacheProperties {
 	public Duration getTimeToLive() {
 		if (timeToLive == null) {
 			LOGGER.debug(String.format(
-					"No TTL configuration found. Default TTL will be applied for cache entries: %s seconds",
+					"No TTL configuration found. Default TTL will be applied for cache entries: %s minutes",
 					DEFAULT_CACHE_TTL_MINUTES));
 			return DEFAULT_CACHE_TTL_MINUTES;
 		}
