@@ -193,12 +193,32 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
-	public void stripPathWorks() {
+	public void setPathPostWorks() {
+		restClient.post().uri("/mycustompathpost").bodyValue("hello").header("Host", "www.setpathpost.org").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).containsEntry("data", "hello");
+				});
+	}
+
+	@Test
+	public void stripPrefixWorks() {
 		restClient.get().uri("/long/path/to/get").exchange().expectStatus().isOk().expectBody(Map.class)
 				.consumeWith(res -> {
 					Map<String, Object> map = res.getResponseBody();
 					Map<String, Object> headers = getMap(map, "headers");
 					assertThat(headers).containsEntry("X-Test", "stripPrefix");
+				});
+	}
+
+	@Test
+	public void stripPrefixPostWorks() {
+		restClient.post().uri("/long/path/to/post").bodyValue("hello").header("Host", "www.stripprefixpost.org")
+				.exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).containsEntry("data", "hello");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Test", "stripPrefixPost");
 				});
 	}
 
@@ -329,6 +349,28 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void rewritePathPostWorks() {
+		restClient.post().uri("/baz/post").bodyValue("hello").header("Host", "www.rewritepathpost.org").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).containsEntry("data", "hello");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("X-Test", "rewritepathpost");
+				});
+	}
+
+	@Test
+	public void rewritePathPostLocalWorks() {
+		restClient.post().uri("/baz/post").bodyValue("hello").header("Host", "www.rewritepathpostlocal.org").exchange()
+				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map).containsEntry("data", "hello");
+					Map<String, Object> headers = getMap(map, "headers");
+					assertThat(headers).containsEntry("x-test", "rewritepathpostlocal");
+				});
+	}
+
+	@Test
 	public void forwardedHeadersWork() {
 		restClient.get().uri("/headers").header("test", "forwarded").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
@@ -398,7 +440,7 @@ public class ServerMvcIntegrationTests {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 		// @formatter:off
 		restClient.post().uri("/post").contentType(MULTIPART_FORM_DATA)
-				.header("test", "form")
+				.header("Host", "www.testform.org")
 				.bodyValue(formData)
 				.exchange()
 				.expectStatus().isOk()
@@ -413,7 +455,7 @@ public class ServerMvcIntegrationTests {
 	void multipartFormDataRestTemplateWorks() {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 		RequestEntity<MultiValueMap<String, HttpEntity<?>>> request = RequestEntity.post("/post")
-				.contentType(MULTIPART_FORM_DATA).header("test", "form").body(formData);
+				.contentType(MULTIPART_FORM_DATA).header("Host", "www.testform.org").body(formData);
 		ResponseEntity<Map> response = restTemplate.exchange(request, Map.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertMultipartData(response.getBody());
@@ -496,6 +538,15 @@ public class ServerMvcIntegrationTests {
 	public void removeRequestParameterWorks() {
 		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange()
 				.expectStatus().isOk().expectHeader().doesNotExist("foo");
+	}
+
+	@Test
+	public void removeRequestParameterPostWorks() {
+		restClient.post().uri("/post?foo=bar").bodyValue("hello").header("Host", "www.removerequestparampost.org")
+				.exchange().expectStatus().isOk().expectHeader().doesNotExist("foo").expectBody(Map.class)
+				.consumeWith(res -> {
+					assertThat(res.getResponseBody()).containsEntry("data", "hello");
+				});
 	}
 
 	@Test
@@ -705,6 +756,17 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPathPost() {
+			// @formatter:off
+			return route("testsetpath")
+					.route(POST("/mycustompath{extra}").and(host("**.setpathpost.org")), http())
+					.filter(new HttpbinUriResolver())
+					.filter(setPath("/{extra}"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
 			return route(GET("/long/path/to/get"), http())
@@ -712,6 +774,18 @@ public class ServerMvcIntegrationTests {
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixPost() {
+			// @formatter:off
+			return route("teststripprefixpost")
+					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
+					.filter(new HttpbinUriResolver())
+					.filter(stripPrefix(3))
+					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
+					.build();
 			// @formatter:on
 		}
 
@@ -856,6 +930,30 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePathPost() {
+			// @formatter:off
+			return route("testrewritepathpost")
+					.route(POST("/baz/**").and(host("**.rewritepathpost.org")), http())
+					.filter(new HttpbinUriResolver())
+					.filter(rewritePath("/baz/(?<segment>.*)", "/${segment}"))
+					.filter(addRequestHeader("X-Test", "rewritepathpost"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePathPostLocal() {
+			// @formatter:off
+			return route("testrewritepathpostlocal")
+					.route(POST("/baz/**").and(host("**.rewritepathpostlocal.org")), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(rewritePath("/baz/(?<segment>.*)", "/test/${segment}"))
+					.filter(addRequestHeader("X-Test", "rewritepathpostlocal"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsForwardedHeaders() {
 			// @formatter:off
 			return route(path("/headers").and(header("test", "forwarded")), http())
@@ -869,7 +967,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsForm() {
 			// @formatter:off
 			return route("testform")
-					.POST("/post", header("test", "form"), http())
+					.POST("/post", host("**.testform.org"), http())
 					.before(new LocalServerPortUriResolver())
 					.filter(prefixPath("/test"))
 					.filter(addRequestHeader("X-Test", "form"))
@@ -964,6 +1062,17 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("removerequestparam")
 					.route(header("test", "removerequestparam"), http())
+					.filter(new HttpbinUriResolver())
+					.before(removeRequestParameter("foo"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestParamPost() {
+			// @formatter:off
+			return route("removerequestparampost")
+					.route(host("www.removerequestparampost.org").and(POST("/post")), http())
 					.filter(new HttpbinUriResolver())
 					.before(removeRequestParameter("foo"))
 					.build();

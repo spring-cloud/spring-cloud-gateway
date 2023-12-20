@@ -324,7 +324,8 @@ public abstract class BeforeFilterFunctions {
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			MvcUtils.setRequestUrl(modified, modified.uri());
+			// TODO: can this be restored at some point?
+			// MvcUtils.setRequestUrl(modified, modified.uri());
 			return modified;
 		};
 	}
