@@ -17,10 +17,8 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -32,6 +30,7 @@ import jakarta.servlet.ServletException;
 
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
@@ -66,6 +65,12 @@ public abstract class CircuitBreakerFilterFunctions {
 			Consumer<CircuitBreakerConfig> configConsumer) {
 		CircuitBreakerConfig config = new CircuitBreakerConfig();
 		configConsumer.accept(config);
+		return circuitBreaker(config);
+	}
+
+	@Shortcut
+	@Configurable
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(CircuitBreakerConfig config) {
 		Set<HttpStatusCode> failureStatuses = config.getStatusCodes().stream()
 				.map(status -> HttpStatusHolder.valueOf(status).resolve()).collect(Collectors.toSet());
 		return (request, next) -> {
@@ -191,11 +196,10 @@ public abstract class CircuitBreakerFilterFunctions {
 
 	}
 
-	public static class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+	public static class FilterSupplier extends SimpleFilterSupplier {
 
-		@Override
-		public Collection<Method> get() {
-			return Arrays.asList(CircuitBreakerFilterFunctions.class.getMethods());
+		public FilterSupplier() {
+			super(CircuitBreakerFilterFunctions.class);
 		}
 
 	}

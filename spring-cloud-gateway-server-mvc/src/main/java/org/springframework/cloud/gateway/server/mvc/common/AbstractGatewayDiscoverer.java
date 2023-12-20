@@ -48,9 +48,12 @@ public abstract class AbstractGatewayDiscoverer {
 			}
 			catch (NoClassDefFoundError e) {
 				if (log.isDebugEnabled()) {
-					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s", supplierClass, returnType));
-				} else if (log.isTraceEnabled()) {
-					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s", supplierClass, returnType), e);
+					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s",
+							supplierClass, returnType));
+				}
+				else if (log.isTraceEnabled()) {
+					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s",
+							supplierClass, returnType), e);
 				}
 			}
 		}

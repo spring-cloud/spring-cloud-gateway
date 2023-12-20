@@ -26,6 +26,8 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -53,6 +55,12 @@ public abstract class RetryFilterFunctions {
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(Consumer<RetryConfig> configConsumer) {
 		RetryConfig config = new RetryConfig();
 		configConsumer.accept(config);
+		return retry(config);
+	}
+
+	@Shortcut
+	@Configurable
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
 		CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
@@ -187,6 +195,14 @@ public abstract class RetryFilterFunctions {
 
 		public ServerResponse getResponse() {
 			return response;
+		}
+
+	}
+
+	public static class FilterSupplier extends SimpleFilterSupplier {
+
+		public FilterSupplier() {
+			super(RetryFilterFunctions.class);
 		}
 
 	}

@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
+package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
-import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
+public class SimpleFilterSupplier implements FilterSupplier {
 
-public interface OperationMethod {
+	private final Class<?> filtersClass;
 
-	Method getMethod();
+	public SimpleFilterSupplier(Class<?> filtersClass) {
+		this.filtersClass = filtersClass;
+	}
 
-	OperationParameters getParameters();
-
-	default boolean isConfigurable() {
-		return false;
+	@Override
+	public Collection<Method> get() {
+		return Arrays.asList(filtersClass.getMethods());
 	}
 
 }

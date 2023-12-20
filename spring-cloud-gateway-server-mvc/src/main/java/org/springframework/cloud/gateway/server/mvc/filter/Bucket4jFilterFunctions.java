@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.lang.reflect.Method;
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -189,11 +186,10 @@ public abstract class Bucket4jFilterFunctions {
 
 	}
 
-	static class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+	public static class FilterSupplier extends SimpleFilterSupplier {
 
-		@Override
-		public Collection<Method> get() {
-			return Arrays.asList(Bucket4jFilterFunctions.class.getMethods());
+		public FilterSupplier() {
+			super(Bucket4jFilterFunctions.class);
 		}
 
 	}

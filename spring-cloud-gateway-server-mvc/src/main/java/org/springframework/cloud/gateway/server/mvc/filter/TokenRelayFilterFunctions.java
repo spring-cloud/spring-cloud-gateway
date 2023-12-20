@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
@@ -58,11 +55,10 @@ public abstract class TokenRelayFilterFunctions {
 		};
 	}
 
-	class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+	public static class FilterSupplier extends SimpleFilterSupplier {
 
-		@Override
-		public Collection<Method> get() {
-			return Arrays.asList(TokenRelayFilterFunctions.class.getMethods());
+		public FilterSupplier() {
+			super(TokenRelayFilterFunctions.class);
 		}
 
 	}

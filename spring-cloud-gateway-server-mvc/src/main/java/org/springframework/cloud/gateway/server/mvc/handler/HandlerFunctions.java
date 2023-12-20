@@ -73,6 +73,10 @@ public abstract class HandlerFunctions {
 		return new LookupProxyExchangeHandlerFunction();
 	}
 
+	public static HandlerFunction<ServerResponse> no() {
+		return http();
+	}
+
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
 		private final URI uri;

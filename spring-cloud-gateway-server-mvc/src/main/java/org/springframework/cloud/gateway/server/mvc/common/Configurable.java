@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
+package org.springframework.cloud.gateway.server.mvc.common;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
+import org.springframework.stereotype.Indexed;
 
-public interface OperationMethod {
+@Target({ ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Indexed
+public @interface Configurable {
 
-	Method getMethod();
-
-	OperationParameters getParameters();
-
-	default boolean isConfigurable() {
-		return false;
-	}
+	Class<?> value() default Void.class;
 
 }

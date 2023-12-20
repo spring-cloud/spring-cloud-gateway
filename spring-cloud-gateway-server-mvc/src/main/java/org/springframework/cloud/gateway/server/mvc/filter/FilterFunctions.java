@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
@@ -228,11 +225,10 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.setStatus(statusCode));
 	}
 
-	class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+	class FilterSupplier extends SimpleFilterSupplier {
 
-		@Override
-		public Collection<Method> get() {
-			return Arrays.asList(FilterFunctions.class.getMethods());
+		public FilterSupplier() {
+			super(FilterFunctions.class);
 		}
 
 	}
