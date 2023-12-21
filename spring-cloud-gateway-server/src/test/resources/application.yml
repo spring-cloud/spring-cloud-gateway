@@ -216,7 +216,15 @@ spring:
 
 
         # =====================================
-      - id: without_pattern
+      - id: host_with_port_pattern
+        uri: ${test.uri}
+        predicates:
+          - name: Host
+            args:
+              pattern: 'hostpatternarg.org:8080'
+
+        # =====================================
+      - id: host_without_port_pattern
         uri: ${test.uri}
         predicates:
           - name: Host

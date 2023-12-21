@@ -442,8 +442,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public HostRoutePredicateFactory hostRoutePredicateFactory() {
-		return new HostRoutePredicateFactory();
+	public HostRoutePredicateFactory hostRoutePredicateFactory(Environment env) {
+		boolean includePort = env.getProperty("spring.cloud.gateway.predicate.host.include-port", Boolean.class, true);
+		return new HostRoutePredicateFactory(includePort);
 	}
 
 	@Bean

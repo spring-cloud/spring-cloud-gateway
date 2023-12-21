@@ -418,6 +418,12 @@
       "type": "java.lang.Boolean",
       "description": "If Micrometer Observability support should be turned on.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.predicate.host.include-port",
+      "type": "java.lang.Boolean",
+      "description": "Include the port in matching the host name.",
+      "defaultValue": "true"
     }
   ]
 }

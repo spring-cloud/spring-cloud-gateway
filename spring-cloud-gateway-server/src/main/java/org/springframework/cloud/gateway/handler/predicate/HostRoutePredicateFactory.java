@@ -35,14 +35,25 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
+	private boolean includePort = true;
+
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
 
 	public HostRoutePredicateFactory() {
+		this(true);
+	}
+
+	public HostRoutePredicateFactory(boolean includePort) {
 		super(Config.class);
+		this.includePort = includePort;
 	}
 
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		this.pathMatcher = pathMatcher;
+	}
+
+	/* for testing */ void setIncludePort(boolean includePort) {
+		this.includePort = includePort;
 	}
 
 	@Override
@@ -60,25 +71,35 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				InetSocketAddress address = exchange.getRequest().getHeaders().getHost();
-				if (address != null) {
-					String match = null;
-					String host = address.getHostName();
-					for (int i = 0; i < config.getPatterns().size(); i++) {
-						String pattern = config.getPatterns().get(i);
-						if (pathMatcher.match(pattern, host)) {
-							match = pattern;
-							break;
-						}
-					}
-
-					if (match != null) {
-						Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
-						ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
-						return true;
-					}
-
+				String host;
+				if (includePort) {
+					host = exchange.getRequest().getHeaders().getFirst("Host");
 				}
+				else {
+					InetSocketAddress address = exchange.getRequest().getHeaders().getHost();
+					if (address != null) {
+						host = address.getHostString();
+					}
+					else {
+						return false;
+					}
+				}
+
+				String match = null;
+				for (int i = 0; i < config.getPatterns().size(); i++) {
+					String pattern = config.getPatterns().get(i);
+					if (pathMatcher.match(pattern, host)) {
+						match = pattern;
+						break;
+					}
+				}
+
+				if (match != null) {
+					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
+					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
+					return true;
+				}
+
 				return false;
 			}
 
