@@ -4,6 +4,20 @@
 The `AddRequestHeader` is a "before" filter that takes a `name` and `value` parameter.
 The following example configures an `AddRequestHeader` filter:
 
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_request_header_route
+          uri: https://example.org
+          filters:
+          - AddRequestHeader=X-Request-red, blue
+----
+
 .GatewaySampleApplication.java
 [source,java]
 ----

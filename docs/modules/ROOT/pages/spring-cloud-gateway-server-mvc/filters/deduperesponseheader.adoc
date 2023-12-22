@@ -10,11 +10,12 @@ The following example configures a `DedupeResponseHeader` filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: dedupe_response_header_route
-        uri: https://example.org
-        filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      mvc:
+        routes:
+        - id: dedupe_response_header_route
+          uri: https://example.org
+          filters:
+          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 ----
 .GatewaySampleApplication.java
 [source,java]

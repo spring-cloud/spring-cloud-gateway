@@ -7,6 +7,20 @@ If the input header does not exist, the filter has no impact.
 If the new named header already exists, its values are augmented with the new values.
 The following example configures a `MapRequestHeader`:
 
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: map_request_header_route
+          uri: https://example.org
+          filters:
+          - MapRequestHeader=Blue, X-Request-Red
+----
+
 .GatewaySampleApplication.java
 [source,java]
 ----

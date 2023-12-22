@@ -4,6 +4,20 @@
 The `AddRequestHeadersIfNotPresent` filter takes a collection of `name` and `value` pairs separated by colon.
 The following example configures an `AddRequestHeadersIfNotPresent` filter:
 
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_request_headers_route
+          uri: https://example.org
+          filters:
+          - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
+----
+
 .GatewaySampleApplication.java
 [source,java]
 ----

@@ -4,6 +4,20 @@
 The `AddResponseHeader` Filter takes a `name` and `value` parameter.
 The following example configures an `AddResponseHeader` filter:
 
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_response_header_route
+          uri: https://example.org
+          filters:
+          - AddResponseHeader=X-Response-Red, Blue
+----
+
 .GatewaySampleApplication.java
 [source,java]
 ----

@@ -13,11 +13,12 @@ The following example configures a Spring Cloud CircuitBreaker  filter:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: https://example.org
-        filters:
-        - CircuitBreaker=myCircuitBreaker
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: https://example.org
+          filters:
+          - CircuitBreaker=myCircuitBreaker
 ----
 .GatewaySampleApplication.java
 [source,java]
@@ -54,16 +55,17 @@ The following example configures such a fallback:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: https://example.org
-        predicates:
-        - Path=/consumingServiceEndpoint
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            fallbackUri: forward:/inCaseOfFailureUseThis
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: https://example.org
+          predicates:
+          - Path=/consumingServiceEndpoint
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: myCircuitBreaker
+              fallbackUri: forward:/inCaseOfFailureUseThis
 ----
 
 The following listing does the same thing in Java:
@@ -170,19 +172,20 @@ value or the String representation of the `HttpStatus` enumeration.
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: lb://backing-service:8088
-        predicates:
-        - Path=/consumingServiceEndpoint
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            fallbackUri: forward:/inCaseOfFailureUseThis
-            statusCodes:
-              - 500
-              - "NOT_FOUND"
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: lb://backing-service:8088
+          predicates:
+          - Path=/consumingServiceEndpoint
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: myCircuitBreaker
+              fallbackUri: forward:/inCaseOfFailureUseThis
+              statusCodes:
+                - 500
+                - "NOT_FOUND"
 ----
 
 .GatewaySampleApplication.java
