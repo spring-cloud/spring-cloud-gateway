@@ -47,8 +47,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// registers a RouterFunctionHolder that specifically isn't a RouterFunction since
 		// RouterFunctionMapping gets a list of RouterFunction and if you put
 		// RouterFunction in refresh scope, RouterFunctionMapping will end up with two.
-		// Registers RouterFunctionHolderFactory::routerFunctionHolderSupplier so when the bean is refreshed, that
-		// method is called again.
+		// Registers RouterFunctionHolderFactory::routerFunctionHolderSupplier so when the
+		// bean is refreshed, that method is called again.
 		AbstractBeanDefinition routerFnProviderBeanDefinition = BeanDefinitionBuilder
 				.rootBeanDefinition(RouterFunctionHolder.class)
 				.setFactoryMethodOnBean("routerFunctionHolderSupplier", "routerFunctionHolderFactory")

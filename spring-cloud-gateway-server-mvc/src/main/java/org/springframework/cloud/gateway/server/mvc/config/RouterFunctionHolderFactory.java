@@ -62,6 +62,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 
+/**
+ * Factory bean for the creation of a RouterFunctionHolder, that may have refresh scope.
+ */
 public class RouterFunctionHolderFactory {
 
 	private static final RequestPredicate neverPredicate = new RequestPredicate() {
@@ -97,6 +100,10 @@ public class RouterFunctionHolderFactory {
 		this.env = env;
 	}
 
+	/**
+	 * supplier for RouterFunctionHolder, which is registered as factory method on the
+	 * bean definition.
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private GatewayMvcPropertiesBeanDefinitionRegistrar.RouterFunctionHolder routerFunctionHolderSupplier() {
 		GatewayMvcProperties properties = Binder.get(env).bindOrCreate(GatewayMvcProperties.PREFIX,
