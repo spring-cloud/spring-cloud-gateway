@@ -170,6 +170,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.codec.ServerCodecConfigurer;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.ClassUtils;
 import org.springframework.validation.Validator;
@@ -187,6 +188,7 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Mete Alpaslan Katırcıoğlu
  * @author Alberto C. Ríos
  * @author Olga Maciaszek-Sharma
+ * @author Injae Kim 
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
@@ -859,8 +861,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
-				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
-			return new TokenRelayGatewayFilterFactory(clientManager);
+				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager,
+				ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
+			return new TokenRelayGatewayFilterFactory(clientManager, authorizedClientRepository);
 		}
 
 	}

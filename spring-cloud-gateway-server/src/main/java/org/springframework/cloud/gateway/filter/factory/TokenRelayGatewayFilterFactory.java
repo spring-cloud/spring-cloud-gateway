@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.security.Principal;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,21 +30,27 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Joe Grandja
  * @author Steve Riesenberg
+ * @author Injae Kim
  */
 public class TokenRelayGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
 	private final ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider;
 
-	public TokenRelayGatewayFilterFactory(ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider) {
+	private final ServerOAuth2AuthorizedClientRepository authorizedClientRepository;
+
+	public TokenRelayGatewayFilterFactory(ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider,
+			ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
 		super(NameConfig.class);
 		this.clientManagerProvider = clientManagerProvider;
+		this.authorizedClientRepository = authorizedClientRepository;
 	}
 
 	@Override
@@ -56,15 +64,35 @@ public class TokenRelayGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(NameConfig config) {
-		String defaultClientRegistrationId = (config == null) ? null : config.getName();
 		return (exchange, chain) -> exchange.getPrincipal()
 				// .log("token-relay-filter")
-				.filter(principal -> principal instanceof Authentication).cast(Authentication.class)
-				.flatMap(principal -> authorizationRequest(defaultClientRegistrationId, principal))
-				.flatMap(this::authorizedClient).map(OAuth2AuthorizedClient::getAccessToken)
+				.flatMap(principal -> getValidStoredAccessToken(principal, exchange)
+						.switchIfEmpty(Mono.defer(() -> fallbackFetchAccessToken(principal, config))))
 				.map(token -> withBearerAuth(exchange, token))
 				// TODO: adjustable behavior if empty
 				.defaultIfEmpty(exchange).flatMap(chain::filter);
+	}
+
+	private Mono<OAuth2AccessToken> getValidStoredAccessToken(Principal principal, ServerWebExchange exchange) {
+		if (principal instanceof OAuth2AuthenticationToken) {
+			final OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) principal;
+			return authorizedClientRepository
+					.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token, exchange)
+					.map(OAuth2AuthorizedClient::getAccessToken).filter(accessToken -> {
+						final Instant expiresAt = accessToken.getExpiresAt();
+						return expiresAt != null && expiresAt.isAfter(Instant.now());
+					});
+		}
+		return Mono.empty();
+	}
+
+	private Mono<OAuth2AccessToken> fallbackFetchAccessToken(Principal principal, NameConfig config) {
+		if (principal instanceof Authentication) {
+			final String defaultClientRegistrationId = (config == null) ? null : config.getName();
+			return authorizationRequest(defaultClientRegistrationId, (Authentication) principal)
+					.flatMap(this::authorizedClient).map(OAuth2AuthorizedClient::getAccessToken);
+		}
+		return Mono.empty();
 	}
 
 	private Mono<OAuth2AuthorizeRequest> authorizationRequest(String defaultClientRegistrationId,
