@@ -155,8 +155,8 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.cloud.gateway.support.KeyValueConverter;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
+import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -200,6 +200,15 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
+	}
+
+	/**
+	 * @deprecated in favour of
+	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConverter}
+	 */
+	@Bean
+	public org.springframework.cloud.gateway.support.KeyValueConverter deprecatedKeyValueConverter() {
+		return new org.springframework.cloud.gateway.support.KeyValueConverter();
 	}
 
 	@Bean
