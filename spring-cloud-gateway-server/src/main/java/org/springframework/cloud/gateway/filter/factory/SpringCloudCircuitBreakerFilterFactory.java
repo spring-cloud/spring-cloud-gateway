@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -135,8 +137,10 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 			@Override
 			public String toString() {
+				String fallbackUriString = config.fallbackUri != null
+						? URLDecoder.decode(config.fallbackUri.toString(), StandardCharsets.UTF_8) : null;
 				return filterToStringCreator(SpringCloudCircuitBreakerFilterFactory.this)
-						.append("name", config.getName()).append("fallback", config.fallbackUri).toString();
+						.append("name", config.getName()).append("fallback", fallbackUriString).toString();
 			}
 		};
 	}
@@ -184,7 +188,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		}
 
 		public Config setFallbackUri(String fallbackUri) {
-			return setFallbackUri(URI.create(fallbackUri));
+			return setFallbackUri(UriComponentsBuilder.fromUriString(fallbackUri).build().toUri());
 		}
 
 		public String getName() {
