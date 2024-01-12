@@ -16,7 +16,7 @@
 	<description>Spring Cloud Gateway Server</description>
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
-		<grpc.version>1.59.0</grpc.version>
+		<grpc.version>1.61.0</grpc.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
