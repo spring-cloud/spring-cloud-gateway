@@ -91,8 +91,8 @@ public class CachingRouteLocator
 					Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
 							.sort(AnnotationAwareOrderComparator.INSTANCE).materialize().collect(Collectors.toList())
 							.subscribe(signals -> {
-								applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 								cache.put(CACHE_KEY, signals);
+								applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 							}, this::handleRefreshError);
 				}, this::handleRefreshError);
 			}
@@ -101,8 +101,8 @@ public class CachingRouteLocator
 
 				allRoutes.subscribe(list -> Flux.fromIterable(list).materialize().collect(Collectors.toList())
 						.subscribe(signals -> {
-							applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 							cache.put(CACHE_KEY, signals);
+							applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 						}, this::handleRefreshError), this::handleRefreshError);
 			}
 		}
