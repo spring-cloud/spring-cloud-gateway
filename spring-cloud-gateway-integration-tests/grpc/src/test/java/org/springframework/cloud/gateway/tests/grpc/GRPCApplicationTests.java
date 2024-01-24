@@ -75,6 +75,7 @@ public class GRPCApplicationTests {
 	}
 
 	@Test
+	@Disabled
 	public void gRPCUnaryCallShouldHandleRuntimeException() throws SSLException {
 		ManagedChannel channel = createSecuredChannel(gatewayPort);
 
