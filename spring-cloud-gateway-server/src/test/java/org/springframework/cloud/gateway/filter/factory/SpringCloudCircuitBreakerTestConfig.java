@@ -83,6 +83,11 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return Collections.singletonMap("from", "circuitbreakerfallbackcontroller3");
 	}
 
+	@GetMapping("/circuitbreakerFallbackController/seg")
+	public Map<String, String> fallbackcontrollerSeg() {
+		return Collections.singletonMap("from", "circuitbreakerfallbackcontrollerseg");
+	}
+
 	@GetMapping("/statusCodeFallbackController")
 	public Map<String, String> statusCodeFallbackController(ServerWebExchange exchange) {
 		return Collections.singletonMap("from", "statusCodeFallbackController");
@@ -106,6 +111,10 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return builder.routes()
 				.route("fallback_controller_3",
 						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
+				.route("fallback_with_segments", r -> r.path("/fallback/{*segments}")
+						.filters(f -> f.circuitBreaker(c -> c.setName("test")
+								.setFallbackUri("forward:/circuitbreakerFallbackController/{segments}")))
+						.uri(uri))
 				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
 						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
 				.route("circuitbreaker_java",

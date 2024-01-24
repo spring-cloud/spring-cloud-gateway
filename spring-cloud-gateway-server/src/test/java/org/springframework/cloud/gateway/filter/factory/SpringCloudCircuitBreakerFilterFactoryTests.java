@@ -92,6 +92,12 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	}
 
 	@Test
+	public void testJavaConfigSegments() {
+		testClient.get().uri("/fallback/seg").exchange().expectStatus().isOk().expectBody()
+				.json("{\"from\":\"circuitbreakerfallbackcontrollerseg\"}");
+	}
+
+	@Test
 	public void filterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerconnectfail.org").accept(APPLICATION_JSON)
 				.exchange().expectStatus().is5xxServerError().expectBody().jsonPath("$.status").isEqualTo(500)
