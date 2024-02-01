@@ -46,6 +46,8 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 
 	private final URIResolver uriResolver;
 
+	private final Boolean replaceQueryParams;
+
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
@@ -57,10 +59,18 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
+		this(proxyExchange,requestHttpHeadersFilters,responseHttpHeadersFilters,uriResolver,true);
+	}
+
+	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
+										ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+										ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver,
+										Boolean replaceQueryParams) {
 		this.proxyExchange = proxyExchange;
 		this.requestHttpHeadersFilters = requestHttpHeadersFilters;
 		this.responseHttpHeadersFilters = responseHttpHeadersFilters;
 		this.uriResolver = uriResolver;
+		this.replaceQueryParams = replaceQueryParams;
 	}
 
 	@Override
@@ -68,13 +78,18 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		URI uri = uriResolver.apply(serverRequest);
 		boolean encoded = containsEncodedQuery(serverRequest.uri());
 		// @formatter:off
-		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
+		 UriComponentsBuilder builder= UriComponentsBuilder.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
-				.port(uri.getPort())
-				.replaceQueryParams(serverRequest.params())
-				.build(encoded)
-				.toUri();
+				.port(uri.getPort());
+
+		 if (replaceQueryParams){
+			 builder.replaceQueryParams(serverRequest.params());
+		 }
+
+		 URI url = builder
+			 .build(encoded)
+			 .toUri();
 		// @formatter:on
 
 		// TODO: Streams.collect()?
