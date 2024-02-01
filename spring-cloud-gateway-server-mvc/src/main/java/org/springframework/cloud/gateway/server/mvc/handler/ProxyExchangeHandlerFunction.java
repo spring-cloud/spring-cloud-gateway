@@ -59,13 +59,13 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
-		this(proxyExchange,requestHttpHeadersFilters,responseHttpHeadersFilters,uriResolver,true);
+		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, uriResolver, true);
 	}
 
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
-										ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
-										ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver,
-										Boolean replaceQueryParams) {
+			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver,
+			Boolean replaceQueryParams) {
 		this.proxyExchange = proxyExchange;
 		this.requestHttpHeadersFilters = requestHttpHeadersFilters;
 		this.responseHttpHeadersFilters = responseHttpHeadersFilters;
@@ -78,18 +78,17 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		URI uri = uriResolver.apply(serverRequest);
 		boolean encoded = containsEncodedQuery(serverRequest.uri());
 		// @formatter:off
-		 UriComponentsBuilder builder= UriComponentsBuilder.fromUri(serverRequest.uri())
+		UriComponentsBuilder builder = UriComponentsBuilder
+				.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort());
 
-		 if (replaceQueryParams){
-			 builder.replaceQueryParams(serverRequest.params());
-		 }
+		if (replaceQueryParams) {
+			builder.replaceQueryParams(serverRequest.params());
+		}
 
-		 URI url = builder
-			 .build(encoded)
-			 .toUri();
+		URI url = builder.build(encoded).toUri();
 		// @formatter:on
 
 		// TODO: Streams.collect()?
