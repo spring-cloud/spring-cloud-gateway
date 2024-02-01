@@ -24,7 +24,14 @@ import java.io.Writer;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -146,9 +153,9 @@ public class FormFilter implements Filter, Ordered {
 		}
 		writer.flush();
 
-		MultiValueMap<String,String> combineQueryParams = new LinkedMultiValueMap<>();
+		MultiValueMap<String, String> combineQueryParams = new LinkedMultiValueMap<>();
 		for (Map.Entry<String, String[]> entry : form.entrySet()) {
-			combineQueryParams.put(entry.getKey(),new ArrayList<>(Arrays.asList(entry.getValue())));
+			combineQueryParams.put(entry.getKey(), new ArrayList<>(Arrays.asList(entry.getValue())));
 		}
 		combineQueryParams.addAll(queryParams);
 
