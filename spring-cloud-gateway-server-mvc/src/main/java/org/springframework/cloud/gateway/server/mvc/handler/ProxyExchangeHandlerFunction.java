@@ -17,8 +17,8 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.net.URI;
+import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,21 +28,28 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
+public class ProxyExchangeHandlerFunction
+		implements HandlerFunction<ServerResponse>, ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Log log = LogFactory.getLog(ProxyExchangeHandlerFunction.class);
 
 	private final ProxyExchange proxyExchange;
 
-	private final ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+	private final ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFiltersProvider;
 
-	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
+	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFiltersProvider;
+
+	private List<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+
+	private List<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
 
 	private final URIResolver uriResolver;
 
@@ -58,9 +65,19 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
 		this.proxyExchange = proxyExchange;
-		this.requestHttpHeadersFilters = requestHttpHeadersFilters;
-		this.responseHttpHeadersFilters = responseHttpHeadersFilters;
+		this.requestHttpHeadersFiltersProvider = requestHttpHeadersFilters;
+		this.responseHttpHeadersFiltersProvider = responseHttpHeadersFilters;
 		this.uriResolver = uriResolver;
+	}
+
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		init();
+	}
+
+	private void init() {
+		this.requestHttpHeadersFilters = this.requestHttpHeadersFiltersProvider.orderedStream().toList();
+		this.responseHttpHeadersFilters = this.responseHttpHeadersFiltersProvider.orderedStream().toList();
 	}
 
 	@Override
@@ -77,9 +94,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				.toUri();
 		// @formatter:on
 
-		// TODO: Streams.collect()?
-		HttpHeaders filteredRequestHeaders = filterHeaders(
-				this.requestHttpHeadersFilters.orderedStream().map(Function.identity()),
+		HttpHeaders filteredRequestHeaders = filterHeaders(this.requestHttpHeadersFilters,
 				serverRequest.headers().asHttpHeaders(), serverRequest);
 
 		boolean preserveHost = (boolean) serverRequest.attributes()
@@ -96,8 +111,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				.headers(filteredRequestHeaders)
 				// TODO: allow injection of ResponseConsumer
 				.responseConsumer((response, serverResponse) -> {
-					HttpHeaders httpHeaders = filterHeaders(this.responseHttpHeadersFilters.orderedStream()
-							.map(Function.identity()), response.getHeaders(), serverResponse);
+					HttpHeaders httpHeaders = filterHeaders(this.responseHttpHeadersFilters, response.getHeaders(), serverResponse);
 					serverResponse.headers().putAll(httpHeaders);
 				})
 				.build();
@@ -105,10 +119,12 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		return proxyExchange.exchange(proxyRequest);
 	}
 
-	private <TYPE> HttpHeaders filterHeaders(Stream<HttpHeadersFilter<TYPE>> filters, HttpHeaders original, TYPE type) {
+	private <TYPE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original, TYPE type) {
 		HttpHeaders filtered = original;
-		for (var filter : filters.toList()) {
-			filtered = filter.apply(filtered, type);
+		for (var filter : filters) {
+			@SuppressWarnings("unchecked")
+			var typed = ((HttpHeadersFilter<TYPE>) filter);
+			filtered = typed.apply(filtered, type);
 		}
 		return filtered;
 	}
