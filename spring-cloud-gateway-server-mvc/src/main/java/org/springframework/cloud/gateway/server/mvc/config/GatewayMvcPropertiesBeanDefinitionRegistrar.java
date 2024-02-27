@@ -16,12 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -33,6 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.bind.handler.IgnoreTopLevelConverterNotFoundBindHandler;
@@ -42,6 +38,7 @@ import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
+import org.springframework.cloud.gateway.server.mvc.filter.GlobalFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
@@ -106,13 +103,17 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		// Getting custom GlobalFilters
+		Collection<GlobalFilter> globalFilters = ((DefaultListableBeanFactory) registry)
+				.getBeansOfType(GlobalFilter.class).values();
+
 		// registers a RouterFunctionHolder that specifically isn't a RouterFunction since
 		// RouterFunctionMapping gets a list of RouterFunction and if you put
 		// RouterFunction in refresh scope, RouterFunctionMapping will end up with two.
 		// Uses this::routerFunctionHolderSupplier so when the bean is refreshed, that
 		// method is called again.
 		AbstractBeanDefinition routerFnProviderBeanDefinition = BeanDefinitionBuilder
-				.genericBeanDefinition(RouterFunctionHolder.class, this::routerFunctionHolderSupplier)
+				.genericBeanDefinition(RouterFunctionHolder.class, () -> this.routerFunctionHolderSupplier(globalFilters))
 				.getBeanDefinition();
 		// TODO: opt out of refresh scope?
 		// Puts the RouterFunctionHolder in refresh scope
@@ -134,7 +135,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private RouterFunctionHolder routerFunctionHolderSupplier() {
+	private RouterFunctionHolder routerFunctionHolderSupplier(Collection<GlobalFilter> globalFilters) {
 		GatewayMvcProperties properties = Binder.get(env).bindOrCreate(GatewayMvcProperties.PREFIX,
 				GatewayMvcProperties.class);
 		log.trace(LogMessage.format("RouterFunctionHolder initializing with %d map routes and %d list routes",
@@ -142,14 +143,16 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 		Map<String, RouterFunction> routerFunctions = new LinkedHashMap<>();
 		properties.getRoutes().forEach(routeProperties -> {
-			routerFunctions.put(routeProperties.getId(), getRouterFunction(routeProperties, routeProperties.getId()));
+			routerFunctions.put(routeProperties.getId(), getRouterFunction(routeProperties, routeProperties.getId(),
+					globalFilters));
 		});
 		properties.getRoutesMap().forEach((routeId, routeProperties) -> {
 			String computedRouteId = routeId;
 			if (StringUtils.hasText(routeProperties.getId())) {
 				computedRouteId = routeProperties.getId();
 			}
-			routerFunctions.put(computedRouteId, getRouterFunction(routeProperties, computedRouteId));
+			routerFunctions.put(computedRouteId, getRouterFunction(routeProperties, computedRouteId,
+					globalFilters));
 		});
 		RouterFunction routerFunction;
 		if (routerFunctions.isEmpty()) {
@@ -167,7 +170,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private RouterFunction getRouterFunction(RouteProperties routeProperties, String routeId) {
+	private RouterFunction getRouterFunction(RouteProperties routeProperties, String routeId,
+											 Collection<GlobalFilter> globalFilters) {
 		log.trace(LogMessage.format("Creating route for : %s", routeProperties));
 
 		RouterFunctions.Builder builder = route(routeId);
@@ -179,6 +183,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 			MvcUtils.setRequestUrl(request, routeProperties.getUri());
 			return next.handle(request);
 		});
+		globalFilters.forEach(globalFilter -> builder.filter(globalFilter.filter()));
+
 		builder.before(BeforeFilterFunctions.routeId(routeId));
 
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
