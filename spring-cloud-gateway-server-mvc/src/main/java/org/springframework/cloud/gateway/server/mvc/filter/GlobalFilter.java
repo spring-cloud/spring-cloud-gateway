@@ -17,6 +17,11 @@ import org.springframework.web.servlet.function.ServerResponse;
  */
 public interface GlobalFilter {
 
+	/**
+	 * Process the web request and (optionally) delegate to the next
+	 * filter
+	 * @return HandlerFilterFunction that will be used to register gateway RouterFunctions
+	 */
 	HandlerFilterFunction<ServerResponse, ServerResponse> filter();
 
 }
