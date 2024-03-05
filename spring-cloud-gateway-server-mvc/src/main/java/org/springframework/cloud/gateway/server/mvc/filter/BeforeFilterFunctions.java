@@ -195,7 +195,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> preserveHostHeader() {
 		return request -> {
-			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
+			MvcUtils.putAttribute(request, MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return request;
 		};
 	}

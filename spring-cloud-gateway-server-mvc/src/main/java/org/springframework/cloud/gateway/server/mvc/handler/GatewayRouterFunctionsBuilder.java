@@ -244,6 +244,17 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
+	public RouterFunctions.Builder resource(RequestPredicate predicate, Resource resource) {
+		return builder.resource(predicate, resource);
+	}
+
+	@Override
+	public RouterFunctions.Builder resource(RequestPredicate predicate, Resource resource,
+			BiConsumer<Resource, HttpHeaders> headersConsumer) {
+		return builder.resource(predicate, resource, headersConsumer);
+	}
+
+	@Override
 	public RouterFunctions.Builder resources(String pattern, Resource location) {
 		builder.resources(pattern, location);
 		return this;

@@ -23,16 +23,21 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -43,6 +48,8 @@ import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPL
 
 // TODO: maybe rename to ServerRequestUtils?
 public abstract class MvcUtils {
+
+	private static final Log log = LogFactory.getLog(MvcUtils.class);
 
 	/**
 	 * Cached raw request body key.
@@ -111,7 +118,13 @@ public abstract class MvcUtils {
 			return template;
 		}
 		Map<String, Object> variables = getUriTemplateVariables(request);
-		return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+		try {
+			return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+		}
+		catch (IllegalArgumentException e) {
+			log.trace(LogMessage.format("unable to find substitution for %s", template), e);
+		}
+		return template;
 	}
 
 	public static List<String> expandMultiple(ServerRequest request, Collection<String> templates) {
@@ -150,8 +163,12 @@ public abstract class MvcUtils {
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
-		return (Map<String, Object>) request.attributes().getOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE,
-				new HashMap<>());
+		Map<String, Object> reqUriTemplateVars = (Map<String, Object>) request.attributes()
+				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+		Map<String, Object> gatewayUriTemplateVars = (Map<String, Object>) getGatewayAttributes(request)
+				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+		Map<String, Object> merged = mergeMaps(reqUriTemplateVars, gatewayUriTemplateVars);
+		return merged;
 	}
 
 	public static void putAttribute(ServerRequest request, String key, Object value) {
@@ -161,15 +178,30 @@ public abstract class MvcUtils {
 
 	@SuppressWarnings("unchecked")
 	public static void putUriTemplateVariables(ServerRequest request, Map<String, String> uriVariables) {
-		if (request.attributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
-			Map<String, Object> existingVariables = (Map<String, Object>) request.attributes()
-					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-			HashMap<String, Object> newVariables = new HashMap<>(existingVariables);
-			newVariables.putAll(uriVariables);
-			request.attributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, newVariables);
+		Map<String, String> pathVariables = request.pathVariables();
+		Map<String, String> merged = mergeMaps(pathVariables, uriVariables);
+		putAttribute(request, URI_TEMPLATE_VARIABLES_ATTRIBUTE, merged);
+	}
+
+	public static <K, V> Map<K, V> mergeMaps(Map<K, V> left, Map<K, V> right) {
+		if (CollectionUtils.isEmpty(left)) {
+			if (CollectionUtils.isEmpty(right)) {
+				return Collections.emptyMap();
+			}
+			else {
+				return right;
+			}
 		}
 		else {
-			request.attributes().put(URI_TEMPLATE_VARIABLES_ATTRIBUTE, uriVariables);
+			if (CollectionUtils.isEmpty(right)) {
+				return left;
+			}
+			else {
+				Map<K, V> result = CollectionUtils.newLinkedHashMap(left.size() + right.size());
+				result.putAll(left);
+				result.putAll(right);
+				return result;
+			}
 		}
 	}
 

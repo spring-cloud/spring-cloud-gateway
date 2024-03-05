@@ -110,7 +110,7 @@ public abstract class CircuitBreakerFilterFunctions {
 				// add the throwable as an attribute. That way, if the fallback is a
 				// different gateway route, it can use the fallbackHeaders() filter
 				// to convert it to headers.
-				request.attributes().put(MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, throwable);
+				MvcUtils.putAttribute(request, MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, throwable);
 
 				// handle fallback
 				// ok() is wrong, but will be overwritten by the forwarded request
