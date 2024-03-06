@@ -670,6 +670,21 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void queryParamWithSpecialCharactersWorks() {
+		restClient.get().uri("/get?myparam= &intlparam=æøå").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map responseBody = result.getResponseBody();
+					assertThat(responseBody).containsKey("args");
+					Map args = getMap(responseBody, "args");
+					assertThat(args).containsKey("myparam");
+					assertThat(args.get("myparam")).isEqualTo(" ");
+					assertThat(args).containsKey("intlparam");
+					assertThat(args.get("intlparam")).isEqualTo("æøå");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)

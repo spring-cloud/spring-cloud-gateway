@@ -29,6 +29,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -66,7 +67,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 	@Override
 	public ServerResponse handle(ServerRequest serverRequest) {
 		URI uri = uriResolver.apply(serverRequest);
-		boolean encoded = containsEncodedQuery(serverRequest.uri());
+		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
 		// @formatter:off
 		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
@@ -113,14 +114,15 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		return filtered;
 	}
 
-	private static boolean containsEncodedQuery(URI uri) {
-		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
+	private static boolean containsEncodedQuery(URI uri, MultiValueMap<String, String> params) {
+		String rawQuery = uri.getRawQuery();
+		boolean encoded = (rawQuery != null && rawQuery.contains("%"))
 				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
 
 		// Verify if it is really fully encoded. Treat partial encoded as unencoded.
 		if (encoded) {
 			try {
-				UriComponentsBuilder.fromUri(uri).build(true);
+				UriComponentsBuilder.fromUri(uri).replaceQueryParams(params).build(true);
 				return true;
 			}
 			catch (IllegalArgumentException ignored) {
@@ -132,7 +134,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			return false;
 		}
 
-		return encoded;
+		return false;
 	}
 
 	public interface URIResolver extends Function<ServerRequest, URI> {
