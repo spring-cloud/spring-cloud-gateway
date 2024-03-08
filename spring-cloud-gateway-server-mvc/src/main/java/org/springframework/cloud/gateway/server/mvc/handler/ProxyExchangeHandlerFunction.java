@@ -120,12 +120,13 @@ public class ProxyExchangeHandlerFunction
 		return proxyExchange.exchange(proxyRequest);
 	}
 
-	private <TYPE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original, TYPE type) {
+	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original,
+			REQUEST_OR_RESPONSE requestOrResponse) {
 		HttpHeaders filtered = original;
 		for (var filter : filters) {
 			@SuppressWarnings("unchecked")
-			var typed = ((HttpHeadersFilter<TYPE>) filter);
-			filtered = typed.apply(filtered, type);
+			var typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
+			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;
 	}
