@@ -16,13 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -38,9 +31,11 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-	private final Log log = LogFactory.getLog(getClass());
+public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
@@ -59,8 +54,6 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 		// Puts the RouterFunctionHolder in refresh scope, if not disabled.
 		if (registry.containsBeanDefinition("refreshScope")) {
-			log.warn("Refresh scope is enabled. This is not supported in AOT mode. "
-					+ "Set spring.cloud.refresh.enabled=false if you want to run your app as native image.");
 			routerFnProviderBeanDefinition.setScope("refresh");
 		}
 		if (registry.containsBeanDefinition(proxy.getBeanName())) {
