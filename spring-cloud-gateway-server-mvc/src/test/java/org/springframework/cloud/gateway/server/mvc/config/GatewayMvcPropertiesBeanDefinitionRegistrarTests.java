@@ -65,7 +65,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 		Map<String, RouterFunction> routerFunctions = getRouterFunctions(context);
 
 		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(5).containsKeys("listRoute1", "route1",
-				"route2CustomId", "listRoute2", "listRoute3");
+				"route2CustomId", "listRoute2", "listRoute3", "listRoute4");
 		RouterFunction listRoute1RouterFunction = routerFunctions.get("listRoute1");
 		listRoute1RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
@@ -176,7 +176,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void refreshWorks(ConfigurableApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = getRouterFunctions(context);
-		assertThat(routerFunctions).hasSize(5);
+		assertThat(routerFunctions).hasSize(6);
 		TestPropertyValues.of("spring.cloud.gateway.mvc.routesMap.route3.uri=https://example3.com",
 				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].name=Path",
 				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
@@ -196,7 +196,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 		GatewayMvcProperties properties = context.getBean(GatewayMvcProperties.class);
 		assertThat(properties.getRoutesMap()).hasSize(3).containsKey("route3");
 		routerFunctions = getRouterFunctions(context);
-		assertThat(routerFunctions).hasSize(6);
+		assertThat(routerFunctions).hasSize(7);
 	}
 
 	@SpringBootConfiguration

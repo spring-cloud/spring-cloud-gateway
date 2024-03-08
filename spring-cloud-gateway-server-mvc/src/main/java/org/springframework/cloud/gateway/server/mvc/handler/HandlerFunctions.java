@@ -53,6 +53,10 @@ public abstract class HandlerFunctions {
 
 	// TODO: current discovery only goes by method name
 	// so last one wins, so put parameterless last
+	public static HandlerFunction<ServerResponse> http(String uri) {
+		return http(URI.create(uri));
+	}
+
 	public static HandlerFunction<ServerResponse> http(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}
@@ -67,6 +71,10 @@ public abstract class HandlerFunctions {
 
 	public static HandlerFunction<ServerResponse> http() {
 		return new LookupProxyExchangeHandlerFunction();
+	}
+
+	public static HandlerFunction<ServerResponse> no() {
+		return http();
 	}
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
@@ -88,7 +96,7 @@ public abstract class HandlerFunctions {
 			if (uri != null) {
 				// TODO: in 2 places now, here and
 				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				serverRequest.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
 			}
 			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
 			return proxyExchangeHandlerFunction.get().handle(serverRequest);

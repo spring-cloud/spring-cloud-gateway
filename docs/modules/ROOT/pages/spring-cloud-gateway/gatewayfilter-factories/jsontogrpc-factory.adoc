@@ -1,7 +1,7 @@
 [[jsontogrpc-gatewayfilter-factory]]
 = `JsonToGrpc` `GatewayFilter` Factory
 
-The JSONToGRPCFilter GatewayFilter Factory converts a JSON payload to a gRPC request.
+The JSONToGRPC GatewayFilter Factory converts a JSON payload to a gRPC request.
 
 The filter takes the following arguments:
 

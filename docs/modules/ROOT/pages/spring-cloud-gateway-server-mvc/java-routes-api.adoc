@@ -8,13 +8,13 @@ A https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springfra
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.web.servlet.function.RouterFunctions.route;
+import static org.springframework.web.servlet.function.RouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 class SimpleGateway {
     @Bean
     public RouterFunction<ServerResponse> getRoute() {
-        return route().GET("/get", http("https://httpbin.org"));
+        return route().GET("/get", http("https://httpbin.org")).build();
     }
 }
 ----
@@ -29,13 +29,18 @@ Some advanced filters require some metadata to be added to request attributes. T
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 class SimpleGateway {
     @Bean
     public RouterFunction<ServerResponse> getRoute() {
-        return route("simple_route").GET("/get", http("https://httpbin.org"));
+        return route("simple_route").GET("/get", http("https://httpbin.org")).build();
     }
 }
 ----
+
+[[gateway-handlerfunctions]]
+== Gateway MVC Handler Functions
+
+Various `RouterFunctions.Builder` methods require a `HandlerFunction<ServerResponse>`. To create a route that is proxied by the MVC Gateway, `HandlerFunction` implementations are supplied in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`. The most basic is the `http()` `HandlerFunction`. If a `URI` is supplied as a parameter, that is the `URI` used as the downstream target for sending the HTTP requests (as seen in the example above). If no parameter is passed, the function looks for a `URI` in the `org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_REQUEST_URL_ATTR` request attribute. This allows for dynamic targets such as load balancing to set the `URI`.

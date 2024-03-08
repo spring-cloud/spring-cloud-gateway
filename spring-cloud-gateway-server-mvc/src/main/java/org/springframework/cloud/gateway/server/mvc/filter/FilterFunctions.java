@@ -16,10 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
@@ -101,11 +98,15 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHost() {
-		return ofRequestProcessor(BeforeFilterFunctions.preserveHost());
+		return ofRequestProcessor(BeforeFilterFunctions.preserveHostHeader());
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri) {
 		return redirectTo(new HttpStatusHolder(null, status), uri);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(String status, URI uri) {
+		return redirectTo(HttpStatusHolder.valueOf(status), uri);
 	}
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri) {
@@ -160,10 +161,10 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
-			String locationHeaderName, String hostValue, String protocols) {
-		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
-				.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
-						.setLocationHeaderName(locationHeaderName).setHostValue(hostValue).setProtocols(protocols)));
+			String locationHeaderName, String hostValue, String protocolsRegex) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(
+				config -> config.setStripVersion(stripVersion).setLocationHeaderName(locationHeaderName)
+						.setHostValue(hostValue).setProtocolsRegex(protocolsRegex)));
 	}
 
 	@Shortcut
@@ -224,11 +225,10 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.setStatus(statusCode));
 	}
 
-	class FilterSupplier implements org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier {
+	class FilterSupplier extends SimpleFilterSupplier {
 
-		@Override
-		public Collection<Method> get() {
-			return Arrays.asList(FilterFunctions.class.getMethods());
+		public FilterSupplier() {
+			super(FilterFunctions.class);
 		}
 
 	}

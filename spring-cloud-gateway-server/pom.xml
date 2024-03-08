@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>4.1.0-SNAPSHOT</version>
+		<version>4.1.2-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>spring-cloud-gateway-server</artifactId>
@@ -16,8 +16,7 @@
 	<description>Spring Cloud Gateway Server</description>
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
-		<grpc.version>1.59.0</grpc.version>
-		<context-propagation.version>1.0.0</context-propagation.version>
+		<grpc.version>1.62.2</grpc.version>
 	</properties>
 
 	<dependencies>
@@ -135,12 +134,6 @@
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>context-propagation</artifactId>
-			<version>${context-propagation.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>

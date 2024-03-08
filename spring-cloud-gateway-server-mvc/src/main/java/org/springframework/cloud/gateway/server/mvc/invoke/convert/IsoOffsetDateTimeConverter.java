@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.boot.actuate.endpoint.invoke.convert;
+package org.springframework.cloud.gateway.server.mvc.invoke.convert;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;

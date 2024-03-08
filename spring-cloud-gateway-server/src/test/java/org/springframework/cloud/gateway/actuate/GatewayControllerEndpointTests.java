@@ -69,6 +69,26 @@ public class GatewayControllerEndpointTests {
 	int port;
 
 	@Test
+	public void testEndpoints() {
+		testClient.get().uri("http://localhost:" + port + "/actuator/gateway").exchange().expectStatus().isOk()
+				.expectBodyList(Map.class).consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).isNotEmpty();
+					assertThat(responseBody).contains(Map.of("href", "/actuator/gateway/", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/globalfilters", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/refresh", "methods", List.of("POST")),
+							Map.of("href", "/actuator/gateway/routedefinitions", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routefilters", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routepredicates", "methods", List.of("GET")),
+							Map.of("href", "/actuator/gateway/routes", "methods", List.of("POST", "GET")),
+							Map.of("href", "/actuator/gateway/routes/test-service", "methods",
+									List.of("POST", "DELETE", "GET")),
+							Map.of("href", "/actuator/gateway/routes/route_with_metadata", "methods",
+									List.of("POST", "DELETE", "GET")));
+				});
+	}
+
+	@Test
 	public void testRefresh() {
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh").exchange().expectStatus()
 				.isOk();

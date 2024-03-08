@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.NameUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
@@ -48,6 +49,11 @@ public class NormalizedOperationMethod implements OperationMethod {
 	@Override
 	public Method getMethod() {
 		return delegate.getMethod();
+	}
+
+	public boolean isConfigurable() {
+		Configurable annotation = delegate.getMethod().getAnnotation(Configurable.class);
+		return annotation != null && delegate.getParameters().getParameterCount() == 1;
 	}
 
 	@Override

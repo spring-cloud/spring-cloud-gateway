@@ -48,6 +48,19 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redirectToUrlDoesNotPassQueryParametersByDefault() {
+		testClient.get().uri("/?membership=gold").header("Host", "www.redirectto.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "https://example.org");
+	}
+
+	@Test
+	public void redirectToUrlAddsQueryParametersWhenEnabledOnFilter() {
+		testClient.get().uri("/?membership=gold").header("Host", "queryparams.redirectto.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader()
+				.valueEquals(HttpHeaders.LOCATION, "https://example.org?membership=gold");
+	}
+
+	@Test
 	public void redirectToRelativeUrlFilterWorks() {
 		testClient.get().uri("/").header("Host", "www.relativeredirect.org").exchange().expectStatus()
 				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
@@ -60,12 +73,26 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redirectToRelativeUrlDoesNotPassQueryParametersByDefault() {
+		testClient.get().uri("/?membership=gold").header("Host", "www.relativeredirect.org").exchange().expectStatus()
+				.isEqualTo(HttpStatus.FOUND).expectHeader().valueEquals(HttpHeaders.LOCATION, "/index.html#/customers");
+	}
+
+	@Test
+	public void redirectToRelativeUrlAddsQueryParametersWhenEnabledOnFilter() {
+		testClient.get().uri("/?membership=gold").header("Host", "queryparams.relativeredirect.org").exchange()
+				.expectStatus().isEqualTo(HttpStatus.FOUND).expectHeader()
+				.valueEquals(HttpHeaders.LOCATION, "/index.html?membership=gold#/customers");
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setStatus("301");
 		config.setUrl("http://newurl");
+		config.setIncludeRequestParams(true);
 		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("301").contains("http://newurl");
+		assertThat(filter.toString()).contains("301").contains("http://newurl").contains("true");
 	}
 
 	@EnableAutoConfiguration
@@ -78,6 +105,9 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 			return builder.routes()
 					.route("relative_redirect_uri_object", r -> r.host("strcode.relativeredirect.org")
 							.filters(f -> f.redirect("302", URI.create("/index.html#/customers"))).uri("no://op"))
+					.route("relative_redirect_with_query_params",
+							r -> r.host("queryparams.relativeredirect.org")
+									.filters(f -> f.redirect(302, "/index.html#/customers", true)).uri("no://op"))
 					.route("relative_redirect", r -> r.host("**.relativeredirect.org")
 							.filters(f -> f.redirect(302, "/index.html#/customers")).uri("no://op"))
 					.build();

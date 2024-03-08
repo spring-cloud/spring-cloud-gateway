@@ -193,9 +193,9 @@ public abstract class BeforeFilterFunctions {
 		};
 	}
 
-	public static Function<ServerRequest, ServerRequest> preserveHost() {
+	public static Function<ServerRequest, ServerRequest> preserveHostHeader() {
 		return request -> {
-			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
+			MvcUtils.putAttribute(request, MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return request;
 		};
 	}
@@ -222,9 +222,18 @@ public abstract class BeforeFilterFunctions {
 		return requestHeaderSize(DataSize.parse(maxSize));
 	}
 
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize, String errorHeaderName) {
+		return requestHeaderSize(DataSize.parse(maxSize), errorHeaderName);
+	}
+
 	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
+		return requestHeaderSize(maxSize, "errorMessage");
+	}
+
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize, String errorHeaderName) {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
+		Assert.hasText(errorHeaderName, "errorHeaderName may not be empty");
 		return request -> {
 			HashMap<String, Long> longHeaders = new HashMap<>();
 
@@ -249,8 +258,7 @@ public abstract class BeforeFilterFunctions {
 					@Override
 					public HttpHeaders getHeaders() {
 						HttpHeaders httpHeaders = new HttpHeaders();
-						// TODO: customize header name
-						httpHeaders.add("errorMessage", errorMessage.toString());
+						httpHeaders.add(errorHeaderName, errorMessage.toString());
 						return httpHeaders;
 					}
 				};
@@ -316,7 +324,8 @@ public abstract class BeforeFilterFunctions {
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			MvcUtils.setRequestUrl(modified, modified.uri());
+			// TODO: can this be restored at some point?
+			// MvcUtils.setRequestUrl(modified, modified.uri());
 			return modified;
 		};
 	}

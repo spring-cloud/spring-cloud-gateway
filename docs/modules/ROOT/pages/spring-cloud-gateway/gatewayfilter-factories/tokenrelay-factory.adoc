@@ -87,7 +87,7 @@ To enable this for Spring Cloud Gateway add the following dependencies
 
 - `org.springframework.boot:spring-boot-starter-oauth2-client`
 
-How does it work?  The {github-code}/src/main/java/org/springframework/cloud/gateway/security/TokenRelayGatewayFilterFactory.java[filter]
+How does it work?  The https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server/src/main/java/org/springframework/cloud/gateway/filter/factory/TokenRelayGatewayFilterFactory.java[filter]
 extracts an OAuth2 access token from the currently authenticated user for the provided `clientRegistrationId`.
 If no `clientRegistrationId` is provided, the currently authenticated user's own access token (obtained during login) is used.
 In either case, the extracted access token is placed in a request header for the downstream requests.

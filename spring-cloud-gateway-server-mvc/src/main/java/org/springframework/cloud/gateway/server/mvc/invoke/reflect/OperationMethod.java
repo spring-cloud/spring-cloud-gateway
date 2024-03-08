@@ -26,4 +26,8 @@ public interface OperationMethod {
 
 	OperationParameters getParameters();
 
+	default boolean isConfigurable() {
+		return false;
+	}
+
 }

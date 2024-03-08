@@ -136,6 +136,10 @@ public abstract class AfterFilterFunctions {
 		return setStatus(new HttpStatusHolder(null, statusCode));
 	}
 
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(String statusCode) {
+		return setStatus(HttpStatusHolder.valueOf(statusCode));
+	}
+
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {
 		return setStatus(new HttpStatusHolder(statusCode, null));
 	}
