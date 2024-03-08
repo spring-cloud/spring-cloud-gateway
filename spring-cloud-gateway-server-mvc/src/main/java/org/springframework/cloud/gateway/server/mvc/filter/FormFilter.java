@@ -24,7 +24,6 @@ import java.io.Writer;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -49,7 +48,6 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -153,15 +151,9 @@ public class FormFilter implements Filter, Ordered {
 		}
 		writer.flush();
 
-		MultiValueMap<String, String> combineQueryParams = new LinkedMultiValueMap<>();
-		for (Map.Entry<String, String[]> entry : form.entrySet()) {
-			combineQueryParams.put(entry.getKey(), new ArrayList<>(Arrays.asList(entry.getValue())));
-		}
-		combineQueryParams.addAll(queryParams);
-
 		ByteArrayServletInputStream servletInputStream = new ByteArrayServletInputStream(
 				new ByteArrayInputStream(bos.toByteArray()));
-		return new FormContentRequestWrapper(request, combineQueryParams) {
+		return new FormContentRequestWrapper(request, queryParams) {
 			@Override
 			public ServletInputStream getInputStream() throws IOException {
 				return servletInputStream;
