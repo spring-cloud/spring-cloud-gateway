@@ -183,6 +183,7 @@ public abstract class MvcUtils {
 		putAttribute(request, URI_TEMPLATE_VARIABLES_ATTRIBUTE, merged);
 	}
 
+	// TODO: replace with CollectionUtils.compositeMap in 4.2.x (Framework 6.2, boot 3.4)
 	public static <K, V> Map<K, V> mergeMaps(Map<K, V> left, Map<K, V> right) {
 		if (CollectionUtils.isEmpty(left)) {
 			if (CollectionUtils.isEmpty(right)) {
