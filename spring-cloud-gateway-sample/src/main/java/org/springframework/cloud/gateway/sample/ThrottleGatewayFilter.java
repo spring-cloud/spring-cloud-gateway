@@ -46,7 +46,6 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	TimeUnit refillUnit;
 
-
 	private TokenBucket getTokenBucket() {
 		if (tokenBucket != null) {
 			return tokenBucket;
