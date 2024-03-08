@@ -66,7 +66,7 @@ public class RoutePredicateHandlerMappingTests {
 		Route routeFalse = Route.async().id("routeFalse").uri("http://localhost")
 				.asyncPredicate(swe -> Mono.just(false)).build();
 		Route routeError = Route.async().id("routeError").uri("http://localhost")
-				.asyncPredicate(swe -> Mono.just(test())).build();
+				.asyncPredicate(swe -> Mono.error(new IllegalStateException("boom1"))).build();
 		Route routeFail = Route.async().id("routeFail").uri("http://localhost").asyncPredicate(swe -> {
 			throw new IllegalStateException("boom2");
 		}).build();
@@ -85,10 +85,6 @@ public class RoutePredicateHandlerMappingTests {
 
 		Assertions.assertTrue(capturedOutput.getOut().contains("Error applying predicate for route: routeFail"));
 		Assertions.assertTrue(capturedOutput.getOut().contains("java.lang.IllegalStateException: boom2"));
-	}
-
-	boolean test() {
-		throw new IllegalStateException("boom1");
 	}
 
 }
