@@ -29,7 +29,7 @@ Some advanced filters require some metadata to be added to request attributes. T
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 class SimpleGateway {
