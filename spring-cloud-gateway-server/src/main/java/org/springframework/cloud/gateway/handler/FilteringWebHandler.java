@@ -33,6 +33,8 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.DecoratingProxy;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
@@ -63,6 +65,12 @@ public class FilteringWebHandler implements WebHandler {
 			if (filter instanceof Ordered) {
 				int order = ((Ordered) filter).getOrder();
 				return new OrderedGatewayFilter(gatewayFilter, order);
+			}
+			else {
+				Order order = AnnotationUtils.findAnnotation(filter.getClass(), Order.class);
+				if (order != null) {
+					return new OrderedGatewayFilter(gatewayFilter, order.value());
+				}
 			}
 			return gatewayFilter;
 		}).collect(Collectors.toList());
