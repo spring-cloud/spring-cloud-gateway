@@ -8,13 +8,13 @@ A https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springfra
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.web.servlet.function.RouterFunctions.route;
+import static org.springframework.web.servlet.function.RouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 class SimpleGateway {
     @Bean
     public RouterFunction<ServerResponse> getRoute() {
-        return route().GET("/get", http("https://httpbin.org"));
+        return route().GET("/get", http("https://httpbin.org")).build();
     }
 }
 ----
@@ -29,13 +29,13 @@ Some advanced filters require some metadata to be added to request attributes. T
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
 class SimpleGateway {
     @Bean
     public RouterFunction<ServerResponse> getRoute() {
-        return route("simple_route").GET("/get", http("https://httpbin.org"));
+        return route("simple_route").GET("/get", http("https://httpbin.org")).build();
     }
 }
 ----
