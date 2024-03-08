@@ -118,7 +118,7 @@ public abstract class AbstractSslConfigurer<T, S> {
 						ssl.getKeyStorePassword() != null ? ssl.getKeyStorePassword().toCharArray() : null);
 			}
 			catch (Exception e) {
-				throw new RuntimeException("Could not load key store ' " + ssl.getKeyStore() + "'", e);
+				throw new RuntimeException("Could not load key store '" + ssl.getKeyStore() + "'", e);
 			}
 
 			return store;
