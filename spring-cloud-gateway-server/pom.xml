@@ -17,7 +17,7 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.62.2</grpc.version>
-		<context-propagation.version>1.0.0</context-propagation.version>
+		<context-propagation.version>1.0.6</context-propagation.version>
 	</properties>
 
 	<dependencies>
