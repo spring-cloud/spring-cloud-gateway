@@ -114,7 +114,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
 						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
 		DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
-				new RequestDataContext(new RequestData(exchange.getRequest()), getHint(serviceId)));
+				new RequestDataContext(new RequestData(exchange.getRequest(), exchange.getAttributes()), getHint(serviceId)));
 		return choose(lbRequest, serviceId, supportedLifecycleProcessors).doOnNext(response -> {
 
 			if (!response.hasServer()) {
@@ -154,7 +154,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 						.onComplete(new CompletionContext<ResponseData, ServiceInstance, RequestDataContext>(
 								CompletionContext.Status.SUCCESS, lbRequest,
 								exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR),
-								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest()))))));
+								new ResponseData(exchange.getResponse(), new RequestData(exchange.getRequest(), exchange.getAttributes()))))));
 	}
 
 	protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
