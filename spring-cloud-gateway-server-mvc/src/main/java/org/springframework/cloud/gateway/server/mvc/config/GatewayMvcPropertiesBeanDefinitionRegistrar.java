@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -30,10 +34,6 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
