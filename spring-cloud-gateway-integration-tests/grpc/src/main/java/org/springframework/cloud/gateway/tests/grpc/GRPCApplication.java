@@ -98,6 +98,7 @@ public class GRPCApplication {
 			if (server != null) {
 				server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
 			}
+			log.info("gRPC server stopped");
 		}
 
 		static class HelloService extends HelloServiceGrpc.HelloServiceImplBase {

@@ -51,13 +51,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<bucket4j.version>8.7.0</bucket4j.version>
-		<blockhound.version>1.0.6.RELEASE</blockhound.version>
+		<bucket4j.version>8.9.0</bucket4j.version>
+		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<java.version>17</java.version>
 		<junit-pioneer.version>1.9.1</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>3.1.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
-		<spring-cloud-commons.version>4.1.1-SNAPSHOT</spring-cloud-commons.version>
-		<testcontainers.version>1.19.1</testcontainers.version>
+		<spring-cloud-commons.version>4.1.2-SNAPSHOT</spring-cloud-commons.version>
 	</properties>
 
 	<dependencyManagement>
@@ -122,13 +121,6 @@
 				<groupId>org.junit-pioneer</groupId>
 				<artifactId>junit-pioneer</artifactId>
 				<version>${junit-pioneer.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

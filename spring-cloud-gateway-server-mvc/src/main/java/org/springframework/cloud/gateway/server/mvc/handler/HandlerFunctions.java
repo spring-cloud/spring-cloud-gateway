@@ -96,7 +96,7 @@ public abstract class HandlerFunctions {
 			if (uri != null) {
 				// TODO: in 2 places now, here and
 				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				serverRequest.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
 			}
 			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
 			return proxyExchangeHandlerFunction.get().handle(serverRequest);

@@ -34,7 +34,7 @@ public class LocalResponseCacheProperties {
 
 	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheProperties.class);
 
-	private static final Duration DEFAULT_CACHE_TTL_SECONDS = Duration.ofMinutes(5);
+	private static final Duration DEFAULT_CACHE_TTL_MINUTES = Duration.ofMinutes(5);
 
 	private DataSize size;
 
@@ -53,9 +53,9 @@ public class LocalResponseCacheProperties {
 	public Duration getTimeToLive() {
 		if (timeToLive == null) {
 			LOGGER.debug(String.format(
-					"No TTL configuration found. Default TTL will be applied for cache entries: %s seconds",
-					DEFAULT_CACHE_TTL_SECONDS));
-			return DEFAULT_CACHE_TTL_SECONDS;
+					"No TTL configuration found. Default TTL will be applied for cache entries: %s minutes",
+					DEFAULT_CACHE_TTL_MINUTES));
+			return DEFAULT_CACHE_TTL_MINUTES;
 		}
 		else {
 			return timeToLive;

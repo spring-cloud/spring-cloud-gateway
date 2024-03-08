@@ -80,11 +80,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	 * Simply holds the composite gateway RouterFunction. This class can be refresh scope
 	 * without fear of having multiple RouterFunction mappings.
 	 */
-	static class RouterFunctionHolder {
+	public static class RouterFunctionHolder {
 
 		private final RouterFunction<ServerResponse> routerFunction;
 
-		RouterFunctionHolder(RouterFunction<ServerResponse> routerFunction) {
+		public RouterFunctionHolder(RouterFunction<ServerResponse> routerFunction) {
 			this.routerFunction = routerFunction;
 		}
 
