@@ -119,14 +119,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
-		if (gatewayFilter instanceof Ordered) {
-			this.routeBuilder.filter(gatewayFilter);
-			log.warn("GatewayFilter already implements ordered " + gatewayFilter.getClass()
-					+ "ignoring order parameter: " + order);
-			return this;
-		}
-		this.routeBuilder.filter(new OrderedGatewayFilter(gatewayFilter, order));
-		return this;
+		return filter(gatewayFilter, order, false);
 	}
 
 	/**
