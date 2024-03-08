@@ -19,7 +19,6 @@ package org.springframework.cloud.gateway.cors;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,14 +78,13 @@ public class CorsGlobalTests extends BaseWebClientTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
 	@SpringBootTest(classes = TestConfig.class, properties = "spring.cloud.gateway.globalcors.enabled=false")
 	public static class DisabledByProperty {
 
 		@Autowired(required = false)
 		private CorsGatewayFilterApplicationListener listener;
 
-		@org.junit.Test
+		@Test
 		public void corsGatewayFilterApplicationListenerIsMissing() {
 			assertThat(listener).isNull();
 		}
