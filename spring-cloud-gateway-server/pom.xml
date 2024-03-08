@@ -17,7 +17,6 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.62.2</grpc.version>
-		<context-propagation.version>1.0.6</context-propagation.version>
 	</properties>
 
 	<dependencies>
@@ -135,12 +134,6 @@
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>context-propagation</artifactId>
-			<version>${context-propagation.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
