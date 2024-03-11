@@ -23,11 +23,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
+
+import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties.PREFIX;
 
 @ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestHttpHeadersFilter, Ordered {
@@ -95,55 +99,97 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 	/** If appending X-Forwarded-Prefix as a list is enabled. */
 	private boolean prefixAppend = true;
 
+	@Deprecated
+	public XForwardedRequestHeadersFilter() {
+		this(new XForwardedRequestHeadersFilterProperties());
+	}
+
+	public XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props) {
+		// TODO: remove individual properties in 4.2.0
+		// this.properties = properties;
+		PropertyMapper map = PropertyMapper.get();
+		map.from(props::getOrder).to(this::setOrder);
+		map.from(props::isEnabled).to(this::setEnabled);
+		map.from(props::isForEnabled).to(this::setForEnabled);
+		map.from(props::isHostEnabled).to(this::setHostEnabled);
+		map.from(props::isPortEnabled).to(this::setPortEnabled);
+		map.from(props::isProtoEnabled).to(this::setProtoEnabled);
+		map.from(props::isPrefixEnabled).to(this::setPrefixEnabled);
+		map.from(props::isForAppend).to(this::setForAppend);
+		map.from(props::isHostAppend).to(this::setHostAppend);
+		map.from(props::isPortAppend).to(this::setPortAppend);
+		map.from(props::isProtoAppend).to(this::setProtoAppend);
+		map.from(props::isPrefixAppend).to(this::setPrefixAppend);
+	}
+
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".order")
 	@Override
 	public int getOrder() {
 		return this.order;
 	}
 
+	@Deprecated
 	public void setOrder(int order) {
 		this.order = order;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".enabled")
 	public boolean isEnabled() {
 		return enabled;
 	}
 
+	@Deprecated
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-enabled")
 	public boolean isForEnabled() {
 		return forEnabled;
 	}
 
+	@Deprecated
 	public void setForEnabled(boolean forEnabled) {
 		this.forEnabled = forEnabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-enabled")
 	public boolean isHostEnabled() {
 		return hostEnabled;
 	}
 
+	@Deprecated
 	public void setHostEnabled(boolean hostEnabled) {
 		this.hostEnabled = hostEnabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-enabled")
 	public boolean isPortEnabled() {
 		return portEnabled;
 	}
 
+	@Deprecated
 	public void setPortEnabled(boolean portEnabled) {
 		this.portEnabled = portEnabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-enabled")
 	public boolean isProtoEnabled() {
 		return protoEnabled;
 	}
 
+	@Deprecated
 	public void setProtoEnabled(boolean protoEnabled) {
 		this.protoEnabled = protoEnabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-enabled")
 	public boolean isPrefixEnabled() {
 		return prefixEnabled;
 	}
@@ -152,30 +198,41 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		this.prefixEnabled = prefixEnabled;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-append")
 	public boolean isForAppend() {
 		return forAppend;
 	}
 
+	@Deprecated
 	public void setForAppend(boolean forAppend) {
 		this.forAppend = forAppend;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-append")
 	public boolean isHostAppend() {
 		return hostAppend;
 	}
 
+	@Deprecated
 	public void setHostAppend(boolean hostAppend) {
 		this.hostAppend = hostAppend;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-append")
 	public boolean isPortAppend() {
 		return portAppend;
 	}
 
+	@Deprecated
 	public void setPortAppend(boolean portAppend) {
 		this.portAppend = portAppend;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-append")
 	public boolean isProtoAppend() {
 		return protoAppend;
 	}
@@ -184,10 +241,13 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		this.protoAppend = protoAppend;
 	}
 
+	@Deprecated
+	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-append")
 	public boolean isPrefixAppend() {
 		return prefixAppend;
 	}
 
+	@Deprecated
 	public void setPrefixAppend(boolean prefixAppend) {
 		this.prefixAppend = prefixAppend;
 	}

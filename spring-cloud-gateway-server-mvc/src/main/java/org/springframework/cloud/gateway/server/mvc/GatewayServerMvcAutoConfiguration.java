@@ -40,6 +40,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRespons
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
@@ -169,8 +170,16 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter() {
-		return new XForwardedRequestHeadersFilter();
+	@ConditionalOnProperty(prefix = XForwardedRequestHeadersFilterProperties.PREFIX, name = ".enabled",
+			matchIfMissing = true)
+	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter(
+			XForwardedRequestHeadersFilterProperties props) {
+		return new XForwardedRequestHeadersFilter(props);
+	}
+
+	@Bean
+	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
+		return new XForwardedRequestHeadersFilterProperties();
 	}
 
 }
