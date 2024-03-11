@@ -82,6 +82,8 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "forwarded-request-headers-filter.enabled",
+			matchIfMissing = true)
 	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter() {
 		return new ForwardedRequestHeadersFilter();
 	}
