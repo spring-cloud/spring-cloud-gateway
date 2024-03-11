@@ -108,18 +108,18 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		// TODO: remove individual properties in 4.2.0
 		// this.properties = properties;
 		PropertyMapper map = PropertyMapper.get();
-		map.from(props::getOrder).to(this::setOrder);
-		map.from(props::isEnabled).to(this::setEnabled);
-		map.from(props::isForEnabled).to(this::setForEnabled);
-		map.from(props::isHostEnabled).to(this::setHostEnabled);
-		map.from(props::isPortEnabled).to(this::setPortEnabled);
-		map.from(props::isProtoEnabled).to(this::setProtoEnabled);
-		map.from(props::isPrefixEnabled).to(this::setPrefixEnabled);
-		map.from(props::isForAppend).to(this::setForAppend);
-		map.from(props::isHostAppend).to(this::setHostAppend);
-		map.from(props::isPortAppend).to(this::setPortAppend);
-		map.from(props::isProtoAppend).to(this::setProtoAppend);
-		map.from(props::isPrefixAppend).to(this::setPrefixAppend);
+		map.from(props::getOrder).to(o -> this.order = o);
+		map.from(props::isEnabled).to(b -> this.enabled = b);
+		map.from(props::isForEnabled).to(b -> this.forEnabled = b);
+		map.from(props::isHostEnabled).to(b -> this.hostEnabled = b);
+		map.from(props::isPortEnabled).to(b -> this.portEnabled = b);
+		map.from(props::isProtoEnabled).to(b -> this.protoEnabled = b);
+		map.from(props::isPrefixEnabled).to(b -> this.prefixEnabled = b);
+		map.from(props::isForAppend).to(b -> this.forAppend = b);
+		map.from(props::isHostAppend).to(b -> this.hostAppend = b);
+		map.from(props::isPortAppend).to(b -> this.portAppend = b);
+		map.from(props::isProtoAppend).to(b -> this.protoAppend = b);
+		map.from(props::isPrefixAppend).to(b -> this.prefixAppend = b);
 	}
 
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".order")
@@ -128,126 +128,243 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		return this.order;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setOrder(int)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setOrder(int order) {
 		this.order = order;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".enabled")
 	public boolean isEnabled() {
 		return enabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isForEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-enabled")
 	public boolean isForEnabled() {
 		return forEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setForEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setForEnabled(boolean forEnabled) {
 		this.forEnabled = forEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isHostEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-enabled")
 	public boolean isHostEnabled() {
 		return hostEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setHostEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setHostEnabled(boolean hostEnabled) {
 		this.hostEnabled = hostEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isPortEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-enabled")
 	public boolean isPortEnabled() {
 		return portEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setPortEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setPortEnabled(boolean portEnabled) {
 		this.portEnabled = portEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isProtoEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-enabled")
 	public boolean isProtoEnabled() {
 		return protoEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setProtoEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setProtoEnabled(boolean protoEnabled) {
 		this.protoEnabled = protoEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isPrefixEnabled()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-enabled")
 	public boolean isPrefixEnabled() {
 		return prefixEnabled;
 	}
 
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setPrefixEnabled(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setPrefixEnabled(boolean prefixEnabled) {
 		this.prefixEnabled = prefixEnabled;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isForAppend()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-append")
 	public boolean isForAppend() {
 		return forAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setForAppend(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setForAppend(boolean forAppend) {
 		this.forAppend = forAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isHostAppend()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-append")
 	public boolean isHostAppend() {
 		return hostAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setHostAppend(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setHostAppend(boolean hostAppend) {
 		this.hostAppend = hostAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isPortAppend()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-append")
 	public boolean isPortAppend() {
 		return portAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setPortAppend(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setPortAppend(boolean portAppend) {
 		this.portAppend = portAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isProtoAppend()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-append")
 	public boolean isProtoAppend() {
 		return protoAppend;
 	}
 
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setProtoAppend(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setProtoAppend(boolean protoAppend) {
 		this.protoAppend = protoAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#isPrefixAppend()} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-append")
 	public boolean isPrefixAppend() {
 		return prefixAppend;
 	}
 
-	@Deprecated
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link XForwardedRequestHeadersFilterProperties#setPrefixAppend(boolean)} )}
+	 */
+	@SuppressWarnings("removal")
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public void setPrefixAppend(boolean prefixAppend) {
 		this.prefixAppend = prefixAppend;
 	}
