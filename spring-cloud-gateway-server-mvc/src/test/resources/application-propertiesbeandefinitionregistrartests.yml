@@ -45,7 +45,7 @@ spring.cloud.gateway.mvc:
             name: X-Test
             values: listRoute3
     - id: listRoute4
-      uri: https://example1.com
+      uri: forward:/mycontroller
       predicates:
         - Path=/anything/example1
       filters:
