@@ -29,7 +29,7 @@ spring.cloud.gateway.mvc:
       uri: no://op
       predicates:
         - Method=GET,POST
-        - Path=/anything/listRoute2
+        - Path=/anything/listRoute2,/anything/anotherlistRoute2
       filters:
         - HttpbinUriResolver=
         - TokenRelay
