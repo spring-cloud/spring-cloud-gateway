@@ -94,8 +94,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	@Test
 	public void filterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerconnectfail.org").accept(APPLICATION_JSON)
-				.exchange().expectStatus().is5xxServerError().expectBody().jsonPath("$.status").isEqualTo(500)
-				.jsonPath("$.message").isNotEmpty().jsonPath("$.error").isEqualTo("Internal Server Error");
+				.exchange().expectStatus().is5xxServerError().expectBody().jsonPath("$.status").isEqualTo(504)
+				.jsonPath("$.message").isNotEmpty().jsonPath("$.error").isEqualTo("Gateway Timeout");
 	}
 
 	@Test
