@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.support.config;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Marta Medio

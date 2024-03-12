@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.support;
 
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory.KeyValue;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.StringUtils;
 
 /**
  * @deprecated in favour of
