@@ -55,7 +55,7 @@ public class RouteTests {
 	}
 
 	@Test
-	public void emptyHostFails() {
+	public void localhostNoSchemeFails() {
 		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("localhost:8080"))
 				.isInstanceOf(IllegalArgumentException.class);
 	}
