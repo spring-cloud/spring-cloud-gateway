@@ -123,6 +123,7 @@
 |spring.cloud.gateway.predicate.cookie.enabled | `+++true+++` | Enables the cookie predicate.
 |spring.cloud.gateway.predicate.header.enabled | `+++true+++` | Enables the header predicate.
 |spring.cloud.gateway.predicate.host.enabled | `+++true+++` | Enables the host predicate.
+|spring.cloud.gateway.predicate.host.include-port | `+++true+++` | Include the port in matching the host name.
 |spring.cloud.gateway.predicate.method.enabled | `+++true+++` | Enables the method predicate.
 |spring.cloud.gateway.predicate.path.enabled | `+++true+++` | Enables the path predicate.
 |spring.cloud.gateway.predicate.query.enabled | `+++true+++` | Enables the query predicate.

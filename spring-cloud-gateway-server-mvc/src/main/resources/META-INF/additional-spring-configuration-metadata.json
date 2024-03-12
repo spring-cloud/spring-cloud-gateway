@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forwarded-request-headers-filter.",
+      "defaultValue": "true"
+    }
+  ]
+}

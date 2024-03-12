@@ -17,8 +17,8 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.net.URI;
+import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,21 +28,29 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
 
-public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
+public class ProxyExchangeHandlerFunction
+		implements HandlerFunction<ServerResponse>, ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Log log = LogFactory.getLog(ProxyExchangeHandlerFunction.class);
 
 	private final ProxyExchange proxyExchange;
 
-	private final ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+	private final ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFiltersProvider;
 
-	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
+	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFiltersProvider;
+
+	private List<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+
+	private List<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
 
 	private final URIResolver uriResolver;
 
@@ -58,29 +66,36 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
 		this.proxyExchange = proxyExchange;
-		this.requestHttpHeadersFilters = requestHttpHeadersFilters;
-		this.responseHttpHeadersFilters = responseHttpHeadersFilters;
+		this.requestHttpHeadersFiltersProvider = requestHttpHeadersFilters;
+		this.responseHttpHeadersFiltersProvider = responseHttpHeadersFilters;
 		this.uriResolver = uriResolver;
+	}
+
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		init();
+	}
+
+	private void init() {
+		this.requestHttpHeadersFilters = this.requestHttpHeadersFiltersProvider.orderedStream().toList();
+		this.responseHttpHeadersFilters = this.responseHttpHeadersFiltersProvider.orderedStream().toList();
 	}
 
 	@Override
 	public ServerResponse handle(ServerRequest serverRequest) {
 		URI uri = uriResolver.apply(serverRequest);
-		boolean encoded = containsEncodedQuery(serverRequest.uri());
+		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
 		// @formatter:off
 		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
-				// .uri(routeUri)
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort())
-				.queryParams(serverRequest.params())
+				.replaceQueryParams(serverRequest.params())
 				.build(encoded)
 				.toUri();
 		// @formatter:on
 
-		// TODO: Streams.collect()?
-		HttpHeaders filteredRequestHeaders = filterHeaders(
-				this.requestHttpHeadersFilters.orderedStream().map(Function.identity()),
+		HttpHeaders filteredRequestHeaders = filterHeaders(this.requestHttpHeadersFilters,
 				serverRequest.headers().asHttpHeaders(), serverRequest);
 
 		boolean preserveHost = (boolean) serverRequest.attributes()
@@ -97,8 +112,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 				.headers(filteredRequestHeaders)
 				// TODO: allow injection of ResponseConsumer
 				.responseConsumer((response, serverResponse) -> {
-					HttpHeaders httpHeaders = filterHeaders(this.responseHttpHeadersFilters.orderedStream()
-							.map(Function.identity()), response.getHeaders(), serverResponse);
+					HttpHeaders httpHeaders = filterHeaders(this.responseHttpHeadersFilters, response.getHeaders(), serverResponse);
 					serverResponse.headers().putAll(httpHeaders);
 				})
 				.build();
@@ -106,22 +120,26 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 		return proxyExchange.exchange(proxyRequest);
 	}
 
-	private <TYPE> HttpHeaders filterHeaders(Stream<HttpHeadersFilter<TYPE>> filters, HttpHeaders original, TYPE type) {
+	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original,
+			REQUEST_OR_RESPONSE requestOrResponse) {
 		HttpHeaders filtered = original;
-		for (var filter : filters.toList()) {
-			filtered = filter.apply(filtered, type);
+		for (var filter : filters) {
+			@SuppressWarnings("unchecked")
+			var typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
+			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;
 	}
 
-	private static boolean containsEncodedQuery(URI uri) {
-		boolean encoded = (uri.getRawQuery() != null && uri.getRawQuery().contains("%"))
+	private static boolean containsEncodedQuery(URI uri, MultiValueMap<String, String> params) {
+		String rawQuery = uri.getRawQuery();
+		boolean encoded = (rawQuery != null && rawQuery.contains("%"))
 				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
 
 		// Verify if it is really fully encoded. Treat partial encoded as unencoded.
 		if (encoded) {
 			try {
-				UriComponentsBuilder.fromUri(uri).build(true);
+				UriComponentsBuilder.fromUri(uri).replaceQueryParams(params).build(true);
 				return true;
 			}
 			catch (IllegalArgumentException ignored) {
@@ -133,7 +151,7 @@ public class ProxyExchangeHandlerFunction implements HandlerFunction<ServerRespo
 			return false;
 		}
 
-		return encoded;
+		return false;
 	}
 
 	public interface URIResolver extends Function<ServerRequest, URI> {

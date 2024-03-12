@@ -39,6 +39,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.codec.max-in-memory-size=40")
@@ -61,6 +63,16 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
 				.exchange().expectBody().json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
+	}
+
+	@Test
+	public void testModificationOfContentType() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
+
+		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjavacontenttype.org").accept(MediaType.ALL)
+				.exchange().expectHeader().valueEquals(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+				.expectBody().consumeWith(result -> assertThat(new String(result.getResponseBody(), UTF_8))
+						.isEqualTo("Modified response"));
 	}
 
 	@Test
@@ -96,6 +108,14 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 											String.class, (webExchange, originalResponse) -> {
 												return Mono.just(toLarge);
 											}))
+									.uri(uri))
+					.route("modify_response_java_test_content_type",
+							r -> r.path("/").and().host("www.modifyresponsebodyjavacontenttype.org")
+									.filters(
+											f -> f.prefixPath("/httpbin").modifyResponseBody(String.class, String.class,
+													MediaType.TEXT_PLAIN_VALUE, (webExchange, originalResponse) -> {
+														return Mono.just("Modified response");
+													}))
 									.uri(uri))
 					.build();
 		}

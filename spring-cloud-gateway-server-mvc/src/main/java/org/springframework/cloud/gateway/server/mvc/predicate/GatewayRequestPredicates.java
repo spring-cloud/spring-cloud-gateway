@@ -36,6 +36,7 @@ import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier;
 import org.springframework.cloud.gateway.server.mvc.common.DefaultArgumentSuppliedEvent;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut.Type;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -121,15 +122,25 @@ public abstract class GatewayRequestPredicates {
 
 	// TODO: implement parameter aliases for predicates in RequestPredicates for webflux
 	// compatibility?
-	@Shortcut(type = Shortcut.Type.LIST)
+	@Shortcut(type = Type.LIST)
 	public static RequestPredicate method(HttpMethod... methods) {
 		return RequestPredicates.methods(methods);
 	}
 
-	@Shortcut
 	public static RequestPredicate host(String pattern) {
 		Assert.notNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
+	}
+
+	@Shortcut(type = Type.LIST)
+	public static RequestPredicate host(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[i]));
+		}
+		return requestPredicate;
 	}
 
 	/**
@@ -155,9 +166,51 @@ public abstract class GatewayRequestPredicates {
 	 * @return a predicate that tests against the given path pattern
 	 */
 	// TODO: find a different way to add shortcut to RequestPredicates.*
-	@Shortcut
 	public static RequestPredicate path(String pattern) {
 		return RequestPredicates.path(pattern);
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the request path against the given
+	 * path pattern.
+	 * @param patterns the list of patterns to match
+	 * @return a predicate that tests against the given path pattern
+	 */
+	@Shortcut(type = Type.LIST)
+	public static RequestPredicate path(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = RequestPredicates.path(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(RequestPredicates.path(patterns[i]));
+		}
+		return requestPredicate;
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter.
+	 * @param param the name of the query parameter
+	 * @return a predicate that tests for the presence of a given param
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param) {
+		return query(param, null);
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter if
+	 * the regexp is empty, or, otherwise finds if any value of the parameter matches the
+	 * regexp.
+	 * @param param the name of the query parameter
+	 * @param regexp an optional regular expression to match.
+	 * @return a predicate that tests for the given param and regexp.
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param, String regexp) {
+		if (!StringUtils.hasText(regexp)) {
+			return request -> request.param(param).isPresent();
+		}
+		return request -> request.param(param).stream().anyMatch(value -> value.matches(regexp));
 	}
 
 	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {

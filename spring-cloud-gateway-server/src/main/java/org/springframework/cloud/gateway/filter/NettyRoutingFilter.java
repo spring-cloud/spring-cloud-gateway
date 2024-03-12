@@ -130,61 +130,62 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		Flux<HttpClientResponse> responseFlux = getHttpClient(route, exchange).headers(headers -> {
-			headers.add(httpHeaders);
-			// Will either be set below, or later by Netty
-			headers.remove(HttpHeaders.HOST);
-			if (preserveHost) {
-				String host = request.getHeaders().getFirst(HttpHeaders.HOST);
-				headers.add(HttpHeaders.HOST, host);
-			}
-		}).request(method).uri(url).send((req, nettyOutbound) -> {
-			if (log.isTraceEnabled()) {
-				nettyOutbound.withConnection(connection -> log.trace("outbound route: "
-						+ connection.channel().id().asShortText() + ", inbound: " + exchange.getLogPrefix()));
-			}
-			return nettyOutbound.send(request.getBody().map(this::getByteBuf));
-		}).responseConnection((res, connection) -> {
+		Flux<HttpClientResponse> responseFlux = getHttpClientMono(route, exchange)
+				.flatMapMany(httpClient -> httpClient.headers(headers -> {
+					headers.add(httpHeaders);
+					// Will either be set below, or later by Netty
+					headers.remove(HttpHeaders.HOST);
+					if (preserveHost) {
+						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
+						headers.add(HttpHeaders.HOST, host);
+					}
+				}).request(method).uri(url).send((req, nettyOutbound) -> {
+					if (log.isTraceEnabled()) {
+						nettyOutbound.withConnection(connection -> log.trace("outbound route: "
+								+ connection.channel().id().asShortText() + ", inbound: " + exchange.getLogPrefix()));
+					}
+					return nettyOutbound.send(request.getBody().map(this::getByteBuf));
+				}).responseConnection((res, connection) -> {
 
-			// Defer committing the response until all route filters have run
-			// Put client response as ServerWebExchange attribute and write
-			// response later NettyWriteResponseFilter
-			exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
-			exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
+					// Defer committing the response until all route filters have run
+					// Put client response as ServerWebExchange attribute and write
+					// response later NettyWriteResponseFilter
+					exchange.getAttributes().put(CLIENT_RESPONSE_ATTR, res);
+					exchange.getAttributes().put(CLIENT_RESPONSE_CONN_ATTR, connection);
 
-			ServerHttpResponse response = exchange.getResponse();
-			// put headers and status so filters can modify the response
-			HttpHeaders headers = new HttpHeaders();
+					ServerHttpResponse response = exchange.getResponse();
+					// put headers and status so filters can modify the response
+					HttpHeaders headers = new HttpHeaders();
 
-			res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
+					res.responseHeaders().forEach(entry -> headers.add(entry.getKey(), entry.getValue()));
 
-			String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
-			if (StringUtils.hasLength(contentTypeValue)) {
-				exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
-			}
+					String contentTypeValue = headers.getFirst(HttpHeaders.CONTENT_TYPE);
+					if (StringUtils.hasLength(contentTypeValue)) {
+						exchange.getAttributes().put(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR, contentTypeValue);
+					}
 
-			setResponseStatus(res, response);
+					setResponseStatus(res, response);
 
-			// make sure headers filters run after setting status so it is
-			// available in response
-			HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(getHeadersFilters(), headers, exchange,
-					Type.RESPONSE);
+					// make sure headers filters run after setting status so it is
+					// available in response
+					HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(getHeadersFilters(), headers,
+							exchange, Type.RESPONSE);
 
-			if (!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
-					&& filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-				// It is not valid to have both the transfer-encoding header and
-				// the content-length header.
-				// Remove the transfer-encoding header in the response if the
-				// content-length header is present.
-				response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
-			}
+					if (!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
+							&& filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+						// It is not valid to have both the transfer-encoding header and
+						// the content-length header.
+						// Remove the transfer-encoding header in the response if the
+						// content-length header is present.
+						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+					}
 
-			exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
+					exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
 
-			response.getHeaders().addAll(filteredResponseHeaders);
+					response.getHeaders().addAll(filteredResponseHeaders);
 
-			return Mono.just(res);
-		});
+					return Mono.just(res);
+				}));
 
 		Duration responseTimeout = getResponseTimeout(route);
 		if (responseTimeout != null) {
@@ -229,6 +230,18 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						+ " on response of type " + response.getClass().getName());
 			}
 		}
+	}
+
+	/**
+	 * Creates a new HttpClient with per route timeout configuration. Sub-classes that
+	 * override, should call super.httpClient() if they want to honor the per route
+	 * timeout configuration.
+	 * @param route the current route.
+	 * @param exchange the current ServerWebExchange.
+	 * @return the configured HttpClient.
+	 */
+	protected Mono<HttpClient> getHttpClientMono(Route route, ServerWebExchange exchange) {
+		return Mono.just(getHttpClient(route, exchange));
 	}
 
 	/**

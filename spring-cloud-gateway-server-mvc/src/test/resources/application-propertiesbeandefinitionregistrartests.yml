@@ -26,12 +26,13 @@ spring.cloud.gateway.mvc:
         - HttpbinUriResolver=
         - AddRequestHeader=X-Test,listRoute1
     - id: listRoute2
-      uri: https://examplel2.com
+      uri: no://op
       predicates:
         - Method=GET,POST
-        - Path=/anything/listRoute2
+        - Path=/anything/listRoute2,/anything/anotherlistRoute2
       filters:
         - HttpbinUriResolver=
+        - TokenRelay
         - AddRequestHeader=X-Test,listRoute2
     - id: listRoute3
       uri: lb://httpbin
@@ -43,6 +44,22 @@ spring.cloud.gateway.mvc:
           args:
             name: X-Test
             values: listRoute3
+    - id: listRoute4
+      uri: forward:/mycontroller
+      predicates:
+        - Path=/anything/example1
+      filters:
+        - name: Retry
+          args:
+            retries: 3
+            series: SERVER_ERROR
+            methods: GET,POST
+        - name: CircuitBreaker
+          args:
+            id: mycb
+            statusCodes: 500,501
+            fallbackpath: GET,POST
+
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE

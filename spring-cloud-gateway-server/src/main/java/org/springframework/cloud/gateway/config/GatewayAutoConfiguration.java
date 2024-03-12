@@ -40,6 +40,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -154,8 +155,8 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.cloud.gateway.support.KeyValueConverter;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
+import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -199,6 +200,15 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
+	}
+
+	/**
+	 * @deprecated in favour of
+	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConverter}
+	 */
+	@Bean
+	public org.springframework.cloud.gateway.support.KeyValueConverter deprecatedKeyValueConverter() {
+		return new org.springframework.cloud.gateway.support.KeyValueConverter();
 	}
 
 	@Bean
@@ -441,8 +451,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public HostRoutePredicateFactory hostRoutePredicateFactory() {
-		return new HostRoutePredicateFactory();
+	public HostRoutePredicateFactory hostRoutePredicateFactory(Environment env) {
+		boolean includePort = env.getProperty("spring.cloud.gateway.predicate.host.include-port", Boolean.class, true);
+		return new HostRoutePredicateFactory(includePort);
 	}
 
 	@Bean
@@ -817,9 +828,9 @@ public class GatewayAutoConfiguration {
 		public GatewayControllerEndpoint gatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
-				RouteDefinitionLocator routeDefinitionLocator) {
+				RouteDefinitionLocator routeDefinitionLocator, WebEndpointProperties webEndpointProperties) {
 			return new GatewayControllerEndpoint(globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-					routeLocator, routeDefinitionLocator);
+					routeLocator, routeDefinitionLocator, webEndpointProperties);
 		}
 
 		@Bean
@@ -828,9 +839,10 @@ public class GatewayAutoConfiguration {
 		public GatewayLegacyControllerEndpoint gatewayLegacyControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
-				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
+				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
+				WebEndpointProperties webEndpointProperties) {
 			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator, globalFilters, gatewayFilters,
-					routePredicates, routeDefinitionWriter, routeLocator);
+					routePredicates, routeDefinitionWriter, routeLocator, webEndpointProperties);
 		}
 
 	}

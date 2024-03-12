@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.security.Principal;
 
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
@@ -34,6 +35,7 @@ public abstract class TokenRelayFilterFunctions {
 	private TokenRelayFilterFunctions() {
 	}
 
+	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay() {
 		return (request, next) -> {
 			Principal principle = request.servletRequest().getUserPrincipal();
@@ -51,6 +53,14 @@ public abstract class TokenRelayFilterFunctions {
 			}
 			return next.handle(request);
 		};
+	}
+
+	public static class FilterSupplier extends SimpleFilterSupplier {
+
+		public FilterSupplier() {
+			super(TokenRelayFilterFunctions.class);
+		}
+
 	}
 
 }

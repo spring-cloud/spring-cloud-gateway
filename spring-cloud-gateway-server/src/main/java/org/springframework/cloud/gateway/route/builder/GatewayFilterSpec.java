@@ -119,11 +119,25 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order) {
+		return filter(gatewayFilter, order, false);
+	}
+
+	/**
+	 * Applies the filter to the route.
+	 * @param gatewayFilter the filter to apply
+	 * @param order the order to apply the filter
+	 * @param forceOrder if <code>true</code>, then force the order even if the supplied
+	 * {@link GatewayFilter} implements {@link Ordered}
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec filter(GatewayFilter gatewayFilter, int order, boolean forceOrder) {
 		if (gatewayFilter instanceof Ordered) {
-			this.routeBuilder.filter(gatewayFilter);
-			log.warn("GatewayFilter already implements ordered " + gatewayFilter.getClass()
-					+ "ignoring order parameter: " + order);
-			return this;
+			if (!forceOrder) {
+				this.routeBuilder.filter(gatewayFilter);
+				log.warn("GatewayFilter already implements ordered " + gatewayFilter.getClass()
+						+ "ignoring order parameter: " + order);
+				return this;
+			}
 		}
 		this.routeBuilder.filter(new OrderedGatewayFilter(gatewayFilter, order));
 		return this;
@@ -476,6 +490,18 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
 	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(int status, URI url, boolean includeRequestParams) {
+		return redirect(String.valueOf(status), url.toString(), includeRequestParams);
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(int status, String url) {
@@ -487,10 +513,34 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
 	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(int status, String url, boolean includeRequestParams) {
+		return redirect(String.valueOf(status), url, includeRequestParams);
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, URI url) {
-		return redirect(status, url.toString());
+		return redirect(status, url.toString(), false);
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(String status, String url, boolean includeRequestParams) {
+		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url, includeRequestParams));
 	}
 
 	/**
@@ -512,8 +562,21 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(HttpStatus status, URL url) {
+		return redirect(status, url, false);
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(HttpStatus status, URL url, boolean includeRequestParams) {
 		try {
-			return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url.toURI()));
+			return filter(
+					getBean(RedirectToGatewayFilterFactory.class).apply(status, url.toURI(), includeRequestParams));
 		}
 		catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
@@ -817,7 +880,8 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that sets the maximum permissible size of a Content-Length header value in the Request.
+	 * A filter that sets the maximum permissible size of a Content-Length header value in
+	 * the Request.
 	 * @param size the maximum size of a request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
@@ -826,7 +890,8 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that sets the maximum permissible size of a Content-Length header value in the Request.
+	 * A filter that sets the maximum permissible size of a Content-Length header value in
+	 * the Request.
 	 * @param size the maximum size of a request
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */

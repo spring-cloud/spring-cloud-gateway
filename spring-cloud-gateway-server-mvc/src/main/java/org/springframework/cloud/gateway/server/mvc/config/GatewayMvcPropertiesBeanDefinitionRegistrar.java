@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.config;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,13 +33,19 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.bind.handler.IgnoreTopLevelConverterNotFoundBindHandler;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
+import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.convert.ConversionServiceParameterValueMapper;
@@ -46,6 +53,7 @@ import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMeth
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.type.AnnotationMetadata;
@@ -177,16 +185,18 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Map<String, String> handlerArgs = new HashMap<>();
-		// TODO: avoid hardcoded scheme/uri args
-		// maybe find empty args or single RouteProperties param?
-		if (scheme.equals("lb")) {
-			handlerArgs.put("uri", routeProperties.getUri().toString());
-		}
+		Map<String, Object> handlerArgs = new HashMap<>();
 		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
 				scheme.toLowerCase(), handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
-			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
+			// single RouteProperties param
+			handlerArgs.clear();
+			String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
+			handlerArgs.put(routePropsKey, routeProperties);
+			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), handlerArgs);
+			if (handlerOperationMethod.isEmpty()) {
+				throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
+			}
 		}
 		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
 		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
@@ -207,21 +217,21 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
 		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
 
-		routeProperties.getPredicates()
-				.forEach(predicateProperties -> translate(predicateOperations, predicateProperties.getName(),
-						predicateProperties.getArgs(), RequestPredicate.class, requestPredicate -> {
-							log.trace(LogMessage.format("Adding predicate to route %s - %s", routeId,
-									predicateProperties));
-							if (predicate.get() == null) {
-								predicate.set(requestPredicate);
-							}
-							else {
-								RequestPredicate combined = predicate.get().and(requestPredicate);
-								predicate.set(combined);
-							}
-							log.trace(LogMessage.format("Combined predicate for route %s - %s", routeId,
-									predicate.get()));
-						}));
+		routeProperties.getPredicates().forEach(predicateProperties -> {
+			Map<String, Object> args = new LinkedHashMap<>(predicateProperties.getArgs());
+			translate(predicateOperations, predicateProperties.getName(), args, RequestPredicate.class,
+					requestPredicate -> {
+						log.trace(LogMessage.format("Adding predicate to route %s - %s", routeId, predicateProperties));
+						if (predicate.get() == null) {
+							predicate.set(requestPredicate);
+						}
+						else {
+							RequestPredicate combined = predicate.get().and(requestPredicate);
+							predicate.set(combined);
+						}
+						log.trace(LogMessage.format("Combined predicate for route %s - %s", routeId, predicate.get()));
+					});
+		});
 
 		// combine predicate and handlerFunction
 		builder.route(predicate.get(), handlerFunction);
@@ -229,8 +239,10 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
-		routeProperties.getFilters().forEach(filterProperties -> translate(filterOperations, filterProperties.getName(),
-				filterProperties.getArgs(), HandlerFilterFunction.class, builder::filter));
+		routeProperties.getFilters().forEach(filterProperties -> {
+			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
+			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
+		});
 
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
@@ -238,7 +250,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	}
 
 	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
-			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
+			Map<String, Object> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
 		String normalizedName = StringUtils.uncapitalize(operationName);
 		Optional<NormalizedOperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
@@ -255,15 +267,19 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	}
 
 	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
-			String operationName, Map<String, String> operationArgs) {
+			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
 				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
 
-	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, String> args) {
-		Map<String, String> normalizedArgs = operationMethod.getNormalizedArgs();
+	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, Object> args) {
+		Map<String, Object> normalizedArgs = operationMethod.getNormalizedArgs();
 		OperationParameters parameters = operationMethod.getParameters();
+		if (operationMethod.isConfigurable()) {
+			// this is a special case
+			return true;
+		}
 		if (parameters.getParameterCount() != normalizedArgs.size()) {
 			return false;
 		}
@@ -276,12 +292,36 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		return true;
 	}
 
-	private <T> T invokeOperation(OperationMethod operationMethod, Map<String, String> operationArgs) {
-		Map<String, Object> args = new HashMap<>(operationArgs);
+	private <T> T invokeOperation(OperationMethod operationMethod, Map<String, Object> operationArgs) {
+		Map<String, Object> args = new HashMap<>();
+		if (operationMethod.isConfigurable()) {
+			OperationParameter operationParameter = operationMethod.getParameters().get(0);
+			Object config = bindConfigurable(operationMethod, args, operationParameter);
+			args.put(operationParameter.getName(), config);
+		}
+		else {
+			args.putAll(operationArgs);
+		}
 		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod,
 				this.parameterValueMapper);
 		InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
 		return operationInvoker.invoke(context);
+	}
+
+	private static Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
+			OperationParameter operationParameter) {
+		Class<?> configurableType = operationParameter.getType();
+		Configurable configurable = operationMethod.getMethod().getAnnotation(Configurable.class);
+		if (configurable != null && !configurable.value().equals(Void.class)) {
+			configurableType = configurable.value();
+		}
+		Bindable<?> bindable = Bindable.of(configurableType);
+		List<ConfigurationPropertySource> propertySources = Collections
+				.singletonList(new MapConfigurationPropertySource(args));
+		// TODO: potentially deal with conversion service
+		Binder binder = new Binder(propertySources, null, DefaultConversionService.getSharedInstance());
+		Object config = binder.bindOrCreate("", bindable, new IgnoreTopLevelConverterNotFoundBindHandler());
+		return config;
 	}
 
 	static class TrueNullOperationArgumentResolver implements OperationArgumentResolver {
@@ -302,11 +342,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 	 * Simply holds the composite gateway RouterFunction. This class can be refresh scope
 	 * without fear of having multiple RouterFunction mappings.
 	 */
-	static class RouterFunctionHolder {
+	public static class RouterFunctionHolder {
 
 		private final RouterFunction<ServerResponse> routerFunction;
 
-		RouterFunctionHolder(RouterFunction<ServerResponse> routerFunction) {
+		public RouterFunctionHolder(RouterFunction<ServerResponse> routerFunction) {
 			this.routerFunction = routerFunction;
 		}
 
