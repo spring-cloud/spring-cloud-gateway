@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
@@ -53,6 +55,23 @@ public class RemoveHopByHopHeadersFilterTests {
 	}
 
 	@Test
+	public void caseInsensitiveCustom() {
+		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
+
+		HEADERS_REMOVED_ON_REQUEST
+				.forEach(header -> builder.header(StringUtils.capitalize(header.toLowerCase()), header + "1"));
+
+		LinkedHashSet<String> customHeaders = new LinkedHashSet<>();
+		HEADERS_REMOVED_ON_REQUEST.forEach(header -> {
+			String newHeader = header.charAt(0) + StringUtils.capitalize(header.substring(1));
+			customHeaders.add(newHeader);
+		});
+		RemoveHopByHopHeadersFilter filter = new RemoveHopByHopHeadersFilter();
+		filter.setHeaders(customHeaders);
+		testFilter(filter, MockServerWebExchange.from(builder));
+	}
+
+	@Test
 	public void removesHeadersListedInConnectionHeader() {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
@@ -64,7 +83,11 @@ public class RemoveHopByHopHeadersFilterTests {
 	}
 
 	private void testFilter(MockServerWebExchange exchange, String... additionalHeaders) {
-		RemoveHopByHopHeadersFilter filter = new RemoveHopByHopHeadersFilter();
+		testFilter(new RemoveHopByHopHeadersFilter(), exchange, additionalHeaders);
+	}
+
+	private void testFilter(RemoveHopByHopHeadersFilter filter, MockServerWebExchange exchange,
+			String... additionalHeaders) {
 		HttpHeaders headers = filter.filter(exchange.getRequest().getHeaders(), exchange);
 
 		Set<String> toRemove = new HashSet<>(HEADERS_REMOVED_ON_REQUEST);
