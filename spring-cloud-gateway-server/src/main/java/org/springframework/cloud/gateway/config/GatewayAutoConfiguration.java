@@ -264,6 +264,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.cloud.client.discovery.event.HeartbeatMonitor")
+	@ConditionalOnProperty(prefix = GatewayProperties.PREFIX, name = ".route-refresh-listener.enabled",
+			matchIfMissing = true)
 	public RouteRefreshListener routeRefreshListener(ApplicationEventPublisher publisher) {
 		return new RouteRefreshListener(publisher);
 	}

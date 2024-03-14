@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -157,7 +158,9 @@ public abstract class MvcUtils {
 	public static Map<String, Object> getGatewayAttributes(ServerRequest request) {
 		// This map is made in GatewayDelegatingRouterFunction.route() and persists across
 		// attribute resetting in RequestPredicates
-		Map<String, Object> attributes = (Map<String, Object>) request.attributes().get(GATEWAY_ATTRIBUTES_ATTR);
+		// computeIfAbsent if the used vanilla RouterFunctions.route()
+		Map<String, Object> attributes = (Map<String, Object>) request.attributes()
+				.computeIfAbsent(GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
 		return attributes;
 	}
 
