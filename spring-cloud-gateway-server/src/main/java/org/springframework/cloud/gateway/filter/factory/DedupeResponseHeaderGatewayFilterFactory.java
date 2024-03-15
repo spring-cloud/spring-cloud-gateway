@@ -73,6 +73,9 @@ Modified response header Access-Control-Allow-Credentials: true
 public class DedupeResponseHeaderGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
 
+	/**
+	 * The name of the strategy key.
+	 */
 	public static final String STRATEGY_KEY = "strategy";
 
 	public DedupeResponseHeaderGatewayFilterFactory() {
