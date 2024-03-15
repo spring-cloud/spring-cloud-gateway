@@ -58,6 +58,7 @@
 ** xref:spring-cloud-gateway/reactor-netty-access-logs.adoc[]
 ** xref:spring-cloud-gateway/cors-configuration.adoc[]
 ** xref:spring-cloud-gateway/actuator-api.adoc[]
+** xref:spring-cloud-gateway/sharing-routes.adoc[]
 ** xref:spring-cloud-gateway/troubleshooting.adoc[]
 ** xref:spring-cloud-gateway/developer-guide.adoc[]
 ** xref:spring-cloud-gateway/aot-and-native-image-support.adoc[]
