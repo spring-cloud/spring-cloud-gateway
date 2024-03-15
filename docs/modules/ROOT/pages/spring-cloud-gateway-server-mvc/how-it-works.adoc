@@ -13,4 +13,4 @@ In addition to custom `HandlerFunctions` for HTTP forwarding, Spring Cloud Gatew
 There are additional `*FilterFunctions` classes for optional filters that will are documented along with each filter.
 
 
-
+WARNING: Any path defined on a route URI will be ignored.
