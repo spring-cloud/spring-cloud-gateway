@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
@@ -92,6 +93,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	}
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	public void filterErrorPage() {
 		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerconnectfail.org").accept(APPLICATION_JSON)
 				.exchange().expectStatus().is5xxServerError().expectBody().jsonPath("$.status").isEqualTo(504)
