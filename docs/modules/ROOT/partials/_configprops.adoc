@@ -137,6 +137,7 @@
 |spring.cloud.gateway.redis-rate-limiter.remaining-header | `+++X-RateLimit-Remaining+++` | The name of the header that returns number of remaining requests during the current second.
 |spring.cloud.gateway.redis-rate-limiter.replenish-rate-header | `+++X-RateLimit-Replenish-Rate+++` | The name of the header that returns the replenish rate configuration.
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `+++X-RateLimit-Requested-Tokens+++` | The name of the header that returns the requested tokens configuration.
+|spring.cloud.gateway.redis-route-definition-repository.enabled | `+++true+++` | If RedisRouteDefinitionRepository should be enabled.
 |spring.cloud.gateway.restrictive-property-accessor.enabled | `+++true+++` | Restricts method and property access in SpEL.
 |spring.cloud.gateway.route-refresh-listener.enabled | `+++true+++` | If RouteRefreshListener should be turned on.
 |spring.cloud.gateway.routes |  | List of Routes.
