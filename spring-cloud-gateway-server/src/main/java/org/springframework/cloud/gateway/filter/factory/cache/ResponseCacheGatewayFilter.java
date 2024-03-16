@@ -31,6 +31,8 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.LOCAL_RESPONSE_CACHE_FILTER_APPLIED;
+
 /**
  * {@literal LocalResponseCache} Gateway Filter that stores HTTP Responses in a cache, so
  * latency and upstream overhead is reduced.
@@ -49,6 +51,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		if (responseCacheManager.isRequestCacheable(exchange.getRequest())) {
+			exchange.getAttributes().put(LOCAL_RESPONSE_CACHE_FILTER_APPLIED, true);
 			return filterWithCache(exchange, chain);
 		}
 		else {
@@ -58,12 +61,12 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
+		return NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 3;
 	}
 
 	private Mono<Void> filterWithCache(ServerWebExchange exchange, GatewayFilterChain chain) {
 		final String metadataKey = responseCacheManager.resolveMetadataKey(exchange);
-		Optional<CachedResponse> cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+		Optional<CachedResponse> cached = getCachedResponse(exchange, metadataKey);
 
 		if (cached.isPresent()) {
 			return responseCacheManager.processFromCache(exchange, metadataKey, cached.get());
@@ -72,6 +75,22 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 			return chain
 					.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
 		}
+	}
+
+	private Optional<CachedResponse> getCachedResponse(ServerWebExchange exchange, String metadataKey) {
+		Optional<CachedResponse> cached;
+		if (shouldRevalidate(exchange)) {
+			cached = Optional.empty();
+		}
+		else {
+			cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+		}
+
+		return cached;
+	}
+
+	private boolean shouldRevalidate(ServerWebExchange exchange) {
+		return LocalResponseCacheUtils.isNoCacheRequest(exchange.getRequest());
 	}
 
 	private class CachingResponseDecorator extends ServerHttpResponseDecorator {
@@ -91,12 +110,12 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 			final ServerHttpResponse response = exchange.getResponse();
 
 			Flux<DataBuffer> decoratedBody;
-			if (responseCacheManager.isResponseCacheable(response)) {
-				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange,
-						(Flux<DataBuffer>) body);
+			if (responseCacheManager.isResponseCacheable(response)
+					&& !responseCacheManager.isNoCacheRequestWithoutUpdate(exchange.getRequest())) {
+				decoratedBody = responseCacheManager.processFromUpstream(metadataKey, exchange, Flux.from(body));
 			}
 			else {
-				decoratedBody = (Flux<DataBuffer>) body;
+				decoratedBody = Flux.from(body);
 			}
 
 			return super.writeWith(decoratedBody);

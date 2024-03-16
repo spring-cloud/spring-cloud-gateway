@@ -42,11 +42,11 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.handle;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.reset;
 
 /**
@@ -108,7 +108,6 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 					}
 
 					exchange.getResponse().setStatusCode(null);
-					reset(exchange);
 
 					// TODO: copied from RouteToRequestUrlFilter
 					URI uri = exchange.getRequest().getURI();
@@ -129,7 +128,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 					reset(exchange);
 
 					ServerHttpRequest request = exchange.getRequest().mutate().uri(requestUrl).build();
-					return getDispatcherHandler().handle(exchange.mutate().request(request).build());
+					return handle(getDispatcherHandler(), exchange.mutate().request(request).build());
 				}).onErrorResume(t -> handleErrorWithoutFallback(t, config.isResumeWithoutError()));
 			}
 
@@ -144,8 +143,9 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 	protected abstract Mono<Void> handleErrorWithoutFallback(Throwable t, boolean resumeWithoutError);
 
 	private void addExceptionDetails(Throwable t, ServerWebExchange exchange) {
-		ofNullable(t).ifPresent(
-				exception -> exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, exception));
+		if (t != null) {
+			exchange.getAttributes().put(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR, t);
+		}
 	}
 
 	@Override

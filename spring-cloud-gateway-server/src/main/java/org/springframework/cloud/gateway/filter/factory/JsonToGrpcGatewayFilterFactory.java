@@ -192,9 +192,12 @@ public class JsonToGrpcGatewayFilterFactory
 				descriptor = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorFile.getInputStream())
 						.getDescriptorForType();
 
-				Descriptors.Descriptor outputType = getOutputTypeDescriptor(config, descriptorFile.getInputStream());
+				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config,
+						descriptorFile.getInputStream());
+				Descriptors.ServiceDescriptor serviceDescriptor = methodDescriptor.getService();
+				Descriptors.Descriptor outputType = methodDescriptor.getOutputType();
 
-				clientCall = createClientCallForType(config, outputType);
+				clientCall = createClientCallForType(config, serviceDescriptor, outputType);
 
 				ProtobufSchema schema = ProtobufSchemaLoader.std.load(protoFile.getInputStream());
 				ProtobufSchema responseType = schema.withRootType(outputType.getName());
@@ -220,18 +223,19 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
-				Descriptors.Descriptor outputType) {
+				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
 					.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
 					.<DynamicMessage, DynamicMessage>newBuilder().setType(MethodDescriptor.MethodType.UNKNOWN)
-					.setFullMethodName(MethodDescriptor.generateFullMethodName(config.getService(), config.getMethod()))
+					.setFullMethodName(MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(),
+							config.getMethod()))
 					.setRequestMarshaller(marshaller).setResponseMarshaller(marshaller).build();
 			Channel channel = createChannel();
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
 
-		private Descriptors.Descriptor getOutputTypeDescriptor(Config config, InputStream descriptorFile)
+		private Descriptors.MethodDescriptor getMethodDescriptor(Config config, InputStream descriptorFile)
 				throws IOException, Descriptors.DescriptorValidationException {
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
 					.parseFrom(descriptorFile);
@@ -239,11 +243,15 @@ public class JsonToGrpcGatewayFilterFactory
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
 					new Descriptors.FileDescriptor[0]);
 
-			List<Descriptors.MethodDescriptor> methods = fileDescriptor.findServiceByName(config.getService())
-					.getMethods();
+			Descriptors.ServiceDescriptor serviceDescriptor = fileDescriptor.findServiceByName(config.getService());
+			if (serviceDescriptor == null) {
+				throw new NoSuchElementException("No Service found");
+			}
+
+			List<Descriptors.MethodDescriptor> methods = serviceDescriptor.getMethods();
 
 			return methods.stream().filter(method -> method.getName().equals(config.getMethod())).findFirst()
-					.orElseThrow(() -> new NoSuchElementException("No Method found")).getOutputType();
+					.orElseThrow(() -> new NoSuchElementException("No Method found"));
 		}
 
 		private ManagedChannel createChannel() {

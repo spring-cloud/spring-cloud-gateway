@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.HashMap;
 
 import org.assertj.core.util.Maps;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -52,6 +52,26 @@ public class RouteTests {
 	public void nullScheme() {
 		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
 				.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	public void localhostNoSchemeFails() {
+		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("localhost:8080"))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	public void noOpWorks() {
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("no://op").build();
+
+		assertThat(route.getUri()).hasScheme("no").hasHost("op");
+	}
+
+	@Test
+	public void forwardWorks() {
+		Route route = Route.async().id("1").predicate(exchange -> true).uri("forward:/some/path").build();
+
+		assertThat(route.getUri()).hasScheme("forward").hasPath("/some/path");
 	}
 
 	@Test

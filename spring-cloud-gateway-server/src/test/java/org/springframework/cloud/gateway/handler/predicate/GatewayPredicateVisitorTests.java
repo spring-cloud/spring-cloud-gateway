@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.Route;

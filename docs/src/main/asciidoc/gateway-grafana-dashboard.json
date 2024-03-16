@@ -136,7 +136,7 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "Total Requests Served",
-          "type": "singlestat",
+          "type": "stat",
           "valueFontSize": "80%",
           "valueMaps": [
             {
@@ -224,7 +224,7 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "Total Successful Requests Served",
-          "type": "singlestat",
+          "type": "stat",
           "valueFontSize": "80%",
           "valueMaps": [
             {
@@ -312,7 +312,7 @@
           "timeFrom": null,
           "timeShift": null,
           "title": "Total Unsuccessful Requests Served",
-          "type": "singlestat",
+          "type": "stat",
           "valueFontSize": "80%",
           "valueMaps": [
             {

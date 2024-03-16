@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -40,6 +41,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
+
+	@Autowired
+	private HostRoutePredicateFactory hostPredicate;
 
 	@Test
 	public void hostRouteWorks() {
@@ -72,6 +76,15 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void mulitHostRouteDslWorks() {
 		expectHostRoute("www.hostmultidsl1.org", "host_multi_dsl");
 		expectHostRoute("www.hostmultidsl2.org", "host_multi_dsl");
+	}
+
+	@Test
+	public void sameHostWithPort() {
+		expectHostRoute("hostpatternarg.org:8080", "host_with_port_pattern");
+
+		hostPredicate.setIncludePort(false);
+		expectHostRoute("hostpatternarg.org:8080", "host_without_port_pattern");
+		hostPredicate.setIncludePort(true);
 	}
 
 	@Test

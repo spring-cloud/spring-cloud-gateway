@@ -1,0 +1,24 @@
+[[removerequestparameter-gatewayfilter-factory]]
+= `RemoveRequestParameter` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+The `RemoveRequestParameter` `GatewayFilter` factory takes a `name` parameter.
+It is the name of the query parameter to be removed.
+The following example configures a `RemoveRequestParameter` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removerequestparameter_route
+        uri: https://example.org
+        filters:
+        - RemoveRequestParameter=red
+----
+
+This will remove the `red` parameter before it is sent downstream.
+
+

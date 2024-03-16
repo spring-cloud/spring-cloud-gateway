@@ -1,0 +1,26 @@
+= `RewriteRequestParameter` `GatewayFilter` Factory
+
+The `RewriteRequestParameter` `GatewayFilter` factory takes a `name` parameter and a `replacement` parameter.
+It will rewrite the value of the request parameter of the given `name`.
+If multiple request parameters with the same `name` are set, they will be replaced with a single value.
+If no request parameter is found, no changes will be made.
+The following listing configures a `RewriteRequestParameter` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewriterequestparameter_route
+        uri: https://example.org
+        predicates:
+        - Path=/products
+        filters:
+        - RewriteRequestParameter=campaign,fall2023
+----
+====
+
+For a request to `/products?campaign=old`, this sets the request parameter to `campaign=fall2023`.

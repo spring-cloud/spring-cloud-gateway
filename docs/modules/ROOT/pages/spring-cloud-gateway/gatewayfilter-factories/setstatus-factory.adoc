@@ -1,0 +1,40 @@
+[[setstatus-gatewayfilter-factory]]
+= `SetStatus` `GatewayFilter` Factory
+
+The `SetStatus` `GatewayFilter` factory takes a single parameter, `status`.
+It must be a valid Spring `HttpStatus`.
+It may be the integer value `404` or the string representation of the enumeration: `NOT_FOUND`.
+The following listing configures a `SetStatus` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setstatusstring_route
+        uri: https://example.org
+        filters:
+        - SetStatus=UNAUTHORIZED
+      - id: setstatusint_route
+        uri: https://example.org
+        filters:
+        - SetStatus=401
+----
+
+In either case, the HTTP status of the response is set to 401.
+
+You can configure the `SetStatus` `GatewayFilter` to return the original HTTP status code from the proxied request in a header in the response.
+The header is added to the response if configured with the following property:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      set-status:
+        original-status-header-name: original-http-status
+----
+

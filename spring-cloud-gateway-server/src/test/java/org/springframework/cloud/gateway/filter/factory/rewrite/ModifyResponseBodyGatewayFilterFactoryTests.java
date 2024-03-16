@@ -45,6 +45,7 @@ import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -68,6 +69,16 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 
 		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
 				.exchange().expectBody().json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
+	}
+
+	@Test
+	public void testModificationOfContentType() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
+
+		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjavacontenttype.org").accept(MediaType.ALL)
+				.exchange().expectHeader().valueEquals(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+				.expectBody().consumeWith(result -> assertThat(new String(result.getResponseBody(), UTF_8))
+						.isEqualTo("Modified response"));
 	}
 
 	@Test
@@ -159,11 +170,18 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 					.route("modify_response_java_test_sse",
 							r -> r.host("www.modifyresponsebodyjavawithsse.org").filters(f -> f
 									.modifyResponseBody(byte[].class, String.class, (webExchange, originalResponse) -> {
-										String originalResponseStr = new String(originalResponse,
-												StandardCharsets.UTF_8);
+										String originalResponseStr = new String(originalResponse, UTF_8);
 										String modifiedResponse = originalResponseStr.replace("D -", "MD -");
 										return Mono.just(modifiedResponse);
 									})).uri(uri))
+					.route("modify_response_java_test_content_type",
+							r -> r.path("/").and().host("www.modifyresponsebodyjavacontenttype.org")
+									.filters(
+											f -> f.prefixPath("/httpbin").modifyResponseBody(String.class, String.class,
+													MediaType.TEXT_PLAIN_VALUE, (webExchange, originalResponse) -> {
+														return Mono.just("Modified response");
+													}))
+									.uri(uri))
 					.build();
 		}
 

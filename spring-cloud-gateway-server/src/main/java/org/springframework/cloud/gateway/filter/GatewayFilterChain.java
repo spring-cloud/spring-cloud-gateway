@@ -19,10 +19,11 @@ package org.springframework.cloud.gateway.filter;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
 
 /**
- * Contract to allow a {@link WebFilter} to delegate to the next in the chain.
+ * Contract to allow a {@link GatewayFilter} to delegate to the next in the chain.
+ *
+ * Copied from framework WebFilterChain
  *
  * @author Rossen Stoyanchev
  * @since 5.0
@@ -30,7 +31,7 @@ import org.springframework.web.server.WebFilter;
 public interface GatewayFilterChain {
 
 	/**
-	 * Delegate to the next {@code WebFilter} in the chain.
+	 * Delegate to the next {@code GatewayFilter} in the chain.
 	 * @param exchange the current server exchange
 	 * @return {@code Mono<Void>} to indicate when request handling is complete
 	 */

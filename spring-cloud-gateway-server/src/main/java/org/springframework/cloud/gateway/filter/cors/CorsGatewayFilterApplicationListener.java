@@ -22,16 +22,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
-import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
 
 /**
+ * This class updates Cors configuration each time a {@link RefreshRoutesEvent} is
+ * consumed. The {@link Route}'s predicates are inspected for a
+ * {@link PathRoutePredicateFactory} and the first pattern is used.
+ *
  * @author Fredrich Ombico
  * @author Abel Salgado Romero
  */
@@ -41,31 +47,29 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 
 	private final RoutePredicateHandlerMapping routePredicateHandlerMapping;
 
-	private final RouteDefinitionLocator routeDefinitionLocator;
-
-	private static final String PATH_PREDICATE_NAME = "Path";
+	private final RouteLocator routeLocator;
 
 	private static final String METADATA_KEY = "cors";
 
 	private static final String ALL_PATHS = "/**";
 
 	public CorsGatewayFilterApplicationListener(GlobalCorsProperties globalCorsProperties,
-			RoutePredicateHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
+			RoutePredicateHandlerMapping routePredicateHandlerMapping, RouteLocator routeLocator) {
 		this.globalCorsProperties = globalCorsProperties;
 		this.routePredicateHandlerMapping = routePredicateHandlerMapping;
-		this.routeDefinitionLocator = routeDefinitionLocator;
+		this.routeLocator = routeLocator;
 	}
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
-		routeDefinitionLocator.getRouteDefinitions().collectList().subscribe(routeDefinitions -> {
+		routeLocator.getRoutes().collectList().subscribe(routes -> {
 			// pre-populate with pre-existing global cors configurations to combine with.
 			var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
 
-			routeDefinitions.forEach(routeDefinition -> {
-				var corsConfiguration = getCorsConfiguration(routeDefinition);
+			routes.forEach(route -> {
+				var corsConfiguration = getCorsConfiguration(route);
 				corsConfiguration.ifPresent(configuration -> {
-					var pathPredicate = getPathPredicate(routeDefinition);
+					var pathPredicate = getPathPredicate(route);
 					corsConfigurations.put(pathPredicate, configuration);
 				});
 			});
@@ -74,19 +78,34 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 		});
 	}
 
-	private String getPathPredicate(RouteDefinition routeDefinition) {
-		return routeDefinition.getPredicates().stream()
-				.filter(predicate -> PATH_PREDICATE_NAME.equals(predicate.getName())).findFirst()
-				.flatMap(predicate -> predicate.getArgs().values().stream().findFirst()).orElse(ALL_PATHS);
+	/**
+	 * Finds the first path predicate and first pattern in the config.
+	 * @param route The Route to use.
+	 * @return the first path predicate pattern or /**.
+	 */
+	private String getPathPredicate(Route route) {
+		var predicate = route.getPredicate();
+		var pathPatterns = new AtomicReference<String>();
+		predicate.accept(p -> {
+			if (p.getConfig() instanceof PathRoutePredicateFactory.Config pathConfig) {
+				if (!pathConfig.getPatterns().isEmpty()) {
+					pathPatterns.compareAndSet(null, pathConfig.getPatterns().get(0));
+				}
+			}
+		});
+		if (pathPatterns.get() != null) {
+			return pathPatterns.get();
+		}
+		return ALL_PATHS;
 	}
 
 	@SuppressWarnings("unchecked")
-	private Optional<CorsConfiguration> getCorsConfiguration(RouteDefinition routeDefinition) {
-		Map<String, Object> corsMetadata = (Map<String, Object>) routeDefinition.getMetadata().get(METADATA_KEY);
+	private Optional<CorsConfiguration> getCorsConfiguration(Route route) {
+		Map<String, Object> corsMetadata = (Map<String, Object>) route.getMetadata().get(METADATA_KEY);
 		if (corsMetadata != null) {
 			final CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-			findValue(corsMetadata, "allowCredential")
+			findValue(corsMetadata, "allowCredentials")
 					.ifPresent(value -> corsConfiguration.setAllowCredentials((Boolean) value));
 			findValue(corsMetadata, "allowedHeaders")
 					.ifPresent(value -> corsConfiguration.setAllowedHeaders(asList(value)));

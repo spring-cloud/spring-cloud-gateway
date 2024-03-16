@@ -30,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -49,6 +50,15 @@ class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 	void shouldApplyConnectTimeoutPerRoute() {
 		assertThat(NettyRoutingFilter.getInteger("5")).isEqualTo(5);
 		assertThat(NettyRoutingFilter.getInteger(5)).isEqualTo(5);
+	}
+
+	@Test
+	void getLongHandlesStringAndNumber() {
+		assertThat(NettyRoutingFilter.getLong("5")).isEqualTo(5);
+		assertThat(NettyRoutingFilter.getLong(5)).isEqualTo(5);
+		assertThat(NettyRoutingFilter.getLong(50000L)).isEqualTo(50000);
+		assertThat(NettyRoutingFilter.getLong(null)).isNull();
+		assertThatThrownBy(() -> NettyRoutingFilter.getLong("notanumber")).isInstanceOf(NumberFormatException.class);
 	}
 
 	@Test

@@ -24,10 +24,12 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Repository;
 
 /**
  * @author Dennis Menge
+ * @author lzhpo
  */
 @Repository
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
@@ -50,7 +52,8 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return reactiveRedisTemplate.keys(createKey("*")).flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
+		return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match(createKey("*")).build())
+				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
 				.onErrorContinue((throwable, routeDefinition) -> {
 					if (log.isErrorEnabled()) {
 						log.error("get routes from redis error cause : {}", throwable.toString(), throwable);

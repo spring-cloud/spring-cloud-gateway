@@ -1,0 +1,25 @@
+[[troubleshooting]]
+= Troubleshooting
+:page-section-summary-toc: 1
+
+This section covers common problems that may arise when you use Spring Cloud Gateway.
+
+[[log-levels]]
+== Log Levels
+
+The following loggers may contain valuable troubleshooting information at the `DEBUG` and `TRACE` levels:
+
+- `org.springframework.cloud.gateway`
+- `org.springframework.http.server.reactive`
+- `org.springframework.web.reactive`
+- `org.springframework.boot.autoconfigure.web`
+- `reactor.netty`
+- `redisratelimiter`
+
+[[wiretap]]
+== Wiretap
+
+The Reactor Netty `HttpClient` and `HttpServer` can have wiretap enabled.
+When combined with setting the `reactor.netty` log level to `DEBUG` or `TRACE`, it enables the logging of information, such as headers and bodies sent and received across the wire.
+To enable wiretap, set `spring.cloud.gateway.httpserver.wiretap=true` or `spring.cloud.gateway.httpclient.wiretap=true` for the `HttpServer` and `HttpClient`, respectively.
+

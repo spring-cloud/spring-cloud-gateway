@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.support.ipresolver;
 
 import java.net.InetSocketAddress;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -138,7 +138,7 @@ public class XForwardedRemoteAddressResolverTest {
 
 	private MockServerHttpRequest.BaseBuilder oneTwoThreeBuilder() {
 		return MockServerHttpRequest.get("someUrl").remoteAddress(remote0000Address).header("X-Forwarded-For",
-				"0.0.0.1, 0.0.0.2, 0.0.0.3");
+				"0.0.0.1,0.0.0.2, 0.0.0.3");
 	}
 
 	private ServerWebExchange buildExchange(MockServerHttpRequest.BaseBuilder requestBuilder) {

@@ -1,0 +1,10 @@
+[[gatewayfilter-factories]]
+= `GatewayFilter` Factories
+:page-section-summary-toc: 1
+
+Route filters allow the modification of the incoming HTTP request or outgoing HTTP response in some manner.
+Route filters are scoped to a particular route.
+Spring Cloud Gateway includes many built-in GatewayFilter Factories.
+
+NOTE: For more detailed examples of how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-server/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
+

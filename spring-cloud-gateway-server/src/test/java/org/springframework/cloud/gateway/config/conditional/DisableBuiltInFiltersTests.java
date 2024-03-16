@@ -18,9 +18,8 @@ package org.springframework.cloud.gateway.config.conditional;
 
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,11 +29,9 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.MapRequestHeaderGatewayFilterFactory;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Enclosed.class)
 public class DisableBuiltInFiltersTests {
 
 	@EnableAutoConfiguration
@@ -43,9 +40,9 @@ public class DisableBuiltInFiltersTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class)
-	public static class FilterDefault {
+	public class FilterDefault {
 
 		@Autowired
 		private List<GatewayFilterFactory<?>> gatewayFilters;
@@ -57,12 +54,12 @@ public class DisableBuiltInFiltersTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class,
 			properties = { "spring.cloud.gateway.filter.add-request-header.enabled=false",
 					"spring.cloud.gateway.filter.map-request-header.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableSpecificsFiltersByProperty {
+	public class DisableSpecificsFiltersByProperty {
 
 		@Autowired
 		private List<GatewayFilterFactory<?>> gatewayFilters;
@@ -76,7 +73,7 @@ public class DisableBuiltInFiltersTests {
 
 	}
 
-	@RunWith(SpringRunner.class)
+	@Nested
 	@SpringBootTest(classes = Config.class,
 			properties = { "spring.cloud.gateway.filter.add-request-header.enabled=false",
 					"spring.cloud.gateway.filter.map-request-header.enabled=false",
@@ -106,6 +103,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location.enabled=false",
+					"spring.cloud.gateway.filter.rewrite-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.set-status.enabled=false",
 					"spring.cloud.gateway.filter.save-session.enabled=false",
 					"spring.cloud.gateway.filter.strip-prefix.enabled=false",
@@ -117,7 +115,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.cache-request-body.enabled=false",
 					"spring.cloud.gateway.filter.fallback-headers.enabled=false" })
 	@ActiveProfiles("disable-components")
-	public static class DisableAllFiltersByProperty {
+	public class DisableAllFiltersByProperty {
 
 		@Autowired(required = false)
 		private List<GatewayFilterFactory<?>> gatewayFilters;

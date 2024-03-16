@@ -2,6 +2,8 @@ test:
   hostport: httpbin.org:80
   uri: lb://testservice
 
+my.timeout: 3000
+
 server:
   error:
     include-message: always
@@ -70,6 +72,15 @@ spring:
             - AddResponseHeader=X-Test-SHOULD-MERGED-HEADER, value-from-gateway
           metadata:
             response-timeout: 1000
+
+        # =====================================
+        - id: per_route_response_timeout_placeholder
+          uri: ${test.uri}
+          predicates:
+            - Host=**.responsetimeoutplaceholder.org
+            - Path=/responseheaders/**
+          metadata:
+            response-timeout: ${my.timeout}
 
         # =====================================
         # should be last and not follow alphabetical order

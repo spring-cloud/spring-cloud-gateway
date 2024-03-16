@@ -16,7 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +34,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 /**
  * @author Ignacio Lozano
+ * @author Simone Gerevini
  */
 class CacheKeyGeneratorTest {
 
@@ -199,6 +204,51 @@ class CacheKeyGeneratorTest {
 		var keyWithoutVary = cacheKeyGenerator.generateKey(withFirstVary, "X-MY-VARY-1");
 
 		assertThat(keyWithoutVary).isEqualTo(keyWithFirstVary);
+	}
+
+	@Test
+	public void shouldNotFailWhenRunningInParallel() throws InterruptedException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://this").build();
+		int numberOfThreads = 100;
+
+		List<Exception> exceptions = executeInParallel(Executors.newFixedThreadPool(numberOfThreads), numberOfThreads,
+				() -> cacheKeyGenerator.generateKey(request));
+
+		assertThat(exceptions.size()).isEqualTo(0);
+	}
+
+	private List<Exception> executeInParallel(Executor executor, int nThreads, Runnable action)
+			throws InterruptedException {
+		CountDownLatch ready = new CountDownLatch(nThreads);
+		CountDownLatch start = new CountDownLatch(1);
+		CountDownLatch done = new CountDownLatch(nThreads);
+		List<Exception> exceptions = new ArrayList<>(nThreads);
+
+		for (int i = 0; i < nThreads; i++) {
+			executor.execute(() -> {
+				ready.countDown();
+				try {
+					start.await();
+					action.run();
+
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				catch (RuntimeException e) {
+					exceptions.add(e);
+				}
+				finally {
+					done.countDown();
+				}
+			});
+		}
+
+		ready.await();
+		start.countDown();
+		done.await();
+
+		return exceptions;
 	}
 
 }

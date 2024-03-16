@@ -1,0 +1,20 @@
+spring.cloud.gateway.mvc:
+  routes:
+    - id: weight_high_test
+      uri: https://examplel1.com
+      predicates:
+        - Host=**.weight-high.org
+        - Weight=group1, 8
+      filters:
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Route,weight_high_test
+    - id: default_route
+      uri: https://examplel2.com
+      predicates:
+        - Path=/**
+      filters:
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Route,default_route
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE

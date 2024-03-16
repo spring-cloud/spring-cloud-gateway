@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2018 the original author or authors.
+ * Copyright 2002-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
+import java.util.List;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
@@ -29,37 +33,51 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Joe Grandja
+ * @author Steve Riesenberg
  */
-public class TokenRelayGatewayFilterFactory extends AbstractGatewayFilterFactory<Object> {
+public class TokenRelayGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
 	private final ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider;
 
 	public TokenRelayGatewayFilterFactory(ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManagerProvider) {
-		super(Object.class);
+		super(NameConfig.class);
 		this.clientManagerProvider = clientManagerProvider;
 	}
 
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Collections.singletonList(NAME_KEY);
+	}
+
 	public GatewayFilter apply() {
-		return apply((Object) null);
+		return apply((NameConfig) null);
 	}
 
 	@Override
-	public GatewayFilter apply(Object config) {
+	public GatewayFilter apply(NameConfig config) {
+		String defaultClientRegistrationId = (config == null) ? null : config.getName();
 		return (exchange, chain) -> exchange.getPrincipal()
 				// .log("token-relay-filter")
-				.filter(principal -> principal instanceof OAuth2AuthenticationToken)
-				.cast(OAuth2AuthenticationToken.class)
-				.flatMap(authentication -> authorizedClient(exchange, authentication))
-				.map(OAuth2AuthorizedClient::getAccessToken).map(token -> withBearerAuth(exchange, token))
+				.filter(principal -> principal instanceof Authentication).cast(Authentication.class)
+				.flatMap(principal -> authorizationRequest(defaultClientRegistrationId, principal))
+				.flatMap(this::authorizedClient).map(OAuth2AuthorizedClient::getAccessToken)
+				.map(token -> withBearerAuth(exchange, token))
 				// TODO: adjustable behavior if empty
 				.defaultIfEmpty(exchange).flatMap(chain::filter);
 	}
 
-	private Mono<OAuth2AuthorizedClient> authorizedClient(ServerWebExchange exchange,
-			OAuth2AuthenticationToken oauth2Authentication) {
-		String clientRegistrationId = oauth2Authentication.getAuthorizedClientRegistrationId();
-		OAuth2AuthorizeRequest request = OAuth2AuthorizeRequest.withClientRegistrationId(clientRegistrationId)
-				.principal(oauth2Authentication).build();
+	private Mono<OAuth2AuthorizeRequest> authorizationRequest(String defaultClientRegistrationId,
+			Authentication principal) {
+		String clientRegistrationId = defaultClientRegistrationId;
+		if (clientRegistrationId == null && principal instanceof OAuth2AuthenticationToken) {
+			clientRegistrationId = ((OAuth2AuthenticationToken) principal).getAuthorizedClientRegistrationId();
+		}
+		return Mono.justOrEmpty(clientRegistrationId).map(OAuth2AuthorizeRequest::withClientRegistrationId)
+				.map(builder -> builder.principal(principal).build());
+	}
+
+	private Mono<OAuth2AuthorizedClient> authorizedClient(OAuth2AuthorizeRequest request) {
 		ReactiveOAuth2AuthorizedClientManager clientManager = clientManagerProvider.getIfAvailable();
 		if (clientManager == null) {
 			return Mono.error(new IllegalStateException(

@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.1.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.1.1-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -51,12 +51,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<blockhound.version>1.0.6.RELEASE</blockhound.version>
+		<bucket4j.version>8.9.0</bucket4j.version>
+		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<java.version>17</java.version>
-		<junit-pioneer.version>1.6.1</junit-pioneer.version>
-		<spring-cloud-circuitbreaker.version>3.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
-		<spring-cloud-commons.version>4.0.0-SNAPSHOT</spring-cloud-commons.version>
-		<testcontainers.version>1.17.3</testcontainers.version>
+		<junit-pioneer.version>1.9.1</junit-pioneer.version>
+		<spring-cloud-circuitbreaker.version>3.1.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
+		<spring-cloud-commons.version>4.1.2-SNAPSHOT</spring-cloud-commons.version>
 	</properties>
 
 	<dependencyManagement>
@@ -98,6 +98,16 @@
 				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.bucket4j</groupId>
+				<artifactId>bucket4j-core</artifactId>
+				<version>${bucket4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.bucket4j</groupId>
+				<artifactId>bucket4j-caffeine</artifactId>
+				<version>${bucket4j.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>io.projectreactor.tools</groupId>
 				<artifactId>blockhound</artifactId>
 				<version>${blockhound.version}</version>
@@ -112,13 +122,6 @@
 				<artifactId>junit-pioneer</artifactId>
 				<version>${junit-pioneer.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -127,7 +130,9 @@
 		<module>spring-cloud-gateway-mvc</module>
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-server</module>
+		<module>spring-cloud-gateway-server-mvc</module>
 		<module>spring-cloud-starter-gateway</module>
+		<module>spring-cloud-starter-gateway-mvc</module>
 		<module>spring-cloud-gateway-sample</module>
 		<module>spring-cloud-gateway-integration-tests</module>
 		<module>docs</module>

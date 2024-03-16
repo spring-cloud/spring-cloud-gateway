@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -71,9 +69,11 @@ public class RequestHeaderToRequestUriGatewayFilterFactory
 		String requestUrl = exchange.getRequest().getHeaders().getFirst(config.getName());
 		return Optional.ofNullable(requestUrl).map(url -> {
 			try {
-				return new URL(url).toURI();
+				URI uri = URI.create(url);
+				uri.toURL(); // validate url
+				return uri;
 			}
-			catch (MalformedURLException | URISyntaxException e) {
+			catch (IllegalArgumentException | MalformedURLException e) {
 				log.info("Request url is invalid : url={}, error={}", requestUrl, e.getMessage());
 				return null;
 			}

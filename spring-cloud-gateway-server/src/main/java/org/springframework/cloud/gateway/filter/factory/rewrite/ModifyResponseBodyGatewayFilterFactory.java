@@ -40,6 +40,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -225,6 +226,10 @@ public class ModifyResponseBodyGatewayFilterFactory
 				if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
 						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
 					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+				}
+
+				if (StringUtils.hasText(config.newContentType)) {
+					headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
 				}
 
 				return getDelegate().writeWith(messageBody);

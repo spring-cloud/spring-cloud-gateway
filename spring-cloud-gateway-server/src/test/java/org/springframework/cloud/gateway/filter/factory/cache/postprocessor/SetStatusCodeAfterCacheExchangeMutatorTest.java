@@ -17,7 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory.cache.postprocessor;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import org.springframework.cloud.gateway.filter.factory.cache.CachedResponse;
 import org.springframework.http.HttpHeaders;
@@ -47,42 +48,18 @@ class SetStatusCodeAfterCacheExchangeMutatorTest {
 		httpResponse.getHeaders().putAll(responseHeaders);
 	}
 
-	@Test
-	void statusCodeIs304_whenCacheHitsAndNoCacheHeaderIsPresent() {
-		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK).body("some-data").build();
-		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-				.header("Cache-Control", "no-cache").build();
+	@ParameterizedTest
+	@ValueSource(ints = { 200, 400, 404, 500 })
+	void statusCodeIsSetFromCachedResponse(int statusCode) {
+		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.valueOf(statusCode)).body("some-data").build();
+		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this").build();
 
 		inputExchange = MockServerWebExchange.from(httpRequest);
 
 		SetStatusCodeAfterCacheExchangeMutator toTest = new SetStatusCodeAfterCacheExchangeMutator();
 		toTest.accept(inputExchange, cachedResponse);
 
-		assertThat(inputExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.NOT_MODIFIED);
-	}
-
-	@Test
-	void statusCodeIs200_whenCacheHitsAndNoCacheHeaderIsNotPresent() {
-		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK).body("some-data").build();
-
-		SetStatusCodeAfterCacheExchangeMutator toTest = new SetStatusCodeAfterCacheExchangeMutator();
-		toTest.accept(inputExchange, cachedResponse);
-
-		assertThat(inputExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
-	}
-
-	@Test
-	void statusCodeIs200_whenNoCacheHitsAndEvenNoCacheHeaderIsPresent() {
-		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK).build();
-		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-				.header("Cache-Control", "no-cache").build();
-
-		inputExchange = MockServerWebExchange.from(httpRequest);
-
-		SetStatusCodeAfterCacheExchangeMutator toTest = new SetStatusCodeAfterCacheExchangeMutator();
-		toTest.accept(inputExchange, cachedResponse);
-
-		assertThat(inputExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(inputExchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.valueOf(statusCode));
 	}
 
 }

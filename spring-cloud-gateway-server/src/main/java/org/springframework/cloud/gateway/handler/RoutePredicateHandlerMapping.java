@@ -78,7 +78,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on management port if set and different than server port
 		if (this.managementPortType == DIFFERENT && this.managementPort != null
-				&& exchange.getRequest().getURI().getPort() == this.managementPort) {
+				&& exchange.getRequest().getLocalAddress() != null
+				&& exchange.getRequest().getLocalAddress().getPort() == this.managementPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
@@ -87,14 +88,14 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			return lookupRoute(exchange)
 					// .log("route-predicate-handler-mapping", Level.FINER) //name this
-					.flatMap((Function<Route, Mono<?>>) r -> {
+					.map((Function<Route, ?>) r -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						if (logger.isDebugEnabled()) {
 							logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 						}
 
 						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-						return Mono.just(webHandler);
+						return webHandler;
 					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						if (logger.isTraceEnabled()) {
