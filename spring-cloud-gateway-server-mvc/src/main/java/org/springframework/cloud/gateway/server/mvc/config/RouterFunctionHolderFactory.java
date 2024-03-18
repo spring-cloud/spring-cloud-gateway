@@ -156,16 +156,18 @@ public class RouterFunctionHolderFactory {
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Map<String, String> handlerArgs = new HashMap<>();
-		// TODO: avoid hardcoded scheme/uri args
-		// maybe find empty args or single RouteProperties param?
-		if (scheme.equals("lb")) {
-			handlerArgs.put("uri", routeProperties.getUri().toString());
-		}
+		Map<String, Object> handlerArgs = new HashMap<>();
 		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
 				scheme.toLowerCase(), handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
-			throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
+			// single RouteProperties param
+			handlerArgs.clear();
+			String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
+			handlerArgs.put(routePropsKey, routeProperties);
+			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), handlerArgs);
+			if (handlerOperationMethod.isEmpty()) {
+				throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
+			}
 		}
 		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
 		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
@@ -186,21 +188,21 @@ public class RouterFunctionHolderFactory {
 		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
 		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
 
-		routeProperties.getPredicates()
-				.forEach(predicateProperties -> translate(predicateOperations, predicateProperties.getName(),
-						predicateProperties.getArgs(), RequestPredicate.class, requestPredicate -> {
-							log.trace(LogMessage.format("Adding predicate to route %s - %s", routeId,
-									predicateProperties));
-							if (predicate.get() == null) {
-								predicate.set(requestPredicate);
-							}
-							else {
-								RequestPredicate combined = predicate.get().and(requestPredicate);
-								predicate.set(combined);
-							}
-							log.trace(LogMessage.format("Combined predicate for route %s - %s", routeId,
-									predicate.get()));
-						}));
+		routeProperties.getPredicates().forEach(predicateProperties -> {
+			Map<String, Object> args = new LinkedHashMap<>(predicateProperties.getArgs());
+			translate(predicateOperations, predicateProperties.getName(), args, RequestPredicate.class,
+					requestPredicate -> {
+						log.trace(LogMessage.format("Adding predicate to route %s - %s", routeId, predicateProperties));
+						if (predicate.get() == null) {
+							predicate.set(requestPredicate);
+						}
+						else {
+							RequestPredicate combined = predicate.get().and(requestPredicate);
+							predicate.set(combined);
+						}
+						log.trace(LogMessage.format("Combined predicate for route %s - %s", routeId, predicate.get()));
+					});
+		});
 
 		// combine predicate and handlerFunction
 		builder.route(predicate.get(), handlerFunction);
@@ -208,8 +210,10 @@ public class RouterFunctionHolderFactory {
 
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
-		routeProperties.getFilters().forEach(filterProperties -> translate(filterOperations, filterProperties.getName(),
-				filterProperties.getArgs(), HandlerFilterFunction.class, builder::filter));
+		routeProperties.getFilters().forEach(filterProperties -> {
+			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
+			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
+		});
 
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
@@ -217,7 +221,7 @@ public class RouterFunctionHolderFactory {
 	}
 
 	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
-			Map<String, String> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
+			Map<String, Object> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
 		String normalizedName = StringUtils.uncapitalize(operationName);
 		Optional<NormalizedOperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
@@ -234,14 +238,14 @@ public class RouterFunctionHolderFactory {
 	}
 
 	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
-			String operationName, Map<String, String> operationArgs) {
+			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
 				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
 
-	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, String> args) {
-		Map<String, String> normalizedArgs = operationMethod.getNormalizedArgs();
+	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, Object> args) {
+		Map<String, Object> normalizedArgs = operationMethod.getNormalizedArgs();
 		OperationParameters parameters = operationMethod.getParameters();
 		if (operationMethod.isConfigurable()) {
 			// this is a special case
@@ -259,7 +263,7 @@ public class RouterFunctionHolderFactory {
 		return true;
 	}
 
-	private <T> T invokeOperation(OperationMethod operationMethod, Map<String, String> operationArgs) {
+	private <T> T invokeOperation(OperationMethod operationMethod, Map<String, Object> operationArgs) {
 		Map<String, Object> args = new HashMap<>();
 		if (operationMethod.isConfigurable()) {
 			OperationParameter operationParameter = operationMethod.getParameters().get(0);
