@@ -60,7 +60,7 @@ public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar
 		final ReflectionHints reflectionHints = hints.reflection();
 		FUNCTION_PROVIDERS.forEach(clazz -> addHintsForClass(reflectionHints, clazz, classLoader));
 
-		PROPERTIES.forEach(c -> reflectionHints.registerType(c, MemberCategory.PUBLIC_FIELDS,
+		PROPERTIES.forEach(clazz -> reflectionHints.registerType(clazz, MemberCategory.PUBLIC_FIELDS,
 				MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
 	}
 
