@@ -65,6 +65,7 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
 /**
  * Factory bean for the creation of a RouterFunctionHolder, that may have refresh scope.
  *
+ * @author Spencer Gibb
  * @author Jürgen Wißkirchen
  */
 public class RouterFunctionHolderFactory {
