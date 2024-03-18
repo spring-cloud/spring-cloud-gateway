@@ -36,6 +36,8 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	private static final Log log = LogFactory.getLog(ThrottleGatewayFilter.class);
 
+	private volatile TokenBucket tokenBucket;
+
 	int capacity;
 
 	int refillTokens;
@@ -43,6 +45,19 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 	int refillPeriod;
 
 	TimeUnit refillUnit;
+
+	private TokenBucket getTokenBucket() {
+		if (tokenBucket != null) {
+			return tokenBucket;
+		}
+		synchronized (this) {
+			if (tokenBucket == null) {
+				tokenBucket = TokenBuckets.builder().withCapacity(capacity)
+						.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
+			}
+		}
+		return tokenBucket;
+	}
 
 	public int getCapacity() {
 		return capacity;
@@ -82,9 +97,7 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-		TokenBucket tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-				.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
+		TokenBucket tokenBucket = getTokenBucket();
 
 		// TODO: get a token bucket for a key
 		log.debug("TokenBucket capacity: " + tokenBucket.getCapacity());

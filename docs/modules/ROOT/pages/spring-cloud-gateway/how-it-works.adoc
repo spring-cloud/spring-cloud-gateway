@@ -13,3 +13,4 @@ All "`pre`" filter logic is executed. Then the proxy request is made. After the 
 
 NOTE: URIs defined in routes without a port get default port values of 80 and 443 for the HTTP and HTTPS URIs, respectively.
 
+WARNING: Any path defined on a route URI will be ignored.

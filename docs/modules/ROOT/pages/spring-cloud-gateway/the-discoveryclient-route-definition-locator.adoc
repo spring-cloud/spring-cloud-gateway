@@ -18,19 +18,47 @@ This strips the service ID from the path before the request is sent downstream.
 
 If you want to customize the predicates or filters used by the `DiscoveryClient` routes, set `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
 When doing so, you need to make sure to include the default predicate and filter shown earlier, if you want to retain that functionality.
-The following example shows what this looks like:
+The following examples shows what this looks like in properties and yaml format:
 
 .application.properties
 [soure,properties]
+====
 ----
-spring.cloud.gateway.discovery.locator.predicates[0].name: Path
-spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]: "'/'+serviceId+'/**'"
-spring.cloud.gateway.discovery.locator.predicates[1].name: Host
-spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]: "'**.foo.com'"
-spring.cloud.gateway.discovery.locator.filters[0].name: CircuitBreaker
-spring.cloud.gateway.discovery.locator.filters[0].args[name]: serviceId
-spring.cloud.gateway.discovery.locator.filters[1].name: RewritePath
-spring.cloud.gateway.discovery.locator.filters[1].args[regexp]: "'/' + serviceId + '/?(?<remaining>.*)'"
-spring.cloud.gateway.discovery.locator.filters[1].args[replacement]: "'/$\{remaining}'"
+spring.cloud.gateway.discovery.locator.predicates[0].name=Path
+spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]="'/'+serviceId+'/**'"
+spring.cloud.gateway.discovery.locator.predicates[1].name=Host
+spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]="'**.foo.com'"
+spring.cloud.gateway.discovery.locator.filters[0].name=CircuitBreaker
+spring.cloud.gateway.discovery.locator.filters[0].args[name]=serviceId
+spring.cloud.gateway.discovery.locator.filters[1].name=RewritePath
+spring.cloud.gateway.discovery.locator.filters[1].args[regexp]="'/' + serviceId + '/?(?<remaining>.*)'"
+spring.cloud.gateway.discovery.locator.filters[1].args[replacement]="'/$\{remaining}'"
 ----
+====
 
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          predicates:
+          - name: Host
+            args:
+              pattern: "'**.foo.com'"
+          - name: Path
+            args:
+              pattern: "'/'+serviceId+'/**'"
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: serviceId
+          - name: RewritePath
+            args:
+              regexp: "'/' + serviceId + '/?(?<remaining>.*)'"
+              replacement: "'/${remaining}'"
+----
+====

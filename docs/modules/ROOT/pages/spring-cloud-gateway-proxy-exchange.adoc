@@ -3,6 +3,14 @@
 
 WARNING: The following describes an alternative style gateway. None of the Spring Cloud Gateway Server documentation applies to what follows.
 
+== How to Include Spring Cloud Gateway Proxy Exchange
+
+To include Spring Cloud Gateway Proxy Exchange in your project, use the artifact with a group ID of `org.springframework.cloud` and an artifact ID of `spring-cloud-gateway-mvc` for the MVC Proxy Exchange. For the WebFlux Proxy Exchange use artifact with a group ID of `org.springframework.cloud` and an artifact ID of `spring-cloud-gateway-webflux`.
+
+See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page] for details on setting up your build system with the current Spring Cloud Release Train.
+
+== Using Proxy Exchange
+
 Spring Cloud Gateway provides a utility object called `ProxyExchange`.
 You can use it inside a regular Spring web handler as a method parameter.
 It supports basic downstream HTTP exchanges through methods that mirror the HTTP verbs.

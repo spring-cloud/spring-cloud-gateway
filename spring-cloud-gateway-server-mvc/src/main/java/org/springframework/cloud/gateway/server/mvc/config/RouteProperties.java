@@ -38,20 +38,38 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 @Validated
 public class RouteProperties {
 
+	/**
+	 * The Route ID.
+	 */
 	private String id;
 
+	/**
+	 * List of predicates for matching the Route.
+	 */
 	@NotEmpty
 	@Valid
 	private List<PredicateProperties> predicates = new ArrayList<>();
 
+	/**
+	 * List of filters to be applied to the Route.
+	 */
 	@Valid
 	private List<FilterProperties> filters = new ArrayList<>();
 
+	/**
+	 * The destination URI.
+	 */
 	@NotNull
 	private URI uri;
 
+	/**
+	 * Metadata associated with the Route.
+	 */
 	private Map<String, Object> metadata = new HashMap<>();
 
+	/**
+	 * The order of the Route, defaults to zero.
+	 */
 	private int order = 0;
 
 	public RouteProperties() {

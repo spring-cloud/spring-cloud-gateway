@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -89,6 +90,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 			}
 		});
 		RouterFunction listRoute2RouterFunction = routerFunctions.get("listRoute2");
+		final ArrayList<String> paths = new ArrayList<>();
+
 		listRoute2RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
 			public void route(RequestPredicate predicate, HandlerFunction<?> handlerFunction) {
@@ -96,6 +99,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 					@Override
 					public void method(Set<HttpMethod> methods) {
 						assertThat(methods).containsOnly(HttpMethod.GET, HttpMethod.POST);
+					}
+
+					@Override
+					public void path(String pattern) {
+						paths.add(pattern);
 					}
 				});
 			}
@@ -105,6 +113,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 				assertThat(attributes).containsEntry(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "listRoute2");
 			}
 		});
+		assertThat(paths).containsOnly("/anything/listRoute2", "/anything/anotherlistRoute2");
+
 		RouterFunction listRoute3RouterFunction = routerFunctions.get("listRoute3");
 		listRoute3RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override

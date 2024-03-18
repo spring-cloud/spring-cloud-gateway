@@ -380,6 +380,7 @@ public class GatewayControllerEndpointTests {
 				});
 	}
 
+	@Test
 	public void testPostMultipleValidRouteDefinitions() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));

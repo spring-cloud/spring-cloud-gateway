@@ -32,9 +32,27 @@ You can adjust this behavior by setting the `spring.cloud.gateway.filter.request
 The `RequestRateLimiter` is not configurable with the "shortcut" notation. The following example below is _invalid_:
 
 .application.properties
+[source,properties]
 ----
 # INVALID SHORTCUT CONFIGURATION
 spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}
+----
+
+Here is a valid yaml reference:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: limit
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            key-resolver: "#{@userkeyresolver}"
 ----
 =====
 
