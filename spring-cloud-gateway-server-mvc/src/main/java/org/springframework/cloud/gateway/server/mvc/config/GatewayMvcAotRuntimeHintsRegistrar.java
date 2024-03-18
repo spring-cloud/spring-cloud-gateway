@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ import org.springframework.util.ClassUtils;
 
 /**
  * AOT runtime hints registrar on the gateway server mvc.
+ *
+ * @author Jürgen Wißkirchen
  */
 public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar {
 
@@ -55,8 +57,8 @@ public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar
 
 	@Override
 	public void registerHints(@NonNull RuntimeHints hints, ClassLoader classLoader) {
-		final var reflectionHints = hints.reflection();
-		FUNCTION_PROVIDERS.forEach(c -> addHintsForClass(reflectionHints, c));
+		final ReflectionHints reflectionHints = hints.reflection();
+		FUNCTION_PROVIDERS.forEach(clazz -> addHintsForClass(reflectionHints, clazz, classLoader));
 
 		PROPERTIES.forEach(c -> reflectionHints.registerType(c, MemberCategory.PUBLIC_FIELDS,
 				MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS));
@@ -67,12 +69,14 @@ public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar
 	 * annotation way with @Reflective does not work here.
 	 * @param reflectionHints the reflection hints
 	 * @param clazz the class to add hints for
+	 * @param classLoader the class loader
 	 */
-	private static void addHintsForClass(ReflectionHints reflectionHints, Class<?> clazz) {
-		if (!ClassUtils.isPresent(clazz.getName(), ClassUtils.getDefaultClassLoader())) {
+	private void addHintsForClass(ReflectionHints reflectionHints, Class<?> clazz, ClassLoader classLoader) {
+		if (!ClassUtils.isPresent(clazz.getName(), classLoader)) {
 			return; // safety net
 		}
-		Arrays.stream(clazz.getMethods()).forEach(m -> reflectionHints.registerMethod(m, ExecutableMode.INVOKE));
+		Arrays.stream(clazz.getMethods())
+				.forEach(method -> reflectionHints.registerMethod(method, ExecutableMode.INVOKE));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,12 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+/**
+ * AutoConfiguration for Spring Cloud Gateway MVC server.
+ *
+ * @author Spencer Gibb
+ * @author Jürgen Wißkirchen
+ */
 @AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
