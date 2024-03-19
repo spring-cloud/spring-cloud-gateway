@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -30,6 +31,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.caffeine.CaffeineProxyManager;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
@@ -42,7 +49,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates;
@@ -53,9 +62,11 @@ import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -1278,6 +1289,12 @@ public class ServerMvcIntegrationTests {
 			// @formatter:on
 		}
 
+		@Bean
+		public FilterRegistrationBean myFilter() {
+			FilterRegistrationBean<MyFilter> reg = new FilterRegistrationBean<>(new MyFilter());
+			return reg;
+		}
+
 		private Predicate<Event> eventPredicate(String foo) {
 			return new Predicate<>() {
 				@Override
@@ -1290,6 +1307,38 @@ public class ServerMvcIntegrationTests {
 					return "Event.foo == " + foo;
 				}
 			};
+		}
+
+	}
+
+	private static class MyFilter implements Filter, Ordered {
+
+		@Override
+		public int getOrder() {
+			return FormFilter.FORM_FILTER_ORDER - 1;
+		}
+
+		@Override
+		public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+				throws IOException, ServletException {
+			if (isFormPost((HttpServletRequest) request)) {
+				// test for formUrlencodedWorks and
+				// https://github.com/spring-cloud/spring-cloud-gateway/issues/3244
+				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
+				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
+			}
+			filterChain.doFilter(request, response);
+
+			if (isFormPost((HttpServletRequest) request)) {
+				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
+				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
+			}
+		}
+
+		static boolean isFormPost(HttpServletRequest request) {
+			String contentType = request.getContentType();
+			return (contentType != null && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+					&& HttpMethod.POST.matches(request.getMethod()));
 		}
 
 	}
