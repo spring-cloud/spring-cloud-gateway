@@ -41,8 +41,6 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
@@ -65,8 +63,6 @@ public class FormFilter implements Filter, Ordered {
 	 * Order of Form filter. Before WeightCalculatorFilter
 	 */
 	public static final int FORM_FILTER_ORDER = WeightCalculatorFilter.WEIGHT_CALC_FILTER_ORDER - 100;
-
-	private static final Log log = LogFactory.getLog(FormFilter.class);
 
 	private int order = FORM_FILTER_ORDER;
 
