@@ -19,9 +19,11 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 import java.time.Duration;
 import java.util.List;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
@@ -56,6 +58,8 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final RequestOptions requestOptions;
 
+	private final CaffeineCacheManager caffeineCacheManager;
+
 	@Deprecated
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize) {
@@ -64,19 +68,29 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager());
+	}
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
+			CaffeineCacheManager caffeineCacheManager) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;
 		this.defaultSize = defaultSize;
 		this.requestOptions = requestOptions;
+		this.caffeineCacheManager = caffeineCacheManager;
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
-				.getCache(config.getRouteId() + "-cache");
+		Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
+		String cacheName = config.getRouteId() + "-cache";
+		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+		Cache routeCache = caffeineCacheManager.getCache(cacheName);
 		return new ResponseCacheGatewayFilter(
 				cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive(), requestOptions));
 
