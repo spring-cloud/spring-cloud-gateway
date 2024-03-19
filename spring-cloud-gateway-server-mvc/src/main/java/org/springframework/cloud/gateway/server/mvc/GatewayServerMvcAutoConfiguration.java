@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,10 @@ import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
@@ -48,20 +50,34 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+/**
+ * AutoConfiguration for Spring Cloud Gateway MVC server.
+ *
+ * @author Spencer Gibb
+ * @author Jürgen Wißkirchen
+ */
 @AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
+@ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	public static ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(
 			ApplicationEventPublisher publisher) {
 		return new ArgumentSupplierBeanPostProcessor(publisher);
+	}
+
+	@Bean
+	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env) {
+		return new RouterFunctionHolderFactory(env);
 	}
 
 	@Bean
