@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
