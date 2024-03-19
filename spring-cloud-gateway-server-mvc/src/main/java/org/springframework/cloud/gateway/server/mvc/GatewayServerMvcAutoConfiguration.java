@@ -93,6 +93,7 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "form-filter.enabled", matchIfMissing = true)
 	public FormFilter formFilter() {
 		return new FormFilter();
 	}
@@ -156,30 +157,40 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-content-length-request-headers-filter.enabled", matchIfMissing = true)
 	public RemoveContentLengthRequestHeadersFilter removeContentLengthRequestHeadersFilter() {
 		return new RemoveContentLengthRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-hop-by-hop-request-headers-filter.enabled", matchIfMissing = true)
 	public RemoveHopByHopRequestHeadersFilter removeHopByHopRequestHeadersFilter() {
 		return new RemoveHopByHopRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-hop-by-hop-response-headers-filter.enabled", matchIfMissing = true)
 	public RemoveHopByHopResponseHeadersFilter removeHopByHopResponseHeadersFilter() {
 		return new RemoveHopByHopResponseHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "transfer-encoding-normalization-request-headers-filter.enabled", matchIfMissing = true)
 	public TransferEncodingNormalizationRequestHeadersFilter transferEncodingNormalizationRequestHeadersFilter() {
 		return new TransferEncodingNormalizationRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "weight-calculator-filter.enabled",
+			matchIfMissing = true)
 	public WeightCalculatorFilter weightCalculatorFilter() {
 		return new WeightCalculatorFilter();
 	}
