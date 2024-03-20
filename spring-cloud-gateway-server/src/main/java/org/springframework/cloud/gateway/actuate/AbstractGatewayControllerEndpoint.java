@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RouteDeletedEvent;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -307,9 +308,10 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	@DeleteMapping("/routes/{id}")
 	public Mono<ResponseEntity<Object>> delete(@PathVariable String id) {
-		return this.routeDefinitionWriter.delete(Mono.just(id))
-				.then(Mono.defer(() -> Mono.just(ResponseEntity.ok().build())))
-				.onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
+		return this.routeDefinitionWriter.delete(Mono.just(id)).then(Mono.defer(() -> {
+			publisher.publishEvent(new RouteDeletedEvent(this, id));
+			return Mono.just(ResponseEntity.ok().build());
+		})).onErrorResume(t -> t instanceof NotFoundException, t -> Mono.just(ResponseEntity.notFound().build()));
 	}
 
 	@GetMapping("/routes/{id}/combinedfilters")

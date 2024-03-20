@@ -35,6 +35,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RouteDeletedEvent;
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -42,6 +43,7 @@ import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -123,6 +125,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		return PredicateArgsEvent.class.isAssignableFrom(eventType) ||
 		// from java dsl
 				WeightDefinedEvent.class.isAssignableFrom(eventType) ||
+				// from actuator or custom call
+				RouteDeletedEvent.class.isAssignableFrom(eventType) ||
 				// force initialization
 				RefreshRoutesEvent.class.isAssignableFrom(eventType);
 	}
@@ -139,6 +143,9 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		}
 		else if (event instanceof WeightDefinedEvent) {
 			addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
+		}
+		else if (event instanceof RouteDeletedEvent) {
+			removeWeightConfig(((RouteDeletedEvent) event).getRouteId());
 		}
 		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
 			// forces initialization
@@ -227,6 +234,16 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		}
 		// only update after all calculations
 		groupWeights.put(group, config);
+	}
+
+	private void removeWeightConfig(String routeId) {
+		log.trace(LogMessage.format("Removing weight config for route %s", routeId));
+		groupWeights.forEach((group, weightConfig) -> {
+			if (weightConfig.normalizedWeights.containsKey(routeId)) {
+				weightConfig.normalizedWeights.remove(routeId);
+				weightConfig.weights.remove(routeId);
+			}
+		});
 	}
 
 	/* for testing */ Map<String, GroupWeightConfig> getGroupWeights() {

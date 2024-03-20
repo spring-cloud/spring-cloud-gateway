@@ -24,6 +24,7 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
+import org.springframework.cloud.gateway.event.RouteDeletedEvent;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter.GroupWeightConfig;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.WeightConfig;
@@ -121,6 +122,12 @@ public class WeightCalculatorWebFilterTests {
 		filter.filter(exchange, filterChain);
 		weights = WeightCalculatorWebFilter.getWeights(exchange);
 		assertThat(weights).containsEntry("groupa", "route3");
+
+		filter.onApplicationEvent(new RouteDeletedEvent(this, "route3"));
+		assertThat(filter.getGroupWeights()).containsKey("groupa");
+		GroupWeightConfig groupa = filter.getGroupWeights().get("groupa");
+		assertThat(groupa.normalizedWeights).doesNotContainKey("route3");
+		assertThat(groupa.weights).doesNotContainKey("route3");
 	}
 
 	@Test
