@@ -17,8 +17,10 @@
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -70,7 +72,14 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
 		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-		resolver.setSensitive(proxy.getSensitive()); // can be null
+		Set<String> excludedHeaderNames = new HashSet<>();
+		if (proxy.getSensitive() != null) {
+			excludedHeaderNames.addAll(proxy.getSensitive());
+		}
+		if (proxy.getSkipped() != null) {
+			excludedHeaderNames.addAll(proxy.getSkipped());
+		}
+		resolver.setExcluded(excludedHeaderNames);
 		return resolver;
 	}
 
