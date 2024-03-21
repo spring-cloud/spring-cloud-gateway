@@ -29,6 +29,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter.HEADERS_REMOVED_ON_REQUEST;
 
 /**
@@ -75,11 +76,14 @@ public class RemoveHopByHopHeadersFilterTests {
 	public void removesHeadersListedInConnectionHeader() {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
-		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive");
+		String arbitraryConnectionOption = "xyz";
+		assumeThat(HEADERS_REMOVED_ON_REQUEST).doesNotContain(arbitraryConnectionOption);
+		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive", arbitraryConnectionOption.toUpperCase());
 		builder.header(HttpHeaders.UPGRADE, "WebSocket");
-		builder.header("Keep-Alive", "timeout:5");
+		builder.header("Keep-Alive", "timeout=5");
+		builder.header(arbitraryConnectionOption, "");
 
-		testFilter(MockServerWebExchange.from(builder), "upgrade", "keep-alive");
+		testFilter(MockServerWebExchange.from(builder), arbitraryConnectionOption);
 	}
 
 	private void testFilter(MockServerWebExchange exchange, String... additionalHeaders) {
