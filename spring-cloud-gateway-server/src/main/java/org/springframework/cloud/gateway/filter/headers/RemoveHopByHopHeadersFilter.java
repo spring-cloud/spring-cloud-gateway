@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
@@ -70,12 +69,9 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders originalHeaders, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
-		List<String> connectionOptions = originalHeaders.getConnection()
-				.stream()
-				.map(String::toLowerCase)
-				.toList();
-		Set<String> headersToRemove = Stream.concat(headers.stream(), connectionOptions.stream())
-				.collect(Collectors.toSet());
+		List<String> connectionOptions = originalHeaders.getConnection().stream().map(String::toLowerCase).toList();
+		Set<String> headersToRemove = new HashSet<>(headers);
+		headersToRemove.addAll(connectionOptions);
 
 		for (Map.Entry<String, List<String>> entry : originalHeaders.entrySet()) {
 			if (!headersToRemove.contains(entry.getKey().toLowerCase())) {
