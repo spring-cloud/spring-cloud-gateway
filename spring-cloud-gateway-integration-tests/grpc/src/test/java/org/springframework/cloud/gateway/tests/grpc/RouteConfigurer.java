@@ -81,7 +81,7 @@ public class RouteConfigurer {
 		ResponseEntity<String> exchange = restTemplate.exchange(url("/actuator/gateway/refresh"), HttpMethod.POST,
 				new HttpEntity<>(""), String.class);
 
-		assert exchange.getStatusCode() == HttpStatus.OK;
+		assert exchange.getStatusCode() == HttpStatus.ACCEPTED;
 	}
 
 	private String url(String context) {
