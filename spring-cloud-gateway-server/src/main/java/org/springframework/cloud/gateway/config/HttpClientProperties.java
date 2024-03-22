@@ -416,6 +416,12 @@ public class HttpClientProperties {
 		/** Key password, default is same as keyStorePassword. */
 		private String keyPassword;
 
+		/** The protocols to enable, or empty to enable the default protocols. */
+		private List<String> protocols = new ArrayList<>();
+
+		/** The cipher suites to enable, in the order of preference. empty to use default cipher suites. */
+		private List<String> ciphers = new ArrayList<>();
+
 		public String getKeyStorePassword() {
 			return keyStorePassword;
 		}
@@ -454,6 +460,22 @@ public class HttpClientProperties {
 
 		public void setKeyPassword(String keyPassword) {
 			this.keyPassword = keyPassword;
+		}
+
+		public List<String> getProtocols() {
+			return protocols;
+		}
+
+		public void setProtocols(List<String> protocols) {
+			this.protocols = protocols;
+		}
+
+		public List<String> getCiphers() {
+			return ciphers;
+		}
+
+		public void setCiphers(List<String> ciphers) {
+			this.ciphers = ciphers;
 		}
 
 		public List<String> getTrustedX509Certificates() {
