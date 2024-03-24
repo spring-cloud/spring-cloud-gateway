@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 import static io.grpc.Status.FAILED_PRECONDITION;
+import static io.grpc.Status.RESOURCE_EXHAUSTED;
 import static io.grpc.netty.NegotiationType.TLS;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
@@ -84,6 +85,23 @@ public class GRPCApplicationTests {
 			Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
 			Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
 		}
+	}
+
+	@Test
+	public void gRPCUnaryCallShouldHandleRuntimeException2() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
+		boolean thrown = false;
+		try {
+			HelloServiceGrpc.newBlockingStub(channel)
+					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeExceptionAfterData!").build())
+					.getGreeting();
+		}
+		catch (StatusRuntimeException e) {
+			thrown = true;
+			Assertions.assertThat(e.getStatus().getCode()).isEqualTo(RESOURCE_EXHAUSTED.getCode());
+			Assertions.assertThat(e.getStatus().getDescription()).isEqualTo("Too long firstNames?");
+		}
+		Assertions.assertThat(thrown).withFailMessage("Expected exception not thrown!").isTrue();
 	}
 
 	private TrustManager[] createTrustAllTrustManager() {
