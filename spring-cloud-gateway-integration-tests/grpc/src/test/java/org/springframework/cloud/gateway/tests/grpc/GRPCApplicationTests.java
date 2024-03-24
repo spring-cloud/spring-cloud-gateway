@@ -76,15 +76,18 @@ public class GRPCApplicationTests {
 	@Test
 	public void gRPCUnaryCallShouldHandleRuntimeException() throws SSLException {
 		ManagedChannel channel = createSecuredChannel(gatewayPort);
+		boolean thrown = false;
 
 		try {
 			HelloServiceGrpc.newBlockingStub(channel)
 					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeException!").build());
 		}
 		catch (StatusRuntimeException e) {
-			Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
-			Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
+			thrown = true;
+			Assertions.assertThat(e.getStatus().getCode()).isEqualTo(FAILED_PRECONDITION.getCode());
+			Assertions.assertThat(e.getStatus().getDescription()).isEqualTo("Invalid firstName");
 		}
+		Assertions.assertThat(thrown).withFailMessage("Expected exception not thrown!").isTrue();
 	}
 
 	@Test
