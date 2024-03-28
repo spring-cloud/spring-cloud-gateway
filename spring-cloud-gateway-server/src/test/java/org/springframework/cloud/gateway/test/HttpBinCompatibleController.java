@@ -40,6 +40,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -219,6 +221,16 @@ public class HttpBinCompatibleController {
 			builder.varyBy(headerToVary);
 			return builder.body(headers(exchange));
 		}
+	}
+
+	@GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	public Flux<ServerSentEvent<String>> sseEvents(
+			@RequestParam(value = "events", required = false, defaultValue = "5") int events,
+			@RequestParam(value = "delay", required = false, defaultValue = "500") long delay) {
+		return Flux.interval(Duration.ofMillis(delay)).take(events).map(e -> {
+			return ServerSentEvent.<String>builder().id(e.toString()).event("notice").data("D - " + e.toString())
+					.build();
+		});
 	}
 
 	public Map<String, String> getHeaders(ServerWebExchange exchange) {

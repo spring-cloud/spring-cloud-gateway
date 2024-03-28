@@ -17,11 +17,13 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -32,10 +34,13 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.reactive.server.FluxExchangeResult;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -84,6 +89,58 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("Exceeded limit on max bytes to buffer : 40");
 	}
 
+	@Test
+	public void modifySseResponseBody() {
+		int events = 5;
+		long delay = 100L;
+
+		FluxExchangeResult<ServerSentEvent<String>> result = buildFluxExchangeResultForSse(events, delay);
+
+		StepVerifier.create(result.getResponseBody())
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 0"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 1")).expectNextCount(events - 2)
+				.thenCancel().verify();
+	}
+
+	@Test
+	public void sseResponseShouldNotBlockedDuringModification() {
+		int events = 10;
+		long delay = 100L;
+
+		FluxExchangeResult<ServerSentEvent<String>> result = buildFluxExchangeResultForSse(events, delay);
+		// Publisher should take sufficient time to emit all real time events. If response
+		// is blocked in between Publisher will emit all events immediately
+		StepVerifier.create(result.getResponseBody())
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 0"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 1")).expectNextCount(events - 2)
+				.thenCancel().verifyThenAssertThat().tookMoreThan(Duration.ofMillis((events / 2) * delay));
+	}
+
+	@Test
+	public void modifyLargeSseResponseBodyWithoutExcedingLimitOfBuffer() {
+		int events = 20;
+		long delay = 100L;
+
+		FluxExchangeResult<ServerSentEvent<String>> result = buildFluxExchangeResultForSse(events, delay);
+
+		StepVerifier.create(result.getResponseBody())
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 0"))
+				.consumeNextWith(event -> assertThat(event.data()).isEqualTo("MD - 1")).expectNextCount(events - 2)
+				.thenCancel().verify();
+	}
+
+	private FluxExchangeResult<ServerSentEvent<String>> buildFluxExchangeResultForSse(int events, long delay) {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/sse?events=" + events + "&delay=" + delay)
+				.build(true).toUri();
+
+		FluxExchangeResult<ServerSentEvent<String>> result = testClient.get().uri(uri)
+				.header("Host", "www.modifyresponsebodyjavawithsse.org").accept(MediaType.TEXT_EVENT_STREAM).exchange()
+				.expectStatus().isOk().expectHeader().contentType("text/event-stream;charset=UTF-8")
+				.returnResult(new ParameterizedTypeReference<ServerSentEvent<String>>() {
+				});
+		return result;
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -109,6 +166,13 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 												return Mono.just(toLarge);
 											}))
 									.uri(uri))
+					.route("modify_response_java_test_sse",
+							r -> r.host("www.modifyresponsebodyjavawithsse.org").filters(f -> f
+									.modifyResponseBody(byte[].class, String.class, (webExchange, originalResponse) -> {
+										String originalResponseStr = new String(originalResponse, UTF_8);
+										String modifiedResponse = originalResponseStr.replace("D -", "MD -");
+										return Mono.just(modifiedResponse);
+									})).uri(uri))
 					.route("modify_response_java_test_content_type",
 							r -> r.path("/").and().host("www.modifyresponsebodyjavacontenttype.org")
 									.filters(
