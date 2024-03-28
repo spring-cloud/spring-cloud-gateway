@@ -83,6 +83,35 @@ public class RouteDefinitionRouteLocatorTests {
 	}
 
 	@Test
+	public void disabledRoutesAreNotLoaded() {
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(
+				new RemoveResponseHeaderGatewayFilterFactory(), new AddResponseHeaderGatewayFilterFactory(),
+				new TestOrderedGatewayFilterFactory());
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(List.of(new RouteDefinition() {
+			{
+				setId("bar");
+				setUri(URI.create("https://bar.example.com"));
+				setEnabled(false);
+				setPredicates(List.of(new PredicateDefinition("Host=*.example.com")));
+				setFilters(Arrays.asList(new FilterDefinition("RemoveResponseHeader=Server"),
+						new FilterDefinition("TestOrdered="),
+						new FilterDefinition("AddResponseHeader=X-Response-Foo, Bar")));
+			}
+		}));
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+		@SuppressWarnings("deprecation")
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).expectComplete().verify();
+	}
+
+	@Test
 	public void simpleRetryDefinitionLoads() {
 		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
 		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RetryGatewayFilterFactory());
