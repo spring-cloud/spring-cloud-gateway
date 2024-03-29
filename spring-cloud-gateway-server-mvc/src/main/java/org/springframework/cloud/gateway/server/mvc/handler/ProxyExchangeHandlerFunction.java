@@ -54,6 +54,8 @@ public class ProxyExchangeHandlerFunction
 
 	private final URIResolver uriResolver;
 
+	private final Boolean replaceQueryParams;
+
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
@@ -65,10 +67,18 @@ public class ProxyExchangeHandlerFunction
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
 			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver) {
+		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters, uriResolver, true);
+	}
+
+	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
+			ObjectProvider<RequestHttpHeadersFilter> requestHttpHeadersFilters,
+			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters, URIResolver uriResolver,
+			Boolean replaceQueryParams) {
 		this.proxyExchange = proxyExchange;
 		this.requestHttpHeadersFiltersProvider = requestHttpHeadersFilters;
 		this.responseHttpHeadersFiltersProvider = responseHttpHeadersFilters;
 		this.uriResolver = uriResolver;
+		this.replaceQueryParams = replaceQueryParams;
 	}
 
 	@Override
@@ -86,13 +96,17 @@ public class ProxyExchangeHandlerFunction
 		URI uri = uriResolver.apply(serverRequest);
 		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
 		// @formatter:off
-		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
+		UriComponentsBuilder builder = UriComponentsBuilder
+				.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
-				.port(uri.getPort())
-				.replaceQueryParams(serverRequest.params())
-				.build(encoded)
-				.toUri();
+				.port(uri.getPort());
+
+		if (replaceQueryParams) {
+			builder.replaceQueryParams(serverRequest.params());
+		}
+
+		URI url = builder.build(encoded).toUri();
 		// @formatter:on
 
 		HttpHeaders filteredRequestHeaders = filterHeaders(this.requestHttpHeadersFilters,
