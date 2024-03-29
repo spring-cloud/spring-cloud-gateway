@@ -424,6 +424,18 @@
       "type": "java.lang.Boolean",
       "description": "Include the port in matching the host name.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.route-refresh-listener.enabled",
+      "type": "java.lang.Boolean",
+      "description": "If RouteRefreshListener should be turned on.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.redis-route-definition-repository.enabled",
+      "type": "java.lang.Boolean",
+      "description": "If RedisRouteDefinitionRepository should be enabled.",
+      "defaultValue": "true"
     }
   ]
 }

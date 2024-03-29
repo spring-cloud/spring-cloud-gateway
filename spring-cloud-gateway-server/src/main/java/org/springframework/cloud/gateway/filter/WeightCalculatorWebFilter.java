@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
@@ -34,6 +35,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.event.PredicateArgsEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RouteDeletedEvent;
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -41,7 +43,9 @@ import org.springframework.cloud.gateway.support.WeightConfig;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
+import org.springframework.core.log.LogMessage;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -65,7 +69,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 	private final ConfigurationService configurationService;
 
-	private Supplier<Double> randomSupplier = null;
+	private Function<ServerWebExchange, Double> randomFunction = exchange -> ThreadLocalRandom.current().nextDouble();
 
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
@@ -101,11 +105,18 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 	@Deprecated
 	public void setRandom(Random random) {
-		this.randomSupplier = random::nextDouble;
+		Assert.notNull(random, "random may not be null");
+		this.randomFunction = exchange -> random.nextDouble();
 	}
 
 	public void setRandomSupplier(Supplier<Double> randomSupplier) {
-		this.randomSupplier = randomSupplier;
+		Assert.notNull(randomSupplier, "randomSupplier may not be null");
+		this.randomFunction = exchange -> randomSupplier.get();
+	}
+
+	public void setRandomFunction(Function<ServerWebExchange, Double> randomFunction) {
+		Assert.notNull(randomFunction, "randomFunction may not be null");
+		this.randomFunction = randomFunction;
 	}
 
 	@Override
@@ -114,6 +125,8 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		return PredicateArgsEvent.class.isAssignableFrom(eventType) ||
 		// from java dsl
 				WeightDefinedEvent.class.isAssignableFrom(eventType) ||
+				// from actuator or custom call
+				RouteDeletedEvent.class.isAssignableFrom(eventType) ||
 				// force initialization
 				RefreshRoutesEvent.class.isAssignableFrom(eventType);
 	}
@@ -130,6 +143,9 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		}
 		else if (event instanceof WeightDefinedEvent) {
 			addWeightConfig(((WeightDefinedEvent) event).getWeightConfig());
+		}
+		else if (event instanceof RouteDeletedEvent) {
+			removeWeightConfig(((RouteDeletedEvent) event).getRouteId());
 		}
 		else if (event instanceof RefreshRoutesEvent && routeLocator != null) {
 			// forces initialization
@@ -220,6 +236,16 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 		groupWeights.put(group, config);
 	}
 
+	private void removeWeightConfig(String routeId) {
+		log.trace(LogMessage.format("Removing weight config for route %s", routeId));
+		groupWeights.forEach((group, weightConfig) -> {
+			if (weightConfig.normalizedWeights.containsKey(routeId)) {
+				weightConfig.normalizedWeights.remove(routeId);
+				weightConfig.weights.remove(routeId);
+			}
+		});
+	}
+
 	/* for testing */ Map<String, GroupWeightConfig> getGroupWeights() {
 		return groupWeights;
 	}
@@ -238,17 +264,9 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 				continue; // nothing we can do, but this is odd
 			}
 
-			/*
-			 * Usually, multiple threads accessing the same random object will have some
-			 * performance problems, so we can use ThreadLocalRandom by default
-			 */
-			double r;
-			if (this.randomSupplier != null) {
-				r = randomSupplier.get();
-			}
-			else {
-				r = ThreadLocalRandom.current().nextDouble();
-			}
+			// Usually, multiple threads accessing the same random object will have some
+			// performance problems, so we can use ThreadLocalRandom by default
+			double r = randomFunction.apply(exchange);
 
 			List<Double> ranges = config.ranges;
 

@@ -36,6 +36,7 @@ import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier;
 import org.springframework.cloud.gateway.server.mvc.common.DefaultArgumentSuppliedEvent;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut.Type;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -121,7 +122,7 @@ public abstract class GatewayRequestPredicates {
 
 	// TODO: implement parameter aliases for predicates in RequestPredicates for webflux
 	// compatibility?
-	@Shortcut(type = Shortcut.Type.LIST)
+	@Shortcut(type = Type.LIST)
 	public static RequestPredicate method(HttpMethod... methods) {
 		return RequestPredicates.methods(methods);
 	}
@@ -131,7 +132,7 @@ public abstract class GatewayRequestPredicates {
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
 	}
 
-	@Shortcut
+	@Shortcut(type = Type.LIST)
 	public static RequestPredicate host(String... patterns) {
 		Assert.notEmpty(patterns, "'patterns' must not be empty");
 		RequestPredicate requestPredicate = hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[0]);
@@ -175,7 +176,7 @@ public abstract class GatewayRequestPredicates {
 	 * @param patterns the list of patterns to match
 	 * @return a predicate that tests against the given path pattern
 	 */
-	@Shortcut
+	@Shortcut(type = Type.LIST)
 	public static RequestPredicate path(String... patterns) {
 		Assert.notEmpty(patterns, "'patterns' must not be empty");
 		RequestPredicate requestPredicate = RequestPredicates.path(patterns[0]);

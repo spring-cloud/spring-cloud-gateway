@@ -43,7 +43,7 @@ public class GatewayMvcProperties {
 	private List<RouteProperties> routes = new ArrayList<>();
 
 	/**
-	 * List of Routes.
+	 * Map of Routes.
 	 */
 	@NotNull
 	@Valid

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
 
 /**
  * @author Spencer Gibb
@@ -57,8 +58,10 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 				query.append('=');
 				query.append(value);
 
+				boolean encoded = containsEncodedParts(uri);
 				try {
-					URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build(true).toUri();
+					URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build(encoded)
+							.toUri();
 
 					ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
 

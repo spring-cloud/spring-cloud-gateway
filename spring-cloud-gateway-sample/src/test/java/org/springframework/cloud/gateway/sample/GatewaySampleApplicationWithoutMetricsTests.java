@@ -18,23 +18,20 @@ package org.springframework.cloud.gateway.sample;
 
 import java.time.Duration;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.gateway.sample.GatewaySampleApplicationTests.TestConfig;
 import org.springframework.cloud.test.ClassPathExclusions;
-import org.springframework.cloud.test.ModifiedClassPathRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-@RunWith(ModifiedClassPathRunner.class)
 @ClassPathExclusions({ "micrometer-core.jar", "spring-boot-actuator-*.jar",
 		"spring-boot-actuator-autoconfigure-*.jar" })
 @DirtiesContext
@@ -46,18 +43,18 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 
 	protected String baseUri;
 
-	@BeforeClass
+	@BeforeAll
 	public static void beforeClass() {
 		port = TestSocketUtils.findAvailableTcpPort();
 		System.setProperty("server.port", Integer.toString(port));
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterClass() {
 		System.clearProperty("server.port");
 	}
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		baseUri = "http://localhost:" + port;
 		this.webClient = WebTestClient.bindToServer().responseTimeout(Duration.ofSeconds(10)).baseUrl(baseUri).build();

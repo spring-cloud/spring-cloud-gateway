@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.servlet.ServletException;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -34,6 +35,10 @@ public abstract class HandlerFunctions {
 
 	private HandlerFunctions() {
 
+	}
+
+	public static HandlerFunction<ServerResponse> forward(RouteProperties routeProperties) {
+		return forward(routeProperties.getUri().getPath());
 	}
 
 	public static HandlerFunction<ServerResponse> forward(String path) {
@@ -96,7 +101,7 @@ public abstract class HandlerFunctions {
 			if (uri != null) {
 				// TODO: in 2 places now, here and
 				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				serverRequest.attributes().put(MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
 			}
 			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
 			return proxyExchangeHandlerFunction.get().handle(serverRequest);

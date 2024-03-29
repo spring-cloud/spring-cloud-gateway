@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.time.Duration;
-
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
@@ -35,8 +33,8 @@ import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabled
 import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheUtils;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
-import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheSizeWeigher;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
@@ -71,7 +69,7 @@ public class LocalResponseCacheAutoConfiguration {
 	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
 	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 	public CacheManager gatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		return createGatewayCacheManager(cacheProperties);
+		return LocalResponseCacheUtils.createGatewayCacheManager(cacheProperties);
 	}
 
 	@Bean
@@ -91,23 +89,13 @@ public class LocalResponseCacheAutoConfiguration {
 		return new CacheKeyGenerator();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	/**
+	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
+	 * {@link LocalResponseCacheUtils#createGatewayCacheManager(LocalResponseCacheProperties)}
+	 */
+	@Deprecated(since = "4.1.2", forRemoval = true)
 	public static CaffeineCacheManager createGatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		Caffeine caffeine = Caffeine.newBuilder();
-		LOGGER.info("Initializing Caffeine");
-		Duration ttlSeconds = cacheProperties.getTimeToLive();
-		caffeine.expireAfterWrite(ttlSeconds);
-
-		if (cacheProperties.getSize() != null) {
-			caffeine.maximumWeight(cacheProperties.getSize().toBytes()).weigher(responseCacheSizeWeigher());
-		}
-		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-		caffeineCacheManager.setCaffeine(caffeine);
-		return caffeineCacheManager;
-	}
-
-	private static ResponseCacheSizeWeigher responseCacheSizeWeigher() {
-		return new ResponseCacheSizeWeigher();
+		return LocalResponseCacheUtils.createGatewayCacheManager(cacheProperties);
 	}
 
 	Cache responseCache(CacheManager cacheManager) {

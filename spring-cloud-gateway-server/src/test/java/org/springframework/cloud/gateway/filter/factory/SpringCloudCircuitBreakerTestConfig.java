@@ -115,7 +115,7 @@ public class SpringCloudCircuitBreakerTestConfig {
 								.uri(uri))
 				.route("circuitbreaker_connection_failure", r -> r.host("**.circuitbreakerconnectfail.org")
 						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
-						})).uri("lb:badservice"))
+						})).uri("lb://badservice"))
 				/*
 				 * This is a route encapsulated in a circuit breaker that is ready to wait
 				 * for a response far longer than the underpinning WebClient would.

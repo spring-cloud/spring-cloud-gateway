@@ -58,6 +58,7 @@
 ** xref:spring-cloud-gateway/reactor-netty-access-logs.adoc[]
 ** xref:spring-cloud-gateway/cors-configuration.adoc[]
 ** xref:spring-cloud-gateway/actuator-api.adoc[]
+** xref:spring-cloud-gateway/sharing-routes.adoc[]
 ** xref:spring-cloud-gateway/troubleshooting.adoc[]
 ** xref:spring-cloud-gateway/developer-guide.adoc[]
 ** xref:spring-cloud-gateway/aot-and-native-image-support.adoc[]
@@ -108,6 +109,7 @@
 *** xref:spring-cloud-gateway-server-mvc/filters/setrequesthostheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/tokenrelay.adoc[]
 ** xref:spring-cloud-gateway-server-mvc/writing-custom-predicates-and-filters.adoc[]
+** xref:spring-cloud-gateway-server-mvc/working-with-servlets-and-filters.adoc[]
 
 // begin Gateway Proxy Exchange
 

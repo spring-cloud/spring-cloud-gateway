@@ -231,6 +231,69 @@ class RouteConfiguration {
 
 The above route will add a `X-Response-Id` header to the response. Note the use of the `after()` method, rather than `filter()`.
 
-// TODO: registering for configuration
+== How To Register Custom Predicates and Filters for Configuration
+
+To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it in `META-INF/spring.factories`.
+
+=== Registering Custom Predicates
+
+To register custom predicates you need to implement `PredicateSupplier`. The `PredicateDiscoverer` looks for static methods that return `RequestPredicates` to register.
+
+
+SampleFilterSupplier.java
+[source,java]
+----
+package com.example;
+
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier;
+
+@Configuration
+class SamplePredicateSupplier implements PredicateSupplier {
+
+	@Override
+	public Collection<Method> get() {
+		return Arrays.asList(SampleRequestPredicates.class.getMethods());
+	}
+
+}
+----
+
+You then need to add the class in `META-INF/spring.factories`.
+
+.META-INF/spring.factories
+[source]
+----
+org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
+  com.example.SamplePredicateSupplier
+----
+
+=== Registering Custom Filters
+
+The `SimpleFilterSupplier` allows for easily registering custom filters. The `FilterDiscoverer` looks for static methods that return `HandlerFilterFunction` to register. If you need more flexibility than `SimpleFilterSupplier` you can implement `FilterSupplier` directly.
+
+.SampleFilterSupplier.java
+[source,java]
+----
+package com.example;
+
+import org.springframework.cloud.gateway.server.mvc.filter.SimpleFilterSupplier;
+
+@Configuration
+class SampleFilterSupplier extends SimpleFilterSupplier {
+
+    public SampleFilterSupplier() {
+		super(SampleAfterFilterFunctions.class);
+	}
+}
+----
+
+You then need to add the class in `META-INF/spring.factories`.
+
+.META-INF/spring.factories
+[source]
+----
+org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
+  com.example.SampleFilterSupplier
+----
 
 // TODO: advanced topics such as attributes, beans and more

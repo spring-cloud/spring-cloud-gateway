@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,10 @@ import org.springframework.boot.web.client.ClientHttpRequestFactories;
 import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
@@ -40,6 +42,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRespons
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
@@ -47,20 +50,34 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+/**
+ * AutoConfiguration for Spring Cloud Gateway MVC server.
+ *
+ * @author Spencer Gibb
+ * @author Jürgen Wißkirchen
+ */
 @AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
+@ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	public static ArgumentSupplierBeanPostProcessor argumentSupplierBeanPostProcessor(
 			ApplicationEventPublisher publisher) {
 		return new ArgumentSupplierBeanPostProcessor(publisher);
+	}
+
+	@Bean
+	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env) {
+		return new RouterFunctionHolderFactory(env);
 	}
 
 	@Bean
@@ -76,12 +93,15 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "form-filter.enabled", matchIfMissing = true)
 	public FormFilter formFilter() {
 		return new FormFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "forwarded-request-headers-filter.enabled",
+			matchIfMissing = true)
 	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter() {
 		return new ForwardedRequestHeadersFilter();
 	}
@@ -137,38 +157,56 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-content-length-request-headers-filter.enabled", matchIfMissing = true)
 	public RemoveContentLengthRequestHeadersFilter removeContentLengthRequestHeadersFilter() {
 		return new RemoveContentLengthRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-hop-by-hop-request-headers-filter.enabled", matchIfMissing = true)
 	public RemoveHopByHopRequestHeadersFilter removeHopByHopRequestHeadersFilter() {
 		return new RemoveHopByHopRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-hop-by-hop-response-headers-filter.enabled", matchIfMissing = true)
 	public RemoveHopByHopResponseHeadersFilter removeHopByHopResponseHeadersFilter() {
 		return new RemoveHopByHopResponseHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "transfer-encoding-normalization-request-headers-filter.enabled", matchIfMissing = true)
 	public TransferEncodingNormalizationRequestHeadersFilter transferEncodingNormalizationRequestHeadersFilter() {
 		return new TransferEncodingNormalizationRequestHeadersFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "weight-calculator-filter.enabled",
+			matchIfMissing = true)
 	public WeightCalculatorFilter weightCalculatorFilter() {
 		return new WeightCalculatorFilter();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter() {
-		return new XForwardedRequestHeadersFilter();
+	@ConditionalOnProperty(prefix = XForwardedRequestHeadersFilterProperties.PREFIX, name = ".enabled",
+			matchIfMissing = true)
+	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter(
+			XForwardedRequestHeadersFilterProperties props) {
+		return new XForwardedRequestHeadersFilter(props);
+	}
+
+	@Bean
+	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
+		return new XForwardedRequestHeadersFilterProperties();
 	}
 
 }

@@ -16,10 +16,19 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache;
 
+import java.time.Duration;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 
 public final class LocalResponseCacheUtils {
+
+	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheUtils.class);
 
 	private LocalResponseCacheUtils() {
 	}
@@ -27,6 +36,26 @@ public final class LocalResponseCacheUtils {
 	public static boolean isNoCacheRequest(ServerHttpRequest request) {
 		String cacheControl = request.getHeaders().getCacheControl();
 		return StringUtils.hasText(cacheControl) && cacheControl.matches(".*(\s|,|^)no-cache(\\s|,|$).*");
+	}
+
+	public static CaffeineCacheManager createGatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
+		Caffeine caffeine = createCaffeine(cacheProperties);
+		CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+		caffeineCacheManager.setCaffeine(caffeine);
+		return caffeineCacheManager;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static Caffeine createCaffeine(LocalResponseCacheProperties cacheProperties) {
+		Caffeine caffeine = Caffeine.newBuilder();
+		LOGGER.info("Initializing Caffeine");
+		Duration ttlSeconds = cacheProperties.getTimeToLive();
+		caffeine.expireAfterWrite(ttlSeconds);
+
+		if (cacheProperties.getSize() != null) {
+			caffeine.maximumWeight(cacheProperties.getSize().toBytes()).weigher(new ResponseCacheSizeWeigher());
+		}
+		return caffeine;
 	}
 
 }
