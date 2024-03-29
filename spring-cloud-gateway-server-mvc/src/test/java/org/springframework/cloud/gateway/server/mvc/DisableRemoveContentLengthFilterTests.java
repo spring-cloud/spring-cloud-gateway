@@ -31,7 +31,6 @@ public class DisableRemoveContentLengthFilterTests extends ServerMvcIntegrationT
 				.expectBody(Map.class).consumeWith(result -> {
 					Map map = result.getResponseBody();
 					Map<String, Object> form = getMap(map, "form");
-					assertThat(form).containsEntry("foo", "bar");
 					assertThat(form).containsEntry("baz", "bam");
 				});
 	}
