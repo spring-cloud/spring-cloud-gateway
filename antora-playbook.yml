@@ -3,6 +3,9 @@ antora:
     - '@springio/antora-extensions/partial-build-extension'
     # atlas-extension must be before latest-version-extension so latest versions are applied to imported versions
     - '@antora/atlas-extension'
+
+Moves atlas-extension before latest-version-extension
+
     - require: '@springio/antora-extensions/latest-version-extension'
     - require: '@springio/antora-extensions/inject-collector-cache-config-extension'
     - '@antora/collector-extension'
@@ -38,7 +41,7 @@ urls:
   redirect_facility: httpd
 ui:
   bundle:
-    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.11/ui-bundle.zip
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.12/ui-bundle.zip
     snapshot: true
 runtime:
   log:
