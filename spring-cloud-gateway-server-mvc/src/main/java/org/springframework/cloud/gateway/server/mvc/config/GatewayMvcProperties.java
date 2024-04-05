@@ -79,12 +79,16 @@ public class GatewayMvcProperties {
 
 	public static class HttpClient {
 
+		/** The HttpClient connect timeout. */
 		private Duration connectTimeout;
 
+		/** The HttpClient read timeout. */
 		private Duration readTimeout;
 
+		/** The name of the SSL bundle to use. */
 		private String sslBundle;
 
+		/** The HttpClient type. Defaults to JDK. */
 		private HttpClientType type = HttpClientType.JDK;
 
 		public Duration getConnectTimeout() {

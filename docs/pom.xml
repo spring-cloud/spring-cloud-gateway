@@ -30,6 +30,10 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/asciidoc</sourceDirectory>
