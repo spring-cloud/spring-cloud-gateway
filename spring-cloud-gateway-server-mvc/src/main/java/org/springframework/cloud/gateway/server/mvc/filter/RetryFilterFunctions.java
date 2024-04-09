@@ -43,6 +43,8 @@ import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.BodyFilterFunctions.adaptCachedBody;
+
 public abstract class RetryFilterFunctions {
 
 	private RetryFilterFunctions() {
@@ -75,7 +77,7 @@ public abstract class RetryFilterFunctions {
 			if (isRetryableStatusCode(serverResponse.statusCode(), config)
 					&& isRetryableMethod(request.method(), config)) {
 				// use this to transfer information to HttpStatusRetryPolicy
-				throw new RetryException(request, serverResponse);
+				throw new RetryException(adaptCachedBody().apply(request), serverResponse);
 			}
 			return serverResponse;
 		});

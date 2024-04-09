@@ -24,6 +24,8 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.cacheBody;
+
 public class RestClientProxyExchange implements ProxyExchange {
 
 	private final RestClient restClient;
@@ -41,7 +43,7 @@ public class RestClientProxyExchange implements ProxyExchange {
 	}
 
 	private static int copyBody(Request request, OutputStream outputStream) throws IOException {
-		return StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), outputStream);
+		return StreamUtils.copy(cacheBody(request.getServerRequest()), outputStream);
 	}
 
 	private static ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
