@@ -3,7 +3,9 @@
 
 You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
 
-To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, or Zookeeper) is on the classpath and enabled.
+The routes created use the protocol `lb://service-name` (where `service-name` is the String that `DsicoveryClient::getServices` will return) and this means that they are load-balanced. For that reason, you also need to include the `org.springframework.cloud:spring-cloud-starter-loadbalancer` dependency, so that it is available on the classpath.
+
+To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, Zookeeper or Kubernetes) is on the classpath and enabled.
 
 [[configuring-predicates-and-filters-for-discoveryclient-routes]]
 == Configuring Predicates and Filters For `DiscoveryClient` Routes
