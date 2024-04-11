@@ -109,6 +109,10 @@ public abstract class MvcUtils {
 			}
 			else {
 				body = getAttribute(request, CACHED_REQUEST_BODY_ATTR);
+				if (body == null) {
+					body = new ByteArrayInputStream(bytes);
+					putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+				}
 			}
 			return body;
 		}
