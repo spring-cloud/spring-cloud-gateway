@@ -431,6 +431,11 @@ public final class ServerWebExchangeUtils {
 		// remove attributes that may disrupt the forwarded request
 		exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
 
+		// CORS check is applied to the original request, but should not be applied to
+		// internally forwarded requests.
+		// See https://github.com/spring-cloud/spring-cloud-gateway/issues/3350.
+		exchange = exchange.mutate().request(request -> request.headers(headers -> headers.setOrigin(null))).build();
+
 		return handler.handle(exchange);
 	}
 

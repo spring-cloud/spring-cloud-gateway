@@ -23,18 +23,27 @@ import java.util.Map;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.assertArg;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_PATH_CONTAINER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.expand;
+import static org.springframework.http.server.PathContainer.parsePath;
 
 public class ServerWebExchangeUtilsTests {
 
@@ -92,6 +101,26 @@ public class ServerWebExchangeUtilsTests {
 		DataBuffer dataBufferAfterCached = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
 
 		Assertions.assertThat(dataBufferBeforeCaching).isEqualTo(dataBufferAfterCached);
+	}
+
+	@Test
+	public void forwardedRequestsHaveDisruptiveAttributesAndHeadersRemoved() {
+		DispatcherHandler handler = Mockito.mock(DispatcherHandler.class);
+		Mockito.when(handler.handle(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
+		ServerWebExchange originalExchange = mockExchange(Map.of()).mutate()
+				.request(request -> request.headers(headers -> headers.setOrigin("https://example.com"))).build();
+		originalExchange.getAttributes().put(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR, parsePath("/example/path"));
+
+		ServerWebExchangeUtils.handle(handler, originalExchange).block();
+
+		Mockito.verify(handler).handle(assertArg(exchange -> {
+			Assertions.assertThat(exchange.getAttributes()).as("exchange attributes")
+					.doesNotContainKey(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
+
+			Assertions.assertThat(exchange.getRequest().getHeaders()).as("request headers")
+					.doesNotContainKey(HttpHeaders.ORIGIN);
+		}));
 	}
 
 	private MockServerWebExchange mockExchange(Map<String, String> vars) {
