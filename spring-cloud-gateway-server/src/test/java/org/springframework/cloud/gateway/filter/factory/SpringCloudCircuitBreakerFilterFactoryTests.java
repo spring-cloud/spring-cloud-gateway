@@ -107,6 +107,13 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	}
 
 	@Test
+	public void filterFallbackForwardWithCORS() {
+		testClient.get().uri("/delay/3?a=b").header("Host", "www.circuitbreakerforward.org")
+				.header("Origin", "https://cors.withcircuitbreaker.org").exchange().expectStatus().isOk().expectBody()
+				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
+	}
+
+	@Test
 	public void filterStatusCodeFallback() {
 		testClient.get().uri("/status/500").header("Host", "www.circuitbreakerstatuscode.org").exchange().expectStatus()
 				.isOk().expectBody().json("{\"from\":\"statusCodeFallbackController\"}");
