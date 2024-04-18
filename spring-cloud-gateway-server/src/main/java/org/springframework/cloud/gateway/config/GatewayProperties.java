@@ -68,6 +68,12 @@ public class GatewayProperties {
 	 */
 	private boolean failOnRouteDefinitionError = true;
 
+	/**
+	 * Regular expression defining proxies that are trusted when they appear in a
+	 * Forwarded or X-Forwarded header.
+	 */
+	private String trustedProxies;
+
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
@@ -103,12 +109,21 @@ public class GatewayProperties {
 		this.failOnRouteDefinitionError = failOnRouteDefinitionError;
 	}
 
+	public String getTrustedProxies() {
+		return trustedProxies;
+	}
+
+	public void setTrustedProxies(String trustedProxies) {
+		this.trustedProxies = trustedProxies;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes)
 			.append("defaultFilters", defaultFilters)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+			.append("trustedProxies", trustedProxies)
 			.toString();
 
 	}

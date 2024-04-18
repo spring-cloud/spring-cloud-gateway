@@ -22,7 +22,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TestUtils {
+public final class TestUtils {
+
+	private TestUtils() {
+
+	}
 
 	public static Map<String, Object> getMap(Map<String, Object> map, String mapKey) {
 		assertThat(map).isNotEmpty().containsKey(mapKey);

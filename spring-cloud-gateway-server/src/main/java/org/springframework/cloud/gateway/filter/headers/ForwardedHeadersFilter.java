@@ -25,7 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.core.Ordered;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.CollectionUtils;
@@ -36,10 +41,25 @@ import org.springframework.web.server.ServerWebExchange;
 
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
+	private static final Log log = LogFactory.getLog(ForwardedHeadersFilter.class);
+
 	/**
 	 * Forwarded header.
 	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
+
+	private final TrustedProxies trustedProxies;
+
+	@Deprecated
+	public ForwardedHeadersFilter() {
+		trustedProxies = s -> true;
+		log.warn(GatewayProperties.PREFIX
+				+ ".trusted-proxies is not set. Using deprecated Constructor. Untrusted hosts might be added to Forwarded header.");
+	}
+
+	public ForwardedHeadersFilter(String trustedProxiesRegex) {
+		trustedProxies = TrustedProxies.from(trustedProxiesRegex);
+	}
 
 	/* for testing */
 	static List<Forwarded> parse(List<String> values) {
@@ -48,8 +68,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return forwardeds;
 		}
 		for (String value : values) {
-			Forwarded forwarded = parse(value);
-			forwardeds.add(forwarded);
+			String[] forwardedValues = StringUtils.tokenizeToStringArray(value, ",");
+			for (String forwardedValue : forwardedValues) {
+				Forwarded forwarded = parse(forwardedValue);
+				forwardeds.add(forwarded);
+			}
 		}
 		return forwardeds;
 	}
@@ -92,6 +115,14 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
+
+		if (request.getRemoteAddress() != null
+				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
+			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
+					request.getRemoteAddress()));
+			return input;
+		}
+
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
@@ -105,7 +136,10 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
 
 		for (Forwarded f : forwardeds) {
-			updated.add(FORWARDED_HEADER, f.toHeaderValue());
+			// only add if "for" value matches trustedProxies
+			if (trustedProxies.isTrusted(f.get("for"))) {
+				updated.add(FORWARDED_HEADER, f.toHeaderValue());
+			}
 		}
 
 		// TODO: add new forwarded
@@ -114,6 +148,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		Forwarded forwarded = new Forwarded().put("host", host).put("proto", uri.getScheme());
 
 		InetSocketAddress remoteAddress = request.getRemoteAddress();
+		// TODO: only add if "remoteAddress" value matches trustedProxies
 		if (remoteAddress != null) {
 			// If remoteAddress is unresolved, calling getHostAddress() would cause a
 			// NullPointerException.
@@ -128,11 +163,14 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 					forValue = "[" + forValue + "]";
 				}
 			}
-			int port = remoteAddress.getPort();
-			if (port >= 0) {
-				forValue = forValue + ":" + port;
+			if (trustedProxies.isTrusted(forValue)) {
+				// only add for value if trusted
+				int port = remoteAddress.getPort();
+				if (port >= 0) {
+					forValue = forValue + ":" + port;
+				}
+				forwarded.put("for", forValue);
 			}
-			forwarded.put("for", forValue);
 		}
 		// TODO: support by?
 

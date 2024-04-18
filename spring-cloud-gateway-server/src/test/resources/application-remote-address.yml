@@ -22,3 +22,4 @@ spring:
         filters:
         - SetPath=/httpbin/
         - SetStatus=200
+      trusted-proxies: .*
