@@ -489,7 +489,7 @@ Route filters allow the modification of the incoming HTTP request or outgoing HT
 Route filters are scoped to a particular route.
 Spring Cloud Gateway includes many built-in GatewayFilter Factories.
 
-NOTE: For more detailed examples of how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/master/spring-cloud-gateway-server/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
+NOTE: For more detailed examples of how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/3.1.x/spring-cloud-gateway-server/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
 
 === The `AddRequestHeader` `GatewayFilter` Factory
 
@@ -619,31 +619,6 @@ spring:
         - AddResponseHeader=foo, bar-{segment}
 ----
 ====
-
-=== The `DedupeResponseHeader` `GatewayFilter` Factory
-
-The DedupeResponseHeader GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
-The following example configures a `DedupeResponseHeader` `GatewayFilter`:
-
-.application.yml
-====
-[source,yaml]
-----
-spring:
-  cloud:
-    gateway:
-      routes:
-      - id: dedupe_response_header_route
-        uri: https://example.org
-        filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-----
-====
-
-This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
-
-The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
-The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 [[spring-cloud-circuitbreaker-filter-factory]]
 === Spring Cloud CircuitBreaker GatewayFilter Factory
@@ -802,6 +777,30 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ----
 ====
 
+=== The `DedupeResponseHeader` `GatewayFilter` Factory
+
+The `DedupeResponseHeader` GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
+The following example configures a `DedupeResponseHeader` `GatewayFilter`:
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: dedupe_response_header_route
+        uri: https://example.org
+        filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+----
+====
+
+This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
+
+The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
+The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
 
 
 [[fallback-headers]]
@@ -849,6 +848,142 @@ You can overwrite the names of the headers in the configuration by setting the v
 
 For more information on circuit breakers and the gateway see the <<spring-cloud-circuitbreaker-filter-factory, Spring Cloud CircuitBreaker Factory section>>.
 
+=== The `JsonToGrpc` `GatewayFilter` Factory
+
+The JSONToGRPCFilter GatewayFilter Factory converts a JSON payload to a gRPC request.
+
+The filter takes the following arguments:
+
+* `protoDescriptor`: Proto descriptor file.
+
+This file can be generated using `protoc` and specifying the `--descriptor_set_out` flag:
+
+[source,bash]
+----
+protoc --proto_path=src/main/resources/proto/ \
+--descriptor_set_out=src/main/resources/proto/hello.pb  \
+src/main/resources/proto/hello.proto
+----
+
+* `protoFile`: Proto definition file.
+
+* `service`: Short name of the service that handles the request.
+
+* `method`: Method name in the service that handles the request.
+
+NOTE: `streaming` is not supported.
+
+
+*application.yml.*
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+            .route("json-grpc", r -> r.path("/json/hello").filters(f -> {
+                String protoDescriptor = "file:src/main/proto/hello.pb";
+                String protoFile = "file:src/main/proto/hello.proto";
+                String service = "HelloService";
+                String method = "hello";
+                return f.jsonToGRPC(protoDescriptor, protoFile, service, method);
+            }).uri(uri))
+----
+
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: json-grpc
+          uri: https://localhost:6565/testhello
+          predicates:
+            - Path=/json/**
+          filters:
+            - name: JsonToGrpc
+              args:
+                protoDescriptor: file:proto/hello.pb
+                protoFile: file:proto/hello.proto
+                service: HelloService
+                method: hello
+
+----
+
+When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `HelloService/hello`, and the response back is transformed to JSON.
+
+By default, it creates a `NettyChannel` by using the default `TrustManagerFactory`. However, you can customize this `TrustManager` by creating a bean of type `GrpcSslConfigurer`:
+
+[source,java]
+----
+
+@Configuration
+public class GRPCLocalConfiguration {
+    @Bean
+    public GRPCSSLContext sslContext() {
+		TrustManager trustManager = trustAllCerts();
+        return new GRPCSSLContext(trustManager);
+    }
+}
+----
+
+[[local-cache-response-filter]]
+=== The `LocalResponseCache` `GatewayFilter` Factory
+
+This filter allows caching the response body and headers to follow these rules:
+
+* It can only cache bodiless GET requests.
+* It caches the response only for one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it returns a bodiless response with 304 (Not Modified).
+
+This filter configures the local response cache per route and is available only if the `spring.cloud.gateway.filter.local-response-cache.enabled` property is enabled. And a <<local-cache-response-global-filter, local response cache configured globally>> is also available as feature.
+
+It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (`KB`, `MB`, or `GB`).
+
+The following listing shows how to add local response cache `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.localResponseCache(Duration.ofMinutes(30), "500MB")
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
+----
+====
+
+NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
+Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
+
 === The `MapRequestHeader` `GatewayFilter` Factory
 
 The `MapRequestHeader` `GatewayFilter` factory takes `fromHeader` and `toHeader` parameters.
@@ -872,7 +1007,77 @@ spring:
 ----
 ====
 
-This adds `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+
+=== The `ModifyRequestBody` `GatewayFilter` Factory
+
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a request body `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
+            .filters(f -> f.prefixPath("/httpbin")
+                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (exchange, s) -> Mono.just(new Hello(s.toUpperCase())))).uri(uri))
+        .build();
+}
+
+static class Hello {
+    String message;
+
+    public Hello() { }
+
+    public Hello(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+----
+
+NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
+====
+
+
+=== The `ModifyResponseBody` `GatewayFilter` Factory
+
+You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a response body `GatewayFilter`:
+
+====
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.modifyResponseBody(String.class, String.class,
+        		    (exchange, s) -> Mono.just(s.toUpperCase()))).uri(uri))
+        .build();
+}
+----
+
+NOTE: If the response has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
+====
 
 === The `PrefixPath` `GatewayFilter` Factory
 
@@ -1094,7 +1299,7 @@ spring:
 
 This removes the `X-Request-Foo` header before it is sent downstream.
 
-=== `RemoveResponseHeader` `GatewayFilter` Factory
+=== The `RemoveResponseHeader` `GatewayFilter` Factory
 
 The `RemoveResponseHeader` `GatewayFilter` factory takes a `name` parameter.
 It is the name of the header to be removed.
@@ -2100,7 +2305,7 @@ or check if an exchange has already been routed.
 HttpHeadersFilters are applied to requests before sending them downstream, such as in the `NettyRoutingFilter`.
 
 === Forwarded Headers Filter
-The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header.
+The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header. To activate this filter set the `spring.cloud.gateway.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
 
 === RemoveHopByHop Headers Filter
 The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
@@ -2118,7 +2323,7 @@ The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The
 To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
 
 === XForwarded Headers Filter
-The `XForwarded` Headers Filter creates various a `X-Forwarded-*` headers to send to the downstream service. It users the `Host` header, scheme, port and path of the current request to create the various headers.
+The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers. To activate this filter set the `spring.cloud.gateway.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `X-Forwarded-For` header.
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 

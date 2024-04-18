@@ -56,8 +56,10 @@ import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -345,6 +347,32 @@ public class GatewayAutoConfigurationTests {
 					HttpClient httpClient = context.getBean(HttpClient.class);
 					assertThat(httpClient).isInstanceOf(CustomHttpClient.class);
 				});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersNotEnabledByDefault() {
+		new ReactiveWebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					ServerPropertiesConfig.class))
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class)
+					.doesNotHaveBean(ForwardedHeadersFilter.class);
+			});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersEnabledWithProperties() {
+		new ReactiveWebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					ServerPropertiesConfig.class))
+			.withPropertyValues("spring.cloud.gateway.forwarded.enabled=true",
+					"spring.cloud.gateway.x-forwarded.enabled=true", "spring.cloud.gateway.trusted-proxies=.*")
+			.run(context -> {
+				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
+					.hasSingleBean(ForwardedHeadersFilter.class);
+			});
 	}
 
 	@Configuration
