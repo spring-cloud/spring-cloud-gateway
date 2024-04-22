@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
@@ -34,10 +35,21 @@ public class RestClientProxyExchange implements ProxyExchange {
 
 	@Override
 	public ServerResponse exchange(Request request) {
-		return restClient.method(request.getMethod()).uri(request.getUri())
-				.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()))
-				.body(outputStream -> copyBody(request, outputStream))
-				.exchange((clientRequest, clientResponse) -> doExchange(request, clientResponse), false);
+		var requestSpec = restClient.method(request.getMethod()).uri(request.getUri())
+				.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
+		if (isBodyPresent(request)) {
+			requestSpec.body(outputStream -> copyBody(request, outputStream));
+		}
+		return requestSpec.exchange((clientRequest, clientResponse) -> doExchange(request, clientResponse), false);
+	}
+
+	private static boolean isBodyPresent(Request request) {
+		try {
+			return !request.getServerRequest().servletRequest().getInputStream().isFinished();
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 	}
 
 	private static int copyBody(Request request, OutputStream outputStream) throws IOException {
