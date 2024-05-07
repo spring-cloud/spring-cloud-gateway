@@ -235,7 +235,7 @@
 				<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<groupId>org.jetbrains.kotlin</groupId>
-				<version>1.9.23</version>
+				<version>1.9.24</version>
 				<configuration>
 					<jvmTarget>17</jvmTarget>
 				</configuration>
