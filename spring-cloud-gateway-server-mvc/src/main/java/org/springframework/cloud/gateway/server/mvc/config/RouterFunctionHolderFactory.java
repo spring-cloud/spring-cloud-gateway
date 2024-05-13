@@ -239,6 +239,8 @@ public class RouterFunctionHolderFactory {
 			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
 				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
+				// @Configurable will be matched last
+				.sorted(Comparator.comparing(OperationMethod::isConfigurable))
 				.filter(opeMethod -> {
 					boolean match = matchOperation(opeMethod, operationArgs);
 
