@@ -79,13 +79,6 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					}
 					ServerHttpResponse response = exchange.getResponse();
 
-					// TODO: needed?
-					final Flux<DataBuffer> body = connection
-							.inbound()
-							.receive()
-							.retain()
-							.map(byteBuf -> wrap(byteBuf, response));
-
 					MediaType contentType = null;
 					try {
 						contentType = response.getHeaders().getContentType();
@@ -95,9 +88,22 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 							log.trace("invalid media type", e);
 						}
 					}
-					return (isStreamingMediaType(contentType)
-							? response.writeAndFlushWith(body.map(Flux::just))
-							: response.writeWith(body));
+
+					if (isStreamingMediaType(contentType)) {
+						Flux<Flux<DataBuffer>> body = connection.inbound()
+								.receive()
+								.retain()
+								.map(byteBuf -> wrap(byteBuf, response))
+								.map(Flux::just);
+						return response.writeAndFlushWith(body);
+
+					} else {
+						Mono<DataBuffer> body = connection.inbound()
+								.receive()
+								.aggregate()
+								.map(byteBuf -> wrap(byteBuf, response));
+						return response.writeWith(body);
+					}
 				})).doOnCancel(() -> cleanup(exchange))
 				.doOnError(throwable -> cleanup(exchange));
 		// @formatter:on
