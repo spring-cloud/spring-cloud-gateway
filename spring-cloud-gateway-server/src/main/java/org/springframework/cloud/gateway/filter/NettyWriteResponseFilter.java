@@ -97,7 +97,8 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 								.map(Flux::just);
 						return response.writeAndFlushWith(body);
 
-					} else {
+					}
+					else {
 						Mono<DataBuffer> body = connection.inbound()
 								.receive()
 								.aggregate()
