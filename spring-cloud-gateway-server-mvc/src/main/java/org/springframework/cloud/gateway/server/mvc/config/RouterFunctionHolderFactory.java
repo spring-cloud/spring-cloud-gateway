@@ -16,12 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -233,6 +228,10 @@ public class RouterFunctionHolderFactory {
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
 			}
+			log.debug("Yaml Properties matched Operations, args: "
+					+ opMethod.getNormalizedArgs().toString() + ", params:"
+					+ Arrays.toString(
+					opMethod.getParameters().stream().toArray()));
 		}
 		else {
 			throw new IllegalArgumentException(String.format("Unable to find operation %s for %s with args %s",
