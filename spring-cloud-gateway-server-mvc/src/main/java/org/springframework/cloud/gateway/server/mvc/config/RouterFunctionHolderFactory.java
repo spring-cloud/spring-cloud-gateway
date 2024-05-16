@@ -16,12 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -243,6 +238,7 @@ public class RouterFunctionHolderFactory {
 	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
 			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
+				.sorted(Comparator.comparing(OperationMethod::isConfigurable))
 				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
 	}
