@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -75,6 +77,7 @@ import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -696,6 +699,15 @@ public class ServerMvcIntegrationTests {
 				});
 	}
 
+	@Test
+	public void clientResponseBodyAttributeWorks() {
+		restClient.get().uri("/anything/readresponsebody").header("X-Foo", "fooval").exchange().expectStatus().isOk()
+				.expectBody(Map.class).consumeWith(res -> {
+					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+					assertThat(headers).containsEntry("X-Foo", "FOOVAL");
+				});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -1285,6 +1297,32 @@ public class ServerMvcIntegrationTests {
 			return route("testqueryparam")
 					.route(query("foo", "bar"), http())
 					.before(new HttpbinUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsReadResponseBody() {
+			// @formatter:off
+			return route("testClientResponseBodyAttribute")
+					.GET("/anything/readresponsebody", http())
+					.before(new HttpbinUriResolver())
+					.after((request, response) -> {
+						Object o = request.attributes().get(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+						if (o instanceof InputStream) {
+							try {
+								byte[] bytes = StreamUtils.copyToByteArray((InputStream) o);
+								String s = new String(bytes, StandardCharsets.UTF_8);
+								String replace = s.replace("fooval", "FOOVAL");
+								ByteArrayInputStream bais = new ByteArrayInputStream(replace.getBytes());
+								request.attributes().put(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, bais);
+							}
+							catch (IOException e) {
+								throw new RuntimeException(e);
+							}
+						}
+						return response;
+					})
 					.build();
 			// @formatter:on
 		}
