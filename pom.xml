@@ -54,7 +54,7 @@
 		<bucket4j.version>8.9.0</bucket4j.version>
 		<blockhound.version>1.0.8.RELEASE</blockhound.version>
 		<java.version>17</java.version>
-		<junit-pioneer.version>1.9.1</junit-pioneer.version>
+		<junit-pioneer.version>2.2.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>3.1.2-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>4.1.3-SNAPSHOT</spring-cloud-commons.version>
 	</properties>
