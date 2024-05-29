@@ -89,23 +89,23 @@ public class CachingRouteLocator
 						.onErrorResume(s -> Mono.just(List.of()));
 
 				scopedRoutes.subscribe(scopedRoutesList -> {
-					Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
-							.sort(AnnotationAwareOrderComparator.INSTANCE).materialize().collect(Collectors.toList())
-							.subscribe(this::publishRefreshEvent, this::handleRefreshError);
+					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
+							.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
 			else {
 				final Mono<List<Route>> allRoutes = fetch().collect(Collectors.toList());
-
-				allRoutes.subscribe(
-						list -> Flux.fromIterable(list).materialize().collect(Collectors.toList())
-								.subscribe(this::publishRefreshEvent, this::handleRefreshError),
-						this::handleRefreshError);
+				allRoutes.subscribe(list -> updateCache(Flux.fromIterable(list)), this::handleRefreshError);
 			}
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);
 		}
+	}
+
+	private synchronized void updateCache(Flux<Route> routes) {
+		routes.materialize().collect(Collectors.toList()).subscribe(this::publishRefreshEvent,
+				this::handleRefreshError);
 	}
 
 	private void publishRefreshEvent(List<Signal<Route>> signals) {
