@@ -50,6 +50,7 @@
 ** xref:spring-cloud-gateway/global-filters.adoc[]
 ** xref:spring-cloud-gateway/httpheadersfilters.adoc[]
 ** xref:spring-cloud-gateway/tls-and-ssl.adoc[]
+** xref:spring-cloud-gateway/http-client.adoc[]
 ** xref:spring-cloud-gateway/configuration.adoc[]
 ** xref:spring-cloud-gateway/route-metadata-configuration.adoc[]
 ** xref:spring-cloud-gateway/http-timeouts-configuration.adoc[]
