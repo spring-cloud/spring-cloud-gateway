@@ -94,7 +94,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 class SampleHandlerFilterFunctions {
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> instrument(String requestHeader, String responseHeader) {
 		return (request, next) -> {
-			ServerRequest modified = ServerRequest.from(request).header(requestHeader, generateId());
+			ServerRequest modified = ServerRequest.from(request).header(requestHeader, generateId()).build();
 			ServerResponse response = next.handle(modified);
 			response.headers().add(responseHeader, generateId());
 			return response;
@@ -147,7 +147,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 
 class SampleBeforeFilterFunctions {
 	public static Function<ServerRequest, ServerRequest> instrument(String header) {
-		return request -> ServerRequest.from(request).header(header, generateId());;
+		return request -> ServerRequest.from(request).header(header, generateId()).build();
 	}
 }
 ----
