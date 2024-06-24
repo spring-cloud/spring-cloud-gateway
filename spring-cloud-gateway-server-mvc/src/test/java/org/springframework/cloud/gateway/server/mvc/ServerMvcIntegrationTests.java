@@ -53,6 +53,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -625,6 +626,15 @@ public class ServerMvcIntegrationTests {
 			.valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
 	}
 
+	@Test
+	public void filtersWorksWithEncoding() {
+		restClient.get().uri("/test-encoding").exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(res -> {
+					Map<String, Object> map = res.getResponseBody();
+					assertThat(map.get("url")).asString().endsWith("anything%20goes");
+				});
+	}
+
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
 		ClassPathResource part = new ClassPathResource("test/1x1.png");
 		MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -1084,6 +1094,19 @@ public class ServerMvcIntegrationTests {
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsTestEncoding() {
+			// @formatter:off
+			return route(GET("/test-encoding"), http())
+					.filter(new HttpbinUriResolver())
+					.filter(FilterFunctions.removeRequestParameter("foo"))
+					.filter(stripPrefix(4))
+					.filter(prefixPath("prefix"))
+					.filter(rewritePath("long", "longer"))
+					.filter(setPath("/long/path/to/anything/anything goes"));
 			// @formatter:on
 		}
 
