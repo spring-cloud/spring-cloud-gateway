@@ -188,7 +188,7 @@ public abstract class BeforeFilterFunctions {
 
 			String newPath = uri.getRawPath() + request.uri().getRawPath();
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build(true).toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
@@ -211,7 +211,7 @@ public abstract class BeforeFilterFunctions {
 
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
-					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build(true).toUri();
 
 			// remove resolved params from request
 			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
@@ -320,7 +320,7 @@ public abstract class BeforeFilterFunctions {
 			String path = request.uri().getRawPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
-			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build(true).toUri();
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
@@ -345,7 +345,7 @@ public abstract class BeforeFilterFunctions {
 			URI uri = uriTemplate.expand(uriVariables);
 			String newPath = uri.getRawPath();
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build(true).toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
@@ -398,7 +398,7 @@ public abstract class BeforeFilterFunctions {
 			}
 			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build(true)
 					.toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
