@@ -31,6 +31,7 @@ import org.springframework.http.HttpHeaders;
  *
  * @author Dave Syer
  * @author Tim Ysewyn
+ * @author Joris Kuipers
  *
  */
 @ConfigurationProperties("spring.cloud.gateway.proxy")
@@ -49,7 +50,12 @@ public class ProxyProperties {
 	/**
 	 * A set of sensitive header names that will not be sent downstream by default.
 	 */
-	private Set<String> sensitive = null;
+	private Set<String> sensitive = Set.of("cookie", "authorization");
+
+	/**
+	 * A set of header names that will not be sent downstream because they could be problematic.
+	 */
+	private Set<String> skipped = Set.of("content-length", "host");
 
 	public Map<String, String> getHeaders() {
 		return headers;
@@ -73,6 +79,14 @@ public class ProxyProperties {
 
 	public void setSensitive(Set<String> sensitive) {
 		this.sensitive = sensitive;
+	}
+
+	public Set<String> getSkipped() {
+		return skipped;
+	}
+
+	public void setSkipped(Set<String> skipped) {
+		this.skipped = skipped;
 	}
 
 	public HttpHeaders convertHeaders() {

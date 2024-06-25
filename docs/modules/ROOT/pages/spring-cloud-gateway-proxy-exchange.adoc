@@ -76,5 +76,5 @@ You can add headers to the downstream response by using the `header()` methods o
 You can also manipulate response headers (and anything else you like in the response) by adding a mapper to the `get()` method (and other methods).
 The mapper is a `Function` that takes the incoming `ResponseEntity` and converts it to an outgoing one.
 
-First-class support is provided for "`sensitive`" headers (by default, `cookie` and `authorization`), which are not passed downstream, and for "`proxy`" (`x-forwarded-*`) headers.
+First-class support is provided for "`sensitive`" headers (by default, `cookie` and `authorization`) and "`skipped`" headers (by default, `content-length` and `host`), which are not passed downstream, and for "`proxy`" (`x-forwarded-*`) headers. The idea behind "`skipped`" headers is that they may result in problems when copied over to the downstream request. For example: because of the way that the `ProxyExchange` calls the downstream endpoint the content's length might have changed or even use a `Transfer-Encoding: chunked` instead of a `Content-Length` header.
 

@@ -111,7 +111,7 @@ public class GetWithBodyRequestTests {
 					generateConfiguredRestTemplate());
 			resolver.setHeaders(proxy.convertHeaders());
 			resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-			resolver.setSensitive(proxy.getSensitive());
+			resolver.setExcluded(proxy.getSensitive());
 			return resolver;
 		}
 
