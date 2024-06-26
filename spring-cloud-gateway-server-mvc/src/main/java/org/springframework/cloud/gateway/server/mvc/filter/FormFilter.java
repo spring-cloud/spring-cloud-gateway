@@ -125,6 +125,7 @@ public class FormFilter implements Filter, Ordered {
 			Map.Entry<String, String[]> entry = entryIterator.next();
 			String name = entry.getKey();
 			List<String> values = Arrays.asList(entry.getValue());
+			boolean valueWritten = false;
 			for (Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext();) {
 				String value = valueIterator.next();
 				List<String> queryValues = queryParams.get(name);
@@ -139,9 +140,10 @@ public class FormFilter implements Filter, Ordered {
 							writer.write('&');
 						}
 					}
+					valueWritten = true;
 				}
 			}
-			if (entryIterator.hasNext()) {
+			if (valueWritten && entryIterator.hasNext()) {
 				writer.append('&');
 			}
 		}
