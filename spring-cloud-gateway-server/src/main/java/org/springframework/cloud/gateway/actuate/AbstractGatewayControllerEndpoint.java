@@ -168,9 +168,10 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 	// TODO: Add uncommited or new but not active routes endpoint
 
 	@PostMapping("/refresh")
-	public Mono<Void> refresh(@RequestParam(value = "metadata", required = false) List<String> byMetadata) {
+	public Mono<ResponseEntity<Object>> refresh(
+			@RequestParam(value = "metadata", required = false) List<String> byMetadata) {
 		publishRefreshEvent(byMetadata);
-		return Mono.empty();
+		return Mono.just(ResponseEntity.accepted().build());
 	}
 
 	private void publishRefreshEvent(List<String> byMetadata) {

@@ -91,7 +91,7 @@ public class GatewayControllerEndpointTests {
 	@Test
 	public void testRefresh() {
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh").exchange().expectStatus()
-				.isOk();
+				.isAccepted();
 	}
 
 	@Test
@@ -205,7 +205,7 @@ public class GatewayControllerEndpointTests {
 				.expectStatus().isCreated();
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
 				.expectBodyList(Map.class).consumeWith(result -> {
@@ -279,13 +279,13 @@ public class GatewayControllerEndpointTests {
 				.expectStatus().isCreated();
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 
 		testClient.delete().uri("http://localhost:" + port + "/actuator/gateway/routes/" + routeId1).exchange()
 				.expectStatus().isOk();
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
 				.expectBodyList(Map.class).consumeWith(result -> {
@@ -316,7 +316,7 @@ public class GatewayControllerEndpointTests {
 				.expectStatus().isCreated();
 
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
 				.expectBodyList(Map.class).consumeWith(result -> {
@@ -366,9 +366,9 @@ public class GatewayControllerEndpointTests {
 
 		// When
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group1)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh?metadata=groupBy:" + group2)
-				.exchange().expectStatus().isOk();
+				.exchange().expectStatus().isAccepted();
 
 		// Then
 		testClient.get().uri("http://localhost:" + port + "/actuator/gateway/routes").exchange().expectStatus().isOk()
