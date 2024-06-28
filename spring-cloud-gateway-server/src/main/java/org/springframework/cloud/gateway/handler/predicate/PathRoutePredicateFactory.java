@@ -24,8 +24,10 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
@@ -42,6 +44,7 @@ import static org.springframework.http.server.PathContainer.parsePath;
 /**
  * @author Spencer Gibb
  * @author Dhawal Kapil
+ * @author Guo FuYiNan
  */
 public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
 
@@ -51,8 +54,11 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
-	public PathRoutePredicateFactory() {
+	private final WebFluxProperties webFluxProperties;
+
+	public PathRoutePredicateFactory(WebFluxProperties webFluxProperties) {
 		super(Config.class);
+		this.webFluxProperties = webFluxProperties;
 	}
 
 	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
@@ -83,7 +89,13 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		synchronized (this.pathPatternParser) {
 			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
-				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
+				String basePath = webFluxProperties.getBasePath();
+				if (StringUtils.hasText(basePath)) {
+					if (pattern.length() > 1 && !pattern.startsWith("/")) {
+						basePath += ("/");
+					}
+				}
+				PathPattern pathPattern = this.pathPatternParser.parse(basePath + pattern);
 				pathPatterns.add(pathPattern);
 			});
 		}
