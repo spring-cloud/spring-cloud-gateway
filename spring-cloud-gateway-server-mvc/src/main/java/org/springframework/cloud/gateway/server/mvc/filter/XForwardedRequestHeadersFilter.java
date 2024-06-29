@@ -25,6 +25,7 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.ObjectUtils;
@@ -397,18 +398,15 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 			// - see XForwardedHeadersFilterTests, so first get uris, then extract paths
 			// and remove one from another if it's the ending part.
 
-			LinkedHashSet<URI> originalUris = null; // TODO:
-													// exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
-			URI requestUri = null; // TODO:
-									// exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+			LinkedHashSet<URI> originalUris = MvcUtils.getAttribute(request,
+					MvcUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+			URI requestUri = MvcUtils.getAttribute(request, MvcUtils.GATEWAY_REQUEST_URL_ATTR);
 
 			if (originalUris != null && requestUri != null) {
 
 				originalUris.forEach(originalUri -> {
 
 					if (originalUri != null && originalUri.getPath() != null) {
-						String prefix = originalUri.getPath();
-
 						// strip trailing slashes before checking if request path is end
 						// of original path
 						String originalUriPath = stripTrailingSlash(originalUri);
