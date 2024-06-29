@@ -384,6 +384,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> stripPrefix(int parts) {
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			// TODO: gateway url attributes
 			String path = request.uri().getRawPath();
 			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
@@ -409,6 +410,8 @@ public abstract class BeforeFilterFunctions {
 				.replacePath(newPath.toString())
 				.build()
 				.toUri();
+			MvcUtils.setRequestUrl(request, prefixedUri);
+
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
