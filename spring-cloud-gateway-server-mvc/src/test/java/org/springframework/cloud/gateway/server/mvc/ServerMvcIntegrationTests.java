@@ -272,17 +272,6 @@ public class ServerMvcIntegrationTests {
 			});
 	}
 
-//	@Test
-//	public void stripPrefixAddsCorrectXForwardedHeaders() {
-//		restClient.get().uri("/foo/bar/baz").exchange()
-//				.expectStatus().isOk().expectBody(Map.class)
-//				.consumeWith(res -> {
-//					Map<String, Object> map = res.getResponseBody();
-//					Map<String, Object> headers = getMap(map, "headers");
-//					assertThat(headers).containsKeys("X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Port", "X-Forwarded-Proto", "X-Forwarded-Prefix");
-//				});
-//	}
-
 	@Test
 	public void setStatusGatewayRouterFunctionWorks() {
 		restClient.get()
@@ -1105,22 +1094,12 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("teststripprefixpost")
 					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
-					.filter(new HttpbinUriResolver(true))
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
+					.filter(new HttpbinUriResolver(true))
 					.build();
 			// @formatter:on
 		}
-
-//		@Bean
-//		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixWithXForwardedHeaders() {
-//			// @formatter:off
-//			return route(GET("/foo/bar/bar"), http())
-//					.filter(new HttpbinUriResolver(true))
-//					.filter(stripPrefix(2))
-//					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefixwithxforwardedheaders");
-//			// @formatter:on
-//		}
 
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveHopByHopRequestHeaders() {
