@@ -1094,9 +1094,9 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("teststripprefixpost")
 					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
-					.filter(new HttpbinUriResolver(true))
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
+					.filter(new HttpbinUriResolver(true))
 					.build();
 			// @formatter:on
 		}
