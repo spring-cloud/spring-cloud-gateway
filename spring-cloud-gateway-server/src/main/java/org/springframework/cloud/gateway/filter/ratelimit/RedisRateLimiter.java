@@ -48,6 +48,7 @@ import org.springframework.validation.annotation.Validated;
  * @author Spencer Gibb
  * @author Ronny Bräunlich
  * @author Denis Cutic
+ * @author Andrey Muchnik
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
@@ -145,16 +146,16 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
-	static List<String> getKeys(String id) {
+	static List<String> getKeys(String id, String routeId) {
 		// use `{}` around keys to use Redis Key hash tags
 		// this allows for using redis cluster
 
-		// Make a unique key per user.
-		String prefix = "request_rate_limiter.{" + id;
+		// Make a unique key per user and route.
+		String prefix = "request_rate_limiter.{" + routeId + "." + id + "}.";
 
 		// You need two Redis keys for Token Bucket.
-		String tokenKey = prefix + "}.tokens";
-		String timestampKey = prefix + "}.timestamp";
+		String tokenKey = prefix + "tokens";
+		String timestampKey = prefix + "timestamp";
 		return Arrays.asList(tokenKey, timestampKey);
 	}
 
@@ -245,7 +246,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		int requestedTokens = routeConfig.getRequestedTokens();
 
 		try {
-			List<String> keys = getKeys(id);
+			List<String> keys = getKeys(id, routeId);
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
 			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "", "", requestedTokens + "");
