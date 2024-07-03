@@ -58,6 +58,11 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
+	@Deprecated
+	public void setSensitive(Set<String> excluded) {
+		setExcluded(excluded);
+	}
+
 	public void setExcluded(Set<String> excluded) {
 		this.excluded = excluded;
 	}

@@ -58,8 +58,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = { "spring.cloud.gateway.proxy.skipped=host" },
-		webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 @DirtiesContext
 public class ProductionConfigurationTests {
@@ -122,9 +121,9 @@ public class ProductionConfigurationTests {
 	@Test
 	public void postJsonWithWhitespace() {
 		var json = """
-		{
-			"foo": "bar"
-		}""";
+				{
+					"foo": "bar"
+				}""";
 
 		var headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -369,8 +368,7 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/proxy/checkContentLength")
-			public Mono<ResponseEntity<byte[]>> checkContentLength(
-					ProxyExchange<byte[]> proxy) {
+			public Mono<ResponseEntity<byte[]>> checkContentLength(ProxyExchange<byte[]> proxy) {
 				return proxy.uri(home.toString() + "/checkContentLength").post();
 			}
 
@@ -430,8 +428,9 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/checkContentLength")
-			public ResponseEntity<?> checkContentLength(@RequestHeader(name = "Content-Length", required = false) Integer contentLength,
-														@RequestBody String json) {
+			public ResponseEntity<?> checkContentLength(
+					@RequestHeader(name = "Content-Length", required = false) Integer contentLength,
+					@RequestBody String json) {
 				if (contentLength != null && contentLength != json.length()) {
 					return ResponseEntity.badRequest().build();
 				}

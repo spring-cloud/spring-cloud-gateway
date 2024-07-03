@@ -38,6 +38,16 @@ import org.springframework.http.HttpHeaders;
 public class ProxyProperties {
 
 	/**
+	 * Contains headers that are considered case-sensitive by default.
+	 */
+	public static Set<String> DEFAULT_SENSITIVE = Set.of("cookie", "authorization");
+
+	/**
+	 * Contains headers that are skipped by default.
+	 */
+	public static Set<String> DEFAULT_SKIPPED = Set.of("content-length", "host");
+
+	/**
 	 * Fixed header values that will be added to all downstream requests.
 	 */
 	private Map<String, String> headers = new LinkedHashMap<>();
@@ -50,12 +60,13 @@ public class ProxyProperties {
 	/**
 	 * A set of sensitive header names that will not be sent downstream by default.
 	 */
-	private Set<String> sensitive = Set.of("cookie", "authorization");
+	private Set<String> sensitive = DEFAULT_SENSITIVE;
 
 	/**
-	 * A set of header names that will not be sent downstream because they could be problematic.
+	 * A set of header names that will not be sent downstream because they could be
+	 * problematic.
 	 */
-	private Set<String> skipped = Set.of("content-length", "host");
+	private Set<String> skipped = DEFAULT_SKIPPED;
 
 	public Map<String, String> getHeaders() {
 		return headers;

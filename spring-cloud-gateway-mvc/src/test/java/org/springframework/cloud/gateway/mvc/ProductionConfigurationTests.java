@@ -115,9 +115,9 @@ public class ProductionConfigurationTests {
 	@Test
 	public void postJsonWithWhitespace() {
 		var json = """
-		{
-			"foo": "bar"
-		}""";
+				{
+					"foo": "bar"
+				}""";
 
 		var headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -456,8 +456,7 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/proxy/checkContentLength")
-			public ResponseEntity<?> checkContentLength(
-					ProxyExchange<byte[]> proxy) {
+			public ResponseEntity<?> checkContentLength(ProxyExchange<byte[]> proxy) {
 				return proxy.uri(home.toString() + "/checkContentLength").post();
 			}
 
@@ -506,8 +505,9 @@ public class ProductionConfigurationTests {
 			}
 
 			@PostMapping("/checkContentLength")
-			public ResponseEntity<?> checkContentLength(@RequestHeader(name = "Content-Length", required = false) Integer contentLength,
-														@RequestBody String json) {
+			public ResponseEntity<?> checkContentLength(
+					@RequestHeader(name = "Content-Length", required = false) Integer contentLength,
+					@RequestBody String json) {
 				if (contentLength != null && contentLength != json.length()) {
 					return ResponseEntity.badRequest().build();
 				}

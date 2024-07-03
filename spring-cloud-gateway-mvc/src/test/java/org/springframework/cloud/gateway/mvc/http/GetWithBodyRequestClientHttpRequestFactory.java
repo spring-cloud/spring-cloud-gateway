@@ -113,9 +113,10 @@ public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpReq
 		}
 	}
 
+	/**
+	 * Represents an HTTP GET request with a body.
+	 */
 	public static class GetWithEntity extends HttpEntityEnclosingRequestBase {
-
-		public static final String METHOD_NAME = "GET";
 
 		public GetWithEntity(final URI uri) {
 			setURI(uri);
@@ -123,7 +124,7 @@ public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpReq
 
 		@Override
 		public String getMethod() {
-			return METHOD_NAME;
+			return HttpMethod.GET.name();
 		}
 
 	}
