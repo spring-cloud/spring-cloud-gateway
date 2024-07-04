@@ -84,14 +84,12 @@ public class ProxyExchangeHandlerFunction
 	@Override
 	public ServerResponse handle(ServerRequest serverRequest) {
 		URI uri = uriResolver.apply(serverRequest);
-		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
 		// @formatter:off
 		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort())
-				.replaceQueryParams(serverRequest.params())
-				.build(encoded)
+				.build(true)
 				.toUri();
 		// @formatter:on
 
@@ -129,29 +127,6 @@ public class ProxyExchangeHandlerFunction
 			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;
-	}
-
-	private static boolean containsEncodedQuery(URI uri, MultiValueMap<String, String> params) {
-		String rawQuery = uri.getRawQuery();
-		boolean encoded = (rawQuery != null && rawQuery.contains("%"))
-				|| (uri.getRawPath() != null && uri.getRawPath().contains("%"));
-
-		// Verify if it is really fully encoded. Treat partial encoded as unencoded.
-		if (encoded) {
-			try {
-				UriComponentsBuilder.fromUri(uri).replaceQueryParams(params).build(true);
-				return true;
-			}
-			catch (IllegalArgumentException ignored) {
-				if (log.isTraceEnabled()) {
-					log.trace("Error in containsEncodedParts", ignored);
-				}
-			}
-
-			return false;
-		}
-
-		return false;
 	}
 
 	public interface URIResolver extends Function<ServerRequest, URI> {

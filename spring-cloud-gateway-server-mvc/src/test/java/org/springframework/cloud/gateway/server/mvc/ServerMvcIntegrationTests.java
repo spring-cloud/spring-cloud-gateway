@@ -700,6 +700,19 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void encodedPlusSignInQueryParamWorks() {
+		URI uri = URI.create("/get?myparam=123%2b456");
+		restClient.get().uri(uri).exchange().expectStatus().isOk().expectBody(Map.class)
+				.consumeWith(result -> {
+					Map responseBody = result.getResponseBody();
+					assertThat(responseBody).containsKey("args");
+					Map args = getMap(responseBody, "args");
+					assertThat(args).containsKey("myparam");
+					assertThat(args.get("myparam")).isEqualTo("123+456");
+				});
+	}
+
+	@Test
 	public void clientResponseBodyAttributeWorks() {
 		restClient.get().uri("/anything/readresponsebody").header("X-Foo", "fooval").exchange().expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(res -> {
