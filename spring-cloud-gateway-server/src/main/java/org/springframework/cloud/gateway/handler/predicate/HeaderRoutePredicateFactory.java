@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -59,8 +58,7 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				List<String> values = exchange.getRequest().getHeaders().getOrDefault(config.header,
-						Collections.emptyList());
+				List<String> values = exchange.getRequest().getHeaders().getValuesAsList(config.header);
 				if (values.isEmpty()) {
 					return false;
 				}
