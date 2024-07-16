@@ -39,6 +39,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.Res
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -161,6 +162,14 @@ public class GatewayServerMvcAutoConfiguration {
 			name = "remove-content-length-request-headers-filter.enabled", matchIfMissing = true)
 	public RemoveContentLengthRequestHeadersFilter removeContentLengthRequestHeadersFilter() {
 		return new RemoveContentLengthRequestHeadersFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX,
+			name = "remove-http2-status-response-headers-filter.enabled", matchIfMissing = true)
+	public RemoveHttp2StatusResponseHeadersFilter removeHttp2StatusResponseHeadersFilter() {
+		return new RemoveHttp2StatusResponseHeadersFilter();
 	}
 
 	@Bean
