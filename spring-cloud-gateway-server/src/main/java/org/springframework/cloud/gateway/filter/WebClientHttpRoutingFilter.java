@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,7 +51,6 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
 
-	// do not use this headersFilters directly, use getHeadersFilters() instead.
 	private volatile List<HttpHeadersFilter> headersFilters;
 
 	public WebClientHttpRoutingFilter(WebClient webClient,
@@ -71,6 +71,41 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		return Ordered.LOWEST_PRECEDENCE;
 	}
 
+	/**
+	 * A {@code GlobalFilter} that actually routes the request to the proxied server with the injected
+	 * {@code WebClient} if:
+	 * <p>
+	 * 1. It hasn't been routed already ({@link ServerWebExchangeUtils#isAlreadyRouted(ServerWebExchange)}
+	 * invoked on the exchange returns {@code false}).
+	 * <p>
+	 * 2. The request's URI's scheme is either {@code http} or {@code https}. The URI is retrieved by
+	 * fetching the exchange's {@link ServerWebExchangeUtils#GATEWAY_REQUEST_URL_ATTR} attribute –
+	 * <em>not</em> by examining the exchange's request directly.
+	 * <p>
+	 * Before forwarding the request, this filter first applies all {@link HttpHeadersFilter}s provided
+	 * by the injected {@code ObjectProvider} on the request's headers. Only retained headers are fed
+	 * to the {@code WebClient}.
+	 * <p>
+	 * Even though this class mainly depends on provided {@code HttpHeadersFilter}s to filter request headers,
+	 * this method has an embedded filtering mechanism that excludes the {@code Host} request header from
+	 * headers passed to the {@code WebClient} unless {@link ServerWebExchangeUtils#PRESERVE_HOST_HEADER_ATTRIBUTE}
+	 * is explicitly set to {@code true}. Note that a {@code WebClient} implementation may still add additional
+	 * headers to the request, including {@code Host}.
+	 * <p>
+	 * If the request's method is {@code POST}, {@code PUT}, or {@code PATCH}, the request body will be
+	 * passed to the {@code WebClient}. Otherwise, this class ignores the body altogether.
+	 * <p>
+	 * This filter asynchronously transfers all headers contained in the response from the proxied server
+	 * to the exchange's response and sets the response status code. It <em>does not</em>, however, write
+	 * the response body and instead only stores the received response as the {@link ServerWebExchangeUtils#CLIENT_RESPONSE_ATTR}
+	 * exchange attribute. Following that, this filter passes the exchange down the filter chain.
+	 * <p>
+	 * If either of the two aforementioned requirements is not met, this filter passes the given exchange
+	 * to the next filter in the chain straight away.
+	 *
+	 * @throws IllegalArgumentException if the exchange doesn't have a
+	 * {@link ServerWebExchangeUtils#GATEWAY_REQUEST_URL_ATTR} attribute
+	 */
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
@@ -106,7 +141,6 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		}
 
 		return headersSpec.exchangeToMono(Mono::just)
-				// .log("webClient route")
 				.flatMap(res -> {
 					ServerHttpResponse response = exchange.getResponse();
 					response.getHeaders().putAll(res.headers().asHttpHeaders());
