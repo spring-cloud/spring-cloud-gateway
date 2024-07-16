@@ -17,11 +17,6 @@ image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
-[[building]]
-= Building
-
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/modules/ROOT/partials/contributing.adoc[]
-
 [[contributing]]
 = Contributing
 
