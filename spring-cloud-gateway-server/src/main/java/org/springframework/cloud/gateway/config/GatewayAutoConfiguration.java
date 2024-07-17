@@ -271,9 +271,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
-	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
-		return new FilteringWebHandler(globalFilters);
+    @ConditionalOnMissingBean
+	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters,GatewayProperties properties) {
+		return new FilteringWebHandler(globalFilters,properties);
 	}
 
 	@Bean

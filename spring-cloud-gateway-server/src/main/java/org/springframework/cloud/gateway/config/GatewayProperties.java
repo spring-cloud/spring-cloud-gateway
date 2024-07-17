@@ -68,6 +68,21 @@ public class GatewayProperties {
 	 */
 	private boolean failOnRouteDefinitionError = true;
 
+	/**
+	 * org.springframework.cloud.gateway.handler.FilteringWebHandler#handle add filter cache
+	 * if true then enable filter cache
+	 */
+	private boolean filterCache = false;
+
+	public boolean isFilterCache() {
+		return filterCache;
+	}
+
+	public void setFilterCache(boolean filterCache) {
+		this.filterCache = filterCache;
+	}
+
+
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
@@ -107,7 +122,8 @@ public class GatewayProperties {
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes).append("defaultFilters", defaultFilters)
 				.append("streamingMediaTypes", streamingMediaTypes)
-				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).toString();
+				.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+				.append("filterCache", filterCache).toString();
 
 	}
 
