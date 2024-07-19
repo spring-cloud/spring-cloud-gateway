@@ -26,7 +26,7 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		return chain.filter(exchange).doFinally(s -> ServerWebExchangeUtils.clearRequestRequestBody(exchange));
+		return chain.filter(exchange).doFinally(s -> ServerWebExchangeUtils.clearCachedRequestBody(exchange));
 	}
 
 	@Override

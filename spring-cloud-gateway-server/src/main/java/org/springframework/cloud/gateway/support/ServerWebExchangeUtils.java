@@ -383,7 +383,7 @@ public final class ServerWebExchangeUtils {
 	 * {@link #CACHED_REQUEST_BODY_ATTR}.
 	 * @param exchange the available ServerWebExchange.
 	 */
-	public static void clearRequestRequestBody(ServerWebExchange exchange) {
+	public static void clearCachedRequestBody(ServerWebExchange exchange) {
 		Object attribute = exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
 		if (attribute != null && attribute instanceof PooledDataBuffer) {
 			PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;

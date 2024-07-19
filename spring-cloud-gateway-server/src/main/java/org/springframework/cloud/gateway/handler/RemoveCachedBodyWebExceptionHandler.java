@@ -30,7 +30,7 @@ public class RemoveCachedBodyWebExceptionHandler implements WebExceptionHandler,
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-		ServerWebExchangeUtils.clearRequestRequestBody(exchange);
+		ServerWebExchangeUtils.clearCachedRequestBody(exchange);
 		return Mono.error(ex);
 	}
 
