@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.filter;
+package org.springframework.cloud.gateway.handler;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebExceptionHandler;
 
-public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
+/**
+ * @author Nan Chiu
+ */
+public class RemoveCachedBodyWebExceptionHandler implements WebExceptionHandler, Ordered {
 
 	@Override
-	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		return chain.filter(exchange).doFinally(s -> ServerWebExchangeUtils.clearRequestRequestBody(exchange));
+	public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+		ServerWebExchangeUtils.clearRequestRequestBody(exchange);
+		return Mono.error(ex);
 	}
 
 	@Override

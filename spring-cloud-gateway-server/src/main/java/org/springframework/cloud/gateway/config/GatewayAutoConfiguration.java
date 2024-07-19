@@ -126,6 +126,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
+import org.springframework.cloud.gateway.handler.RemoveCachedBodyWebExceptionHandler;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -274,6 +275,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnMissingBean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RemoveCachedBodyWebExceptionHandler removeCachedBodyWebExceptionHandler() {
+		return new RemoveCachedBodyWebExceptionHandler();
 	}
 
 	@Bean

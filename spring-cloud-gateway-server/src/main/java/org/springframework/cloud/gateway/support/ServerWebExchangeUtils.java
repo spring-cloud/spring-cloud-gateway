@@ -40,6 +40,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -375,6 +376,27 @@ public final class ServerWebExchangeUtils {
 		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
 				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
 				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+	}
+
+	/**
+	 * clear the request body in a ServerWebExchange attribute. The attribute is
+	 * {@link #CACHED_REQUEST_BODY_ATTR}.
+	 * @param exchange the available ServerWebExchange.
+	 */
+	public static void clearRequestRequestBody(ServerWebExchange exchange) {
+		Object attribute = exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
+		if (attribute != null && attribute instanceof PooledDataBuffer) {
+			PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;
+			if (dataBuffer.isAllocated()) {
+				if (log.isTraceEnabled()) {
+					log.trace("releasing cached body in exchange attribute");
+				}
+				// ensure proper release
+				while (!dataBuffer.release()) {
+					// release() counts down until zero, will never be infinite loop
+				}
+			}
+		}
 	}
 
 	private static ServerHttpRequest decorate(ServerWebExchange exchange, DataBuffer dataBuffer,
