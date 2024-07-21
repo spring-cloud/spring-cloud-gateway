@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.QueryParamRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
@@ -205,6 +206,18 @@ public class PredicateSpec extends UriSpec {
 	}
 
 	/**
+	 * A predicate that checks if a query parameter value matches criteria of a given
+	 * predicate.
+	 * @param param the query parameter name
+	 * @param predicate a predicate to check the value of the param
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec query(String param, Predicate<String> predicate) {
+		return asyncPredicate(getBean(QueryParamRoutePredicateFactory.class)
+				.applyAsync(c -> c.setParam(param).setPredicate(predicate)));
+	}
+
+	/**
 	 * A predicate that checks if a query parameter matches a regular expression.
 	 * @param param the query parameter name
 	 * @param regex the regular expression to evaluate the query parameter value against
@@ -287,7 +300,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec weight(String group, int weight) {
 		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
-				.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
+				.applyAsync(c -> c.setGroup(group).setRouteId(this.routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {
