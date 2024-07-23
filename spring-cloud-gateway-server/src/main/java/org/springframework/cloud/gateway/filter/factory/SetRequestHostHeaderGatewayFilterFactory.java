@@ -66,7 +66,7 @@ public class SetRequestHostHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this).append(config.getHost())
-						.toString();
+					.toString();
 			}
 		};
 	}

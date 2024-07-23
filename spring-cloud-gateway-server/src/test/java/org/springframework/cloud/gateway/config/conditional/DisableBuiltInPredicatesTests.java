@@ -68,7 +68,7 @@ public class DisableBuiltInPredicatesTests {
 		public void shouldInjectOnlyEnabledBuiltInPredicates() {
 			assertThat(predicates).hasSizeGreaterThan(0);
 			assertThat(predicates).allSatisfy(filter -> assertThat(filter)
-					.isNotInstanceOfAny(AfterRoutePredicateFactory.class, BeforeRoutePredicateFactory.class));
+				.isNotInstanceOfAny(AfterRoutePredicateFactory.class, BeforeRoutePredicateFactory.class));
 		}
 
 	}

@@ -141,7 +141,7 @@ public class BetweenRoutePredicateFactoryTests {
 	public void testPredicates() {
 		boolean result = new BetweenRoutePredicateFactory().apply(
 				c -> c.setDatetime1(ZonedDateTime.now().minusHours(2)).setDatetime2(ZonedDateTime.now().plusHours(1)))
-				.test(getExchange());
+			.test(getExchange());
 		assertThat(result).isTrue();
 	}
 
@@ -164,7 +164,7 @@ public class BetweenRoutePredicateFactoryTests {
 		config.setDatetime2(ZonedDateTime.now().plusHours(1));
 		Predicate predicate = new BetweenRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString())
-				.contains("Between: " + config.getDatetime1() + " and " + config.getDatetime2());
+			.contains("Between: " + config.getDatetime1() + " and " + config.getDatetime2());
 	}
 
 }

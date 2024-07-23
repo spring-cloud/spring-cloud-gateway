@@ -45,9 +45,12 @@ public abstract class Bucket4jFilterFunctions {
 	public static final String DEFAULT_HEADER_NAME = "X-RateLimit-Remaining";
 
 	private static final Function<RateLimitConfig, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
-			.builder().addLimit(Bandwidth.builder().capacity(config.getCapacity())
-					.refillGreedy(config.getCapacity(), config.getPeriod()).build())
-			.build();
+		.builder()
+		.addLimit(Bandwidth.builder()
+			.capacity(config.getCapacity())
+			.refillGreedy(config.getCapacity(), config.getPeriod())
+			.build())
+		.build();
 
 	private Bucket4jFilterFunctions() {
 	}
@@ -87,7 +90,8 @@ public abstract class Bucket4jFilterFunctions {
 				return serverResponse;
 			}
 			return ServerResponse.status(config.getStatusCode())
-					.header(config.getHeaderName(), String.valueOf(remainingTokens)).build();
+				.header(config.getHeaderName(), String.valueOf(remainingTokens))
+				.build();
 		};
 	}
 

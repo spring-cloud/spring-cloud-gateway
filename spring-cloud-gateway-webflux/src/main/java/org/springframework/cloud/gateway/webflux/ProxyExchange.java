@@ -370,8 +370,9 @@ public class ProxyExchange<T> {
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
-		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
-				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
+		RequestBodySpec builder = rest.method(requestEntity.getMethod())
+			.uri(requestEntity.getUrl())
+			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
 		WebClient.ResponseSpec result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
@@ -384,26 +385,30 @@ public class ProxyExchange<T> {
 		else {
 			if (hasBody) {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
+					.body(exchange.getRequest().getBody(), DataBuffer.class)
+					.retrieve();
 			}
 			else {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
 			}
 		}
 		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
-				.toEntity(ParameterizedTypeReference.forType(type));
+			.toEntity(ParameterizedTypeReference.forType(type));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
 		Set<String> filteredKeys = filterHeaderKeys(toAdd);
-		filteredKeys.stream().filter(key -> !headers.containsKey(key))
-				.forEach(header -> headers.addAll(header, toAdd.get(header)));
+		filteredKeys.stream()
+			.filter(key -> !headers.containsKey(key))
+			.forEach(header -> headers.addAll(header, toAdd.get(header)));
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
 		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
-		return headers.keySet().stream().filter(header -> !excludedHeaders.contains(header.toLowerCase()))
-				.collect(Collectors.toSet());
+		return headers.keySet()
+			.stream()
+			.filter(header -> !excludedHeaders.contains(header.toLowerCase()))
+			.collect(Collectors.toSet());
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {

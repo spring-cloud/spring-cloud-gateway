@@ -76,7 +76,7 @@ public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar
 			return; // safety net
 		}
 		Arrays.stream(clazz.getMethods())
-				.forEach(method -> reflectionHints.registerMethod(method, ExecutableMode.INVOKE));
+			.forEach(method -> reflectionHints.registerMethod(method, ExecutableMode.INVOKE));
 	}
 
 }

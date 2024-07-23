@@ -79,7 +79,7 @@ class RewriteRequestParameterGatewayFilterFactoryTests {
 	private void testRewriteRequestParameterFilter(String name, String replacement, String query,
 			Map<String, List<String>> expectedQueryParams) {
 		GatewayFilter filter = new RewriteRequestParameterGatewayFilterFactory()
-				.apply(config -> config.setReplacement(replacement).setName(name));
+			.apply(config -> config.setReplacement(replacement).setName(name));
 
 		URI url = UriComponentsBuilder.fromUriString("http://localhost/get").query(query).build(true).toUri();
 		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url).build();

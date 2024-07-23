@@ -356,7 +356,7 @@ public class GatewayAutoConfiguration {
 	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties)
 			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
-				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
 		return new GrpcSslConfigurer(properties.getSsl());
@@ -792,7 +792,7 @@ public class GatewayAutoConfiguration {
 				HttpClient httpClient) {
 			Supplier<WebsocketClientSpec.Builder> builderSupplier = () -> {
 				WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
-						.handlePing(properties.getWebsocket().isProxyPing());
+					.handlePing(properties.getWebsocket().isProxyPing());
 				if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
 					builder.maxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
 				}
@@ -886,19 +886,19 @@ class GatewayHints implements RuntimeHintsRegistrar {
 			return;
 		}
 		hints.reflection()
-				.registerType(TypeReference.of(FilterDefinition.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(PredicateDefinition.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(
-						"org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+			.registerType(TypeReference.of(FilterDefinition.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference.of(PredicateDefinition.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference
+				.of("org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 	}
 
 }

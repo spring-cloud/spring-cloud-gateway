@@ -47,20 +47,20 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 			// put the body input stream in a request attribute so filters can read it.
 			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
 			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
-					.build((req, httpServletResponse) -> {
-						try (clientHttpResponse) {
-							// get input stream from request attribute in case it was
-							// modified.
-							InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
-									MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
-							// copy body from request to clientHttpRequest
-							StreamUtils.copy(inputStream, httpServletResponse.getOutputStream());
-						}
-						return null;
-					});
+				.build((req, httpServletResponse) -> {
+					try (clientHttpResponse) {
+						// get input stream from request attribute in case it was
+						// modified.
+						InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
+								MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+						// copy body from request to clientHttpRequest
+						StreamUtils.copy(inputStream, httpServletResponse.getOutputStream());
+					}
+					return null;
+				});
 			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
 			request.getResponseConsumers()
-					.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
+				.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 			return serverResponse;
 		}
 		catch (IOException e) {

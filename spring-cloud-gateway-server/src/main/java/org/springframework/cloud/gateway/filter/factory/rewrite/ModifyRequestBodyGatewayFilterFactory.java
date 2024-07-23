@@ -70,8 +70,8 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-						.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
+					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
 
 				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
 				HttpHeaders headers = new HttpHeaders();
@@ -88,19 +88,22 @@ public class ModifyRequestBodyGatewayFilterFactory
 				}
 				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
 				return bodyInserter.insert(outputMessage, new BodyInserterContext())
-						// .log("modify_request", Level.INFO)
-						.then(Mono.defer(() -> {
-							ServerHttpRequest decorator = decorate(exchange, headers, outputMessage);
-							return chain.filter(exchange.mutate().request(decorator).build());
-						})).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(exchange,
-								outputMessage, throwable));
+					// .log("modify_request", Level.INFO)
+					.then(Mono.defer(() -> {
+						ServerHttpRequest decorator = decorate(exchange, headers, outputMessage);
+						return chain.filter(exchange.mutate().request(decorator).build());
+					}))
+					.onErrorResume(
+							(Function<Throwable, Mono<Void>>) throwable -> release(exchange, outputMessage, throwable));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(ModifyRequestBodyGatewayFilterFactory.this)
-						.append("Content type", config.getContentType()).append("In class", config.getInClass())
-						.append("Out class", config.getOutClass()).toString();
+					.append("Content type", config.getContentType())
+					.append("In class", config.getInClass())
+					.append("Out class", config.getOutClass())
+					.toString();
 			}
 		};
 	}

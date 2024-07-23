@@ -74,13 +74,17 @@ public class Http2ApplicationTests {
 
 	static HttpClient getHttpClient() {
 		return HttpClient
-				.create(ConnectionProvider.builder("test").maxConnections(100)
-						.pendingAcquireTimeout(Duration.ofMillis(0)).pendingAcquireMaxCount(-1).build())
-				.protocol(HttpProtocol.HTTP11, HttpProtocol.H2).secure(sslContextSpec -> {
-					Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
-							.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
-					sslContextSpec.sslContext(clientSslCtxt);
-				});
+			.create(ConnectionProvider.builder("test")
+				.maxConnections(100)
+				.pendingAcquireTimeout(Duration.ofMillis(0))
+				.pendingAcquireMaxCount(-1)
+				.build())
+			.protocol(HttpProtocol.HTTP11, HttpProtocol.H2)
+			.secure(sslContextSpec -> {
+				Http2SslContextSpec clientSslCtxt = Http2SslContextSpec.forClient()
+					.configure(builder -> builder.trustManager(InsecureTrustManagerFactory.INSTANCE));
+				sslContextSpec.sslContext(clientSslCtxt);
+			});
 	}
 
 }
