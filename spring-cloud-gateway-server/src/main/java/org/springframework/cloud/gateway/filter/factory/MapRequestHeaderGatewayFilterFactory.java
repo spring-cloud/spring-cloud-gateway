@@ -64,8 +64,10 @@ public class MapRequestHeaderGatewayFilterFactory
 				}
 				List<String> headerValues = exchange.getRequest().getHeaders().get(config.getFromHeader());
 
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(i -> i.addAll(config.getToHeader(), headerValues)).build();
+				ServerHttpRequest request = exchange.getRequest()
+					.mutate()
+					.headers(i -> i.addAll(config.getToHeader(), headerValues))
+					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}

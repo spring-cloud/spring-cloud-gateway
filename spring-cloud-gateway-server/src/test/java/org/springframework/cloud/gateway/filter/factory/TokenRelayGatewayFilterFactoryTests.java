@@ -103,12 +103,14 @@ public class TokenRelayGatewayFilterFactoryTests {
 		when(accessToken.getTokenValue()).thenReturn("mytoken");
 
 		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
 		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
 
 		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
-				.thenReturn(Mono.just(authorizedClient));
+			.thenReturn(Mono.just(authorizedClient));
 
 		OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class),
 				Collections.emptyList(), "myId");
@@ -123,12 +125,12 @@ public class TokenRelayGatewayFilterFactoryTests {
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
-				.forClass(OAuth2AuthorizeRequest.class);
+			.forClass(OAuth2AuthorizeRequest.class);
 		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
 
 		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();
 		assertThat(authorizeRequest.getClientRegistrationId())
-				.isEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
+			.isEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
 		assertThat(authorizeRequest.getClientRegistrationId()).isNotEqualTo(clientRegistration.getRegistrationId());
 	}
 
@@ -138,12 +140,14 @@ public class TokenRelayGatewayFilterFactoryTests {
 		when(accessToken.getTokenValue()).thenReturn("mytoken");
 
 		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
 		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "steve", accessToken);
 
 		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
-				.thenReturn(Mono.just(authorizedClient));
+			.thenReturn(Mono.just(authorizedClient));
 
 		OAuth2AuthenticationToken authenticationToken = new OAuth2AuthenticationToken(mock(OAuth2User.class),
 				Collections.emptyList(), "myId");
@@ -161,13 +165,13 @@ public class TokenRelayGatewayFilterFactoryTests {
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
-				.forClass(OAuth2AuthorizeRequest.class);
+			.forClass(OAuth2AuthorizeRequest.class);
 		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
 
 		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();
 		assertThat(authorizeRequest.getClientRegistrationId()).isEqualTo(clientRegistration.getRegistrationId());
 		assertThat(authorizeRequest.getClientRegistrationId())
-				.isNotEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
+			.isNotEqualTo(authenticationToken.getAuthorizedClientRegistrationId());
 	}
 
 	@Test
@@ -188,12 +192,14 @@ public class TokenRelayGatewayFilterFactoryTests {
 		when(accessToken.getTokenValue()).thenReturn("mytoken");
 
 		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
 		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "steve", accessToken);
 
 		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class)))
-				.thenReturn(Mono.just(authorizedClient));
+			.thenReturn(Mono.just(authorizedClient));
 
 		Authentication authenticationToken = new TestingAuthenticationToken("my", null);
 		SecurityContextImpl securityContext = new SecurityContextImpl(authenticationToken);
@@ -210,7 +216,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
-				.forClass(OAuth2AuthorizeRequest.class);
+			.forClass(OAuth2AuthorizeRequest.class);
 		verify(authorizedClientManager).authorize(authorizeRequestCaptor.capture());
 
 		OAuth2AuthorizeRequest authorizeRequest = authorizeRequestCaptor.getValue();

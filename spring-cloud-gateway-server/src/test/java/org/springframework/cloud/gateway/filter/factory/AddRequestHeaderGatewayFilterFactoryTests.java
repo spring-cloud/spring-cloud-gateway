@@ -50,38 +50,54 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 	@Test
 	public void addRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.addrequestheader.org").exchange().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Example", "ValueA");
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.addrequestheader.org")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Example", "ValueA");
+			});
 	}
 
 	@Test
 	public void addRequestHeaderFilterWorksMultipleValues() {
-		testClient.get().uri("/multivalueheaders").header("Host", "www.addrequestheader.org").exchange()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Example", Arrays.asList("ValueA", "ValueB"));
-				});
+		testClient.get()
+			.uri("/multivalueheaders")
+			.header("Host", "www.addrequestheader.org")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Example", Arrays.asList("ValueA", "ValueB"));
+			});
 	}
 
 	@Test
 	public void addRequestHeaderFilterWorksJavaDsl() {
-		testClient.get().uri("/headers").header("Host", "www.addrequestheaderjava.org").exchange().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.addrequestheaderjava.org")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
+			});
 	}
 
 	@Test
 	public void addRequestHeaderFilterMultipleValuesWorksJavaDsl() {
-		testClient.get().uri("/multivalueheaders").header("Host", "www.addrequestheaderjava.org").exchange()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme", Arrays.asList("ValueB-www", "ValueC-www"));
-				});
+		testClient.get()
+			.uri("/multivalueheaders")
+			.header("Host", "www.addrequestheaderjava.org")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Acme", Arrays.asList("ValueB-www", "ValueC-www"));
+			});
 	}
 
 	@Test
@@ -101,17 +117,22 @@ public class AddRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("add_request_header_java_test",
-					r -> r.path("/headers").and().host("{sub}.addrequestheaderjava.org")
+			return builder.routes()
+				.route("add_request_header_java_test",
+						r -> r.path("/headers")
+							.and()
+							.host("{sub}.addrequestheaderjava.org")
 							.filters(f -> f.prefixPath("/httpbin").addRequestHeader("X-Request-Acme", "ValueB-{sub}"))
 							.uri(uri))
-					.route("add_multiple_request_header_java_test",
-							r -> r.path("/multivalueheaders").and().host("{sub}.addrequestheaderjava.org")
-									.filters(f -> f.prefixPath("/httpbin")
-											.addRequestHeader("X-Request-Acme", "ValueB-{sub}")
-											.addRequestHeader("X-Request-Acme", "ValueC-{sub}"))
-									.uri(uri))
-					.build();
+				.route("add_multiple_request_header_java_test",
+						r -> r.path("/multivalueheaders")
+							.and()
+							.host("{sub}.addrequestheaderjava.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.addRequestHeader("X-Request-Acme", "ValueB-{sub}")
+								.addRequestHeader("X-Request-Acme", "ValueC-{sub}"))
+							.uri(uri))
+				.build();
 		}
 
 	}

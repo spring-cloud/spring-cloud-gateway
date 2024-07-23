@@ -54,11 +54,15 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 	@Test
 	public void addRequestHeadersIfHeaderPresentFilterDoesNotAddHeaderIfPresent() {
 		final String initialHeaderValue = "initial-value";
-		testClient.get().uri("/headers").header(TEST_HEADER_1, initialHeaderValue).exchange().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry(TEST_HEADER_1, initialHeaderValue);
-				});
+		testClient.get()
+			.uri("/headers")
+			.header(TEST_HEADER_1, initialHeaderValue)
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry(TEST_HEADER_1, initialHeaderValue);
+			});
 	}
 
 	@Test
@@ -81,31 +85,42 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 	@Test
 	public void addRequestHeadersIfNotPresentFilterWorksOnlyMissingValues() {
 		final String existingValue = "existing-value";
-		testClient.get().uri("/multivalueheaders").header(TEST_HEADER_2, existingValue).exchange().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry(TEST_HEADER_1, Arrays.asList("ValueA"));
-					assertThat(headers).containsEntry(TEST_HEADER_2, Arrays.asList(existingValue));
-				});
+		testClient.get()
+			.uri("/multivalueheaders")
+			.header(TEST_HEADER_2, existingValue)
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry(TEST_HEADER_1, Arrays.asList("ValueA"));
+				assertThat(headers).containsEntry(TEST_HEADER_2, Arrays.asList(existingValue));
+			});
 	}
 
 	@Test
 	public void addRequestHeadersIfNotPresentFilterWorksJavaDsl() {
-		testClient.get().uri("/headers").header("Host", TEST_HOST_HEADER_VALUE).exchange().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", TEST_HOST_HEADER_VALUE)
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Acme", "ValueB-www");
+			});
 	}
 
 	@Test
 	public void addRequestHeadersIfNotPresentFilterMultipleValuesWorksJavaDsl() {
-		testClient.get().uri("/multivalueheaders").header("Host", TEST_HOST_HEADER_VALUE).exchange()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Request-Acme",
-							Arrays.asList("ValueX", "ValueY", "ValueZ", "www"));
-				});
+		testClient.get()
+			.uri("/multivalueheaders")
+			.header("Host", TEST_HOST_HEADER_VALUE)
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Acme", Arrays.asList("ValueX", "ValueY", "ValueZ", "www"));
+			});
 	}
 
 	@Test
@@ -115,8 +130,9 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 				new KeyValue("my-header-name-2", "my-header-value-2"), });
 		GatewayFilter filter = new AddRequestHeadersIfNotPresentGatewayFilterFactory().apply(keyValueConfig);
 		assertThat(filter.toString()).startsWith("[AddRequestHeadersIfNotPresent")
-				.contains("my-header-name-1 = 'my-header-value-1'").contains("my-header-name-2 = 'my-header-value-2'")
-				.endsWith("]");
+			.contains("my-header-name-1 = 'my-header-value-1'")
+			.contains("my-header-name-2 = 'my-header-value-2'")
+			.endsWith("]");
 	}
 
 	@EnableAutoConfiguration
@@ -129,15 +145,21 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactoryTests extends Base
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("add_request_headers_if_not_present_java_test",
-					r -> r.path("/headers").and().host("{sub}.addrequestheaderjava.org")
-							.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueB-{sub}")).uri(uri))
-					.route("add_multiple_request_headers_java_test",
-							r -> r.path("/multivalueheaders").and().host("{sub}.addrequestheaderjava.org")
-									.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueX",
-											"X-Request-Acme:ValueY", "X-Request-Acme:ValueZ", "X-Request-Acme:{sub}"))
-									.uri(uri))
-					.build();
+			return builder.routes()
+				.route("add_request_headers_if_not_present_java_test",
+						r -> r.path("/headers")
+							.and()
+							.host("{sub}.addrequestheaderjava.org")
+							.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueB-{sub}"))
+							.uri(uri))
+				.route("add_multiple_request_headers_java_test",
+						r -> r.path("/multivalueheaders")
+							.and()
+							.host("{sub}.addrequestheaderjava.org")
+							.filters(f -> f.addRequestHeadersIfNotPresent("X-Request-Acme:ValueX",
+									"X-Request-Acme:ValueY", "X-Request-Acme:ValueZ", "X-Request-Acme:{sub}"))
+							.uri(uri))
+				.build();
 		}
 
 	}

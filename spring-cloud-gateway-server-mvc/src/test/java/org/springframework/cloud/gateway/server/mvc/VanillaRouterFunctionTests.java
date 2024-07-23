@@ -56,10 +56,17 @@ public class VanillaRouterFunctionTests {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void routerFunctionsRouteWorks() {
-		restClient.post().uri("/anything/routerfunctionsroute").header("Host", "www.routerfunctionsroute.org")
-				.bodyValue("hello").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					System.out.println();
-				});
+		restClient.post()
+			.uri("/anything/routerfunctionsroute")
+			.header("Host", "www.routerfunctionsroute.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				System.out.println();
+			});
 	}
 
 	@SpringBootConfiguration

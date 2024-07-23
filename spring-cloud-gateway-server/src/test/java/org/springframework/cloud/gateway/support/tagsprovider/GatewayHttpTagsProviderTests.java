@@ -56,8 +56,8 @@ public class GatewayHttpTagsProviderTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 
 		Tags tags = tagsProvider.apply(exchange);
-		assertThat(tags).isEqualTo(
-				Tags.of("outcome", "CUSTOM", "status", "CUSTOM", "httpStatusCode", "NA", "httpMethod", "GET"));
+		assertThat(tags)
+			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM", "httpStatusCode", "NA", "httpMethod", "GET"));
 	}
 
 	@Test

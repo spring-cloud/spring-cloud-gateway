@@ -86,11 +86,11 @@ public class CachingRouteLocator
 		try {
 			if (this.cache.containsKey(CACHE_KEY) && event.isScoped()) {
 				final Mono<List<Route>> scopedRoutes = fetch(event.getMetadata()).collect(Collectors.toList())
-						.onErrorResume(s -> Mono.just(List.of()));
+					.onErrorResume(s -> Mono.just(List.of()));
 
 				scopedRoutes.subscribe(scopedRoutesList -> {
 					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
-							.sort(AnnotationAwareOrderComparator.INSTANCE));
+						.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
 			else {
@@ -104,8 +104,9 @@ public class CachingRouteLocator
 	}
 
 	private synchronized void updateCache(Flux<Route> routes) {
-		routes.materialize().collect(Collectors.toList()).subscribe(this::publishRefreshEvent,
-				this::handleRefreshError);
+		routes.materialize()
+			.collect(Collectors.toList())
+			.subscribe(this::publishRefreshEvent, this::handleRefreshError);
 	}
 
 	private void publishRefreshEvent(List<Signal<Route>> signals) {
@@ -115,7 +116,7 @@ public class CachingRouteLocator
 
 	private Flux<Route> getNonScopedRoutes(RefreshRoutesEvent scopedEvent) {
 		return this.getRoutes()
-				.filter(route -> !RouteLocator.matchMetadata(route.getMetadata(), scopedEvent.getMetadata()));
+			.filter(route -> !RouteLocator.matchMetadata(route.getMetadata(), scopedEvent.getMetadata()));
 	}
 
 	private void handleRefreshError(Throwable throwable) {

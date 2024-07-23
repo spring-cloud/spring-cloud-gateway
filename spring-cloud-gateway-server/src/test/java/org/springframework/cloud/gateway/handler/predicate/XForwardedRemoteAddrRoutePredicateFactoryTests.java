@@ -46,29 +46,41 @@ public class XForwardedRemoteAddrRoutePredicateFactoryTests extends BaseWebClien
 
 	@Test
 	public void xForwardedRemoteAddrWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78")
-				.exchangeToMono(Mono::just);
+		Mono<ClientResponse> result = webClient.get()
+			.uri("/xforwardfor")
+			.header("X-Forwarded-For", "12.34.56.78")
+			.exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
+			.expectComplete()
+			.verify(Duration.ofSeconds(20));
 	}
 
 	@Test
 	public void xForwardedRemoteAddrWorksUsingRightMostValueByDefault() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor")
-				.header("X-Forwarded-For", "99.99.99.99,12.34.56.78").exchangeToMono(Mono::just);
+		Mono<ClientResponse> result = webClient.get()
+			.uri("/xforwardfor")
+			.header("X-Forwarded-For", "99.99.99.99,12.34.56.78")
+			.exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
+			.expectComplete()
+			.verify(Duration.ofSeconds(20));
 	}
 
 	@Test
 	public void xForwardedRemoteAddrRejects() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "99.99.99.99")
-				.exchangeToMono(Mono::just);
+		Mono<ClientResponse> result = webClient.get()
+			.uri("/xforwardfor")
+			.header("X-Forwarded-For", "99.99.99.99")
+			.exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
-				.expectComplete().verify(Duration.ofSeconds(20));
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
+			.expectComplete()
+			.verify(Duration.ofSeconds(20));
 	}
 
 	@EnableAutoConfiguration
@@ -81,8 +93,14 @@ public class XForwardedRemoteAddrRoutePredicateFactoryTests extends BaseWebClien
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("x_forwarded_for_test", r -> r.path("/xforwardfor").and()
-					.xForwardedRemoteAddr("12.34.56.78").filters(f -> f.setStatus(200)).uri(uri)).build();
+			return builder.routes()
+				.route("x_forwarded_for_test",
+						r -> r.path("/xforwardfor")
+							.and()
+							.xForwardedRemoteAddr("12.34.56.78")
+							.filters(f -> f.setStatus(200))
+							.uri(uri))
+				.build();
 		}
 
 	}

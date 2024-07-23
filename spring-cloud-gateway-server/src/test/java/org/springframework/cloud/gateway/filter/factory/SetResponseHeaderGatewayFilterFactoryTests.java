@@ -40,14 +40,26 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 	@Test
 	public void setResponseHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setreresponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Response-Foo", "Bar");
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.setreresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Response-Foo", "Bar");
 	}
 
 	@Test
 	public void setResponseHeaderFilterWorksJavaDsl() {
-		testClient.get().uri("/headers").header("Host", "www.setresponseheaderdsl.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Res-Foo", "Second-www");
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.setresponseheaderdsl.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Res-Foo", "Second-www");
 	}
 
 	@Test
@@ -67,11 +79,15 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_set_response_header_dsl",
-					r -> r.order(-1).host("{sub}.setresponseheaderdsl.org").filters(f -> f.prefixPath("/httpbin")
-							.setResponseHeader("X-Res-Foo", "Second-{sub}").addResponseHeader("X-Res-Foo", "First"))
+			return builder.routes()
+				.route("test_set_response_header_dsl",
+						r -> r.order(-1)
+							.host("{sub}.setresponseheaderdsl.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.setResponseHeader("X-Res-Foo", "Second-{sub}")
+								.addResponseHeader("X-Res-Foo", "First"))
 							.uri(uri))
-					.build();
+				.build();
 		}
 
 	}

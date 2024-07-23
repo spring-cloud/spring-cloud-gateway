@@ -53,12 +53,12 @@ class SetResponseHeadersAfterCacheExchangeMutatorTest {
 		SetResponseHeadersAfterCacheExchangeMutator toTest = new SetResponseHeadersAfterCacheExchangeMutator();
 		inputExchange.getResponse().getHeaders().set("X-Header-1", "Value-original");
 		CachedResponse cachedResponse = new CachedResponse.Builder(HttpStatus.OK).header("X-Header-1", "Value-cached")
-				.build();
+			.build();
 
 		toTest.accept(inputExchange, cachedResponse);
 
-		Assertions.assertThat(inputExchange.getResponse().getHeaders()).containsEntry("X-Header-1",
-				List.of("Value-cached"));
+		Assertions.assertThat(inputExchange.getResponse().getHeaders())
+			.containsEntry("X-Header-1", List.of("Value-cached"));
 	}
 
 	@Test

@@ -52,8 +52,10 @@ public class ThrottleGatewayFilter implements GatewayFilter {
 		}
 		synchronized (this) {
 			if (tokenBucket == null) {
-				tokenBucket = TokenBuckets.builder().withCapacity(capacity)
-						.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit).build();
+				tokenBucket = TokenBuckets.builder()
+					.withCapacity(capacity)
+					.withFixedIntervalRefillStrategy(refillTokens, refillPeriod, refillUnit)
+					.build();
 			}
 		}
 		return tokenBucket;

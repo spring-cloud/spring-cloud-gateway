@@ -106,7 +106,7 @@ public class ResponseCacheManager {
 		final CachedResponseMetadata metadata = new CachedResponseMetadata(response.getHeaders().getVary());
 		final String key = resolveKey(exchange, metadata.varyOnHeaders());
 		CachedResponse.Builder cachedResponseBuilder = CachedResponse.create(response.getStatusCode())
-				.headers(response.getHeaders());
+			.headers(response.getHeaders());
 		CachedResponse toProcess = cachedResponseBuilder.build();
 		afterCacheExchangeMutators.forEach(processor -> processor.accept(exchange, toProcess));
 
@@ -152,7 +152,7 @@ public class ResponseCacheManager {
 		saveMetadataInCache(metadataKey, new CachedResponseMetadata(cachedResponse.headers().getVary()));
 
 		return response
-				.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
+			.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
 	}
 
 	private CachedResponseMetadata retrieveMetadata(String metadataKey) {

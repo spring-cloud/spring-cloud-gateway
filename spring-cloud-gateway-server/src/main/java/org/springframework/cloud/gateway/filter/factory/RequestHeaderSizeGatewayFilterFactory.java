@@ -83,8 +83,9 @@ public class RequestHeaderSizeGatewayFilterFactory
 
 				if (!longHeaders.isEmpty()) {
 					exchange.getResponse().setStatusCode(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE);
-					exchange.getResponse().getHeaders().add(errorHeaderName,
-							getErrorMessage(longHeaders, config.getMaxSize()));
+					exchange.getResponse()
+						.getHeaders()
+						.add(errorHeaderName, getErrorMessage(longHeaders, config.getMaxSize()));
 					return exchange.getResponse().setComplete();
 
 				}
@@ -95,7 +96,8 @@ public class RequestHeaderSizeGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RequestHeaderSizeGatewayFilterFactory.this)
-						.append("maxSize", config.getMaxSize()).toString();
+					.append("maxSize", config.getMaxSize())
+					.toString();
 			}
 		};
 	}
@@ -103,7 +105,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 	private static String getErrorMessage(HashMap<String, Long> longHeaders, DataSize maxSize) {
 		StringBuilder msg = new StringBuilder(String.format(ERROR_PREFIX, maxSize));
 		longHeaders
-				.forEach((header, size) -> msg.append(String.format(ERROR, header, DataSize.of(size, DataUnit.BYTES))));
+			.forEach((header, size) -> msg.append(String.format(ERROR, header, DataSize.of(size, DataUnit.BYTES))));
 		return msg.toString();
 	}
 

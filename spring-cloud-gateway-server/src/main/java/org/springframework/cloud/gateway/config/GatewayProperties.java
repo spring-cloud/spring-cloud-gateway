@@ -105,9 +105,11 @@ public class GatewayProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("routes", routes).append("defaultFilters", defaultFilters)
-				.append("streamingMediaTypes", streamingMediaTypes)
-				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).toString();
+		return new ToStringCreator(this).append("routes", routes)
+			.append("defaultFilters", defaultFilters)
+			.append("streamingMediaTypes", streamingMediaTypes)
+			.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+			.toString();
 
 	}
 

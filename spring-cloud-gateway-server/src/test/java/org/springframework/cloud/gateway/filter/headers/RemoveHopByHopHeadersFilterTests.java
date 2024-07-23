@@ -60,7 +60,7 @@ public class RemoveHopByHopHeadersFilterTests {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
 		HEADERS_REMOVED_ON_REQUEST
-				.forEach(header -> builder.header(StringUtils.capitalize(header.toLowerCase()), header + "1"));
+			.forEach(header -> builder.header(StringUtils.capitalize(header.toLowerCase()), header + "1"));
 
 		LinkedHashSet<String> customHeaders = new LinkedHashSet<>();
 		HEADERS_REMOVED_ON_REQUEST.forEach(header -> {

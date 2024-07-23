@@ -60,8 +60,10 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 
 				boolean encoded = containsEncodedParts(uri);
 				try {
-					URI newUri = UriComponentsBuilder.fromUri(uri).replaceQuery(query.toString()).build(encoded)
-							.toUri();
+					URI newUri = UriComponentsBuilder.fromUri(uri)
+						.replaceQuery(query.toString())
+						.build(encoded)
+						.toUri();
 
 					ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
 
@@ -75,7 +77,8 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 			@Override
 			public String toString() {
 				return filterToStringCreator(AddRequestParameterGatewayFilterFactory.this)
-						.append(config.getName(), config.getValue()).toString();
+					.append(config.getName(), config.getValue())
+					.toString();
 			}
 		};
 	}

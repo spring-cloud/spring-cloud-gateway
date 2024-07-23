@@ -144,7 +144,7 @@ class SetMaxAgeHeaderAfterCacheExchangeMutatorTest {
 		toTest.accept(inputExchange, inputCachedResponse);
 
 		String[] cacheControlValues = StringUtils
-				.tokenizeToStringArray(inputExchange.getResponse().getHeaders().getCacheControl(), ",");
+			.tokenizeToStringArray(inputExchange.getResponse().getHeaders().getCacheControl(), ",");
 		assertThat(cacheControlValues).contains("max-stale=12", "min-stale=1");
 	}
 

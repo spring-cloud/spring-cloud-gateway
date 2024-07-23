@@ -58,13 +58,16 @@ public class TokenRelayGatewayFilterFactory
 	public GatewayFilter apply(NameConfig config) {
 		String defaultClientRegistrationId = (config == null) ? null : config.getName();
 		return (exchange, chain) -> exchange.getPrincipal()
-				// .log("token-relay-filter")
-				.filter(principal -> principal instanceof Authentication).cast(Authentication.class)
-				.flatMap(principal -> authorizationRequest(defaultClientRegistrationId, principal))
-				.flatMap(this::authorizedClient).map(OAuth2AuthorizedClient::getAccessToken)
-				.map(token -> withBearerAuth(exchange, token))
-				// TODO: adjustable behavior if empty
-				.defaultIfEmpty(exchange).flatMap(chain::filter);
+			// .log("token-relay-filter")
+			.filter(principal -> principal instanceof Authentication)
+			.cast(Authentication.class)
+			.flatMap(principal -> authorizationRequest(defaultClientRegistrationId, principal))
+			.flatMap(this::authorizedClient)
+			.map(OAuth2AuthorizedClient::getAccessToken)
+			.map(token -> withBearerAuth(exchange, token))
+			// TODO: adjustable behavior if empty
+			.defaultIfEmpty(exchange)
+			.flatMap(chain::filter);
 	}
 
 	private Mono<OAuth2AuthorizeRequest> authorizationRequest(String defaultClientRegistrationId,
@@ -73,8 +76,9 @@ public class TokenRelayGatewayFilterFactory
 		if (clientRegistrationId == null && principal instanceof OAuth2AuthenticationToken) {
 			clientRegistrationId = ((OAuth2AuthenticationToken) principal).getAuthorizedClientRegistrationId();
 		}
-		return Mono.justOrEmpty(clientRegistrationId).map(OAuth2AuthorizeRequest::withClientRegistrationId)
-				.map(builder -> builder.principal(principal).build());
+		return Mono.justOrEmpty(clientRegistrationId)
+			.map(OAuth2AuthorizeRequest::withClientRegistrationId)
+			.map(builder -> builder.principal(principal).build());
 	}
 
 	private Mono<OAuth2AuthorizedClient> authorizedClient(OAuth2AuthorizeRequest request) {
@@ -89,8 +93,9 @@ public class TokenRelayGatewayFilterFactory
 	}
 
 	private ServerWebExchange withBearerAuth(ServerWebExchange exchange, OAuth2AccessToken accessToken) {
-		return exchange.mutate().request(r -> r.headers(headers -> headers.setBearerAuth(accessToken.getTokenValue())))
-				.build();
+		return exchange.mutate()
+			.request(r -> r.headers(headers -> headers.setBearerAuth(accessToken.getTokenValue())))
+			.build();
 	}
 
 }

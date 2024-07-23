@@ -68,7 +68,9 @@ class SetCacheDirectivesByMaxAgeAfterCacheExchangeMutatorTests {
 		toTest.accept(inputExchange, null);
 
 		assertThat(inputExchange.getResponse().getHeaders().getCacheControl()).doesNotContainPattern(",\\s*,")
-				.contains("max-age=0").contains("must-revalidate").contains("no-cache");
+			.contains("max-age=0")
+			.contains("must-revalidate")
+			.contains("no-cache");
 	}
 
 	@ParameterizedTest
@@ -82,8 +84,10 @@ class SetCacheDirectivesByMaxAgeAfterCacheExchangeMutatorTests {
 		toTest.accept(inputExchange, null);
 
 		assertThat(inputExchange.getResponse().getHeaders().getCacheControl()).contains("max-age=10")
-				.doesNotContainPattern(",\\s*,").doesNotContain("no-store").doesNotContain("must-revalidate")
-				.doesNotContain("no-cache");
+			.doesNotContainPattern(",\\s*,")
+			.doesNotContain("no-store")
+			.doesNotContain("must-revalidate")
+			.doesNotContain("no-cache");
 	}
 
 }

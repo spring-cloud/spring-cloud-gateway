@@ -280,8 +280,8 @@ public class ProxyExchange<T> {
 		HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
 		HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
 		try {
-			request.getRequestDispatcher(path).forward(new BodyForwardingHttpServletRequest(request, response),
-					response);
+			request.getRequestDispatcher(path)
+				.forward(new BodyForwardingHttpServletRequest(request, response), response);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Cannot forward request", e);
@@ -363,8 +363,9 @@ public class ProxyExchange<T> {
 		ArrayList<String> headerNames = new ArrayList<>();
 		webRequest.getHeaderNames().forEachRemaining(headerNames::add);
 		Set<String> filteredKeys = filterHeaderKeys(headerNames);
-		filteredKeys.stream().filter(key -> !headers.containsKey(key))
-				.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
+		filteredKeys.stream()
+			.filter(key -> !headers.containsKey(key))
+			.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {
@@ -382,8 +383,9 @@ public class ProxyExchange<T> {
 
 	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
 		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
-		return headerNames.stream().filter(header -> !excludedHeaders.contains(header.toLowerCase()))
-				.collect(Collectors.toSet());
+		return headerNames.stream()
+			.filter(header -> !excludedHeaders.contains(header.toLowerCase()))
+			.collect(Collectors.toSet());
 	}
 
 	private void proxy() {

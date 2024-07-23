@@ -64,10 +64,10 @@ public abstract class LoadBalancerFilterFunctions {
 			BiFunction<ServiceInstance, URI, URI> reconstructUriFunction) {
 		return (request, next) -> {
 			LoadBalancerClientFactory clientFactory = getApplicationContext(request)
-					.getBean(LoadBalancerClientFactory.class);
+				.getBean(LoadBalancerClientFactory.class);
 			Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
-					.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
-							RequestDataContext.class, ResponseData.class, ServiceInstance.class);
+				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
+						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
 			RequestData requestData = new RequestData(request.method(), request.uri(),
 					request.headers().asHttpHeaders(), buildCookies(request.cookies()), request.attributes());
 			DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
@@ -82,7 +82,7 @@ public abstract class LoadBalancerFilterFunctions {
 			ServiceInstance retrievedInstance = loadBalancerClient.choose(serviceId, lbRequest);
 			if (retrievedInstance == null) {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
-						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
+					.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
 				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
 						"Unable to find instance for " + serviceId);
 				// throw NotFoundException.create(properties.isUse404(), "Unable to find
@@ -110,9 +110,9 @@ public abstract class LoadBalancerFilterFunctions {
 
 			try {
 				ServerResponse serverResponse = next.handle(request);
-				supportedLifecycleProcessors.forEach(
-						lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
-								lbRequest, defaultResponse, serverResponse)));
+				supportedLifecycleProcessors
+					.forEach(lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
+							lbRequest, defaultResponse, serverResponse)));
 				return serverResponse;
 			}
 			catch (Exception e) {
@@ -136,7 +136,7 @@ public abstract class LoadBalancerFilterFunctions {
 		HttpHeaders newCookies = new HttpHeaders();
 		if (cookies != null) {
 			cookies.forEach((key, value) -> value
-					.forEach(cookie -> newCookies.put(cookie.getName(), Collections.singletonList(cookie.getValue()))));
+				.forEach(cookie -> newCookies.put(cookie.getName(), Collections.singletonList(cookie.getValue()))));
 		}
 		return newCookies;
 	}

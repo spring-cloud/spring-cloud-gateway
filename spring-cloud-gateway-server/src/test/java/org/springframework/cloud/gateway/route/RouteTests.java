@@ -51,13 +51,13 @@ public class RouteTests {
 	@Test
 	public void nullScheme() {
 		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("/pathonly"))
-				.isInstanceOf(IllegalArgumentException.class);
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void localhostNoSchemeFails() {
 		assertThatThrownBy(() -> Route.async().id("1").predicate(exchange -> true).uri("localhost:8080"))
-				.isInstanceOf(IllegalArgumentException.class);
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -83,8 +83,13 @@ public class RouteTests {
 
 	@Test
 	public void isAbleToAddMetadata() {
-		Route route = Route.async().id("1").predicate(exchange -> true).uri("http://acme.com:8080")
-				.metadata(Maps.newHashMap("key", "value")).metadata("key2", "value2").build();
+		Route route = Route.async()
+			.id("1")
+			.predicate(exchange -> true)
+			.uri("http://acme.com:8080")
+			.metadata(Maps.newHashMap("key", "value"))
+			.metadata("key2", "value2")
+			.build();
 
 		assertThat(route.getMetadata()).hasSize(2).containsEntry("key", "value").containsEntry("key2", "value2");
 	}

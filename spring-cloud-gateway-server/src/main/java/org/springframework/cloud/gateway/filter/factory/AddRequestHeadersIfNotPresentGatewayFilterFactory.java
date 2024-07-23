@@ -69,8 +69,11 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 				for (Map.Entry<String, List<String>> kv : aggregatedHeaders.entrySet()) {
 					String headerName = kv.getKey();
 
-					boolean headerIsMissingOrBlank = exchange.getRequest().getHeaders().getOrEmpty(headerName).stream()
-							.allMatch(h -> !StringUtils.hasText(h));
+					boolean headerIsMissingOrBlank = exchange.getRequest()
+						.getHeaders()
+						.getOrEmpty(headerName)
+						.stream()
+						.allMatch(h -> !StringUtils.hasText(h));
 
 					if (headerIsMissingOrBlank) {
 						if (requestBuilder == null) {
@@ -78,9 +81,10 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 						}
 						ServerWebExchange finalExchange = exchange;
 						requestBuilder.headers(httpHeaders -> {
-							List<String> replacedValues = kv.getValue().stream()
-									.map(value -> ServerWebExchangeUtils.expand(finalExchange, value))
-									.collect(Collectors.toList());
+							List<String> replacedValues = kv.getValue()
+								.stream()
+								.map(value -> ServerWebExchangeUtils.expand(finalExchange, value))
+								.collect(Collectors.toList());
 							httpHeaders.addAll(headerName, replacedValues);
 						});
 					}

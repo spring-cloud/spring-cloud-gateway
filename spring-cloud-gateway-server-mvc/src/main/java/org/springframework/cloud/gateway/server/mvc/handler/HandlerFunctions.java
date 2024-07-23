@@ -46,8 +46,10 @@ public abstract class HandlerFunctions {
 		return request -> GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
 			try {
 				String expandedFallback = MvcUtils.expand(request, path);
-				request.servletRequest().getServletContext().getRequestDispatcher(expandedFallback)
-						.forward(httpServletRequest, httpServletResponse);
+				request.servletRequest()
+					.getServletContext()
+					.getRequestDispatcher(expandedFallback)
+					.forward(httpServletRequest, httpServletResponse);
 				return null;
 			}
 			catch (ServletException | IOException e) {

@@ -73,8 +73,10 @@ public class GatewayMvcProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("httpClient", httpClient).append("routes", routes)
-				.append("routesMap", routesMap).toString();
+		return new ToStringCreator(this).append("httpClient", httpClient)
+			.append("routes", routes)
+			.append("routesMap", routesMap)
+			.toString();
 	}
 
 	public static class HttpClient {
@@ -125,8 +127,11 @@ public class GatewayMvcProperties {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("connectTimeout", connectTimeout).append("readTimeout", readTimeout)
-					.append("sslBundle", sslBundle).append("type", type).toString();
+			return new ToStringCreator(this).append("connectTimeout", connectTimeout)
+				.append("readTimeout", readTimeout)
+				.append("sslBundle", sslBundle)
+				.append("type", type)
+				.toString();
 		}
 
 	}

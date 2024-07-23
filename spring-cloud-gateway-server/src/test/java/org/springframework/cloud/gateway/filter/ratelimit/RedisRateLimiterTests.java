@@ -89,8 +89,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 1;
 
 		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
@@ -104,8 +107,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 3;
 
 		String routeId = "low_rate_route";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
@@ -119,8 +125,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 1;
 
 		String routeId = "zero_burst_capacity_route";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		Response response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).isFalse();

@@ -75,7 +75,9 @@ class CachedResponseTest {
 	void bodyAsString_whenThereIsGZipContent() throws IOException {
 		String body = "example";
 		CachedResponse cachedResponse = CachedResponse.create(HttpStatus.OK)
-				.header(HttpHeaders.CONTENT_ENCODING, "gzip").appendToBody(convertToGzip(body)).build();
+			.header(HttpHeaders.CONTENT_ENCODING, "gzip")
+			.appendToBody(convertToGzip(body))
+			.build();
 
 		String asString = cachedResponse.bodyAsString();
 

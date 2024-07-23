@@ -533,8 +533,8 @@ public abstract class GatewayRequestPredicates {
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean test(ServerRequest request) {
-			Map<String, String> weights = (Map<String, String>) request.attributes().getOrDefault(WEIGHT_ATTR,
-					Collections.emptyMap());
+			Map<String, String> weights = (Map<String, String>) request.attributes()
+				.getOrDefault(WEIGHT_ATTR, Collections.emptyMap());
 
 			String routeId = (String) request.attributes().get(GATEWAY_ROUTE_ID_ATTR);
 			if (ObjectUtils.isEmpty(routeId)) {

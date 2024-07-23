@@ -59,7 +59,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RequestHeaderToRequestUriGatewayFilterFactory.this)
-						.append("name", config.getName()).toString();
+					.append("name", config.getName())
+					.toString();
 			}
 		};
 	}

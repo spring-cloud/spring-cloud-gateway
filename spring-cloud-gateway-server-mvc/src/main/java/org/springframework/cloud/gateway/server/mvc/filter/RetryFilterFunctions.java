@@ -67,7 +67,7 @@ public abstract class RetryFilterFunctions {
 		config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
 		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
 		compositeRetryPolicy
-				.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
+			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
 		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
 		return (request, next) -> retryTemplate.execute(context -> {
 			ServerResponse serverResponse = next.handle(request);

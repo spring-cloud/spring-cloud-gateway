@@ -52,9 +52,14 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 	public void nonStandardHeadersInResponse() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get-image").build(true).toUri();
 
-		String contentType = WebClient.builder().baseUrl(baseUri).build().get().uri(uri).exchangeToMono(Mono::just)
-				.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
-				.block();
+		String contentType = WebClient.builder()
+			.baseUrl(baseUri)
+			.build()
+			.get()
+			.uri(uri)
+			.exchangeToMono(Mono::just)
+			.map(clientResponse -> clientResponse.headers().asHttpHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
+			.block();
 
 		assertThat(contentType).isEqualTo(CONTENT_TYPE_IMAGE);
 	}
@@ -86,11 +91,12 @@ public class NonStandardHeadersInResponseTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("non_standard_header_route", r -> r.path("/get-image/**")
+			return builder.routes()
+				.route("non_standard_header_route", r -> r.path("/get-image/**")
 					.filters(f -> f.addRequestHeader(HttpHeaders.HOST, "www.addrequestparameter.org").stripPrefix(1))
 					.uri("http://localhost:" + port + "/get"))
-					.route("internal_route", r -> r.path("/get/**").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
+				.route("internal_route", r -> r.path("/get/**").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.build();
 		}
 
 	}

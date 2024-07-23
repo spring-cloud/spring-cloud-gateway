@@ -351,7 +351,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
-					.append("burstCapacity", burstCapacity).append("requestedTokens", requestedTokens).toString();
+				.append("burstCapacity", burstCapacity)
+				.append("requestedTokens", requestedTokens)
+				.toString();
 
 		}
 

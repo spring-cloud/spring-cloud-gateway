@@ -78,7 +78,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 	public Flux<DataBuffer> getBody() {
 		if (body == null) {
 			return Flux
-					.error(new IllegalStateException("The body is not set. " + "Did handling complete with success?"));
+				.error(new IllegalStateException("The body is not set. " + "Did handling complete with success?"));
 		}
 		return this.body;
 	}

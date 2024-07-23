@@ -54,11 +54,22 @@ public class LocalResponseCacheGlobalFilterTests {
 		void shouldNotCacheResponseWhenGlobalIsNotEnabled() {
 			String uri = "/" + UUID.randomUUID() + "/global-cache-deactivated/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@EnableAutoConfiguration
@@ -72,11 +83,13 @@ public class LocalResponseCacheGlobalFilterTests {
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 				return builder.routes()
-						.route("global_local_response_cache_deactivated_java_test",
-								r -> r.path("/{namespace}/global-cache-deactivated/**").and()
-										.host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
-						.build();
+					.route("global_local_response_cache_deactivated_java_test",
+							r -> r.path("/{namespace}/global-cache-deactivated/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin"))
+								.uri(uri))
+					.build();
 			}
 
 		}
@@ -92,11 +105,22 @@ public class LocalResponseCacheGlobalFilterTests {
 		void shouldGlobalCacheResponseWhenRouteDoesNotHaveFilter() {
 			String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("1");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
 		}
 
 		@EnableAutoConfiguration
@@ -110,10 +134,13 @@ public class LocalResponseCacheGlobalFilterTests {
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 				return builder.routes()
-						.route("global_local_response_cache_java_test",
-								r -> r.path("/{namespace}/global-cache/**").and().host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")).uri(uri))
-						.build();
+					.route("global_local_response_cache_java_test",
+							r -> r.path("/{namespace}/global-cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin"))
+								.uri(uri))
+					.build();
 			}
 
 		}

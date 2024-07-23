@@ -54,10 +54,12 @@ public class Http2Application {
 
 	@Bean
 	public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
-		return builder.routes().route(r -> r.path("/myprefix/**").filters(f -> f.stripPrefix(1)).uri("lb://myservice"))
-				.route(r -> r.path("/nossl/**").filters(f -> f.stripPrefix(1)).uri("lb://nossl"))
-				.route(r -> r.path("/neverssl/**").filters(f -> f.stripPrefix(1)).uri("http://neverssl.com"))
-				.route(r -> r.path("/httpbin/**").uri("https://nghttp2.org")).build();
+		return builder.routes()
+			.route(r -> r.path("/myprefix/**").filters(f -> f.stripPrefix(1)).uri("lb://myservice"))
+			.route(r -> r.path("/nossl/**").filters(f -> f.stripPrefix(1)).uri("lb://nossl"))
+			.route(r -> r.path("/neverssl/**").filters(f -> f.stripPrefix(1)).uri("http://neverssl.com"))
+			.route(r -> r.path("/httpbin/**").uri("https://nghttp2.org"))
+			.build();
 	}
 
 	public static void main(String[] args) {

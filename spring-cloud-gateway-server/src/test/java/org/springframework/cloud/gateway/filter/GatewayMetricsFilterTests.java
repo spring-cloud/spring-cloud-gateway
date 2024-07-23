@@ -114,9 +114,9 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator myRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("test_custom_http_status_metrics",
-							r -> r.host("*.setcustomstatusmetrics.org").filters(f -> f.setStatus(432)).uri(testUri))
-					.build();
+				.route("test_custom_http_status_metrics",
+						r -> r.host("*.setcustomstatusmetrics.org").filters(f -> f.setStatus(432)).uri(testUri))
+				.build();
 		}
 
 		@GetMapping("/httpbin/badtargeturi")

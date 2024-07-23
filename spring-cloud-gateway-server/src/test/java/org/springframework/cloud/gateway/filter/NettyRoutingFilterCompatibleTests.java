@@ -63,9 +63,16 @@ class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 
 	@Test
 	void shouldApplyResponseTimeoutPerRoute() {
-		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
+		testClient.get()
+			.uri("/route/delay/2")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.isEqualTo("Response took longer than timeout: PT1S");
 	}
 
 	@EnableAutoConfiguration

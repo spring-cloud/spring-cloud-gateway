@@ -128,7 +128,8 @@ public abstract class BodyFilterFunctions {
 						ByteArrayHttpOutputMessage outputMessage = new ByteArrayHttpOutputMessage(headers);
 						((HttpMessageConverter<R>) messageConverter).write(convertedBody, contentType, outputMessage);
 						ServerRequest modified = ServerRequest.from(request)
-								.headers(httpHeaders -> httpHeaders.putAll(headers)).build();
+							.headers(httpHeaders -> httpHeaders.putAll(headers))
+							.build();
 						return wrapRequest(modified, outputMessage.getBytes());
 					}
 					catch (IOException e) {

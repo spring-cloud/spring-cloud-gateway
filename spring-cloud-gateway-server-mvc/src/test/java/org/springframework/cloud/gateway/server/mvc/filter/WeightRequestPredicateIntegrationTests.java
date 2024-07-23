@@ -64,16 +64,28 @@ public class WeightRequestPredicateIntegrationTests {
 	public void highWeight() {
 		filter.setRandomSupplier(getRandom(0.9));
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight-high.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Route", "weight_high_test");
+		testClient.get()
+			.uri("/get")
+			.header(HttpHeaders.HOST, "www.weight-high.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Route", "weight_high_test");
 	}
 
 	@Test
 	public void lowWeight() {
 		filter.setRandomSupplier(getRandom(0.1));
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weight-low.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Route", "weight_low_test");
+		testClient.get()
+			.uri("/get")
+			.header(HttpHeaders.HOST, "www.weight-low.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Route", "weight_low_test");
 	}
 
 	@EnableAutoConfiguration

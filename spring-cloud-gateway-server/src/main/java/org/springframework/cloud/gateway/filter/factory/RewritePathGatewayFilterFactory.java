@@ -79,7 +79,8 @@ public class RewritePathGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewritePathGatewayFilterFactory.this)
-						.append(config.getRegexp(), replacement).toString();
+					.append(config.getRegexp(), replacement)
+					.toString();
 			}
 		};
 	}

@@ -59,7 +59,7 @@ public class ProxyExchangeHandlerFunction
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
 		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters,
 				request -> (URI) request.attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR)
-						.orElseThrow(() -> new IllegalStateException("No routeUri resolved")));
+					.orElseThrow(() -> new IllegalStateException("No routeUri resolved")));
 	}
 
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
@@ -99,7 +99,7 @@ public class ProxyExchangeHandlerFunction
 				serverRequest.headers().asHttpHeaders(), serverRequest);
 
 		boolean preserveHost = (boolean) serverRequest.attributes()
-				.getOrDefault(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+			.getOrDefault(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		if (preserveHost) {
 			filteredRequestHeaders.set(HttpHeaders.HOST, serverRequest.headers().firstHeader(HttpHeaders.HOST));
 		}

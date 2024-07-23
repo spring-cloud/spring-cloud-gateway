@@ -48,8 +48,10 @@ public class RemoveRequestHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> httpHeaders.remove(config.getName())).build();
+				ServerHttpRequest request = exchange.getRequest()
+					.mutate()
+					.headers(httpHeaders -> httpHeaders.remove(config.getName()))
+					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
@@ -57,7 +59,8 @@ public class RemoveRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RemoveRequestHeaderGatewayFilterFactory.this)
-						.append("name", config.getName()).toString();
+					.append("name", config.getName())
+					.toString();
 			}
 		};
 	}

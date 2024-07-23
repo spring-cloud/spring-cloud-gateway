@@ -268,10 +268,10 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 						entityType = RESOURCE_REGION_LIST_TYPE;
 					}
 					catch (IllegalArgumentException ex) {
-						serverResponse.getHeaders().set(HttpHeaders.CONTENT_RANGE,
-								"bytes */" + resource.contentLength());
+						serverResponse.getHeaders()
+							.set(HttpHeaders.CONTENT_RANGE, "bytes */" + resource.contentLength());
 						serverResponse.getServletResponse()
-								.setStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+							.setStatus(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
 					}
 				}
 			}
@@ -316,9 +316,10 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 		private static List<MediaType> producibleMediaTypes(List<HttpMessageConverter<?>> messageConverters,
 				Class<?> entityClass) {
 
-			return messageConverters.stream().filter(messageConverter -> messageConverter.canWrite(entityClass, null))
-					.flatMap(messageConverter -> messageConverter.getSupportedMediaTypes(entityClass).stream())
-					.toList();
+			return messageConverters.stream()
+				.filter(messageConverter -> messageConverter.canWrite(entityClass, null))
+				.flatMap(messageConverter -> messageConverter.getSupportedMediaTypes(entityClass).stream())
+				.toList();
 		}
 
 	}

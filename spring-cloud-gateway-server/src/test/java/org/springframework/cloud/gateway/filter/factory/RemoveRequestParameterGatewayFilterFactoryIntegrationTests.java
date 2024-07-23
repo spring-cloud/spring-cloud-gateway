@@ -43,12 +43,18 @@ public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests extends 
 
 	@Test
 	public void removeResponseHeaderFilterWorks() {
-		testClient.get().uri("/get?foo=bar&baz=bam%20bar").header("Host", "www.removerequestparamjava.org").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> params = getMap(result.getResponseBody(), "args");
-					assertThat(params).doesNotContainKey("foo");
-					assertThat(params).containsEntry("baz", "bam%20bar");
-				});
+		testClient.get()
+			.uri("/get?foo=bar&baz=bam%20bar")
+			.header("Host", "www.removerequestparamjava.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> params = getMap(result.getResponseBody(), "args");
+				assertThat(params).doesNotContainKey("foo");
+				assertThat(params).containsEntry("baz", "bam%20bar");
+			});
 	}
 
 	@Test
@@ -70,10 +76,13 @@ public class RemoveRequestParameterGatewayFilterFactoryIntegrationTests extends 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("removerequestparam_java_test",
-							r -> r.path("/get").and().host("**.removerequestparamjava.org")
-									.filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo")).uri(uri))
-					.build();
+				.route("removerequestparam_java_test",
+						r -> r.path("/get")
+							.and()
+							.host("**.removerequestparamjava.org")
+							.filters(f -> f.prefixPath("/httpbin").removeRequestParameter("foo"))
+							.uri(uri))
+				.build();
 		}
 
 	}

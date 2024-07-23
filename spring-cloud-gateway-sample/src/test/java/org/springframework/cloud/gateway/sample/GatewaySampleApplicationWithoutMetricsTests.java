@@ -62,16 +62,21 @@ public class GatewaySampleApplicationWithoutMetricsTests {
 
 	protected ConfigurableApplicationContext init(Class<?> config) {
 		return new SpringApplicationBuilder().web(WebApplicationType.REACTIVE)
-				.sources(GatewaySampleApplication.class, config).run();
+			.sources(GatewaySampleApplication.class, config)
+			.run();
 	}
 
 	@Test
 	public void actuatorMetrics() {
 		init(TestConfig.class);
 		webClient.get().uri("/get").exchange().expectStatus().isOk();
-		webClient.get().uri("http://localhost:" + port + "/actuator/metrics/spring.cloud.gateway.requests").exchange()
-				.expectStatus().isOk().expectBody(String.class)
-				.isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
+		webClient.get()
+			.uri("http://localhost:" + port + "/actuator/metrics/spring.cloud.gateway.requests")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo(GatewaySampleApplication.HELLO_FROM_FAKE_ACTUATOR_METRICS_GATEWAY_REQUESTS);
 	}
 
 }

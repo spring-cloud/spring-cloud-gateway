@@ -65,8 +65,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	void contextLoads(ApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = getRouterFunctions(context);
 
-		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(5).containsKeys("listRoute1", "route1",
-				"route2CustomId", "listRoute2", "listRoute3", "listRoute4");
+		assertThat(routerFunctions).hasSizeGreaterThanOrEqualTo(5)
+			.containsKeys("listRoute1", "route1", "route2CustomId", "listRoute2", "listRoute3", "listRoute4");
 		RouterFunction listRoute1RouterFunction = routerFunctions.get("listRoute1");
 		listRoute1RouterFunction.accept(new AbstractRouterFunctionsVisitor() {
 			@Override
@@ -152,7 +152,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 			public void attributes(Map<String, Object> attributes) {
 				if (attributes.containsKey("gatewayRouterFunctions")) {
 					Map<String, RouterFunction> map = (Map<String, RouterFunction>) attributes
-							.get("gatewayRouterFunctions");
+						.get("gatewayRouterFunctions");
 					routerFunctionsRef.compareAndSet(null, map);
 				}
 			}
@@ -165,21 +165,32 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void configuredRouteWorks() {
-		restClient.get().uri("/anything/listRoute1").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Test", "listRoute1");
-				});
+		restClient.get()
+			.uri("/anything/listRoute1")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Test", "listRoute1");
+			});
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void lbRouteWorks() {
-		restClient.get().uri("/anything/listRoute3").header("MyHeaderName", "MyHeaderVal").exchange().expectStatus()
-				.isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Test", "listRoute3");
-				});
+		restClient.get()
+			.uri("/anything/listRoute3")
+			.header("MyHeaderName", "MyHeaderVal")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Test", "listRoute3");
+			});
 	}
 
 	@Test
@@ -187,21 +198,28 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	void refreshWorks(ConfigurableApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = getRouterFunctions(context);
 		assertThat(routerFunctions).hasSize(6);
-		TestPropertyValues.of("spring.cloud.gateway.mvc.routesMap.route3.uri=https://example3.com",
-				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].name=Path",
-				"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[0].Name=HttpbinUriResolver",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].Name=AddRequestHeader",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.name=X-Test",
-				"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.values=mapRoute3").applyTo(context);
+		TestPropertyValues
+			.of("spring.cloud.gateway.mvc.routesMap.route3.uri=https://example3.com",
+					"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].name=Path",
+					"spring.cloud.gateway.mvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
+					"spring.cloud.gateway.mvc.routesMap.route3.filters[0].Name=HttpbinUriResolver",
+					"spring.cloud.gateway.mvc.routesMap.route3.filters[1].Name=AddRequestHeader",
+					"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.name=X-Test",
+					"spring.cloud.gateway.mvc.routesMap.route3.filters[1].args.values=mapRoute3")
+			.applyTo(context);
 		ContextRefresher contextRefresher = context.getBean(ContextRefresher.class);
 		contextRefresher.refresh();
 		// make http call before getRouterFunction()
-		restClient.get().uri("/anything/mapRoute3").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Test", "mapRoute3");
-				});
+		restClient.get()
+			.uri("/anything/mapRoute3")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Test", "mapRoute3");
+			});
 
 		GatewayMvcProperties properties = context.getBean(GatewayMvcProperties.class);
 		assertThat(properties.getRoutesMap()).hasSize(3).containsKey("route3");

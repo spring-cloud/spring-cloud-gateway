@@ -300,7 +300,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec weight(String group, int weight) {
 		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
-			.applyAsync(c -> c.setGroup(group).setRouteId(this.routeBuilder.getId()).setWeight(weight)));
+			.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {

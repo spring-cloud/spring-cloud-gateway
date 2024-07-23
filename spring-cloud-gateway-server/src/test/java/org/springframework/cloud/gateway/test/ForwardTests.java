@@ -53,14 +53,26 @@ public class ForwardTests {
 
 	@Test
 	public void forwardWorks() {
-		this.client.get().uri("/localcontroller").header(HttpHeaders.HOST, "www.forward.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"from\":\"localcontroller\"}");
+		this.client.get()
+			.uri("/localcontroller")
+			.header(HttpHeaders.HOST, "www.forward.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"localcontroller\"}");
 	}
 
 	@Test
 	public void forwardWithCorrectPath() {
-		this.client.get().uri("/foo").header(HttpHeaders.HOST, "www.forward.org").exchange().expectStatus().isOk()
-				.expectBody().json("{\"from\":\"localcontroller\"}");
+		this.client.get()
+			.uri("/foo")
+			.header(HttpHeaders.HOST, "www.forward.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"localcontroller\"}");
 	}
 
 	@EnableAutoConfiguration

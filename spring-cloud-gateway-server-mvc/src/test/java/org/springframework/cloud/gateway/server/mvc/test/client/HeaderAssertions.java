@@ -124,10 +124,10 @@ public class HeaderAssertions {
 		this.exchangeResult.assertWithDiagnostics(() -> {
 			List<String> values = getRequiredValues(name);
 			AssertionErrors
-					.assertTrue(
-							getMessage(name) + " has fewer or more values " + values
-									+ " than number of patterns to match with " + Arrays.toString(patterns),
-							values.size() == patterns.length);
+				.assertTrue(
+						getMessage(name) + " has fewer or more values " + values
+								+ " than number of patterns to match with " + Arrays.toString(patterns),
+						values.size() == patterns.length);
 			for (int i = 0; i < values.size(); i++) {
 				String value = values.get(i);
 				String pattern = patterns[i];

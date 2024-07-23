@@ -50,7 +50,7 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 	private final GatewayFilterChain chain = mock(GatewayFilterChain.class);
 
 	private final ServerWebExchange exchange = MockServerWebExchange
-			.from(MockServerHttpRequest.get("http://localhost/get").build());
+		.from(MockServerHttpRequest.get("http://localhost/get").build());
 
 	private final LoadBalancerServiceInstanceCookieFilter filter = new LoadBalancerServiceInstanceCookieFilter(
 			properties);
@@ -62,27 +62,30 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 	@Test
 	void shouldAddServiceInstanceCookieHeader() {
-		exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
-				new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
+		exchange.getAttributes()
+			.put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+					new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
 
 		ServerWebExchange filteredExchange = testFilter(exchange);
 
 		assertThat(filteredExchange.getRequest().getHeaders().get(HttpHeaders.COOKIE)).hasSize(1);
 		assertThat(filteredExchange.getRequest().getHeaders().get(HttpHeaders.COOKIE))
-				.containsExactly("sc-lb-instance-id=test-01");
+			.containsExactly("sc-lb-instance-id=test-01");
 	}
 
 	@Test
 	void shouldAppendServiceInstanceCookieHeaderIfCookiesPresent() {
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/get")
-				.cookie(new HttpCookie("testCookieName", "testCookieValue")).build());
-		exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
-				new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
+			.cookie(new HttpCookie("testCookieName", "testCookieValue"))
+			.build());
+		exchange.getAttributes()
+			.put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+					new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
 
 		ServerWebExchange filteredExchange = testFilter(exchange);
 
 		assertThat(filteredExchange.getRequest().getHeaders().get(HttpHeaders.COOKIE))
-				.containsExactly("testCookieName=testCookieValue", "sc-lb-instance-id=test-01");
+			.containsExactly("testCookieName=testCookieValue", "sc-lb-instance-id=test-01");
 	}
 
 	@Test
@@ -94,8 +97,9 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 	@Test
 	void shouldContinueChainWhenNullServiceInstanceCookieName() {
-		exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
-				new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
+		exchange.getAttributes()
+			.put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+					new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
 		properties.getStickySession().setInstanceIdCookieName(null);
 
 		ServerWebExchange filteredExchange = testFilter(exchange);
@@ -105,8 +109,9 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 	@Test
 	void shouldContinueChainWhenEmptyServiceInstanceCookieName() {
-		exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
-				new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
+		exchange.getAttributes()
+			.put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+					new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
 		properties.getStickySession().setInstanceIdCookieName("");
 
 		ServerWebExchange filteredExchange = testFilter(exchange);

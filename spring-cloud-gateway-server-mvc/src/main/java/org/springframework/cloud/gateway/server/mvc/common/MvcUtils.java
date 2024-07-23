@@ -144,7 +144,7 @@ public abstract class MvcUtils {
 
 	public static ApplicationContext getApplicationContext(ServerRequest request) {
 		WebApplicationContext webApplicationContext = RequestContextUtils
-				.findWebApplicationContext(request.servletRequest());
+			.findWebApplicationContext(request.servletRequest());
 		if (webApplicationContext == null) {
 			throw new IllegalStateException("No Application Context in request attributes");
 		}
@@ -165,16 +165,16 @@ public abstract class MvcUtils {
 		// attribute resetting in RequestPredicates
 		// computeIfAbsent if the used vanilla RouterFunctions.route()
 		Map<String, Object> attributes = (Map<String, Object>) request.attributes()
-				.computeIfAbsent(GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
+			.computeIfAbsent(GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
 		return attributes;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
 		Map<String, Object> reqUriTemplateVars = (Map<String, Object>) request.attributes()
-				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 		Map<String, Object> gatewayUriTemplateVars = (Map<String, Object>) getGatewayAttributes(request)
-				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 		Map<String, Object> merged = mergeMaps(reqUriTemplateVars, gatewayUriTemplateVars);
 		return merged;
 	}

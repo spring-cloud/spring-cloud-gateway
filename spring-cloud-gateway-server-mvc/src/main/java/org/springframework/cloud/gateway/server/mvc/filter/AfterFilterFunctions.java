@@ -116,7 +116,8 @@ public abstract class AfterFilterFunctions {
 		return (request, response) -> {
 			response.headers().computeIfPresent(name, (key, values) -> {
 				List<String> rewrittenValues = values.stream()
-						.map(value -> pattern.matcher(value).replaceAll(replacement)).toList();
+					.map(value -> pattern.matcher(value).replaceAll(replacement))
+					.toList();
 				return new ArrayList<>(rewrittenValues);
 			});
 			return response;

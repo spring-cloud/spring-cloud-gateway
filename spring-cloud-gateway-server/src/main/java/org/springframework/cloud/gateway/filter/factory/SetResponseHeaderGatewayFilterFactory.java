@@ -37,13 +37,14 @@ public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().set(config.name, value)));
+					.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().set(config.name, value)));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetResponseHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getValue()).toString();
+					.append(config.getName(), config.getValue())
+					.toString();
 			}
 		};
 	}

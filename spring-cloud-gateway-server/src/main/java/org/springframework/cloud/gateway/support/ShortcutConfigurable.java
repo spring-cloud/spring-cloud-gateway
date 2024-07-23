@@ -128,8 +128,11 @@ public interface ShortcutConfigurable {
 				Assert.isTrue(fieldOrder != null && fieldOrder.size() == 1,
 						"Shortcut Configuration Type GATHER_LIST must have shortcutFieldOrder of size 1");
 				String fieldName = fieldOrder.get(0);
-				map.put(fieldName, args.values().stream().map(value -> getValue(parser, beanFactory, value))
-						.collect(Collectors.toList()));
+				map.put(fieldName,
+						args.values()
+							.stream()
+							.map(value -> getValue(parser, beanFactory, value))
+							.collect(Collectors.toList()));
 				return map;
 			}
 		},
@@ -158,8 +161,10 @@ public interface ShortcutConfigurable {
 					}
 				}
 				String fieldName = fieldOrder.get(0);
-				map.put(fieldName, values.stream().map(value -> getValue(parser, beanFactory, value))
-						.collect(Collectors.toList()));
+				map.put(fieldName,
+						values.stream()
+							.map(value -> getValue(parser, beanFactory, value))
+							.collect(Collectors.toList()));
 				return map;
 			}
 		};
@@ -182,7 +187,8 @@ public interface ShortcutConfigurable {
 					Boolean.class, true);
 			if (restrictive) {
 				delegate = SimpleEvaluationContext.forPropertyAccessors(new RestrictivePropertyAccessor())
-						.withMethodResolvers((context, targetObject, name, argumentTypes) -> null).build();
+					.withMethodResolvers((context, targetObject, name, argumentTypes) -> null)
+					.build();
 			}
 			else {
 				delegate = SimpleEvaluationContext.forReadOnlyDataBinding().build();

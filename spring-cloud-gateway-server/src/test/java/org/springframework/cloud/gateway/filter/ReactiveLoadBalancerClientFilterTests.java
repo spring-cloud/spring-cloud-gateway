@@ -159,7 +159,7 @@ class ReactiveLoadBalancerClientFilterTests {
 		verifyNoMoreInteractions(clientFactory);
 
 		assertThat((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
-				.isEqualTo(URI.create("https://localhost:8080/mypath"));
+			.isEqualTo(URI.create("https://localhost:8080/mypath"));
 
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
@@ -189,8 +189,10 @@ class ReactiveLoadBalancerClientFilterTests {
 	@Test
 	void encodedParameters() {
 		when(clientFactory.getProperties(any())).thenReturn(loadBalancerProperties);
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode()
-				.toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]")
+			.buildAndExpand()
+			.encode()
+			.toUri();
 
 		MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, url).build();
 
@@ -284,7 +286,7 @@ class ReactiveLoadBalancerClientFilterTests {
 		when(clientFactory.getProperties(any())).thenReturn(loadBalancerProperties);
 		URI url = UriComponentsBuilder.fromUriString("lb://myservice").build().toUri();
 		ServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get("https://localhost:9999/mypath").build());
+			.from(MockServerHttpRequest.get("https://localhost:9999/mypath").build());
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 		ServiceInstance serviceInstance = new DefaultServiceInstance("myservice1", "myservice", "localhost", 8080,
 				false);
@@ -297,7 +299,7 @@ class ReactiveLoadBalancerClientFilterTests {
 
 		assertThat((LinkedHashSet<URI>) exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR)).contains(url);
 		assertThat((URI) exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR))
-				.isEqualTo(URI.create("http://localhost:8080/mypath"));
+			.isEqualTo(URI.create("http://localhost:8080/mypath"));
 		verify(chain).filter(exchange);
 		verifyNoMoreInteractions(chain);
 	}
@@ -314,11 +316,11 @@ class ReactiveLoadBalancerClientFilterTests {
 		when(serverWebExchange.getAttribute(GATEWAY_REQUEST_URL_ATTR)).thenReturn(lbUri);
 		when(serverWebExchange.getAttributes()).thenReturn(new HashMap<>(Map.of("myattr", "myattrval")));
 		when(serverWebExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR))
-				.thenReturn(new LinkedHashSet<>());
+			.thenReturn(new LinkedHashSet<>());
 		when(serverWebExchange.getRequest()).thenReturn(request);
 		RoundRobinLoadBalancer loadBalancer = mock(RoundRobinLoadBalancer.class);
-		when(loadBalancer.choose(any(Request.class))).thenReturn(Mono.just(
-				new DefaultResponse(new DefaultServiceInstance("myservice1", "service1", "localhost", 8080, false))));
+		when(loadBalancer.choose(any(Request.class))).thenReturn(Mono
+			.just(new DefaultResponse(new DefaultServiceInstance("myservice1", "service1", "localhost", 8080, false))));
 		when(clientFactory.getInstance("service1", ReactorServiceInstanceLoadBalancer.class)).thenReturn(loadBalancer);
 		when(chain.filter(any())).thenReturn(Mono.empty());
 
@@ -346,11 +348,11 @@ class ReactiveLoadBalancerClientFilterTests {
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
 		verify(lifecycleProcessor).onStartRequest(any(Request.class), any(Response.class));
-		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.SUCCESS
-				.equals(completionContext.status())
-				&& completionContext.getLoadBalancerResponse().getServer().equals(serviceInstance)
-				&& HttpMethod.GET.equals(
-						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
+		verify(lifecycleProcessor)
+			.onComplete(argThat(completionContext -> CompletionContext.Status.SUCCESS.equals(completionContext.status())
+					&& completionContext.getLoadBalancerResponse().getServer().equals(serviceInstance)
+					&& HttpMethod.GET.equals(
+							((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -364,10 +366,10 @@ class ReactiveLoadBalancerClientFilterTests {
 		filter.filter(serverWebExchange, chain).subscribe();
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
-		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.DISCARD
-				.equals(completionContext.status())
-				&& HttpMethod.GET.equals(
-						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
+		verify(lifecycleProcessor)
+			.onComplete(argThat(completionContext -> CompletionContext.Status.DISCARD.equals(completionContext.status())
+					&& HttpMethod.GET.equals(
+							((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -383,10 +385,10 @@ class ReactiveLoadBalancerClientFilterTests {
 
 		verify(lifecycleProcessor).onStart(any(Request.class));
 		verify(lifecycleProcessor).onStartRequest(any(Request.class), any(Response.class));
-		verify(lifecycleProcessor).onComplete(argThat(completionContext -> CompletionContext.Status.FAILED
-				.equals(completionContext.status())
-				&& HttpMethod.GET.equals(
-						((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
+		verify(lifecycleProcessor)
+			.onComplete(argThat(completionContext -> CompletionContext.Status.FAILED.equals(completionContext.status())
+					&& HttpMethod.GET.equals(
+							((RequestDataContext) completionContext.getLoadBalancerRequest().getContext()).method())));
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

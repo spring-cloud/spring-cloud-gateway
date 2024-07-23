@@ -499,10 +499,11 @@ public class HttpClientProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("useInsecureTrustManager", useInsecureTrustManager)
-					.append("trustedX509Certificates", trustedX509Certificates)
-					.append("handshakeTimeout", handshakeTimeout)
-					.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
-					.append("closeNotifyReadTimeout", closeNotifyReadTimeout).toString();
+				.append("trustedX509Certificates", trustedX509Certificates)
+				.append("handshakeTimeout", handshakeTimeout)
+				.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
+				.append("closeNotifyReadTimeout", closeNotifyReadTimeout)
+				.toString();
 		}
 
 	}
@@ -534,7 +535,8 @@ public class HttpClientProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("maxFramePayloadLength", maxFramePayloadLength)
-					.append("proxyPing", proxyPing).toString();
+				.append("proxyPing", proxyPing)
+				.toString();
 		}
 
 	}

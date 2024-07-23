@@ -105,8 +105,11 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			ServerRequest.Builder requestBuilder = ServerRequest.from(request);
 			newHeaders.forEach((newHeaderName, newHeaderValues) -> {
-				boolean headerIsMissingOrBlank = request.headers().asHttpHeaders().getOrEmpty(newHeaderName).stream()
-						.allMatch(h -> !StringUtils.hasText(h));
+				boolean headerIsMissingOrBlank = request.headers()
+					.asHttpHeaders()
+					.getOrEmpty(newHeaderName)
+					.stream()
+					.allMatch(h -> !StringUtils.hasText(h));
 				if (headerIsMissingOrBlank) {
 					requestBuilder.headers(httpHeaders -> {
 						List<String> expandedValues = MvcUtils.expandMultiple(request, newHeaderValues);
@@ -134,20 +137,22 @@ public abstract class BeforeFilterFunctions {
 			Consumer<FallbackHeadersConfig> configConsumer) {
 		FallbackHeadersConfig config = new FallbackHeadersConfig();
 		configConsumer.accept(config);
-		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR).map(Throwable.class::cast)
-				.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
-					httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
-					if (throwable.getMessage() != null) {
-						httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+			.map(Throwable.class::cast)
+			.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
+				httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
+				if (throwable.getMessage() != null) {
+					httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+				}
+				Throwable rootCause = getRootCause(throwable);
+				if (rootCause != null) {
+					httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
+					if (rootCause.getMessage() != null) {
+						httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
 					}
-					Throwable rootCause = getRootCause(throwable);
-					if (rootCause != null) {
-						httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
-						if (rootCause.getMessage() != null) {
-							httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
-						}
-					}
-				}).build()).orElse(request);
+				}
+			}).build())
+			.orElse(request);
 	}
 
 	private static Throwable getRootCause(Throwable throwable) {
@@ -211,7 +216,9 @@ public abstract class BeforeFilterFunctions {
 
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
-					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+				.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
+				.build()
+				.toUri();
 
 			// remove resolved params from request
 			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
@@ -252,7 +259,7 @@ public abstract class BeforeFilterFunctions {
 				StringBuilder errorMessage = new StringBuilder(
 						String.format(REQUEST_HEADER_SIZE_ERROR_PREFIX, maxSize));
 				longHeaders.forEach((header, size) -> errorMessage
-						.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
+					.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
 
 				throw new ResponseStatusException(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE, errorMessage.toString()) {
 					@Override
@@ -398,8 +405,10 @@ public abstract class BeforeFilterFunctions {
 			}
 			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
-					.toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
+				.replacePath(newPath.toString())
+				.build()
+				.toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}

@@ -109,8 +109,8 @@ public class RouterFunctionHolderFactory {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private GatewayMvcPropertiesBeanDefinitionRegistrar.RouterFunctionHolder routerFunctionHolderSupplier() {
-		GatewayMvcProperties properties = Binder.get(env).bindOrCreate(GatewayMvcProperties.PREFIX,
-				GatewayMvcProperties.class);
+		GatewayMvcProperties properties = Binder.get(env)
+			.bindOrCreate(GatewayMvcProperties.PREFIX, GatewayMvcProperties.class);
 		log.trace(LogMessage.format("RouterFunctionHolder initializing with %d map routes and %d list routes",
 				properties.getRoutesMap().size(), properties.getRoutes().size()));
 
@@ -242,9 +242,11 @@ public class RouterFunctionHolderFactory {
 
 	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
 			String operationName, Map<String, Object> operationArgs) {
-		return operations.getOrDefault(operationName, Collections.emptyList()).stream()
-				.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
-				.filter(opeMethod -> matchOperation(opeMethod, operationArgs)).findFirst();
+		return operations.getOrDefault(operationName, Collections.emptyList())
+			.stream()
+			.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
+			.filter(opeMethod -> matchOperation(opeMethod, operationArgs))
+			.findFirst();
 	}
 
 	private static boolean matchOperation(NormalizedOperationMethod operationMethod, Map<String, Object> args) {
@@ -291,7 +293,7 @@ public class RouterFunctionHolderFactory {
 		}
 		Bindable<?> bindable = Bindable.of(configurableType);
 		List<ConfigurationPropertySource> propertySources = Collections
-				.singletonList(new MapConfigurationPropertySource(args));
+			.singletonList(new MapConfigurationPropertySource(args));
 		// TODO: potentially deal with conversion service
 		Binder binder = new Binder(propertySources, null, DefaultConversionService.getSharedInstance());
 		Object config = binder.bindOrCreate("", bindable, new IgnoreTopLevelConverterNotFoundBindHandler());

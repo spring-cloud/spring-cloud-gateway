@@ -38,26 +38,27 @@ public class GatewayServerMvcAutoConfigurationTests {
 
 	@Test
 	void filterEnabledPropertiesWork() {
-		new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
-				RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-				.withPropertyValues("spring.cloud.gateway.mvc.form-filter.enabled=false",
-						"spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled=false",
-						"spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled=false",
-						"spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled=false",
-						"spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled=false",
-						"spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
-						"spring.cloud.gateway.mvc.weight-calculator-filter.enabled=false",
-						"spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled=false")
-				.run(context -> {
-					assertThat(context).doesNotHaveBean(FormFilter.class);
-					assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class);
-					assertThat(context).doesNotHaveBean(RemoveContentLengthRequestHeadersFilter.class);
-					assertThat(context).doesNotHaveBean(RemoveHopByHopRequestHeadersFilter.class);
-					assertThat(context).doesNotHaveBean(RemoveHopByHopResponseHeadersFilter.class);
-					assertThat(context).doesNotHaveBean(TransferEncodingNormalizationRequestHeadersFilter.class);
-					assertThat(context).doesNotHaveBean(WeightCalculatorFilter.class);
-					assertThat(context).doesNotHaveBean(XForwardedRequestHeadersFilter.class);
-				});
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
+					RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.gateway.mvc.form-filter.enabled=false",
+					"spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled=false",
+					"spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.mvc.weight-calculator-filter.enabled=false",
+					"spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled=false")
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(FormFilter.class);
+				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(RemoveContentLengthRequestHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(RemoveHopByHopRequestHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(RemoveHopByHopResponseHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(TransferEncodingNormalizationRequestHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(WeightCalculatorFilter.class);
+				assertThat(context).doesNotHaveBean(XForwardedRequestHeadersFilter.class);
+			});
 	}
 
 }

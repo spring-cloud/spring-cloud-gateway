@@ -102,8 +102,11 @@ public class RedirectToGatewayFilterFactory
 
 					String location;
 					if (includeRequestParams) {
-						location = UriComponentsBuilder.fromUri(uri).queryParams(exchange.getRequest().getQueryParams())
-								.build().toUri().toString();
+						location = UriComponentsBuilder.fromUri(uri)
+							.queryParams(exchange.getRequest().getQueryParams())
+							.build()
+							.toUri()
+							.toString();
 					}
 					else {
 						location = uri.toString();
@@ -126,7 +129,8 @@ public class RedirectToGatewayFilterFactory
 					status = httpStatus.getStatus().toString();
 				}
 				return filterToStringCreator(RedirectToGatewayFilterFactory.this).append(status, uri)
-						.append(INCLUDE_REQUEST_PARAMS_KEY, includeRequestParams).toString();
+					.append(INCLUDE_REQUEST_PARAMS_KEY, includeRequestParams)
+					.toString();
 			}
 		};
 	}
