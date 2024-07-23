@@ -256,7 +256,6 @@ public class ServerMvcIntegrationTests {
 						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
 				assertThat(headers).containsEntry(
 						XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER, "/long/path/to");
-				assertThat(headers).containsEntry("X-Forwarded-Prefix", "/long/path/to");
 				assertThat(headers).containsEntry("X-Test", "stripPrefix");
 			});
 	}
