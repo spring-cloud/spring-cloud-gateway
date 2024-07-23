@@ -63,7 +63,7 @@ public class QueryParamRoutePredicateFactory
 
 			@Override
 			public String toString() {
-				return String.format("QueryParam: param=%s", config.getParam());
+				return String.format("QueryParam: param=%s", config.param);
 			}
 		};
 	}
@@ -82,17 +82,9 @@ public class QueryParamRoutePredicateFactory
 		@NotNull
 		private Predicate<String> predicate;
 
-		public String getParam() {
-			return this.param;
-		}
-
 		public Config setParam(String param) {
 			this.param = param;
 			return this;
-		}
-
-		public Predicate<String> getPredicate() {
-			return this.predicate;
 		}
 
 		public Config setPredicate(Predicate<String> predicate) {
