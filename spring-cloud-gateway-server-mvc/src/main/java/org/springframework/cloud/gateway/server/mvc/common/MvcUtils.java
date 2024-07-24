@@ -107,8 +107,18 @@ public abstract class MvcUtils {
 	public static ByteArrayInputStream cacheBody(ServerRequest request) {
 		try {
 			byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
-			ByteArrayInputStream body = new ByteArrayInputStream(bytes);
-			putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+			ByteArrayInputStream body;
+			if (bytes.length > 0) {
+				body = new ByteArrayInputStream(bytes);
+				putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+			}
+			else {
+				body = getAttribute(request, CACHED_REQUEST_BODY_ATTR);
+				if (body == null) {
+					body = new ByteArrayInputStream(bytes);
+					putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+				}
+			}
 			return body;
 		}
 		catch (IOException e) {
