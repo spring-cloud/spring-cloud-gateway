@@ -21,12 +21,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -751,6 +753,12 @@ public class GatewayAutoConfiguration {
 					super.customize(factory);
 				}
 			};
+		}
+
+		@Bean
+		@ConditionalOnProperty(name = "spring.cloud.gateway.httpserver.metrics.enabled")
+		public NettyServerCustomizer nettyServerMetricsExposureCustomizer() {
+			return httpServer -> httpServer.metrics(true, Function.identity());
 		}
 
 		@Bean

@@ -21,16 +21,20 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import java.util.function.Function;
 import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
+import org.springframework.cloud.gateway.config.GatewayAutoConfiguration.NettyConfiguration;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientConfig;
 import reactor.netty.http.client.WebsocketClientSpec;
+import reactor.netty.http.server.HttpServer;
 import reactor.netty.http.server.WebsocketServerSpec;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
@@ -69,6 +73,12 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class GatewayAutoConfigurationTests {
 
@@ -269,6 +279,29 @@ public class GatewayAutoConfigurationTests {
 		assertThat(spec1.protocols()).isEqualTo("p1");
 		// Protocols should not be cached between requests:
 		assertThat(spec2.protocols()).isNull();
+	}
+
+	@Test
+	public void nettyServerMetricsExposureCustomizerTest() {
+		new ReactiveWebApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(NettyConfiguration.class, ServerPropertiesConfig.class))
+				.withBean(GatewayProperties.class, GatewayProperties::new)
+				.withPropertyValues("spring.cloud.gateway.httpserver.metrics.enabled=true")
+				.run(context -> {
+					assertThat(context).hasSingleBean(NettyServerCustomizer.class);
+					NettyServerCustomizer customizer = context.getBean(NettyServerCustomizer.class);
+
+					// Create a mock HttpServer
+					HttpServer mockHttpServer = mock(HttpServer.class);
+					when(mockHttpServer.metrics(anyBoolean(), any(Function.class))).thenReturn(mockHttpServer);
+
+					// Apply the customizer
+					HttpServer customizedServer = customizer.apply(mockHttpServer);
+
+					// Verify that metrics were enabled
+					verify(mockHttpServer).metrics(eq(true), any(Function.class));
+					assertThat(customizedServer).isSameAs(mockHttpServer);
+				});
 	}
 
 	@Test
