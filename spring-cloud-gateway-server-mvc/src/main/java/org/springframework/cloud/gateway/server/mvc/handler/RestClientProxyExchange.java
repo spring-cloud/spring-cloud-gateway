@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 
+import org.springframework.cloud.gateway.server.mvc.common.HttpUtils;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
@@ -71,7 +72,7 @@ public class RestClientProxyExchange implements ProxyExchange {
 					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
 							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 					// copy body from request to clientHttpRequest
-					StreamUtils.copy(inputStream, httpServletResponse.getOutputStream());
+					HttpUtils.copyResponseBody(clientResponse, inputStream, httpServletResponse.getOutputStream());
 				}
 				return null;
 			});
