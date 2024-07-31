@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
@@ -29,7 +27,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 
 public class RestClientProxyExchange implements ProxyExchange {
 
@@ -51,28 +49,51 @@ public class RestClientProxyExchange implements ProxyExchange {
 	}
 
 	private static int copyBody(Request request, OutputStream outputStream) throws IOException {
-		var inputStream = request.getServerRequest().servletRequest().getInputStream();
-		var httpServletRequest = request.getServerRequest().servletRequest();
-
-		return copy(httpServletRequest, inputStream, outputStream);
+		return StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), outputStream);
 	}
 
-	private static int copy(HttpServletRequest request, InputStream inputStream, OutputStream outputStream)
-			throws IOException {
-		int totalBytes;
-		if (TEXT_EVENT_STREAM_VALUE.equals(request.getContentType())) {
-			totalBytes = copyWithFlush(inputStream, outputStream);
-		}
-		else {
-			totalBytes = StreamUtils.copy(inputStream, outputStream);
-		}
-		return totalBytes;
+	private static ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
+		InputStream body = clientResponse.getBody();
+		// put the body input stream in a request attribute so filters can read it.
+		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
+		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
+			.build((req, httpServletResponse) -> {
+				try (clientResponse) {
+					// get input stream from request attribute in case it was
+					// modified.
+					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
+							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+					// copy body from request to clientHttpRequest
+					copyResponseBody(clientResponse, inputStream, httpServletResponse.getOutputStream());
+				}
+				return null;
+			});
+		ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientResponse);
+		request.getResponseConsumers()
+			.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
+		return serverResponse;
 	}
 
-	private static int copyWithFlush(InputStream inputStream, OutputStream outputStream) throws IOException {
+	private static int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
+			OutputStream outputStream) throws IOException {
+		Assert.notNull(clientResponse, "No ClientResponse specified");
 		Assert.notNull(inputStream, "No InputStream specified");
 		Assert.notNull(outputStream, "No OutputStream specified");
 
+		int transferredBytes;
+
+		if (TEXT_EVENT_STREAM.equals(clientResponse.getHeaders().getContentType())) {
+			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
+		}
+		else {
+			transferredBytes = StreamUtils.copy(inputStream, outputStream);
+		}
+
+		return transferredBytes;
+	}
+
+	private static int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream)
+			throws IOException {
 		int readBytes;
 		var totalReadBytes = 0;
 		var buffer = new byte[BUFFER_SIZE];
@@ -90,32 +111,9 @@ public class RestClientProxyExchange implements ProxyExchange {
 			}
 		}
 
-		outputStream.flush(); // in case of zero bytes and an outputstream that does not
-								// flush on close
+		outputStream.flush();
 
 		return totalReadBytes;
-	}
-
-	private static ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
-		InputStream body = clientResponse.getBody();
-		// put the body input stream in a request attribute so filters can read it.
-		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
-		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
-			.build((req, httpServletResponse) -> {
-				try (clientResponse) {
-					// get input stream from request attribute in case it was
-					// modified.
-					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
-							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
-					// copy body from request to clientHttpRequest
-					copy(req, inputStream, httpServletResponse.getOutputStream());
-				}
-				return null;
-			});
-		ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientResponse);
-		request.getResponseConsumers()
-			.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
-		return serverResponse;
 	}
 
 }
