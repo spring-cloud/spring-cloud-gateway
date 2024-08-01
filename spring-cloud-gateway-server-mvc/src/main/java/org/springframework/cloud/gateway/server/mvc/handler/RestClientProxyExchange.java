@@ -20,18 +20,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.springframework.cloud.gateway.server.mvc.common.HttpUtils;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.function.ServerResponse;
 
-import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
-
 public class RestClientProxyExchange implements ProxyExchange {
-
-	private static final int BUFFER_SIZE = 16384;
 
 	private final RestClient restClient;
 
@@ -64,7 +60,7 @@ public class RestClientProxyExchange implements ProxyExchange {
 					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
 							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 					// copy body from request to clientHttpRequest
-					copyResponseBody(clientResponse, inputStream, httpServletResponse.getOutputStream());
+					HttpUtils.copyResponseBody(clientResponse, inputStream, httpServletResponse.getOutputStream());
 				}
 				return null;
 			});
@@ -72,48 +68,6 @@ public class RestClientProxyExchange implements ProxyExchange {
 		request.getResponseConsumers()
 			.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 		return serverResponse;
-	}
-
-	private static int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
-			OutputStream outputStream) throws IOException {
-		Assert.notNull(clientResponse, "No ClientResponse specified");
-		Assert.notNull(inputStream, "No InputStream specified");
-		Assert.notNull(outputStream, "No OutputStream specified");
-
-		int transferredBytes;
-
-		if (TEXT_EVENT_STREAM.equals(clientResponse.getHeaders().getContentType())) {
-			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
-		}
-		else {
-			transferredBytes = StreamUtils.copy(inputStream, outputStream);
-		}
-
-		return transferredBytes;
-	}
-
-	private static int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream)
-			throws IOException {
-		int readBytes;
-		var totalReadBytes = 0;
-		var buffer = new byte[BUFFER_SIZE];
-
-		while ((readBytes = inputStream.read(buffer)) != -1) {
-			outputStream.write(buffer, 0, readBytes);
-			outputStream.flush();
-			if (totalReadBytes < Integer.MAX_VALUE) {
-				try {
-					totalReadBytes = Math.addExact(totalReadBytes, readBytes);
-				}
-				catch (ArithmeticException e) {
-					totalReadBytes = Integer.MAX_VALUE;
-				}
-			}
-		}
-
-		outputStream.flush();
-
-		return totalReadBytes;
 	}
 
 }
