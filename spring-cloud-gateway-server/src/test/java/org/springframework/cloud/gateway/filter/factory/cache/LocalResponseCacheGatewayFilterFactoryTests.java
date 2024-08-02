@@ -351,6 +351,25 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
 		}
 
+		@Test
+		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
+			String uri = "/" + UUID.randomUUID() + "/cache/headers";
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(HttpHeaders.PRAGMA);
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(HttpHeaders.PRAGMA);
+		}
+
 		void assertNonVaryHeaderInContent(String uri, String varyHeader, String varyHeaderValue, String nonVaryHeader,
 				String nonVaryHeaderValue, String expectedNonVaryResponse) {
 			testClient.get()
