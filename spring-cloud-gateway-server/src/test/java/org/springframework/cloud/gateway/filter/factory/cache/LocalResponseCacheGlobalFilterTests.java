@@ -30,6 +30,7 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -121,6 +122,25 @@ public class LocalResponseCacheGlobalFilterTests {
 				.expectBody()
 				.jsonPath("$.headers." + CUSTOM_HEADER)
 				.isEqualTo("1");
+		}
+
+		@Test
+		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
+			String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(HttpHeaders.PRAGMA);
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(HttpHeaders.PRAGMA);
 		}
 
 		@EnableAutoConfiguration
