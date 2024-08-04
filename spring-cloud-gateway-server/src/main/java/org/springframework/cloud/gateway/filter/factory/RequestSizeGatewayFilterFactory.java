@@ -30,8 +30,9 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * This filter blocks the request, if the request size is more than the permissible size.
- * The default request size is 5 MB.
+ * This filter blocks the request if the size in Content-Length header value is more than
+ * the permissible size. Has no effect if Content-Length header is missing. The default
+ * request size is 5 MB.
  *
  * @author Arpan
  */
@@ -74,8 +75,10 @@ public class RequestSizeGatewayFilterFactory
 					if (currentRequestSize > requestSizeConfig.getMaxSize().toBytes()) {
 						exchange.getResponse().setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE);
 						if (!exchange.getResponse().isCommitted()) {
-							exchange.getResponse().getHeaders().add("errorMessage",
-									getErrorMessage(currentRequestSize, requestSizeConfig.getMaxSize().toBytes()));
+							exchange.getResponse()
+								.getHeaders()
+								.add("errorMessage",
+										getErrorMessage(currentRequestSize, requestSizeConfig.getMaxSize().toBytes()));
 						}
 						return exchange.getResponse().setComplete();
 					}
@@ -86,7 +89,8 @@ public class RequestSizeGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RequestSizeGatewayFilterFactory.this)
-						.append("max", requestSizeConfig.getMaxSize()).toString();
+					.append("max", requestSizeConfig.getMaxSize())
+					.toString();
 			}
 		};
 	}

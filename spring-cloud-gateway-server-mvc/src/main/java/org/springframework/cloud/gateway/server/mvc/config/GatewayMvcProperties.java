@@ -43,7 +43,7 @@ public class GatewayMvcProperties {
 	private List<RouteProperties> routes = new ArrayList<>();
 
 	/**
-	 * List of Routes.
+	 * Map of Routes.
 	 */
 	@NotNull
 	@Valid
@@ -73,18 +73,24 @@ public class GatewayMvcProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("httpClient", httpClient).append("routes", routes)
-				.append("routesMap", routesMap).toString();
+		return new ToStringCreator(this).append("httpClient", httpClient)
+			.append("routes", routes)
+			.append("routesMap", routesMap)
+			.toString();
 	}
 
 	public static class HttpClient {
 
+		/** The HttpClient connect timeout. */
 		private Duration connectTimeout;
 
+		/** The HttpClient read timeout. */
 		private Duration readTimeout;
 
+		/** The name of the SSL bundle to use. */
 		private String sslBundle;
 
+		/** The HttpClient type. Defaults to JDK. */
 		private HttpClientType type = HttpClientType.JDK;
 
 		public Duration getConnectTimeout() {
@@ -121,8 +127,11 @@ public class GatewayMvcProperties {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("connectTimeout", connectTimeout).append("readTimeout", readTimeout)
-					.append("sslBundle", sslBundle).append("type", type).toString();
+			return new ToStringCreator(this).append("connectTimeout", connectTimeout)
+				.append("readTimeout", readTimeout)
+				.append("sslBundle", sslBundle)
+				.append("type", type)
+				.toString();
 		}
 
 	}

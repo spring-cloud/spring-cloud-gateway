@@ -214,6 +214,23 @@ spring:
         predicates:
           - Header=Foo, .*
 
+
+        # =====================================
+      - id: host_with_port_pattern
+        uri: ${test.uri}
+        predicates:
+          - name: Host
+            args:
+              pattern: 'hostpatternarg.org:8080'
+
+        # =====================================
+      - id: host_without_port_pattern
+        uri: ${test.uri}
+        predicates:
+          - name: Host
+            args:
+              pattern: 'hostpatternarg.org'
+
       # =====================================
       - id: host_backwards_compatible_test
         uri: ${test.uri}
@@ -296,6 +313,14 @@ spring:
         filters:
           - SetPath=/anything/{digits}
 
+        # =====================================
+      - id: redirect_to_include_query_params_test
+        uri: ${test.uri}
+        predicates:
+          - Host=queryparams.redirectto.org
+        filters:
+          - RedirectTo=302, https://example.org, true
+
       # =====================================
       - id: redirect_to_test
         uri: ${test.uri}
@@ -340,6 +365,14 @@ spring:
         filters:
           - RewriteLocationResponseHeader
           - AddResponseHeader=Location, https://backend.org:443/v1/some/object/id
+
+        # =====================================
+      - id: rewrite_request_parameter_test
+        uri: ${test.uri}
+        predicates:
+          - Host=**.rewriterequestparameter.org
+        filters:
+          - RewriteRequestParameter=campaign,fall2023
 
         # =====================================
       - id: rewrite_response_header_test

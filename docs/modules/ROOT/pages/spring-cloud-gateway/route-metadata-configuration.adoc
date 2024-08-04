@@ -1,0 +1,32 @@
+[[route-metadata-configuration]]
+= Route Metadata Configuration
+
+You can configure additional parameters for each route by using metadata, as follows:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: route_with_metadata
+        uri: https://example.org
+        metadata:
+          optionName: "OptionValue"
+          compositeObject:
+            name: "value"
+          iAmNumber: 1
+----
+
+You could acquire all metadata properties from an exchange, as follows:
+
+[source]
+----
+Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+// get all metadata properties
+route.getMetadata();
+// get a single metadata property
+route.getMetadata(someKey);
+----
+

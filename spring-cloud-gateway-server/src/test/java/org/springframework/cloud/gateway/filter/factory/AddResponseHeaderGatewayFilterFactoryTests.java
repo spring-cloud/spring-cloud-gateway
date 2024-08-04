@@ -42,16 +42,20 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	void testResposneHeaderFilter() {
+	void testResponseHeaderFilter() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
 		String host = "www.addresponseheader.org";
 		String expectedValue = "Bar";
-		testClient.get().uri(uri).header("Host", host).exchange().expectHeader().valueEquals("X-Request-Foo",
-				expectedValue);
+		testClient.get()
+			.uri(uri)
+			.header("Host", host)
+			.exchange()
+			.expectHeader()
+			.valueEquals("X-Request-Foo", expectedValue);
 	}
 
 	@Test
-	void testResposneHeaderFilterJavaDsl() {
+	void testResponseHeaderFilterJavaDsl() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true).toUri();
 		String host = "www.addresponseheaderjava.org";
 		String expectedValue = "myresponsevalue-www";
@@ -76,11 +80,14 @@ class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("add_response_header_java_test",
-							r -> r.path("/get").and().host("{sub}.addresponseheaderjava.org").filters(
+				.route("add_response_header_java_test",
+						r -> r.path("/get")
+							.and()
+							.host("{sub}.addresponseheaderjava.org")
+							.filters(
 									f -> f.prefixPath("/httpbin").addResponseHeader("example", "myresponsevalue-{sub}"))
-									.uri(uri))
-					.build();
+							.uri(uri))
+				.build();
 		}
 
 	}

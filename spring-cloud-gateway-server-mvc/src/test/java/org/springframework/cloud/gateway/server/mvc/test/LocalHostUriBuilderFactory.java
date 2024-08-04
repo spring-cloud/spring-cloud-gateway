@@ -351,6 +351,11 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 			return URI.create(uric.toString());
 		}
 
+		@Override
+		public String toUriString() {
+			return this.uriComponentsBuilder.build().toUriString();
+		}
+
 	}
 
 }

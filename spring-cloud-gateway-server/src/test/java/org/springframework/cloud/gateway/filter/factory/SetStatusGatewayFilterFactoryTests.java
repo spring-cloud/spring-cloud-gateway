@@ -79,8 +79,8 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 	public void shouldSetStatusIntAndAddOriginalHeader() {
 		String headerName = "original-http-status";
 		filterFactory.setOriginalStatusHeaderName(headerName);
-		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED).expectHeader().value(headerName,
-				Matchers.is("[200]"));
+		setStatusStringTest("www.setstatusint.org", HttpStatus.UNAUTHORIZED).expectHeader()
+			.value(headerName, Matchers.is("[200]"));
 
 	}
 
@@ -106,9 +106,10 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator enumRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_enum_http_status",
-					r -> r.host("*.setenumstatus.org").filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
-					.build();
+			return builder.routes()
+				.route("test_enum_http_status",
+						r -> r.host("*.setenumstatus.org").filters(f -> f.setStatus(HttpStatus.UNAUTHORIZED)).uri(uri))
+				.build();
 		}
 
 	}

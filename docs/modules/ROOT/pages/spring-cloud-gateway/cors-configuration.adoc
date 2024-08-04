@@ -1,0 +1,61 @@
+[[cors-configuration]]
+= CORS Configuration
+:cors-configuration-docs-uri: https://docs.spring.io/spring/docs/5.0.x/javadoc-api/org/springframework/web/cors/CorsConfiguration.html
+
+You can configure the gateway to control CORS behavior globally or per route.
+Both offer the same possibilities.
+
+[[global-cors-configuration]]
+== Global CORS Configuration
+
+The "`global`" CORS configuration is a map of URL patterns to {cors-configuration-docs-uri}[Spring Framework `CorsConfiguration`].
+The following example configures CORS:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "https://docs.spring.io"
+            allowedMethods:
+            - GET
+----
+
+In the preceding example, CORS requests are allowed from requests that originate from `docs.spring.io` for all GET requested paths.
+
+To provide the same CORS configuration to requests that are not handled by some gateway route predicate, set the `spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping` property  to `true`.
+This is useful when you try to support CORS preflight requests and your route predicate does not evaluate to `true` because the HTTP method is `options`.
+
+[[route-cors-configuration]]
+== Route CORS Configuration
+
+The "`route`" configuration allows applying CORS directly to a route as metadata with key `cors`.
+Like in the case of global configuration, the properties belong to {cors-configuration-docs-uri}[Spring Framework `CorsConfiguration`].
+
+NOTE: If no `Path` predicate is present in the route '/**' will be applied.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cors_route
+        uri: https://example.org
+        predicates:
+        - Path=/service/**
+        metadata:
+          cors:
+            allowedOrigins: '*'
+            allowedMethods:
+              - GET
+              - POST
+            allowedHeaders: '*'
+            maxAge: 30
+----
+

@@ -1,0 +1,27 @@
+[[reactor-netty-access-logs]]
+= Reactor Netty Access Logs
+
+To enable Reactor Netty access logs, set `-Dreactor.netty.http.server.accessLogEnabled=true`.
+
+IMPORTANT: It must be a Java System Property, not a Spring Boot property.
+
+You can configure the logging system to have a separate access log file. The following example creates a Logback configuration:
+
+.logback.xml
+[source,xml]
+----
+    <appender name="accessLog" class="ch.qos.logback.core.FileAppender">
+        <file>access_log.log</file>
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="accessLog" />
+    </appender>
+
+    <logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false">
+        <appender-ref ref="async"/>
+    </logger>
+----
+

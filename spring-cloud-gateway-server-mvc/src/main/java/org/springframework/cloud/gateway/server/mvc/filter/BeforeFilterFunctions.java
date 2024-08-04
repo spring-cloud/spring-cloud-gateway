@@ -105,8 +105,11 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			ServerRequest.Builder requestBuilder = ServerRequest.from(request);
 			newHeaders.forEach((newHeaderName, newHeaderValues) -> {
-				boolean headerIsMissingOrBlank = request.headers().asHttpHeaders().getOrEmpty(newHeaderName).stream()
-						.allMatch(h -> !StringUtils.hasText(h));
+				boolean headerIsMissingOrBlank = request.headers()
+					.asHttpHeaders()
+					.getOrEmpty(newHeaderName)
+					.stream()
+					.allMatch(h -> !StringUtils.hasText(h));
 				if (headerIsMissingOrBlank) {
 					requestBuilder.headers(httpHeaders -> {
 						List<String> expandedValues = MvcUtils.expandMultiple(request, newHeaderValues);
@@ -134,20 +137,22 @@ public abstract class BeforeFilterFunctions {
 			Consumer<FallbackHeadersConfig> configConsumer) {
 		FallbackHeadersConfig config = new FallbackHeadersConfig();
 		configConsumer.accept(config);
-		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR).map(Throwable.class::cast)
-				.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
-					httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
-					if (throwable.getMessage() != null) {
-						httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+			.map(Throwable.class::cast)
+			.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
+				httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
+				if (throwable.getMessage() != null) {
+					httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+				}
+				Throwable rootCause = getRootCause(throwable);
+				if (rootCause != null) {
+					httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
+					if (rootCause.getMessage() != null) {
+						httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
 					}
-					Throwable rootCause = getRootCause(throwable);
-					if (rootCause != null) {
-						httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
-						if (rootCause.getMessage() != null) {
-							httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
-						}
-					}
-				}).build()).orElse(request);
+				}
+			}).build())
+			.orElse(request);
 	}
 
 	private static Throwable getRootCause(Throwable throwable) {
@@ -193,9 +198,9 @@ public abstract class BeforeFilterFunctions {
 		};
 	}
 
-	public static Function<ServerRequest, ServerRequest> preserveHost() {
+	public static Function<ServerRequest, ServerRequest> preserveHostHeader() {
 		return request -> {
-			request.attributes().put(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
+			MvcUtils.putAttribute(request, MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, true);
 			return request;
 		};
 	}
@@ -211,7 +216,9 @@ public abstract class BeforeFilterFunctions {
 
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
-					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+				.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
+				.build()
+				.toUri();
 
 			// remove resolved params from request
 			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
@@ -222,9 +229,18 @@ public abstract class BeforeFilterFunctions {
 		return requestHeaderSize(DataSize.parse(maxSize));
 	}
 
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(String maxSize, String errorHeaderName) {
+		return requestHeaderSize(DataSize.parse(maxSize), errorHeaderName);
+	}
+
 	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize) {
+		return requestHeaderSize(maxSize, "errorMessage");
+	}
+
+	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize, String errorHeaderName) {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
+		Assert.hasText(errorHeaderName, "errorHeaderName may not be empty");
 		return request -> {
 			HashMap<String, Long> longHeaders = new HashMap<>();
 
@@ -243,14 +259,13 @@ public abstract class BeforeFilterFunctions {
 				StringBuilder errorMessage = new StringBuilder(
 						String.format(REQUEST_HEADER_SIZE_ERROR_PREFIX, maxSize));
 				longHeaders.forEach((header, size) -> errorMessage
-						.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
+					.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
 
 				throw new ResponseStatusException(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE, errorMessage.toString()) {
 					@Override
 					public HttpHeaders getHeaders() {
 						HttpHeaders httpHeaders = new HttpHeaders();
-						// TODO: customize header name
-						httpHeaders.add("errorMessage", errorMessage.toString());
+						httpHeaders.add(errorHeaderName, errorMessage.toString());
 						return httpHeaders;
 					}
 				};
@@ -316,7 +331,8 @@ public abstract class BeforeFilterFunctions {
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			MvcUtils.setRequestUrl(modified, modified.uri());
+			// TODO: can this be restored at some point?
+			// MvcUtils.setRequestUrl(modified, modified.uri());
 			return modified;
 		};
 	}
@@ -389,8 +405,10 @@ public abstract class BeforeFilterFunctions {
 			}
 			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
-					.toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
+				.replacePath(newPath.toString())
+				.build()
+				.toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}

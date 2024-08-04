@@ -68,9 +68,10 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 			}
 		});
 
-		sslContextSpec.sslContext(clientSslContext).handshakeTimeout(ssl.getHandshakeTimeout())
-				.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
-				.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
+		sslContextSpec.sslContext(clientSslContext)
+			.handshakeTimeout(ssl.getHandshakeTimeout())
+			.closeNotifyFlushTimeout(ssl.getCloseNotifyFlushTimeout())
+			.closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
 	}
 
 }

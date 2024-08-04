@@ -299,7 +299,7 @@ public final class ServerWebExchangeUtils {
 	public static void putUriTemplateVariables(ServerWebExchange exchange, Map<String, String> uriVariables) {
 		if (exchange.getAttributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
 			Map<String, Object> existingVariables = (Map<String, Object>) exchange.getAttributes()
-					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			HashMap<String, Object> newVariables = new HashMap<>();
 			newVariables.putAll(existingVariables);
 			newVariables.putAll(uriVariables);
@@ -361,12 +361,22 @@ public final class ServerWebExchangeUtils {
 	 */
 	private static <T> Mono<T> cacheRequestBody(ServerWebExchange exchange, boolean cacheDecoratedRequest,
 			Function<ServerHttpRequest, Mono<T>> function) {
+		// don't cache if body is already cached
+		Object cachedDataBuffer = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
+		if (cachedDataBuffer instanceof DataBuffer) {
+			if (log.isTraceEnabled()) {
+				log.trace("body already in exchange attribute, short circuiting");
+			}
+			return Mono.just(exchange.getRequest()).flatMap(function);
+		}
 		ServerHttpResponse response = exchange.getResponse();
 		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
-				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
-				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+		return DataBufferUtils.join(exchange.getRequest().getBody())
+			.defaultIfEmpty(factory.wrap(EMPTY_BYTES))
+			.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
+			.switchIfEmpty(Mono.just(exchange.getRequest()))
+			.flatMap(function);
 	}
 
 	private static ServerHttpRequest decorate(ServerWebExchange exchange, DataBuffer dataBuffer,
@@ -422,6 +432,11 @@ public final class ServerWebExchangeUtils {
 	public static Mono<Void> handle(DispatcherHandler handler, ServerWebExchange exchange) {
 		// remove attributes that may disrupt the forwarded request
 		exchange.getAttributes().remove(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
+
+		// CORS check is applied to the original request, but should not be applied to
+		// internally forwarded requests.
+		// See https://github.com/spring-cloud/spring-cloud-gateway/issues/3350.
+		exchange = exchange.mutate().request(request -> request.headers(headers -> headers.setOrigin(null))).build();
 
 		return handler.handle(exchange);
 	}

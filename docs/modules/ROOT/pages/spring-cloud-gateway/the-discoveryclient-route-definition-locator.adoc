@@ -1,0 +1,66 @@
+[[discoveryclient-route-definition-locator]]
+= `DiscoveryClient` Route Definition Locator
+
+You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
+
+By default, the routes created use the protocol `lb://service-name` (where `service-name` is the String that `DiscoveryClient::getServices` will return) and this means that they are load-balanced. For that reason, you also need to include the `org.springframework.cloud:spring-cloud-starter-loadbalancer` dependency, so that it is available on the classpath.
+
+To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, Zookeeper or Kubernetes) is on the classpath and enabled.
+
+[[configuring-predicates-and-filters-for-discoveryclient-routes]]
+== Configuring Predicates and Filters For `DiscoveryClient` Routes
+
+By default, the gateway defines a single predicate and filter for routes created with a `DiscoveryClient`.
+
+The default predicate is a path predicate defined with the pattern `/serviceId/**`, where `serviceId` is
+the ID of the service from the `DiscoveryClient`.
+
+The default filter is a rewrite path filter with the regex `/serviceId/?(?<remaining>.*)` and the replacement `/$\{remaining}`.
+This strips the service ID from the path before the request is sent downstream.
+
+If you want to customize the predicates or filters used by the `DiscoveryClient` routes, set `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
+When doing so, you need to make sure to include the default predicate and filter shown earlier, if you want to retain that functionality.
+The following examples shows what this looks like in properties and yaml format:
+
+.application.properties
+[soure,properties]
+====
+----
+spring.cloud.gateway.discovery.locator.predicates[0].name=Path
+spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]="'/'+serviceId+'/**'"
+spring.cloud.gateway.discovery.locator.predicates[1].name=Host
+spring.cloud.gateway.discovery.locator.predicates[1].args[pattern]="'**.foo.com'"
+spring.cloud.gateway.discovery.locator.filters[0].name=CircuitBreaker
+spring.cloud.gateway.discovery.locator.filters[0].args[name]=serviceId
+spring.cloud.gateway.discovery.locator.filters[1].name=RewritePath
+spring.cloud.gateway.discovery.locator.filters[1].args[regexp]="'/' + serviceId + '/?(?<remaining>.*)'"
+spring.cloud.gateway.discovery.locator.filters[1].args[replacement]="'/$\{remaining}'"
+----
+====
+
+.application.yml
+====
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          predicates:
+          - name: Host
+            args:
+              pattern: "'**.foo.com'"
+          - name: Path
+            args:
+              pattern: "'/'+serviceId+'/**'"
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: serviceId
+          - name: RewritePath
+            args:
+              regexp: "'/' + serviceId + '/?(?<remaining>.*)'"
+              replacement: "'/${remaining}'"
+----
+====

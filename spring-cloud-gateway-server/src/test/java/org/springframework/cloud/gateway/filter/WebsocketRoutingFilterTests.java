@@ -71,10 +71,11 @@ public class WebsocketRoutingFilterTests {
 	@Test
 	public void testEncodedUrl() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://not-matters-that")
-				.header(UPGRADE, "WebSocket").build();
+			.header(UPGRADE, "WebSocket")
+			.build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR,
-				URI.create("http://microservice/my-service/websocket%20upgrade"));
+		exchange.getAttributes()
+			.put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://microservice/my-service/websocket%20upgrade"));
 		changeSchemeIfIsWebSocketUpgrade(exchange);
 		URI wsRequestUrl = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		assertThat(wsRequestUrl).isEqualTo(URI.create("ws://microservice/my-service/websocket%20upgrade"));
@@ -97,8 +98,11 @@ public class WebsocketRoutingFilterTests {
 		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
 				mock(WebSocketService.class), headersFilters);
 		List<HttpHeadersFilter> filters = filter.getHeadersFilters();
-		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that").header(HOST, "MyHost")
-				.header("Sec-Websocket-Something", "someval").header("x-foo", "bar").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("ws://not-matters-that")
+			.header(HOST, "MyHost")
+			.header("Sec-Websocket-Something", "someval")
+			.header("x-foo", "bar")
+			.build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, preserveHostHeader);
 		HttpHeaders httpHeaders = HttpHeadersFilter.filterRequest(filters, exchange);

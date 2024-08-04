@@ -17,8 +17,10 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
@@ -41,16 +43,24 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 			// copy body from request to clientHttpRequest
 			StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), clientHttpRequest.getBody());
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
+			InputStream body = clientHttpResponse.getBody();
+			// put the body input stream in a request attribute so filters can read it.
+			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
 			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
-					.build((req, httpServletResponse) -> {
-						try (clientHttpResponse) {
-							StreamUtils.copy(clientHttpResponse.getBody(), httpServletResponse.getOutputStream());
-						}
-						return null;
-					});
+				.build((req, httpServletResponse) -> {
+					try (clientHttpResponse) {
+						// get input stream from request attribute in case it was
+						// modified.
+						InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
+								MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+						// copy body from request to clientHttpRequest
+						StreamUtils.copy(inputStream, httpServletResponse.getOutputStream());
+					}
+					return null;
+				});
 			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
 			request.getResponseConsumers()
-					.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
+				.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 			return serverResponse;
 		}
 		catch (IOException e) {

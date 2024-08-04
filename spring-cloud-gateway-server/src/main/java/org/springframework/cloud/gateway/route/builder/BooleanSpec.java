@@ -76,7 +76,7 @@ public class BooleanSpec extends UriSpec {
 		return fn.apply(new GatewayFilterSpec(routeBuilder, builder));
 	}
 
-	enum Operator {
+	public enum Operator {
 
 		AND, OR, NEGATE
 

@@ -67,8 +67,9 @@ public class DisableBuiltInFiltersTests {
 		@Test
 		public void shouldInjectOnlyEnabledBuiltInFilters() {
 			assertThat(gatewayFilters).hasSizeGreaterThan(0);
-			assertThat(gatewayFilters).allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(
-					AddRequestHeaderGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class));
+			assertThat(gatewayFilters)
+				.allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(AddRequestHeaderGatewayFilterFactory.class,
+						MapRequestHeaderGatewayFilterFactory.class));
 		}
 
 	}
@@ -103,6 +104,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.filter.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location-response-header.enabled=false",
 					"spring.cloud.gateway.filter.rewrite-location.enabled=false",
+					"spring.cloud.gateway.filter.rewrite-request-parameter.enabled=false",
 					"spring.cloud.gateway.filter.set-status.enabled=false",
 					"spring.cloud.gateway.filter.save-session.enabled=false",
 					"spring.cloud.gateway.filter.strip-prefix.enabled=false",

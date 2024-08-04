@@ -1,0 +1,19 @@
+[[default-filters]]
+= Default Filters
+:page-section-summary-toc: 1
+
+To add a filter and apply it to all routes, you can use `spring.cloud.gateway.default-filters`.
+This property takes a list of filters.
+The following listing defines a set of default filters:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - AddResponseHeader=X-Response-Default-Red, Default-Blue
+      - PrefixPath=/httpbin
+----
+

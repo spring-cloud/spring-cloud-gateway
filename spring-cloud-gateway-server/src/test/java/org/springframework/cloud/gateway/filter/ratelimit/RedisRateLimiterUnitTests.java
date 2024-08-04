@@ -67,7 +67,7 @@ public class RedisRateLimiterUnitTests {
 	public void setUp() {
 		when(applicationContext.getBean(ReactiveStringRedisTemplate.class)).thenReturn(redisTemplate);
 		when(applicationContext.getBeanNamesForType(ConfigurationService.class))
-				.thenReturn(CONFIGURATION_SERVICE_BEANS);
+			.thenReturn(CONFIGURATION_SERVICE_BEANS);
 		redisRateLimiter = new RedisRateLimiter(DEFAULT_REPLENISH_RATE, DEFAULT_BURST_CAPACITY);
 	}
 

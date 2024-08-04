@@ -1,0 +1,29 @@
+[[observability-spans]]
+=== Observability - Spans
+
+Below you can find a list of all spans declared by this project.
+
+[[observability-spans-gateway-http-client-observation]]
+==== Gateway Http Client Observation Span
+
+> Observation created when sending a request through the gateway.
+
+**Span name** `http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`).
+
+Fully qualified name of the enclosing class `org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation`.
+
+
+
+.Tag Keys
+|===
+|Name | Description
+|`http.method` _(required)_|HTTP Method.
+|`http.status_code` _(required)_|HTTP Status.
+|`http.uri` _(required)_|Full HTTP URI.
+|`spring.cloud.gateway.route.id` _(required)_|Route ID.
+|`spring.cloud.gateway.route.uri` _(required)_|HTTP URI taken from the Route.
+|===
+
+
+
+

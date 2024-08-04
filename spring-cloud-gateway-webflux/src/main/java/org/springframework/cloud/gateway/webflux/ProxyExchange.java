@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.webflux.config.ProxyProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -64,11 +65,11 @@ import org.springframework.web.server.ServerWebExchange;
  *
  * <p>
  * By default the incoming request body and headers are sent intact to the downstream
- * service (with the exception of "sensitive" headers). To manipulate the downstream
+ * service (with the exception of "excluded" headers). To manipulate the downstream
  * request there are "builder" style methods in {@link ProxyExchange}, but only the
- * {@link #uri(String)} is mandatory. You can change the sensitive headers by calling the
- * {@link #sensitive(String...)} method (Authorization and Cookie are sensitive by
- * default).
+ * {@link #uri(String)} is mandatory. You can change the excluded headers by calling the
+ * {@link #excluded(String...)} method (the argument resolver will populate these with
+ * some sensible defaults).
  * </p>
  * <p>
  * The type parameter <code>T</code> in <code>ProxyExchange&lt;T&gt;</code> is the type of
@@ -113,9 +114,9 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Contains headers that are considered case-sensitive by default.
+	 * @deprecated {@link ProxyProperties#DEFAULT_SENSITIVE}
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = Collections
-			.unmodifiableSet(new HashSet<>(Arrays.asList("cookie", "authorization")));
+	public static Set<String> DEFAULT_SENSITIVE = ProxyProperties.DEFAULT_SENSITIVE;
 
 	private HttpMethod httpMethod;
 
@@ -131,7 +132,7 @@ public class ProxyExchange<T> {
 
 	private BindingContext bindingContext;
 
-	private Set<String> sensitive;
+	private Set<String> excluded;
 
 	private HttpHeaders headers = new HttpHeaders();
 
@@ -201,15 +202,26 @@ public class ProxyExchange<T> {
 	 * service.
 	 * @param names the names of sensitive headers
 	 * @return this for convenience
+	 * @deprecated {@link #excluded(String...)}
 	 */
 	public ProxyExchange<T> sensitive(String... names) {
-		if (this.sensitive == null) {
-			this.sensitive = new HashSet<>();
+		return excluded(names);
+	}
+
+	/**
+	 * Sets the names of excluded headers that are not passed downstream to the backend
+	 * service.
+	 * @param names the names of excluded headers
+	 * @return this for convenience
+	 */
+	public ProxyExchange<T> excluded(String... names) {
+		if (this.excluded == null) {
+			this.excluded = new HashSet<>();
 		}
 
-		this.sensitive.clear();
+		this.excluded.clear();
 		for (String name : names) {
-			this.sensitive.add(name.toLowerCase());
+			this.excluded.add(name.toLowerCase());
 		}
 		return this;
 	}
@@ -358,8 +370,9 @@ public class ProxyExchange<T> {
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
-		RequestBodySpec builder = rest.method(requestEntity.getMethod()).uri(requestEntity.getUrl())
-				.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
+		RequestBodySpec builder = rest.method(requestEntity.getMethod())
+			.uri(requestEntity.getUrl())
+			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
 		WebClient.ResponseSpec result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
@@ -372,26 +385,30 @@ public class ProxyExchange<T> {
 		else {
 			if (hasBody) {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-						.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
+					.body(exchange.getRequest().getBody(), DataBuffer.class)
+					.retrieve();
 			}
 			else {
 				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
 			}
 		}
 		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
-				.toEntity(ParameterizedTypeReference.forType(type));
+			.toEntity(ParameterizedTypeReference.forType(type));
 	}
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
 		Set<String> filteredKeys = filterHeaderKeys(toAdd);
-		filteredKeys.stream().filter(key -> !headers.containsKey(key))
-				.forEach(header -> headers.addAll(header, toAdd.get(header)));
+		filteredKeys.stream()
+			.filter(key -> !headers.containsKey(key))
+			.forEach(header -> headers.addAll(header, toAdd.get(header)));
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		final Set<String> sensitiveHeaders = this.sensitive != null ? this.sensitive : DEFAULT_SENSITIVE;
-		return headers.keySet().stream().filter(header -> !sensitiveHeaders.contains(header.toLowerCase()))
-				.collect(Collectors.toSet());
+		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
+		return headers.keySet()
+			.stream()
+			.filter(header -> !excludedHeaders.contains(header.toLowerCase()))
+			.collect(Collectors.toSet());
 	}
 
 	private BodyBuilder headers(BodyBuilder builder) {

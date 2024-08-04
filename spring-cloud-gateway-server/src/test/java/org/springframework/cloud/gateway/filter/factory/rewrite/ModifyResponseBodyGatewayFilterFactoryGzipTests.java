@@ -46,8 +46,13 @@ class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests
 	void testModificationOfResponseBody() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/gzip").build(true).toUri();
 
-		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
-				.exchange().expectBody().json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
+		testClient.get()
+			.uri(uri)
+			.header("Host", "www.modifyresponsebodyjava.org")
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectBody()
+			.json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
 	}
 
 	@EnableAutoConfiguration
@@ -60,14 +65,18 @@ class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests
 
 		@Bean
 		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("modify_response_java_test_gzip", r -> r.path("/gzip").and()
+			return builder.routes()
+				.route("modify_response_java_test_gzip", r -> r.path("/gzip")
+					.and()
 					.host("www.modifyresponsebodyjava.org")
 					.filters(f -> f.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
 						Map<String, Object> modifiedResponse = new HashMap<>();
 						modifiedResponse.put("value", originalResponse);
 						modifiedResponse.put("length", originalResponse.length());
 						return Mono.just(modifiedResponse);
-					})).uri(uri)).build();
+					}))
+					.uri(uri))
+				.build();
 		}
 
 	}

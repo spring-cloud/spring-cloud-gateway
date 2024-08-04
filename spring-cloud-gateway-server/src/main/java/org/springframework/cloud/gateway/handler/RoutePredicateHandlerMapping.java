@@ -87,21 +87,22 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			return lookupRoute(exchange)
-					// .log("route-predicate-handler-mapping", Level.FINER) //name this
-					.flatMap((Function<Route, Mono<?>>) r -> {
-						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-						if (logger.isDebugEnabled()) {
-							logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
-						}
+				// .log("route-predicate-handler-mapping", Level.FINER) //name this
+				.map((Function<Route, ?>) r -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+					}
 
-						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-						return Mono.just(webHandler);
-					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-						if (logger.isTraceEnabled()) {
-							logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
-						}
-					})));
+					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+					return webHandler;
+				})
+				.switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+					if (logger.isTraceEnabled()) {
+						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
+					}
+				})));
 		});
 	}
 
@@ -126,29 +127,29 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
 		return this.routeLocator.getRoutes()
-				// individually filter routes so that filterWhen error delaying is not a
-				// problem
-				.concatMap(route -> Mono.just(route).filterWhen(r -> {
-					// add the current route we are testing
-					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
-					return r.getPredicate().apply(exchange);
-				})
-						// instead of immediately stopping main flux due to error, log and
-						// swallow it
-						.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
-						.onErrorResume(e -> Mono.empty()))
-				// .defaultIfEmpty() put a static Route not found
-				// or .switchIfEmpty()
-				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
-				.next()
-				// TODO: error handling
-				.map(route -> {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Route matched: " + route.getId());
-					}
-					validateRoute(route, exchange);
-					return route;
-				});
+			// individually filter routes so that filterWhen error delaying is not a
+			// problem
+			.concatMap(route -> Mono.just(route).filterWhen(r -> {
+				// add the current route we are testing
+				exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+				return r.getPredicate().apply(exchange);
+			})
+				// instead of immediately stopping main flux due to error, log and
+				// swallow it
+				.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
+				.onErrorResume(e -> Mono.empty()))
+			// .defaultIfEmpty() put a static Route not found
+			// or .switchIfEmpty()
+			// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
+			.next()
+			// TODO: error handling
+			.map(route -> {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Route matched: " + route.getId());
+				}
+				validateRoute(route, exchange);
+				return route;
+			});
 
 		/*
 		 * TODO: trace logging if (logger.isTraceEnabled()) {

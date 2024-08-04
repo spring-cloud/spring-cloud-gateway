@@ -164,7 +164,7 @@ public abstract class RewriteLocationResponseHeaderFilterFunctions {
 
 		private String hostValue;
 
-		private String protocols = DEFAULT_PROTOCOLS;
+		private String protocolsRegex = DEFAULT_PROTOCOLS;
 
 		private Pattern hostPortPattern = DEFAULT_HOST_PORT;
 
@@ -202,14 +202,14 @@ public abstract class RewriteLocationResponseHeaderFilterFunctions {
 			return this;
 		}
 
-		public String getProtocols() {
-			return protocols;
+		public String getProtocolsRegex() {
+			return protocolsRegex;
 		}
 
-		public RewriteLocationResponseHeaderConfig setProtocols(String protocols) {
-			this.protocols = protocols;
-			this.hostPortPattern = compileHostPortPattern(protocols);
-			this.hostPortVersionPattern = compileHostPortVersionPattern(protocols);
+		public RewriteLocationResponseHeaderConfig setProtocolsRegex(String protocolsRegex) {
+			this.protocolsRegex = protocolsRegex;
+			this.hostPortPattern = compileHostPortPattern(protocolsRegex);
+			this.hostPortVersionPattern = compileHostPortVersionPattern(protocolsRegex);
 			return this;
 		}
 

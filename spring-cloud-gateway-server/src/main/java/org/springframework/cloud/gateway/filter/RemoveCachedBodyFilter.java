@@ -40,7 +40,10 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 					if (log.isTraceEnabled()) {
 						log.trace("releasing cached body in exchange attribute");
 					}
-					dataBuffer.release();
+					// ensure proper release
+					while (!dataBuffer.release()) {
+						// release() counts down until zero, will never be infinite loop
+					}
 				}
 			}
 		});

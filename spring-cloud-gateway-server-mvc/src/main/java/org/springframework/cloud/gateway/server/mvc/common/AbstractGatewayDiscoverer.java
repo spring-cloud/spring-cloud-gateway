@@ -43,7 +43,19 @@ public abstract class AbstractGatewayDiscoverer {
 
 		List<Method> methods = new ArrayList<>();
 		for (Supplier<Collection<Method>> supplier : suppliers) {
-			methods.addAll(supplier.get());
+			try {
+				methods.addAll(supplier.get());
+			}
+			catch (NoClassDefFoundError e) {
+				if (log.isDebugEnabled()) {
+					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s",
+							supplierClass, returnType));
+				}
+				else if (log.isTraceEnabled()) {
+					log.debug(LogMessage.format("NoClassDefFoundError discovering supplier %s for type %s",
+							supplierClass, returnType), e);
+				}
+			}
 		}
 
 		for (Method method : methods) {

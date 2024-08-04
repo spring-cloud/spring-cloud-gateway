@@ -1,0 +1,46 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.gateway.mvc.form-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the form-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forwarded-request-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-content-length-request-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forwarded-request-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forwarded-request-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the transfer-encoding-normalization-request-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.weight-calculator-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the weight-calculator-filter.",
+      "defaultValue": "true"
+    }
+  ]
+}
