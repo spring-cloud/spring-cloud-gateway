@@ -526,6 +526,15 @@ spring:
         - Weight=group1, 8
 
       # =====================================
+      - id: disabled_config_test
+        uri: ${test.uri}
+        enabled: false
+        predicates:
+          - name: Path
+            args:
+              pattern: /**
+
+      # =====================================
       # should be last and not follow alphabetical order
       - id: default_path_to_httpbin
         uri: ${test.uri}
