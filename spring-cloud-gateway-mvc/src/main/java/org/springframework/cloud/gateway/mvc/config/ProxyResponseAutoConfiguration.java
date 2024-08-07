@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,8 @@ import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -94,6 +97,13 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		public void handleError(ClientHttpResponse response) throws IOException {
 		}
 
+		@Override
+		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
+		}
+
+		@Override
+		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method) throws IOException {
+		}
 	}
 
 }
