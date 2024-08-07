@@ -102,8 +102,10 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		}
 
 		@Override
-		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method) throws IOException {
+		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method)
+				throws IOException {
 		}
+
 	}
 
 }

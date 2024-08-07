@@ -153,7 +153,8 @@ public class ProductionConfigurationTests {
 	@Test
 	public void postForwardBody() {
 		ResponseEntity<String> result = rest
-			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars")).accept(MediaType.APPLICATION_JSON)
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars"))
+				.accept(MediaType.APPLICATION_JSON)
 				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody()).contains("foo");
@@ -162,7 +163,8 @@ public class ProductionConfigurationTests {
 	@Test
 	public void postForwardForgetBody() {
 		ResponseEntity<String> result = rest
-			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/forget/bars")).accept(MediaType.APPLICATION_JSON)
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/forget/bars"))
+				.accept(MediaType.APPLICATION_JSON)
 				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody()).contains("foo");
