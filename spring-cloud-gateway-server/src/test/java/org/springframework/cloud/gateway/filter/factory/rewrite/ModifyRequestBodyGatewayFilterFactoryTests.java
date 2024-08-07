@@ -86,10 +86,10 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 			.body(BodyInserters.fromValue("request"))
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
 			.expectBody()
-			.jsonPath("message")
-			.isEqualTo("Exceeded limit on max bytes to buffer : 13");
+			.jsonPath("error")
+			.isEqualTo("Payload Too Large");
 	}
 
 	@Test

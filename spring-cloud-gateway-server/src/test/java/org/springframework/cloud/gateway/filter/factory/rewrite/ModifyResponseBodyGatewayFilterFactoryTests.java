@@ -87,7 +87,7 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 	}
 
 	@Test
-	public void modifyResponeBodyToLarge() {
+	public void modifyResponseBodyToLarge() {
 		testClient.post()
 			.uri("/post")
 			.header("Host", "www.modifyresponsebodyjavatoolarge.org")
@@ -95,10 +95,10 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 			.body(BodyInserters.fromValue(toLarge))
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
 			.expectBody()
-			.jsonPath("message")
-			.isEqualTo("Exceeded limit on max bytes to buffer : 40");
+			.jsonPath("error")
+			.isEqualTo("Payload Too Large");
 	}
 
 	@EnableAutoConfiguration
