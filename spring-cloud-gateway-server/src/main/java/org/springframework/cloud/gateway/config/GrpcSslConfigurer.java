@@ -25,6 +25,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
+import org.springframework.util.CollectionUtils;
+
 /**
  * @author Alberto C. Ríos
  */
@@ -51,6 +53,14 @@ public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder
 
 		if (!useInsecureTrustManager && ssl.getTrustedX509Certificates().size() > 0) {
 			sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
+		}
+
+		if (!CollectionUtils.isEmpty(ssl.getProtocols())) {
+			sslContextBuilder.protocols(ssl.getProtocols());
+		}
+
+		if (!CollectionUtils.isEmpty(ssl.getCiphers())) {
+			sslContextBuilder.ciphers(ssl.getCiphers());
 		}
 
 		return sslContextBuilder.keyManager(getKeyManagerFactory()).build();
