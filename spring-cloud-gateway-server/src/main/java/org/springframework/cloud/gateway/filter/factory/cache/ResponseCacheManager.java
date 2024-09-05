@@ -81,7 +81,7 @@ public class ResponseCacheManager {
 		this.ignoreNoCacheUpdate = isSkipNoCacheUpdateActive(requestOptions);
 		this.afterCacheExchangeMutators = List.of(new SetResponseHeadersAfterCacheExchangeMutator(),
 				new SetStatusCodeAfterCacheExchangeMutator(),
-				new RemoveHeadersAfterCacheExchangeMutator(HttpHeaders.PRAGMA),
+				new RemoveHeadersAfterCacheExchangeMutator(HttpHeaders.PRAGMA, HttpHeaders.EXPIRES),
 				new SetMaxAgeHeaderAfterCacheExchangeMutator(configuredTimeToLive, Clock.systemDefaultZone(),
 						ignoreNoCacheUpdate),
 				new SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator());
