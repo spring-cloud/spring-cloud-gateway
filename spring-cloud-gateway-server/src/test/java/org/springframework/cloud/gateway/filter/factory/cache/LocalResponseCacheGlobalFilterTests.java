@@ -126,6 +126,15 @@ public class LocalResponseCacheGlobalFilterTests {
 
 		@Test
 		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
+			shouldNotReturnHeader(HttpHeaders.PRAGMA);
+		}
+
+		@Test
+		void shouldNotReturnExpiresHeaderInNonCachedAndCachedResponses() {
+			shouldNotReturnHeader(HttpHeaders.EXPIRES);
+		}
+
+		private void shouldNotReturnHeader(String header) {
 			String uri = "/" + UUID.randomUUID() + "/global-cache/headers";
 
 			testClient.get()
@@ -133,14 +142,14 @@ public class LocalResponseCacheGlobalFilterTests {
 				.header("Host", "www.localresponsecache.org")
 				.exchange()
 				.expectHeader()
-				.doesNotExist(HttpHeaders.PRAGMA);
+				.doesNotExist(header);
 
 			testClient.get()
 				.uri(uri)
 				.header("Host", "www.localresponsecache.org")
 				.exchange()
 				.expectHeader()
-				.doesNotExist(HttpHeaders.PRAGMA);
+				.doesNotExist(header);
 		}
 
 		@EnableAutoConfiguration
