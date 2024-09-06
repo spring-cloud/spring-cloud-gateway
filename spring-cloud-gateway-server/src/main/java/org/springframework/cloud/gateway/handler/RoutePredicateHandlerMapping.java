@@ -88,23 +88,23 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			return lookupRoute(exchange)
-					// .log("route-predicate-handler-mapping", Level.FINER) //name this
-					.map((Function<Route, ?>) r -> {
-						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-						if (logger.isDebugEnabled()) {
-							logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
-						}
+				// .log("route-predicate-handler-mapping", Level.FINER) //name this
+				.map((Function<Route, ?>) r -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+					if (logger.isDebugEnabled()) {
+						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
+					}
 
-						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-						return webHandler;
-					})
-					.switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-						ServerWebExchangeUtils.clearCachedRequestBody(exchange);
-						if (logger.isTraceEnabled()) {
-							logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
-						}
-					})));
+					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+					return webHandler;
+				})
+				.switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+					ServerWebExchangeUtils.clearCachedRequestBody(exchange);
+					if (logger.isTraceEnabled()) {
+						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
+					}
+				})));
 		});
 	}
 
