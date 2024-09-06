@@ -91,49 +91,52 @@ public class SpringCloudCircuitBreakerTestConfig {
 	@RequestMapping("/resetExchangeFallbackController")
 	public ResponseEntity<Map<String, String>> resetExchangeFallbackController(ServerWebExchange exchange) {
 		return ResponseEntity.status(HttpStatus.OK)
-				.headers((HttpHeaders) exchange.getRequest().getHeaders().entrySet().stream()
-						.filter(entry -> entry.getKey().startsWith("X-Test-"))
-						.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey() + "-fallback", entry.getValue()))
-						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-								(list1, list2) -> Stream.concat(list1.stream(), list2.stream())
-										.collect(Collectors.toList()),
-								HttpHeaders::new)))
-				.body(Collections.singletonMap("from", "resetExchangeFallbackController"));
+			.headers((HttpHeaders) exchange.getRequest()
+				.getHeaders()
+				.entrySet()
+				.stream()
+				.filter(entry -> entry.getKey().startsWith("X-Test-"))
+				.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey() + "-fallback", entry.getValue()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+						(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
+						HttpHeaders::new)))
+			.body(Collections.singletonMap("from", "resetExchangeFallbackController"));
 	}
 
 	@Bean
 	public RouteLocator circuitBreakerRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes()
-				.route("fallback_controller_3",
-						r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
-				.route("circuitbreaker_fallback_forward", r -> r.host("**.circuitbreakerforward.org")
-						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback"))).uri(uri))
-				.route("circuitbreaker_java",
-						r -> r.host("**.circuitbreakerjava.org")
-								.filters(f -> f.prefixPath("/httpbin").circuitBreaker(
-										config -> config.setFallbackUri("forward:/circuitbreakerFallbackController2")))
-								.uri(uri))
-				.route("circuitbreaker_connection_failure", r -> r.host("**.circuitbreakerconnectfail.org")
-						.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
-						})).uri("lb://badservice"))
-				/*
-				 * This is a route encapsulated in a circuit breaker that is ready to wait
-				 * for a response far longer than the underpinning WebClient would.
-				 */
-				.route("circuitbreaker_response_stall",
-						r -> r.host("**.circuitbreakerresponsestall.org")
-								.filters(f -> f.prefixPath("/httpbin")
-										.circuitBreaker(config -> config.setName("stalling-command")))
-								.uri(uri))
-				.route("circuitbreaker_fallback_test_reset_exchange",
-						r -> r.host("**.circuitbreakerresetexchange.org").filters(f -> f
-								.circuitBreaker(config -> config.setName("fallbackcmd")
-										.setFallbackUri("forward:/resetExchangeFallbackController"))
-								.filter((exchange, chain) -> chain.filter(exchange)
-										.then(Mono.defer(() -> !exchange.getResponse().isCommitted()
-												? Mono.error(new Exception("Some Random Exception")) : Mono.empty()))))
-								.uri(uri))
-				.build();
+			.route("fallback_controller_3",
+					r -> r.path("/fallback").filters(f -> f.setPath("/circuitbreakerFallbackController3")).uri(uri))
+			.route("circuitbreaker_fallback_forward",
+					r -> r.host("**.circuitbreakerforward.org")
+						.filters(f -> f.circuitBreaker(config -> config.setFallbackUri("forward:/fallback")))
+						.uri(uri))
+			.route("circuitbreaker_java", r -> r.host("**.circuitbreakerjava.org")
+				.filters(f -> f.prefixPath("/httpbin")
+					.circuitBreaker(config -> config.setFallbackUri("forward:/circuitbreakerFallbackController2")))
+				.uri(uri))
+			.route("circuitbreaker_connection_failure", r -> r.host("**.circuitbreakerconnectfail.org")
+				.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> {
+				}))
+				.uri("lb://badservice"))
+			/*
+			 * This is a route encapsulated in a circuit breaker that is ready to wait for
+			 * a response far longer than the underpinning WebClient would.
+			 */
+			.route("circuitbreaker_response_stall", r -> r.host("**.circuitbreakerresponsestall.org")
+				.filters(f -> f.prefixPath("/httpbin").circuitBreaker(config -> config.setName("stalling-command")))
+				.uri(uri))
+			.route("circuitbreaker_fallback_test_reset_exchange",
+					r -> r.host("**.circuitbreakerresetexchange.org")
+						.filters(f -> f
+							.circuitBreaker(config -> config.setName("fallbackcmd")
+								.setFallbackUri("forward:/resetExchangeFallbackController"))
+							.filter((exchange, chain) -> chain.filter(exchange)
+								.then(Mono.defer(() -> !exchange.getResponse().isCommitted()
+										? Mono.error(new Exception("Some Random Exception")) : Mono.empty()))))
+						.uri(uri))
+			.build();
 	}
 
 	@Bean
@@ -152,7 +155,8 @@ public class SpringCloudCircuitBreakerTestConfig {
 
 		Mono<ServerResponse> retrieveExceptionInfo(ServerRequest serverRequest) {
 			String exceptionName = serverRequest.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
-					.map(exception -> exception.getClass().getName()).orElse("");
+				.map(exception -> exception.getClass().getName())
+				.orElse("");
 			return ServerResponse.ok().header(RETRIEVED_EXCEPTION, exceptionName).build();
 		}
 

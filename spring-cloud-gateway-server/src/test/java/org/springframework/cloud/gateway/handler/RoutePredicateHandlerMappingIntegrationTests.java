@@ -56,15 +56,28 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").exchange()
-				.expectStatus().isNotFound();
+		testClient.mutate()
+			.baseUrl("http://localhost:" + managementPort)
+			.build()
+			.get()
+			.uri("/get")
+			.exchange()
+			.expectStatus()
+			.isNotFound();
 	}
 
 	@Test
 	public void requestsToManagementPortAndHostHeaderReturn404() {
 		String host = "example.com:8888";
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").header("host", host)
-				.exchange().expectStatus().isNotFound();
+		testClient.mutate()
+			.baseUrl("http://localhost:" + managementPort)
+			.build()
+			.get()
+			.uri("/get")
+			.header("host", host)
+			.exchange()
+			.expectStatus()
+			.isNotFound();
 	}
 
 	@Test
@@ -74,8 +87,11 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void andNotWorksWithParameter() {
-		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange().expectBody(String.class)
-				.isEqualTo("hasquery");
+		testClient.get()
+			.uri("/andnotquery?myquery=shouldnotsee")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("hasquery");
 	}
 
 	@EnableAutoConfiguration
@@ -100,12 +116,19 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 		@Bean
 		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("and_not_missing_myquery",
-							r -> r.path("/andnotquery").and().not(p -> p.query("myquery"))
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("and_not_has_myquery", r -> r.path("/andnotquery").and().query("myquery")
-							.filters(f -> f.setPath("/httpbin/hasquery")).uri(uri))
-					.build();
+				.route("and_not_missing_myquery",
+						r -> r.path("/andnotquery")
+							.and()
+							.not(p -> p.query("myquery"))
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.route("and_not_has_myquery",
+						r -> r.path("/andnotquery")
+							.and()
+							.query("myquery")
+							.filters(f -> f.setPath("/httpbin/hasquery"))
+							.uri(uri))
+				.build();
 		}
 
 	}

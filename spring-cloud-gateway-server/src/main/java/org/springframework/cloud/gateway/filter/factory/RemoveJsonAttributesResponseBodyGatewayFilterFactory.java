@@ -139,7 +139,8 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("fieldList", fieldList)
-					.append("deleteRecursively", deleteRecursively).toString();
+				.append("deleteRecursively", deleteRecursively)
+				.toString();
 		}
 
 	}

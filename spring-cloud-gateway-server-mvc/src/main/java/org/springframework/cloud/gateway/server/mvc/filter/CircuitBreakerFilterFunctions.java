@@ -71,11 +71,13 @@ public abstract class CircuitBreakerFilterFunctions {
 	@Shortcut
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(CircuitBreakerConfig config) {
-		Set<HttpStatusCode> failureStatuses = config.getStatusCodes().stream()
-				.map(status -> HttpStatusHolder.valueOf(status).resolve()).collect(Collectors.toSet());
+		Set<HttpStatusCode> failureStatuses = config.getStatusCodes()
+			.stream()
+			.map(status -> HttpStatusHolder.valueOf(status).resolve())
+			.collect(Collectors.toSet());
 		return (request, next) -> {
 			CircuitBreakerFactory<?, ?> circuitBreakerFactory = MvcUtils.getApplicationContext(request)
-					.getBean(CircuitBreakerFactory.class);
+				.getBean(CircuitBreakerFactory.class);
 			// TODO: cache
 			CircuitBreaker circuitBreaker = circuitBreakerFactory.create(config.getId());
 			return circuitBreaker.run(() -> {
@@ -117,8 +119,10 @@ public abstract class CircuitBreakerFilterFunctions {
 				return GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
 					try {
 						String expandedFallback = MvcUtils.expand(request, config.getFallbackPath());
-						request.servletRequest().getServletContext().getRequestDispatcher(expandedFallback)
-								.forward(httpServletRequest, httpServletResponse);
+						request.servletRequest()
+							.getServletContext()
+							.getRequestDispatcher(expandedFallback)
+							.forward(httpServletRequest, httpServletResponse);
 						return null;
 					}
 					catch (ServletException | IOException e) {

@@ -78,7 +78,7 @@ public class RouteDefinitionRouteLocatorTests {
 			assertThat(getFilterClassName(filters.get(0))).contains("RemoveResponseHeader");
 			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 			assertThat(getFilterClassName(filters.get(2)))
-					.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
 		}).expectComplete().verify();
 	}
 
@@ -135,7 +135,7 @@ public class RouteDefinitionRouteLocatorTests {
 			assertThat(getFilterClassName(filters.get(0))).contains("RemoveResponseHeader");
 			assertThat(getFilterClassName(filters.get(1))).contains("AddResponseHeader");
 			assertThat(getFilterClassName(filters.get(2)))
-					.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
+				.contains("RouteDefinitionRouteLocatorTests$TestOrderedGateway");
 		}).expectComplete().verify();
 	}
 

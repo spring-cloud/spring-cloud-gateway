@@ -64,9 +64,9 @@ public class ReactiveTests {
 
 	@Test
 	public void postBytes() throws Exception {
-		ResponseEntity<List<Foo>> result = rest.exchange(RequestEntity
-				.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes")).body("hello foo".getBytes()),
-				new ParameterizedTypeReference<List<Foo>>() {
+		ResponseEntity<List<Foo>> result = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bytes"))
+				.body("hello foo".getBytes()), new ParameterizedTypeReference<List<Foo>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(result.getBody().iterator().next().getName()).isEqualTo("hello foo");
@@ -76,7 +76,7 @@ public class ReactiveTests {
 	public void post() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/bars"))
-						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
+					.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -87,7 +87,7 @@ public class ReactiveTests {
 	public void postFlux() throws Exception {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/flux/bars"))
-						.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
+					.body(Collections.singletonList(Collections.singletonMap("name", "foo"))),
 				new ParameterizedTypeReference<List<Bar>>() {
 				});
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);

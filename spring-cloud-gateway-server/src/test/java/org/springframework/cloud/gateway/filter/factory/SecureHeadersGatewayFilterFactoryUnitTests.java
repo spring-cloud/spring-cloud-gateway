@@ -120,15 +120,15 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		assertThat(response.getHeaders().get(REFERRER_POLICY_HEADER)).containsOnly("referrer");
 
 		assertThat(response.getHeaders().get(X_XSS_PROTECTION_HEADER))
-				.containsOnly(properties.getXssProtectionHeader());
+			.containsOnly(properties.getXssProtectionHeader());
 		assertThat(response.getHeaders().get(X_FRAME_OPTIONS_HEADER)).containsOnly(properties.getFrameOptions());
 		assertThat(response.getHeaders().get(X_CONTENT_TYPE_OPTIONS_HEADER))
-				.containsOnly(properties.getContentTypeOptions());
+			.containsOnly(properties.getContentTypeOptions());
 		assertThat(response.getHeaders().get(CONTENT_SECURITY_POLICY_HEADER))
-				.containsOnly(properties.getContentSecurityPolicy());
+			.containsOnly(properties.getContentSecurityPolicy());
 		assertThat(response.getHeaders().get(X_DOWNLOAD_OPTIONS_HEADER)).containsOnly(properties.getDownloadOptions());
 		assertThat(response.getHeaders().get(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
-				.containsOnly(properties.getPermittedCrossDomainPolicies());
+			.containsOnly(properties.getPermittedCrossDomainPolicies());
 
 	}
 

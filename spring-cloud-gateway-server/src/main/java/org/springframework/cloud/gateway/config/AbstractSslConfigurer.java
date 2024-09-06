@@ -87,7 +87,7 @@ public abstract class AbstractSslConfigurer<T, S> {
 		try {
 			if (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0) {
 				KeyManagerFactory keyManagerFactory = KeyManagerFactory
-						.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+					.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 				char[] keyPassword = ssl.getKeyPassword() != null ? ssl.getKeyPassword().toCharArray() : null;
 
 				if (keyPassword == null && ssl.getKeyStorePassword() != null) {

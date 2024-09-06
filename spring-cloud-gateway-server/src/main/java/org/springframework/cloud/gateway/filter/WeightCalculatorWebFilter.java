@@ -315,8 +315,11 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("group", group).append("weights", weights)
-					.append("normalizedWeights", normalizedWeights).append("rangeIndexes", rangeIndexes).toString();
+			return new ToStringCreator(this).append("group", group)
+				.append("weights", weights)
+				.append("normalizedWeights", normalizedWeights)
+				.append("rangeIndexes", rangeIndexes)
+				.toString();
 		}
 
 	}

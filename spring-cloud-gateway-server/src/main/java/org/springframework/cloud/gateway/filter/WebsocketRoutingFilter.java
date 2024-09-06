@@ -244,28 +244,32 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 				@Override
 				public Mono<Void> handle(WebSocketSession proxySession) {
-					Mono<Void> serverClose = proxySession.closeStatus().filter(__ -> session.isOpen())
-							.map(this::adaptCloseStatus).flatMap(session::close);
-					Mono<Void> proxyClose = session.closeStatus().filter(__ -> proxySession.isOpen())
-							.map(this::adaptCloseStatus).flatMap(proxySession::close);
+					Mono<Void> serverClose = proxySession.closeStatus()
+						.filter(__ -> session.isOpen())
+						.map(this::adaptCloseStatus)
+						.flatMap(session::close);
+					Mono<Void> proxyClose = session.closeStatus()
+						.filter(__ -> proxySession.isOpen())
+						.map(this::adaptCloseStatus)
+						.flatMap(proxySession::close);
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
-							.send(session.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
-								if (log.isTraceEnabled()) {
-									log.trace("proxySession(send from client): " + proxySession.getId()
-											+ ", corresponding session:" + session.getId() + ", packet: "
-											+ webSocketMessage.getPayloadAsText());
-								}
-							}));
+						.send(session.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+							if (log.isTraceEnabled()) {
+								log.trace("proxySession(send from client): " + proxySession.getId()
+										+ ", corresponding session:" + session.getId() + ", packet: "
+										+ webSocketMessage.getPayloadAsText());
+							}
+						}));
 					// .log("proxySessionSend", Level.FINE);
-					Mono<Void> serverSessionSend = session.send(
-							proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
-								if (log.isTraceEnabled()) {
-									log.trace("session(send from backend): " + session.getId()
-											+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
-											+ webSocketMessage.getPayloadAsText());
-								}
-							}));
+					Mono<Void> serverSessionSend = session
+						.send(proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+							if (log.isTraceEnabled()) {
+								log.trace("session(send from backend): " + session.getId()
+										+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
+										+ webSocketMessage.getPayloadAsText());
+							}
+						}));
 					// .log("sessionSend", Level.FINE);
 					// Ensure closeStatus from one propagates to the other
 					Mono.when(serverClose, proxyClose).subscribe();

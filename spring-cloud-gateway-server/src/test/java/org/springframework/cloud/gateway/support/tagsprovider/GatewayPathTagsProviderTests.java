@@ -52,9 +52,13 @@ public class GatewayPathTagsProviderTests {
 
 		PathRoutePredicateFactory.Config pathConfig = new PathRoutePredicateFactory.Config().setPatterns(pathList);
 		HostRoutePredicateFactory.Config hostConfig = new HostRoutePredicateFactory.Config()
-				.setPatterns(Collections.singletonList("**.myhost.com"));
-		Route route = Route.async().id("git").uri(ROUTE_URI).predicate(new PathRoutePredicateFactory().apply(pathConfig)
-				.and(new HostRoutePredicateFactory().apply(hostConfig))).build();
+			.setPatterns(Collections.singletonList("**.myhost.com"));
+		Route route = Route.async()
+			.id("git")
+			.uri(ROUTE_URI)
+			.predicate(new PathRoutePredicateFactory().apply(pathConfig)
+				.and(new HostRoutePredicateFactory().apply(hostConfig)))
+			.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
@@ -64,7 +68,7 @@ public class GatewayPathTagsProviderTests {
 		Tags tags = pathTagsProvider.apply(exchange);
 		assertThat(tags.stream().count()).isEqualTo(1);
 		assertThat(tags.stream().anyMatch(tag -> "path".equals(tag.getKey()) && tag.getValue().equals(pathList.get(0))))
-				.isEqualTo(true);
+			.isEqualTo(true);
 	}
 
 	@Test
@@ -74,8 +78,12 @@ public class GatewayPathTagsProviderTests {
 
 		PathRoutePredicateFactory.Config pathConfig = new PathRoutePredicateFactory.Config().setPatterns(pathList);
 		PathRoutePredicateFactory.Config pathConfig2 = new PathRoutePredicateFactory.Config().setPatterns(pathList2);
-		Route route = Route.async().id("git").uri(ROUTE_URI).predicate(new PathRoutePredicateFactory().apply(pathConfig)
-				.or(new PathRoutePredicateFactory().apply(pathConfig2))).build();
+		Route route = Route.async()
+			.id("git")
+			.uri(ROUTE_URI)
+			.predicate(new PathRoutePredicateFactory().apply(pathConfig)
+				.or(new PathRoutePredicateFactory().apply(pathConfig2)))
+			.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
@@ -86,15 +94,18 @@ public class GatewayPathTagsProviderTests {
 		assertThat(tags.stream().count()).isEqualTo(1);
 		assertThat(
 				tags.stream().anyMatch(tag -> "path".equals(tag.getKey()) && tag.getValue().equals(pathList2.get(0))))
-						.isEqualTo(true);
+			.isEqualTo(true);
 	}
 
 	@Test
 	void ignoreRoutesWithoutPath() {
 		MethodRoutePredicateFactory.Config config = new MethodRoutePredicateFactory.Config();
 		config.setMethods(HttpMethod.GET);
-		Route route = Route.async().id("empty").uri(ROUTE_URI)
-				.predicate(new MethodRoutePredicateFactory().apply(config)).build();
+		Route route = Route.async()
+			.id("empty")
+			.uri(ROUTE_URI)
+			.predicate(new MethodRoutePredicateFactory().apply(config))
+			.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
 		exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);

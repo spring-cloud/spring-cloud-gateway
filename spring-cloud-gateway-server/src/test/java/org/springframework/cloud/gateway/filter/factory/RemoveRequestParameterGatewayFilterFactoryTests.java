@@ -56,7 +56,8 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	@Test
 	public void removeRequestParameterFilterWorks() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.queryParam("foo", singletonList("bar")).build();
+			.queryParam("foo", singletonList("bar"))
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");
@@ -84,8 +85,10 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 
 	@Test
 	public void removeRequestParameterFilterShouldOnlyRemoveSpecifiedParam() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").queryParam("foo", "bar")
-				.queryParam("abc", "xyz").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("abc", "xyz")
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");
@@ -100,8 +103,12 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 
 	@Test
 	public void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").queryParam("foo", "bar")
-				.queryParam("aaa", "abc xyz").queryParam("bbb", "[xyz").queryParam("ccc", ",xyz").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("aaa", "abc xyz")
+			.queryParam("bbb", "[xyz")
+			.queryParam("ccc", ",xyz")
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");

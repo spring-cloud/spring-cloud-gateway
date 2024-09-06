@@ -47,8 +47,9 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 		HttpHeaders headers = request.getHeaders();
 		if (headers.get(header) != null) {
 			StringBuilder keyVaryHeaders = new StringBuilder();
-			keyVaryHeaders.append(header).append("=")
-					.append(getHeaderValues(headers).sorted().collect(Collectors.joining(valueSeparator)));
+			keyVaryHeaders.append(header)
+				.append("=")
+				.append(getHeaderValues(headers).sorted().collect(Collectors.joining(valueSeparator)));
 			return keyVaryHeaders.toString();
 		}
 		return null;

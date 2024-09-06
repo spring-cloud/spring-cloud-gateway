@@ -29,7 +29,8 @@ class LocalResponseCacheUtilsTests {
 	@ValueSource(strings = { "", "no-store", "no-store, wrong-no-cache", "s-no-cache" })
 	void shouldNotIdentifyRequestAsNoCacheRequest(String cacheControl) {
 		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-				.header("Cache-Control", cacheControl).build();
+			.header("Cache-Control", cacheControl)
+			.build();
 
 		boolean result = LocalResponseCacheUtils.isNoCacheRequest(httpRequest);
 
@@ -40,7 +41,8 @@ class LocalResponseCacheUtilsTests {
 	@ValueSource(strings = { "no-cache", "s-no-cache, no-cache", "private,no-cache", " no-cache", "no-cache " })
 	void shouldIdentifyRequestAsNoCacheRequest(String cacheControl) {
 		MockServerHttpRequest httpRequest = MockServerHttpRequest.get("https://this")
-				.header("Cache-Control", cacheControl).build();
+			.header("Cache-Control", cacheControl)
+			.build();
 
 		boolean result = LocalResponseCacheUtils.isNoCacheRequest(httpRequest);
 

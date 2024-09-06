@@ -97,7 +97,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
 		return asyncPredicate(getBean(BetweenRoutePredicateFactory.class)
-				.applyAsync(c -> c.setDatetime1(datetime1).setDatetime2(datetime2)));
+			.applyAsync(c -> c.setDatetime1(datetime1).setDatetime2(datetime2)));
 	}
 
 	/**
@@ -188,7 +188,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec path(boolean matchTrailingSlash, String... patterns) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns)).setMatchTrailingSlash(matchTrailingSlash)));
+			.applyAsync(c -> c.setPatterns(Arrays.asList(patterns)).setMatchTrailingSlash(matchTrailingSlash)));
 	}
 
 	/**
@@ -287,7 +287,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec weight(String group, int weight) {
 		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
-				.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
+			.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {

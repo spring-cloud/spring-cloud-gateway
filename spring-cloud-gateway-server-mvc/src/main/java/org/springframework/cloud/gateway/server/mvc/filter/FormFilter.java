@@ -121,7 +121,7 @@ public class FormFilter implements Filter, Ordered {
 		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestURL.toString());
 		MultiValueMap<String, String> queryParams = uriComponentsBuilder.build().getQueryParams();
 		for (Iterator<Map.Entry<String, String[]>> entryIterator = form.entrySet().iterator(); entryIterator
-				.hasNext();) {
+			.hasNext();) {
 			Map.Entry<String, String[]> entry = entryIterator.next();
 			String name = entry.getKey();
 			List<String> values = Arrays.asList(entry.getValue());

@@ -67,9 +67,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 		super(Config.class);
 		this.messageReaders = messageReaders;
 		this.messageBodyDecoders = messageBodyDecoders.stream()
-				.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
+			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
 		this.messageBodyEncoders = messageBodyEncoders.stream()
-				.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
 	}
 
 	@Override
@@ -181,7 +181,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 		public String toString() {
 			Object obj = (this.gatewayFilterFactory != null) ? this.gatewayFilterFactory : this;
 			return filterToStringCreator(obj).append("New content type", config.getNewContentType())
-					.append("In class", config.getInClass()).append("Out class", config.getOutClass()).toString();
+				.append("In class", config.getInClass())
+				.append("Out class", config.getOutClass())
+				.toString();
 		}
 
 		public void setFactory(GatewayFilterFactory<Config> gatewayFilterFactory) {
@@ -221,8 +223,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 			// TODO: flux or mono
 			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
-					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+				.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
+				.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
 
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
@@ -266,11 +268,12 @@ public class ModifyResponseBodyGatewayFilterFactory
 			for (String encoding : encodingHeaders) {
 				MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
 				if (decoder != null) {
-					return clientResponse.bodyToMono(byte[].class).publishOn(Schedulers.parallel()).map(decoder::decode)
-							.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
-							.map(buffer -> prepareClientResponse(Mono.just(buffer),
-									exchange.getResponse().getHeaders()))
-							.flatMap(response -> response.bodyToMono(inClass));
+					return clientResponse.bodyToMono(byte[].class)
+						.publishOn(Schedulers.parallel())
+						.map(decoder::decode)
+						.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
+						.map(buffer -> prepareClientResponse(Mono.just(buffer), exchange.getResponse().getHeaders()))
+						.flatMap(response -> response.bodyToMono(inClass));
 				}
 			}
 

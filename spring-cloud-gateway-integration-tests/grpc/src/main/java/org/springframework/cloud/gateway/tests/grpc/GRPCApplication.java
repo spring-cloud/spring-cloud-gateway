@@ -107,7 +107,7 @@ public class GRPCApplication {
 			public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
 				if ("failWithRuntimeException!".equals(request.getFirstName())) {
 					StatusRuntimeException exception = Status.FAILED_PRECONDITION.withDescription("Invalid firstName")
-							.asRuntimeException();
+						.asRuntimeException();
 					responseObserver.onError(exception);
 					responseObserver.onCompleted();
 					return;

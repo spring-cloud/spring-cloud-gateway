@@ -49,7 +49,7 @@ public interface GatewayServerResponse extends ServerResponse {
 	 */
 	static ServerResponse from(ErrorResponse response) {
 		return status(response.getStatusCode()).headers(headers -> headers.putAll(response.getHeaders()))
-				.body(response.getBody());
+			.body(response.getBody());
 	}
 
 	/**
