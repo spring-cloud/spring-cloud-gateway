@@ -24,6 +24,7 @@ import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
@@ -98,6 +99,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						return webHandler;
 					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+						ServerWebExchangeUtils.clearCachedRequestBody(exchange);
 						if (logger.isTraceEnabled()) {
 							logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 						}
