@@ -38,6 +38,8 @@ import reactor.retry.RetryContext;
 import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.support.TimeoutException;
@@ -166,7 +168,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 
 		GatewayFilter gatewayFilter = apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
-		return new GatewayFilter() {
+		GatewayFilter retryGatewayFilter = new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return gatewayFilter.filter(exchange, chain);
@@ -183,6 +185,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					.toString();
 			}
 		};
+		return new OrderedGatewayFilter(retryGatewayFilter,
+				ReactiveLoadBalancerClientFilter.LOAD_BALANCER_CLIENT_FILTER_ORDER - 1);
 	}
 
 	private String getExceptionNameWithCause(Throwable exception) {
