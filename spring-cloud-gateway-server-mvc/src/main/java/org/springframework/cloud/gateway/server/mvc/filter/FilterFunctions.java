@@ -66,6 +66,7 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.addResponseHeader(name, values));
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> dedupeResponseHeader(String name) {
 		return ofResponseProcessor(AfterFilterFunctions.dedupeResponseHeader(name));
 	}
