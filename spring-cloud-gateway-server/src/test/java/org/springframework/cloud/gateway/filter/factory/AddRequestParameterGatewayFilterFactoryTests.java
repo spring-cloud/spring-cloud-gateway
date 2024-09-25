@@ -129,14 +129,19 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("add_request_param_java_test", r -> r.path("/get").and().host("{sub}.addreqparamjava.org")
+				.route("add_request_param_java_test",
+						r -> r.path("/get")
+							.and()
+							.host("{sub}.addreqparamjava.org")
 							.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB-{sub}"))
 							.uri(uri))
-					.route("add_request_param_java_test_encoded_segment", r -> r.path("/anything/{segment}").and()
+				.route("add_request_param_java_test_encoded_segment",
+						r -> r.path("/anything/{segment}")
+							.and()
 							.host("{sub}.addreqparamjavaencodedsegment.org")
 							.filters(f -> f.prefixPath("/httpbin").addRequestParameter("example", "ValueB-{sub}"))
 							.uri(uri))
-					.build();
+				.build();
 		}
 
 	}

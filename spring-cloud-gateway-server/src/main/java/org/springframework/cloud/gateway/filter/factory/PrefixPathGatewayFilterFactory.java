@@ -92,7 +92,7 @@ public class PrefixPathGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(PrefixPathGatewayFilterFactory.this).append("prefix", config.getPrefix())
-						.toString();
+					.toString();
 			}
 		};
 	}

@@ -45,21 +45,36 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void noQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
+		testClient.get()
+			.uri("/get")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
 	@Test
 	public void queryParamWorks() {
-		testClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "foo_query_param");
+		testClient.get()
+			.uri("/get?foo=bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "foo_query_param");
 	}
 
 	@Test
 	public void emptyQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
+		testClient.get()
+			.uri("/get?foo")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
@@ -82,8 +97,9 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("foo_query_param",
-					r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+			return builder.routes()
+				.route("foo_query_param", r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.build();
 		}
 
 	}

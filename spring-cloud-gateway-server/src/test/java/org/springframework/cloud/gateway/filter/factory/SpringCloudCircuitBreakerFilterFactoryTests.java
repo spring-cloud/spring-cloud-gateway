@@ -31,15 +31,27 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 
 	@Test
 	public void cbFilterWorks() {
-		testClient.get().uri("/get").header("Host", "www.sccbsuccess.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "sccb_success_test");
+		testClient.get()
+			.uri("/get")
+			.header("Host", "www.sccbsuccess.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "sccb_success_test");
 	}
 
 	@Test
 	public void cbFilterTimesout() {
-		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
-				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.sccbtimeout.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()));
 	}
 
 	/*
@@ -51,91 +63,183 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 	 */
 	@Test
 	public void timeoutFromWebClient() {
-		testClient.get().uri("/delay/10").header("Host", "www.circuitbreakerresponsestall.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+		testClient.get()
+			.uri("/delay/10")
+			.header("Host", "www.circuitbreakerresponsestall.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 	}
 
 	@Test
 	public void filterFallback() {
-		testClient.get().uri("/delay/3?a=b").header("Host", "www.circuitbreakerfallback.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"from\":\"circuitbreakerfallbackcontroller\"}");
+		testClient.get()
+			.uri("/delay/3?a=b")
+			.header("Host", "www.circuitbreakerfallback.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"circuitbreakerfallbackcontroller\"}");
 	}
 
 	@Test
 	public void filterWithVariables() {
-		testClient.get().uri("/delay/3/extra?a=b").header("Host", "www.circuitbreakervariables.org").exchange()
-				.expectStatus().isOk().expectBody()
-				.json("{\"uri\":\"/circuitbreakerUriFallbackController/3/extra/www?a=b\"}");
+		testClient.get()
+			.uri("/delay/3/extra?a=b")
+			.header("Host", "www.circuitbreakervariables.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"uri\":\"/circuitbreakerUriFallbackController/3/extra/www?a=b\"}");
 	}
 
 	@Test
 	public void filterFallbackPath() {
-		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerfallbackpath.org").exchange()
-				.expectStatus().isOk().expectBody().jsonPath("$.headers").exists();
+		testClient.get()
+			.uri("/status/200")
+			.header("Host", "www.circuitbreakerfallbackpath.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("$.headers")
+			.exists();
 	}
 
 	@Test
 	public void filterWorksJavaDsl() {
-		testClient.get().uri("/get").header("Host", "www.circuitbreakerjava.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "circuitbreaker_java");
+		testClient.get()
+			.uri("/get")
+			.header("Host", "www.circuitbreakerjava.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_java");
 	}
 
 	@Test
 	public void filterFallbackJavaDsl() {
-		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerjava.org").exchange().expectStatus().isOk()
-				.expectBody().json("{\"from\":\"circuitbreakerfallbackcontroller2\"}");
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.circuitbreakerjava.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"circuitbreakerfallbackcontroller2\"}");
 	}
 
 	@Test
 	public void filterConnectFailure() {
-		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerconnectfail.org").exchange().expectStatus()
-				.is5xxServerError();
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.circuitbreakerconnectfail.org")
+			.exchange()
+			.expectStatus()
+			.is5xxServerError();
 	}
 
 	@Test
 	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	public void filterErrorPage() {
-		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerconnectfail.org").accept(APPLICATION_JSON)
-				.exchange().expectStatus().is5xxServerError().expectBody().jsonPath("$.status").isEqualTo(504)
-				.jsonPath("$.message").isNotEmpty().jsonPath("$.error").isEqualTo("Gateway Timeout");
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.circuitbreakerconnectfail.org")
+			.accept(APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.is5xxServerError()
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(504)
+			.jsonPath("$.message")
+			.isNotEmpty()
+			.jsonPath("$.error")
+			.isEqualTo("Gateway Timeout");
 	}
 
 	@Test
 	public void filterFallbackForward() {
-		testClient.get().uri("/delay/3?a=c").header("Host", "www.circuitbreakerforward.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
+		testClient.get()
+			.uri("/delay/3?a=c")
+			.header("Host", "www.circuitbreakerforward.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
 	}
 
 	@Test
 	public void filterFallbackForwardWithCORS() {
-		testClient.get().uri("/delay/3?a=b").header("Host", "www.circuitbreakerforward.org")
-				.header("Origin", "https://cors.withcircuitbreaker.org").exchange().expectStatus().isOk().expectBody()
-				.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
+		testClient.get()
+			.uri("/delay/3?a=b")
+			.header("Host", "www.circuitbreakerforward.org")
+			.header("Origin", "https://cors.withcircuitbreaker.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"circuitbreakerfallbackcontroller3\"}");
 	}
 
 	@Test
 	public void filterStatusCodeFallback() {
-		testClient.get().uri("/status/500").header("Host", "www.circuitbreakerstatuscode.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"from\":\"statusCodeFallbackController\"}");
+		testClient.get()
+			.uri("/status/500")
+			.header("Host", "www.circuitbreakerstatuscode.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"statusCodeFallbackController\"}");
 
-		testClient.get().uri("/status/404").header("Host", "www.circuitbreakerstatuscode.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"from\":\"statusCodeFallbackController\"}");
+		testClient.get()
+			.uri("/status/404")
+			.header("Host", "www.circuitbreakerstatuscode.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"from\":\"statusCodeFallbackController\"}");
 
-		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerstatuscode.org").exchange().expectStatus()
-				.isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "circuitbreaker_fallback_test_statuscode");
+		testClient.get()
+			.uri("/status/200")
+			.header("Host", "www.circuitbreakerstatuscode.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_fallback_test_statuscode");
 	}
 
 	@Test
 	public void filterStatusCodeResumeWithoutError() {
-		testClient.get().uri("/status/500").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
-				.expectStatus().isEqualTo(500);
+		testClient.get()
+			.uri("/status/500")
+			.header("Host", "www.circuitbreakerresumewithouterror.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(500);
 
-		testClient.get().uri("/status/404").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
-				.expectStatus().isEqualTo(404);
+		testClient.get()
+			.uri("/status/404")
+			.header("Host", "www.circuitbreakerresumewithouterror.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(404);
 
-		testClient.get().uri("/status/200").header("Host", "www.circuitbreakerresumewithouterror.org").exchange()
-				.expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_resume_without_error");
+		testClient.get()
+			.uri("/status/200")
+			.header("Host", "www.circuitbreakerresumewithouterror.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_resume_without_error");
 	}
 
 }

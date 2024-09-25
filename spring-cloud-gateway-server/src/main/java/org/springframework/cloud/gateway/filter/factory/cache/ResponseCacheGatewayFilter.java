@@ -73,7 +73,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 		}
 		else {
 			return chain
-					.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
+				.filter(exchange.mutate().response(new CachingResponseDecorator(metadataKey, exchange)).build());
 		}
 	}
 

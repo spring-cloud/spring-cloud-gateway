@@ -38,17 +38,22 @@ public class InMemoryRouteDefinitionRepositoryTests {
 	@Test
 	public void shouldProtectRoutesAgainstConcurrentModificationException() {
 		Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3"))
-				.flatMap(repository::save);
+			.flatMap(repository::save);
 
 		StepVerifier.create(createRoutes).verifyComplete();
 
 		Flux<RouteDefinition> readRoutesWithDelay = repository.getRouteDefinitions()
-				.delayElements(Duration.ofMillis(100));
+			.delayElements(Duration.ofMillis(100));
 
 		Mono<Void> createAnotherRoute = repository.save(createRoute("bar"));
 
-		StepVerifier.withVirtualTime(() -> readRoutesWithDelay).expectSubscription().expectNextCount(1)
-				.then(createAnotherRoute::subscribe).thenAwait().expectNextCount(2).verifyComplete();
+		StepVerifier.withVirtualTime(() -> readRoutesWithDelay)
+			.expectSubscription()
+			.expectNextCount(1)
+			.then(createAnotherRoute::subscribe)
+			.thenAwait()
+			.expectNextCount(2)
+			.verifyComplete();
 	}
 
 	@Test
@@ -67,7 +72,7 @@ public class InMemoryRouteDefinitionRepositoryTests {
 	@Test
 	public void shouldDeleteRoute() {
 		Flux<Void> createRoutes = Flux.just(createRoute("foo1"), createRoute("foo2"), createRoute("foo3"))
-				.flatMap(repository::save);
+			.flatMap(repository::save);
 
 		StepVerifier.create(createRoutes).verifyComplete();
 

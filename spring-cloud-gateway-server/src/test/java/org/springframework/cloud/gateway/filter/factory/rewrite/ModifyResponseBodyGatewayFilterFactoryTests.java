@@ -61,27 +61,44 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 	public void testModificationOfResponseBody() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
 
-		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjava.org").accept(MediaType.APPLICATION_JSON)
-				.exchange().expectBody().json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
+		testClient.get()
+			.uri(uri)
+			.header("Host", "www.modifyresponsebodyjava.org")
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectBody()
+			.json("{\"value\": \"httpbin compatible home\", \"length\": 23}");
 	}
 
 	@Test
 	public void testModificationOfContentType() {
 		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
 
-		testClient.get().uri(uri).header("Host", "www.modifyresponsebodyjavacontenttype.org").accept(MediaType.ALL)
-				.exchange().expectHeader().valueEquals(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-				.expectBody().consumeWith(result -> assertThat(new String(result.getResponseBody(), UTF_8))
-						.isEqualTo("Modified response"));
+		testClient.get()
+			.uri(uri)
+			.header("Host", "www.modifyresponsebodyjavacontenttype.org")
+			.accept(MediaType.ALL)
+			.exchange()
+			.expectHeader()
+			.valueEquals(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+			.expectBody()
+			.consumeWith(
+					result -> assertThat(new String(result.getResponseBody(), UTF_8)).isEqualTo("Modified response"));
 	}
 
 	@Test
-	public void modifyResponeBodyToLarge() {
-		testClient.post().uri("/post").header("Host", "www.modifyresponsebodyjavatoolarge.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-				.body(BodyInserters.fromValue(toLarge)).exchange().expectStatus()
-				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
-				.isEqualTo("Exceeded limit on max bytes to buffer : 40");
+	public void modifyResponseBodyToLarge() {
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyresponsebodyjavatoolarge.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.body(BodyInserters.fromValue(toLarge))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.expectBody()
+			.jsonPath("error")
+			.isEqualTo("Payload Too Large");
 	}
 
 	@EnableAutoConfiguration
@@ -94,30 +111,39 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("modify_response_java_test",
-					r -> r.path("/").and().host("www.modifyresponsebodyjava.org").filters(f -> f.prefixPath("/httpbin")
-							.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
-								Map<String, Object> modifiedResponse = new HashMap<>();
-								modifiedResponse.put("value", originalResponse);
-								modifiedResponse.put("length", originalResponse.length());
-								return Mono.just(modifiedResponse);
-							})).uri(uri))
-					.route("modify_response_java_test_to_large",
-							r -> r.path("/").and().host("www.modifyresponsebodyjavatoolarge.org")
-									.filters(f -> f.prefixPath("/httpbin").modifyResponseBody(String.class,
-											String.class, (webExchange, originalResponse) -> {
-												return Mono.just(toLarge);
-											}))
-									.uri(uri))
-					.route("modify_response_java_test_content_type",
-							r -> r.path("/").and().host("www.modifyresponsebodyjavacontenttype.org")
-									.filters(
-											f -> f.prefixPath("/httpbin").modifyResponseBody(String.class, String.class,
-													MediaType.TEXT_PLAIN_VALUE, (webExchange, originalResponse) -> {
-														return Mono.just("Modified response");
-													}))
-									.uri(uri))
-					.build();
+			return builder.routes()
+				.route("modify_response_java_test",
+						r -> r.path("/")
+							.and()
+							.host("www.modifyresponsebodyjava.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.modifyResponseBody(String.class, Map.class, (webExchange, originalResponse) -> {
+									Map<String, Object> modifiedResponse = new HashMap<>();
+									modifiedResponse.put("value", originalResponse);
+									modifiedResponse.put("length", originalResponse.length());
+									return Mono.just(modifiedResponse);
+								}))
+							.uri(uri))
+				.route("modify_response_java_test_to_large",
+						r -> r.path("/")
+							.and()
+							.host("www.modifyresponsebodyjavatoolarge.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.modifyResponseBody(String.class, String.class, (webExchange, originalResponse) -> {
+									return Mono.just(toLarge);
+								}))
+							.uri(uri))
+				.route("modify_response_java_test_content_type",
+						r -> r.path("/")
+							.and()
+							.host("www.modifyresponsebodyjavacontenttype.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.modifyResponseBody(String.class, String.class, MediaType.TEXT_PLAIN_VALUE,
+										(webExchange, originalResponse) -> {
+											return Mono.just("Modified response");
+										}))
+							.uri(uri))
+				.build();
 		}
 
 	}

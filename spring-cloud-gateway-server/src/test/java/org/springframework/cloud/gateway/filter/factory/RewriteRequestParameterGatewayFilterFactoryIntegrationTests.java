@@ -36,8 +36,14 @@ class RewriteRequestParameterGatewayFilterFactoryIntegrationTests extends BaseWe
 
 	@Test
 	void rewriteRequestParameterFilterWorks() {
-		testClient.get().uri("/get?campaign=old").header("Host", "www.rewriterequestparameter.org").exchange()
-				.expectStatus().isOk().expectBody().jsonPath("$.args.size", "fall2023");
+		testClient.get()
+			.uri("/get?campaign=old")
+			.header("Host", "www.rewriterequestparameter.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("$.args.size", "fall2023");
 	}
 
 	@EnableAutoConfiguration

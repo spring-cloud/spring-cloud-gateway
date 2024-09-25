@@ -53,9 +53,16 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void responseTimeoutWorks() {
-		testClient.get().uri("/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody()
-				.jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+		testClient.get()
+			.uri("/delay/5")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.isEqualTo("Response took longer than timeout: PT3S");
 	}
 
 	@Test
@@ -72,33 +79,56 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	public void canHandleDecoratedResponseWithNonStandardStatusValue() {
 		final int NON_STANDARD_STATUS = 480;
 		responseDecorator.decorateResponseTimes(1);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+		testClient.mutate()
+			.baseUrl("http://localhost:" + port)
+			.build()
+			.get()
+			.uri("/status/" + NON_STANDARD_STATUS)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(NON_STANDARD_STATUS);
 	}
 
 	@Test
 	public void canHandleUndecoratedResponseWithNonStandardStatusValue() {
 		final int NON_STANDARD_STATUS = 480;
 		responseDecorator.decorateResponseTimes(0);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+		testClient.mutate()
+			.baseUrl("http://localhost:" + port)
+			.build()
+			.get()
+			.uri("/status/" + NON_STANDARD_STATUS)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(NON_STANDARD_STATUS);
 	}
 
 	@Test
 	public void canHandleMultiplyDecoratedResponseWithNonStandardStatusValue() {
 		final int NON_STANDARD_STATUS = 142;
 		responseDecorator.decorateResponseTimes(14);
-		testClient.mutate().baseUrl("http://localhost:" + port).build().get().uri("/status/" + NON_STANDARD_STATUS)
-				.exchange().expectStatus().isEqualTo(NON_STANDARD_STATUS);
+		testClient.mutate()
+			.baseUrl("http://localhost:" + port)
+			.build()
+			.get()
+			.uri("/status/" + NON_STANDARD_STATUS)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(NON_STANDARD_STATUS);
 	}
 
 	@Test
 	public void shouldApplyConnectTimeoutPerRoute() {
 		long currentTimeMillisBeforeCall = System.currentTimeMillis();
 
-		testClient.get().uri("/connect/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
-				.expectBody().jsonPath("$.message")
-				.value(allOf(containsString("Connection refused:"), containsString(":32167")));
+		testClient.get()
+			.uri("/connect/delay/2")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+			.expectBody()
+			.jsonPath("$.message")
+			.value(allOf(containsString("Connection refused:"), containsString(":32167")));
 
 		// default connect timeout is 45 sec, this test verifies that it is possible to
 		// reduce timeout via config
@@ -107,9 +137,16 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 	@Test
 	public void shouldApplyResponseTimeoutPerRoute() {
-		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
+		testClient.get()
+			.uri("/route/delay/2")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.isEqualTo("Response took longer than timeout: PT1S");
 	}
 
 	@Test
@@ -117,20 +154,31 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		assertThatThrownBy(() -> {
 			testClient.get().uri("/disabledRoute/delay/10").exchange();
 		}).isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
+			.hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
 	}
 
 	@Test
 	public void shouldApplyResponseTimeoutForPlaceholder() {
-		testClient.get().uri("/responseheaders/200").header("Host", "www.responsetimeoutplaceholder.org").exchange()
-				.expectStatus().isEqualTo(HttpStatus.OK);
+		testClient.get()
+			.uri("/responseheaders/200")
+			.header("Host", "www.responsetimeoutplaceholder.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void shouldApplyGlobalResponseTimeoutForInvalidRouteTimeoutValue() {
-		testClient.get().uri("/invalidRoute/delay/5").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT3S");
+		testClient.get()
+			.uri("/invalidRoute/delay/5")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.isEqualTo("Response took longer than timeout: PT3S");
 	}
 
 	@Test
@@ -144,9 +192,13 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 		String header = "X-Test-SHOULD-MERGED-HEADER";
 		String gatewayHeaderValue = "value-from-gateway";
 		String upstreamHeaderValue = "value-from-upstream";
-		testClient.post().uri("/responseheaders/200").header("Host", "www.mergeresponseheader.org")
-				.header(header, upstreamHeaderValue).exchange().expectHeader()
-				.valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
+		testClient.post()
+			.uri("/responseheaders/200")
+			.header("Host", "www.mergeresponseheader.org")
+			.header(header, upstreamHeaderValue)
+			.exchange()
+			.expectHeader()
+			.valueEquals(header, upstreamHeaderValue, gatewayHeaderValue);
 	}
 
 	@EnableAutoConfiguration

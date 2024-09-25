@@ -253,9 +253,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, scriptArgs);
 			// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> {
-				if (log.isDebugEnabled()) {
-					log.debug("Error calling rate limiter lua", throwable);
-				}
+				log.error("Error calling rate limiter lua", throwable);
 				return Flux.just(Arrays.asList(1L, -1L));
 			}).reduce(new ArrayList<Long>(), (longs, l) -> {
 				longs.addAll(l);
@@ -351,7 +349,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
-					.append("burstCapacity", burstCapacity).append("requestedTokens", requestedTokens).toString();
+				.append("burstCapacity", burstCapacity)
+				.append("requestedTokens", requestedTokens)
+				.toString();
 
 		}
 

@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>4.1.3-SNAPSHOT</version>
+		<version>4.2.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-gateway-docs</artifactId>
 	<packaging>jar</packaging>
@@ -92,7 +92,7 @@
 						<artifactId>antora-component-version-maven-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>io.spring.maven.antora</groupId>
+						<groupId>org.antora</groupId>
 						<artifactId>antora-maven-plugin</artifactId>
 					</plugin>
 					<plugin>

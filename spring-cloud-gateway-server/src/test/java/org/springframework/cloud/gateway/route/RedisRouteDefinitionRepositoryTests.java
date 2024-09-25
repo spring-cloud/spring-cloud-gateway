@@ -80,8 +80,9 @@ public class RedisRouteDefinitionRepositoryTests {
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
 
-		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions()
+			.collectList()
+			.block();
 
 		assertThat(routeDefinitions.size()).isEqualTo(1);
 		assertThat(routeDefinitions.get(0)).isEqualTo(testRouteDefinition);
@@ -94,8 +95,9 @@ public class RedisRouteDefinitionRepositoryTests {
 
 		redisRouteDefinitionRepository.save(Mono.just(testRouteDefinition)).block();
 
-		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions().collectList()
-				.block();
+		List<RouteDefinition> routeDefinitions = redisRouteDefinitionRepository.getRouteDefinitions()
+			.collectList()
+			.block();
 		String routeId = routeDefinitions.get(0).getId();
 
 		// Assert that route has been added.
@@ -117,8 +119,8 @@ public class RedisRouteDefinitionRepositoryTests {
 		FilterDefinition redirectToFilterDefinition = new FilterDefinition("RemoveResponseHeader=Sensitive-Header");
 		FilterDefinition testFilterDefinition = new FilterDefinition();
 		testFilterDefinition.setName("Test");
-		testRouteDefinition.setFilters(
-				Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition, testFilterDefinition));
+		testRouteDefinition
+			.setFilters(Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition, testFilterDefinition));
 
 		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition("Host=myhost.org");
 		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");

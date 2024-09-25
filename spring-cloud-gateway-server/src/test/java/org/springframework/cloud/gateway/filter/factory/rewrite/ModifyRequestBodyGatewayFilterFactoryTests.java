@@ -46,36 +46,65 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 
 	@Test
 	public void modifyRequestBody() {
-		testClient.post().uri("/post").header("Host", "www.modifyrequestbody.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
-				.body(BodyInserters.fromValue("request")).exchange().expectStatus().isEqualTo(HttpStatus.OK)
-				.expectBody().jsonPath("headers.Content-Type").isEqualTo(MediaType.APPLICATION_JSON_VALUE)
-				.jsonPath("data").isEqualTo("modifyrequest");
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbody.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+			.body(BodyInserters.fromValue("request"))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.OK)
+			.expectBody()
+			.jsonPath("headers.Content-Type")
+			.isEqualTo(MediaType.APPLICATION_JSON_VALUE)
+			.jsonPath("data")
+			.isEqualTo("modifyrequest");
 	}
 
 	@Test
 	public void upstreamRequestBodyIsEmpty() {
-		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyempty.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).exchange().expectStatus()
-				.isEqualTo(HttpStatus.OK).expectBody().jsonPath("headers.Content-Type")
-				.isEqualTo(MediaType.APPLICATION_JSON_VALUE).jsonPath("data").isEqualTo("modifyrequest");
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbodyempty.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.OK)
+			.expectBody()
+			.jsonPath("headers.Content-Type")
+			.isEqualTo(MediaType.APPLICATION_JSON_VALUE)
+			.jsonPath("data")
+			.isEqualTo("modifyrequest");
 	}
 
 	@Test
 	public void modifyRequestBodyToLarge() {
-		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyemptytolarge.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
-				.body(BodyInserters.fromValue("request")).exchange().expectStatus()
-				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
-				.isEqualTo("Exceeded limit on max bytes to buffer : 13");
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbodyemptytolarge.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+			.body(BodyInserters.fromValue("request"))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.expectBody()
+			.jsonPath("error")
+			.isEqualTo("Payload Too Large");
 	}
 
 	@Test
 	public void modifyRequestBodyParameterizedTypeReference() {
-		testClient.post().uri("/post").header("Host", "www.modifyrequestbodyspacetounderscore.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-				.body(BodyInserters.fromValue("foo bar baz")).exchange().expectStatus().isEqualTo(HttpStatus.OK)
-				.expectBody().jsonPath("data").isEqualTo("FOO_BAR_BAZ");
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbodyspacetounderscore.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+			.body(BodyInserters.fromValue("foo bar baz"))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.OK)
+			.expectBody()
+			.jsonPath("data")
+			.isEqualTo("FOO_BAR_BAZ");
 	}
 
 	@EnableAutoConfiguration
@@ -88,37 +117,45 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("test_modify_request_body",
-					r -> r.order(-1).host("**.modifyrequestbody.org").filters(f -> f.modifyRequestBody(String.class,
-							String.class, MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, aVoid) -> {
-								return Mono.just("modifyrequest");
-							})).uri(uri))
-					.route("test_modify_request_body_empty",
-							r -> r.order(-1).host("**.modifyrequestbodyempty.org")
-									.filters(f -> f.modifyRequestBody(String.class, String.class,
-											MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
-												if (body == null) {
-													return Mono.just("modifyrequest");
-												}
-												return Mono.just(body.toUpperCase());
-											}))
-									.uri(uri))
-					.route("test_modify_request_body_to_large",
-							r -> r.order(-1).host("**.modifyrequestbodyemptytolarge.org")
-									.filters(f -> f.modifyRequestBody(String.class, String.class,
-											MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
-												return Mono.just(
-														"tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge");
-											}))
-									.uri(uri))
-					.route("test_modify_request_body_with_parameterizedtypereference",
-							r -> r.order(-1).host("**.modifyrequestbodyspacetounderscore.org")
-									.filters(f -> f.modifyRequestBody(new ParameterizedTypeReference<String>() {
-									}, new ParameterizedTypeReference<String>() {
-									}, (swe, body) -> {
-										return Mono.just(body.replaceAll(" ", "_").toUpperCase());
-									})).uri(uri))
-					.build();
+			return builder.routes()
+				.route("test_modify_request_body",
+						r -> r.order(-1)
+							.host("**.modifyrequestbody.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, aVoid) -> {
+										return Mono.just("modifyrequest");
+									}))
+							.uri(uri))
+				.route("test_modify_request_body_empty",
+						r -> r.order(-1)
+							.host("**.modifyrequestbodyempty.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
+										if (body == null) {
+											return Mono.just("modifyrequest");
+										}
+										return Mono.just(body.toUpperCase());
+									}))
+							.uri(uri))
+				.route("test_modify_request_body_to_large",
+						r -> r.order(-1)
+							.host("**.modifyrequestbodyemptytolarge.org")
+							.filters(f -> f.modifyRequestBody(String.class, String.class,
+									MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
+										return Mono.just(
+												"tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge-tolarge");
+									}))
+							.uri(uri))
+				.route("test_modify_request_body_with_parameterizedtypereference",
+						r -> r.order(-1)
+							.host("**.modifyrequestbodyspacetounderscore.org")
+							.filters(f -> f.modifyRequestBody(new ParameterizedTypeReference<String>() {
+							}, new ParameterizedTypeReference<String>() {
+							}, (swe, body) -> {
+								return Mono.just(body.replaceAll(" ", "_").toUpperCase());
+							}))
+							.uri(uri))
+				.build();
 		}
 
 	}

@@ -67,8 +67,9 @@ public class DisableBuiltInFiltersTests {
 		@Test
 		public void shouldInjectOnlyEnabledBuiltInFilters() {
 			assertThat(gatewayFilters).hasSizeGreaterThan(0);
-			assertThat(gatewayFilters).allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(
-					AddRequestHeaderGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class));
+			assertThat(gatewayFilters)
+				.allSatisfy(filter -> assertThat(filter).isNotInstanceOfAny(AddRequestHeaderGatewayFilterFactory.class,
+						MapRequestHeaderGatewayFilterFactory.class));
 		}
 
 	}

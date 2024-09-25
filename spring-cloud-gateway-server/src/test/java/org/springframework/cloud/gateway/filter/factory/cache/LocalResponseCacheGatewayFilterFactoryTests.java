@@ -77,51 +77,92 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		void shouldNotCacheResponseWhenGetRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org")
-					.header(CUSTOM_HEADER, "1").bodyValue("whatever").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.method(HttpMethod.GET)
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.bodyValue("whatever")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.method(HttpMethod.GET).uri(uri).header("Host", "www.localresponsecache.org")
-					.bodyValue("whatever").header(CUSTOM_HEADER, "2").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.method(HttpMethod.GET)
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.bodyValue("whatever")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
 		void shouldNotCacheResponseWhenPostRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.localresponsecache.org")
-					.header(CUSTOM_HEADER, "1").bodyValue("whatever").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.method(HttpMethod.POST)
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.bodyValue("whatever")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.method(HttpMethod.POST).uri(uri).header("Host", "www.localresponsecache.org")
-					.bodyValue("whatever").header(CUSTOM_HEADER, "2").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.method(HttpMethod.POST)
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.bodyValue("whatever")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
 		void shouldNotCacheWhenCacheControlAsksToDoNotCache() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
-					// Cache-Control asks to not use the cached content and not store the
-					// response
-					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue()).exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				// Cache-Control asks to not use the cached content and not store the
+				// response
+				.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue())
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
 		void shouldNotIncludeMustRevalidateNoStoreAndNoCacheDirectivesWhenMaxAgeIsPositive() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			var response = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult();
-			var maxAge = response.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			var response = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult();
+			var maxAge = response.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 
 			assertThat(maxAge).isGreaterThan(0L);
 			assertThat(response.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL)).doesNotContain("no-store",
@@ -132,11 +173,20 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		void shouldCacheResponseWhenOnlyNonVaryHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
-					.value(customHeaderFromReq1 -> testClient.get().uri(uri)
-							.header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-							.expectBody().jsonPath("$.headers." + CUSTOM_HEADER, customHeaderFromReq1));
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.value(customHeaderFromReq1 -> testClient.get()
+					.uri(uri)
+					.header("Host", "www.localresponsecache.org")
+					.header(CUSTOM_HEADER, "2")
+					.exchange()
+					.expectBody()
+					.jsonPath("$.headers." + CUSTOM_HEADER, customHeaderFromReq1));
 		}
 
 		@Test
@@ -154,10 +204,22 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		void shouldNotCacheResponseWhenResponseVaryIsWildcard() {
 			String uri = "/" + UUID.randomUUID() + "/cache/vary-on-header";
 			// Vary: *
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1")
-					.header("X-Request-Vary", "*").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "1");
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
-					.header("X-Request-Vary", "*").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.header("X-Request-Vary", "*")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER, "1");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.header("X-Request-Vary", "*")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
 		}
 
 		@Test
@@ -165,25 +227,54 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			String uri2 = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri2).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2")
-					.exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.get()
+				.uri(uri2)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
 		void shouldDecreaseCacheControlMaxAgeTimeWhenResponseIsFromCache() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
-			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest1 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			Thread.sleep(2000);
-			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest2 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 
 			assertThat(maxAgeRequest2).isLessThan(maxAgeRequest1);
 		}
@@ -191,54 +282,119 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		@Test
 		void shouldNotCacheResponseWhenTimeToLiveIsReached() {
 			String uri = "/" + UUID.randomUUID() + "/ephemeral-cache/headers";
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).value(customHeaderFromReq1 -> {
-						try {
-							Thread.sleep(100); // Min time to have entry expired
-							testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-									.header(CUSTOM_HEADER, "2").exchange().expectBody()
-									.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
-						}
-						catch (InterruptedException e) {
-							throw new RuntimeException(e);
-						}
-					});
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.value(customHeaderFromReq1 -> {
+					try {
+						Thread.sleep(100); // Min time to have entry expired
+						testClient.get()
+							.uri(uri)
+							.header("Host", "www.localresponsecache.org")
+							.header(CUSTOM_HEADER, "2")
+							.exchange()
+							.expectBody()
+							.jsonPath("$.headers." + CUSTOM_HEADER)
+							.isEqualTo("2");
+					}
+					catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				});
 		}
 
 		@Test
 		void shouldNotCacheWhenLocalResponseCacheSizeIsReached() {
 			String uri = "/" + UUID.randomUUID() + "/one-byte-cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "1").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER, "2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
 		}
 
 		@Test
 		void shouldNotCacheWhenAuthorizationHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(HttpHeaders.AUTHORIZATION, "1").header(CUSTOM_HEADER, "1").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(HttpHeaders.AUTHORIZATION, "1")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(HttpHeaders.AUTHORIZATION, "2").header(CUSTOM_HEADER, "2").exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER, "2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(HttpHeaders.AUTHORIZATION, "2")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
+		}
+
+		@Test
+		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
+			shouldNotReturnHeader(HttpHeaders.PRAGMA);
+		}
+
+		@Test
+		void shouldNotReturnExpiresHeaderInNonCachedAndCachedResponses() {
+			shouldNotReturnHeader(HttpHeaders.EXPIRES);
+		}
+
+		private void shouldNotReturnHeader(String header) {
+			String uri = "/" + UUID.randomUUID() + "/cache/headers";
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(header);
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectHeader()
+				.doesNotExist(header);
 		}
 
 		void assertNonVaryHeaderInContent(String uri, String varyHeader, String varyHeaderValue, String nonVaryHeader,
 				String nonVaryHeaderValue, String expectedNonVaryResponse) {
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header("X-Request-Vary", varyHeader)
-					.header(varyHeader, varyHeaderValue).header(nonVaryHeader, nonVaryHeaderValue).exchange()
-					.expectBody(Map.class).consumeWith(response -> {
-						assertThat(response.getResponseHeaders()).hasEntrySatisfying("Vary",
-								o -> assertThat(o).contains(varyHeader));
-						assertThat((Map) response.getResponseBody().get("headers")).containsEntry(nonVaryHeader,
-								expectedNonVaryResponse);
-					});
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header("X-Request-Vary", varyHeader)
+				.header(varyHeader, varyHeaderValue)
+				.header(nonVaryHeader, nonVaryHeaderValue)
+				.exchange()
+				.expectBody(Map.class)
+				.consumeWith(response -> {
+					assertThat(response.getResponseHeaders()).hasEntrySatisfying("Vary",
+							o -> assertThat(o).contains(varyHeader));
+					assertThat((Map) response.getResponseBody().get("headers")).containsEntry(nonVaryHeader,
+							expectedNonVaryResponse);
+				});
 		}
 
 		@EnableAutoConfiguration
@@ -252,23 +408,31 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 				return builder.routes()
-						.route("local_response_cache_java_test",
-								r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
-												.localResponseCache(Duration.ofMinutes(2), null))
-										.uri(uri))
-						.route("100_millisec_ephemeral_prefix_local_response_cache_java_test",
-								r -> r.path("/{namespace}/ephemeral-cache/**").and()
-										.host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin")
-												.localResponseCache(Duration.ofMillis(100), null))
-										.uri(uri))
-						.route("min_sized_prefix_local_response_cache_java_test",
-								r -> r.path("/{namespace}/one-byte-cache/**").and().host("{sub}.localresponsecache.org")
-										.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null,
-												DataSize.ofBytes(1L)))
-										.uri(uri))
-						.build();
+					.route("local_response_cache_java_test",
+							r -> r.path("/{namespace}/cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2)
+									.prefixPath("/httpbin")
+									.localResponseCache(Duration.ofMinutes(2), null))
+								.uri(uri))
+					.route("100_millisec_ephemeral_prefix_local_response_cache_java_test",
+							r -> r.path("/{namespace}/ephemeral-cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2)
+									.prefixPath("/httpbin")
+									.localResponseCache(Duration.ofMillis(100), null))
+								.uri(uri))
+					.route("min_sized_prefix_local_response_cache_java_test",
+							r -> r.path("/{namespace}/one-byte-cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2)
+									.prefixPath("/httpbin")
+									.localResponseCache(null, DataSize.ofBytes(1L)))
+								.uri(uri))
+					.build();
 			}
 
 		}
@@ -285,18 +449,36 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 		@Test
 		void shouldApplyMaxAgeFromPropertiesWhenFilterHasNoParams() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
-			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest1 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAgeRequest1).isLessThanOrEqualTo(20L);
 
 			Thread.sleep(2000);
 
-			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest2 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 
 			assertThat(maxAgeRequest2).isLessThan(maxAgeRequest1);
 		}
@@ -307,23 +489,40 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue())
-					.header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER);
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().getHeaderValue())
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER);
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "2").exchange()
-					.expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 
-			testClient.get().uri(uri).header("Host", "www.localresponsecache.org").header(CUSTOM_HEADER, "3") // second
-																												// request
-																												// cached
-																												// "2"
-																												// ->
-																												// "3"
-																												// will
-																												// be
-																												// ignored
-					.exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2");
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "3") // second
+											// request
+											// cached
+											// "2"
+											// ->
+											// "3"
+											// will
+											// be
+											// ignored
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@EnableAutoConfiguration
@@ -336,11 +535,14 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes().route("local_response_cache_java_test",
-						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+				return builder.routes()
+					.route("local_response_cache_java_test",
+							r -> r.path("/{namespace}/cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
 								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
 								.uri(uri))
-						.build();
+					.build();
 			}
 
 		}
@@ -362,37 +564,67 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			// 1. Store in cache - max-age ~= 2m AND NOT
 			// (must-revalidate,no-cache,no-store)
 			final Instant when1stRequest = Instant.now();
-			var firstResponse = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(CUSTOM_HEADER, "1").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
-					.isEqualTo("1").returnResult();
-			var maxAge1st = firstResponse.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			var firstResponse = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1")
+				.returnResult();
+			var maxAge1st = firstResponse.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAge1st).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
 			assertThat(firstResponse.getResponseHeaders().getCacheControl()).doesNotContain("must-revalidate",
 					"no-cache", "no-store");
 
 			// 2. "no-cache" should return max-age=0 & must-revalidate,no-cache,no-store
-			var secondResponse = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(CUSTOM_HEADER, "2")
-					// Cache-Control asks to not use the cached content
-					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange().expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER).isEqualTo("2").returnResult();
-			var maxAge2nd = secondResponse.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			var secondResponse = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				// Cache-Control asks to not use the cached content
+				.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue())
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2")
+				.returnResult();
+			var maxAge2nd = secondResponse.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAge2nd).isZero();
 
 			// 3. After 2s, max-age = (when1stRequest) - 1s - offset_delay
 			var waitDuration = Duration.ofSeconds(1);
 			Thread.sleep(waitDuration.toMillis()); // Wait 2s to check max-age renewed
 			final Instant when3rdRequest = Instant.now();
-			var thirdResponseCached = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(CUSTOM_HEADER, "3").exchange().expectBody().jsonPath("$.headers." + CUSTOM_HEADER)
-					.isEqualTo("1").returnResult();
-			var maxAge3rd = thirdResponseCached.getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			var thirdResponseCached = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "3")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1")
+				.returnResult();
+			var maxAge3rd = thirdResponseCached.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAge3rd).isCloseTo(
 					Duration.ofMinutes(2).minus(Duration.between(when1stRequest, when3rdRequest)).getSeconds(),
 					offset(10L));
@@ -409,11 +641,14 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes().route("local_response_cache_java_test",
-						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+				return builder.routes()
+					.route("local_response_cache_java_test",
+							r -> r.path("/{namespace}/cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
 								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
 								.uri(uri))
-						.build();
+					.build();
 			}
 
 		}
@@ -435,29 +670,56 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			// First request -> cache miss
 			final Instant when1stRequest = Instant.now();
-			Long maxAgeRequest1 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest1 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAgeRequest1).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
 
 			// Second request + no-cache -> skip cache and ignore update
 			Thread.sleep(1000);
 			final Duration between1stAnd2ndRequest = Duration.between(when1stRequest, Instant.now());
-			Long maxAgeRequest2 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org")
-					.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue()).exchange().expectBody()
-					.returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest2 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().getHeaderValue())
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAgeRequest2).isCloseTo(Duration.ofMinutes(2).minus(between1stAnd2ndRequest).getSeconds(),
 					offset(10L));
 
 			// Third request -> cache hit -> entry (and max-age) is updated
 			Thread.sleep(1000);
-			Long maxAgeRequest3 = testClient.get().uri(uri).header("Host", "www.localresponsecache.org").exchange()
-					.expectBody().returnResult().getResponseHeaders().get(HttpHeaders.CACHE_CONTROL).stream()
-					.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge).filter(Objects::nonNull).findAny()
-					.orElse(null);
+			Long maxAgeRequest3 = testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.exchange()
+				.expectBody()
+				.returnResult()
+				.getResponseHeaders()
+				.get(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.map(LocalResponseCacheGatewayFilterFactoryTests::parseMaxAge)
+				.filter(Objects::nonNull)
+				.findAny()
+				.orElse(null);
 			assertThat(maxAgeRequest3).isCloseTo(Duration.ofMinutes(2).toSeconds(), offset(10L));
 		}
 
@@ -471,11 +733,14 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 			@Bean
 			public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-				return builder.routes().route("local_response_cache_java_test",
-						r -> r.path("/{namespace}/cache/**").and().host("{sub}.localresponsecache.org")
+				return builder.routes()
+					.route("local_response_cache_java_test",
+							r -> r.path("/{namespace}/cache/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
 								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin").localResponseCache(null, null))
 								.uri(uri))
-						.build();
+					.build();
 			}
 
 		}

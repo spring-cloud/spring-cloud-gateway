@@ -299,7 +299,7 @@ public final class ServerWebExchangeUtils {
 	public static void putUriTemplateVariables(ServerWebExchange exchange, Map<String, String> uriVariables) {
 		if (exchange.getAttributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
 			Map<String, Object> existingVariables = (Map<String, Object>) exchange.getAttributes()
-					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			HashMap<String, Object> newVariables = new HashMap<>();
 			newVariables.putAll(existingVariables);
 			newVariables.putAll(uriVariables);
@@ -372,9 +372,11 @@ public final class ServerWebExchangeUtils {
 		ServerHttpResponse response = exchange.getResponse();
 		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
-				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
-				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+		return DataBufferUtils.join(exchange.getRequest().getBody())
+			.defaultIfEmpty(factory.wrap(EMPTY_BYTES))
+			.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
+			.switchIfEmpty(Mono.just(exchange.getRequest()))
+			.flatMap(function);
 	}
 
 	private static ServerHttpRequest decorate(ServerWebExchange exchange, DataBuffer dataBuffer,

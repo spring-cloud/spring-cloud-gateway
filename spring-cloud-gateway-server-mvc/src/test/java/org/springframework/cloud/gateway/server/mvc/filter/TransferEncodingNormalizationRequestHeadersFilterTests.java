@@ -32,7 +32,8 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 	@Test
 	public void noTransferEncodingWithContentLength() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").buildRequest(null);
+			.header(HttpHeaders.CONTENT_LENGTH, "6")
+			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
 		assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH).doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
@@ -41,8 +42,9 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 	@Test
 	public void transferEncodingWithContentLength() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "chunked")
-				.buildRequest(null);
+			.header(HttpHeaders.CONTENT_LENGTH, "6")
+			.header(HttpHeaders.TRANSFER_ENCODING, "chunked")
+			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
 		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
@@ -51,8 +53,9 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 	@Test
 	public void transferEncodingCaseInsensitiveWithContentLength() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.post("http://localhost/post")
-				.header(HttpHeaders.CONTENT_LENGTH, "6").header(HttpHeaders.TRANSFER_ENCODING, "Chunked ")
-				.buildRequest(null);
+			.header(HttpHeaders.CONTENT_LENGTH, "6")
+			.header(HttpHeaders.TRANSFER_ENCODING, "Chunked ")
+			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
 		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);

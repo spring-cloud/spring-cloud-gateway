@@ -60,41 +60,69 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 
 	@Test
 	public void r4jFilterServiceUnavailable() {
-		testClient.get().uri("/delay/3").header("Host", "www.sccbfailure.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.sccbfailure.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
 	}
 
 	@Test
 	public void r4jFilterExceptionFallback() {
-		testClient.get().uri("/delay/3").header("Host", "www.circuitbreakerexceptionfallback.org").exchange()
-				.expectStatus().isOk().expectHeader().value(RETRIEVED_EXCEPTION, containsString("TimeoutException"));
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.circuitbreakerexceptionfallback.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.value(RETRIEVED_EXCEPTION, containsString("TimeoutException"));
 	}
 
 	@Test
 	public void cbFilterTimesoutMessage() {
-		testClient.get().uri("/delay/3").header("Host", "www.sccbtimeout.org").exchange().expectStatus()
-				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT).expectBody().jsonPath("$.status")
-				.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value())).jsonPath("$.message")
-				.value(containsString("1000ms"));
+		testClient.get()
+			.uri("/delay/3")
+			.header("Host", "www.sccbtimeout.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.value(containsString("1000ms"));
 	}
 
 	@Test
 	public void toStringFormat() {
 		SpringCloudCircuitBreakerFilterFactory.Config config = new SpringCloudCircuitBreakerFilterFactory.Config()
-				.setName("myname").setFallbackUri("forward:/myfallback");
+			.setName("myname")
+			.setFallbackUri("forward:/myfallback");
 		GatewayFilter filter = new SpringCloudCircuitBreakerResilience4JFilterFactory(
 				new ReactiveResilience4JCircuitBreakerFactory(CircuitBreakerRegistry.ofDefaults(),
 						TimeLimiterRegistry.ofDefaults()),
-				null).apply(config);
+				null)
+			.apply(config);
 		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
 	}
 
 	@Test
 	public void testHeadersAreClearedOnFallback() {
-		testClient.post().uri("/responseheaders/502").body(BodyInserters.fromFormData("name-1", "value-1"))
-				.header("Host", "www.circuitbreakerresetexchange.org").header("X-Test-Header-1", "value1")
-				.accept(MediaType.APPLICATION_JSON).exchange().expectStatus().isOk().expectHeader()
-				.doesNotExist("X-Test-Header-1").expectHeader().valueEquals("X-Test-Header-1-fallback", "value1");
+		testClient.post()
+			.uri("/responseheaders/502")
+			.body(BodyInserters.fromFormData("name-1", "value-1"))
+			.header("Host", "www.circuitbreakerresetexchange.org")
+			.header("X-Test-Header-1", "value1")
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.doesNotExist("X-Test-Header-1")
+			.expectHeader()
+			.valueEquals("X-Test-Header-1-fallback", "value1");
 	}
 
 	@EnableAutoConfiguration

@@ -80,8 +80,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter = definition.getFilters().get(0);
 		assertThat(filter.getName()).isEqualTo("RewritePath");
-		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+		assertThat(filter.getArgs()).hasSize(2)
+			.containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
+			.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 
 		RouteDefinition definition2 = definitions.get(1);
 		assertThat(definition2.getId()).isEqualTo("testedge_service3");
@@ -96,8 +97,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter2 = definition2.getFilters().get(0);
 		assertThat(filter2.getName()).isEqualTo("RewritePath");
-		assertThat(filter2.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service3/?(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+		assertThat(filter2.getArgs()).hasSize(2)
+			.containsEntry(REGEXP_KEY, "/service3/?(?<remaining>.*)")
+			.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 
 	@SpringBootConfiguration

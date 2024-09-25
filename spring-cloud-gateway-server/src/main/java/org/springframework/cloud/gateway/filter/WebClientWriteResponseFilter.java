@@ -58,8 +58,8 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 			ServerHttpResponse response = exchange.getResponse();
 
 			return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
-					// .log("webClient response")
-					.doOnCancel(() -> cleanup(exchange));
+				// .log("webClient response")
+				.doOnCancel(() -> cleanup(exchange));
 		}));
 	}
 

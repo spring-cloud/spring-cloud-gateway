@@ -47,11 +47,13 @@ class OnEnabledPredicateTests {
 				CloudFoundryRouteServiceRoutePredicateFactory.class, ReadBodyRoutePredicateFactory.class,
 				RemoteAddrRoutePredicateFactory.class);
 
-		List<String> resultNames = predicates.stream().map(onEnabledPredicate::normalizeComponentName)
-				.collect(Collectors.toList());
+		List<String> resultNames = predicates.stream()
+			.map(onEnabledPredicate::normalizeComponentName)
+			.collect(Collectors.toList());
 
 		List<String> expectedNames = Stream.of("after", "cloud-foundry-route-service", "read-body", "remote-addr")
-				.map(s -> "predicate." + s).collect(Collectors.toList());
+			.map(s -> "predicate." + s)
+			.collect(Collectors.toList());
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}

@@ -64,7 +64,9 @@ public class NosslTests {
 		System.err.println("nossl.port = " + nosslPort);
 		Hooks.onOperatorDebug();
 		try (ConfigurableApplicationContext context = new SpringApplicationBuilder(NosslConfiguration.class)
-				.properties("server.port=" + nosslPort).profiles("nossl").run()) {
+			.properties("server.port=" + nosslPort)
+			.profiles("nossl")
+			.run()) {
 			String uri = "https://localhost:" + port + "/nossl";
 			String expected = "nossl";
 			assertResponse(uri, expected);

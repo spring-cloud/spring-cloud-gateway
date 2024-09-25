@@ -78,8 +78,9 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
 					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
-						exchange.getResponse().getHeaders().set(originalStatusHeaderName,
-								singletonList(statusCode.value()).toString());
+						exchange.getResponse()
+							.getHeaders()
+							.set(originalStatusHeaderName, singletonList(statusCode.value()).toString());
 					}
 				}));
 			}
@@ -87,7 +88,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetStatusGatewayFilterFactory.this).append("status", config.getStatus())
-						.toString();
+					.toString();
 			}
 		};
 	}

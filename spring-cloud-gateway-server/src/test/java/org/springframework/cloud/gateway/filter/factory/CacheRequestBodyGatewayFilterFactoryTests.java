@@ -59,39 +59,63 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 
 	@Test
 	public void cacheRequestBodyWorks() {
-		testClient.post().uri("/post").header("Host", "www.cacherequestbody.org").bodyValue(BODY_VALUE).exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.cacherequestbody.org")
+			.bodyValue(BODY_VALUE)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					String responseBody = (String) response.get("data");
-					assertThat(responseBody).isEqualTo(BODY_VALUE);
-				});
+				String responseBody = (String) response.get("data");
+				assertThat(responseBody).isEqualTo(BODY_VALUE);
+			});
 	}
 
 	@Test
 	public void cacheRequestBodyDoesntWorkForLargePayload() {
-		testClient.post().uri("/post").header("Host", "www.cacherequestbody.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).bodyValue(LARGE_BODY_VALUE)
-				.exchange().expectStatus().isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR).expectBody().jsonPath("message")
-				.isEqualTo("Exceeded limit on max bytes to buffer : 25");
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.cacherequestbody.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.bodyValue(LARGE_BODY_VALUE)
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+			.expectBody()
+			.jsonPath("message")
+			.isEqualTo("Exceeded limit on max bytes to buffer : 25");
 	}
 
 	@Test
 	public void cacheRequestBodyEmpty() {
-		testClient.post().uri("/post").header("Host", "www.cacherequestbodyempty.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.cacherequestbodyempty.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					assertThat(response.get("data")).isNull();
-				});
+				assertThat(response.get("data")).isNull();
+			});
 	}
 
 	@Test
 	public void cacheRequestBodyExists() {
-		testClient.post().uri("/post").header("Host", "www.cacherequestbodyexists.org").exchange().expectStatus()
-				.isOk();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.cacherequestbodyexists.org")
+			.exchange()
+			.expectStatus()
+			.isOk();
 	}
 
 	@Test
@@ -113,25 +137,33 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("cache_request_body_java_test",
-							r -> r.path("/post").and().host("**.cacherequestbody.org")
-									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
-											.filter(new CheckCachedRequestBodyReleasedGatewayFilter()))
-									.uri(uri))
-					.route("cache_request_body_empty_java_test",
-							r -> r.path("/post").and().host("**.cacherequestbodyempty.org")
-									.filters(f -> f.prefixPath("/httpbin").cacheRequestBody(String.class)
-											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_EMPTY)))
-									.uri(uri))
-					.route("cache_request_body_exists_java_test",
-							r -> r.path("/post").and().host("**.cacherequestbodyexists.org")
-									.filters(f -> f.prefixPath("/httpbin")
-											.filter(new SetExchangeCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS))
-											.cacheRequestBody(String.class)
-											.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
-									.uri(uri))
-					.build();
+				.route("cache_request_body_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("**.cacherequestbody.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.cacheRequestBody(String.class)
+								.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
+								.filter(new CheckCachedRequestBodyReleasedGatewayFilter()))
+							.uri(uri))
+				.route("cache_request_body_empty_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("**.cacherequestbodyempty.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.cacheRequestBody(String.class)
+								.filter(new AssertCachedRequestBodyGatewayFilter(BODY_EMPTY)))
+							.uri(uri))
+				.route("cache_request_body_exists_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("**.cacherequestbodyexists.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.filter(new SetExchangeCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS))
+								.cacheRequestBody(String.class)
+								.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
+							.uri(uri))
+				.build();
 		}
 
 	}
@@ -186,7 +218,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 			return chain.filter(exchange).doAfterTerminate(() -> {
 				Object o = exchange.getAttributes()
-						.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
+					.get(CacheRequestBodyGatewayFilterFactory.CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
 				if (o instanceof PooledDataBuffer dataBuffer) {
 					if (dataBuffer.isAllocated()) {
 						exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);

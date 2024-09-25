@@ -44,7 +44,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		RequestHeaderToRequestUriGatewayFilterFactory factory = new RequestHeaderToRequestUriGatewayFilterFactory();
 		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.header("X-CF-Forwarded-Url", "https://example.com").build();
+			.header("X-CF-Forwarded-Url", "https://example.com")
+			.build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
@@ -79,7 +80,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryTests {
 		RequestHeaderToRequestUriGatewayFilterFactory factory = new RequestHeaderToRequestUriGatewayFilterFactory();
 		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.header("X-CF-Forwarded-Url", "example").build();
+			.header("X-CF-Forwarded-Url", "example")
+			.build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);

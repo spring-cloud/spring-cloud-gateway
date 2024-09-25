@@ -37,7 +37,7 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		Predicate<ServerWebExchange> predicate = new CookieRoutePredicateFactory()
-				.apply(new Config().setName("mycookie").setRegexp("ch.p"));
+			.apply(new Config().setName("mycookie").setRegexp("ch.p"));
 
 		assertThat(predicate.test(exchange)).isFalse();
 	}
@@ -45,11 +45,12 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void okOneCookieForYou() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com")
-				.cookie(new HttpCookie("yourcookie", "sugar"), new HttpCookie("mycookie", "chip")).build();
+			.cookie(new HttpCookie("yourcookie", "sugar"), new HttpCookie("mycookie", "chip"))
+			.build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		Predicate<ServerWebExchange> predicate = new CookieRoutePredicateFactory()
-				.apply(new Config().setName("mycookie").setRegexp("ch.p"));
+			.apply(new Config().setName("mycookie").setRegexp("ch.p"));
 
 		assertThat(predicate.test(exchange)).isTrue();
 	}

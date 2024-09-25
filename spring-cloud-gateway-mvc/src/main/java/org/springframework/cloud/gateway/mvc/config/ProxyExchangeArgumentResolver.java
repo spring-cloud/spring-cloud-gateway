@@ -47,7 +47,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Set<String> autoForwardedHeaders;
 
-	private Set<String> sensitive;
+	private Set<String> excluded;
 
 	public ProxyExchangeArgumentResolver(RestTemplate builder) {
 		this.rest = builder;
@@ -62,8 +62,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
+	@Deprecated
+	public void setSensitive(Set<String> excluded) {
+		setExcluded(excluded);
+	}
+
+	public void setExcluded(Set<String> excluded) {
+		this.excluded = excluded;
 	}
 
 	@Override
@@ -77,7 +82,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
-		configureSensitive(proxy);
+		configureExcluded(proxy);
 		return proxy;
 	}
 
@@ -115,9 +120,9 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		}
 	}
 
-	private void configureSensitive(final ProxyExchange<?> proxy) {
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
+	private void configureExcluded(final ProxyExchange<?> proxy) {
+		if (excluded != null) {
+			proxy.excluded(excluded.toArray(new String[0]));
 		}
 	}
 

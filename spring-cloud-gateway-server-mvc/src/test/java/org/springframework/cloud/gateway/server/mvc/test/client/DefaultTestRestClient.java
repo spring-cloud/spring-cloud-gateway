@@ -569,7 +569,8 @@ public class DefaultTestRestClient implements TestRestClient {
 				return "";
 			}
 			Charset charset = Optional.ofNullable(this.result.getResponseHeaders().getContentType())
-					.map(MimeType::getCharset).orElse(StandardCharsets.UTF_8);
+				.map(MimeType::getCharset)
+				.orElse(StandardCharsets.UTF_8);
 			return new String(body, charset);
 		}
 
