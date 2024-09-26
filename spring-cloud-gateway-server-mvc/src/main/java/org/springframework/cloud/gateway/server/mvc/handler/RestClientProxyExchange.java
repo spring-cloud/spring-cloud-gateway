@@ -37,9 +37,9 @@ public class RestClientProxyExchange implements ProxyExchange {
 
 	@Override
 	public ServerResponse exchange(Request request) {
-		var requestSpec = restClient.method(request.getMethod())
-				.uri(request.getUri())
-				.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
+		RestClient.RequestBodySpec requestSpec = restClient.method(request.getMethod())
+			.uri(request.getUri())
+			.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
 		if (isBodyPresent(request)) {
 			requestSpec.body(outputStream -> copyBody(request, outputStream));
 		}
