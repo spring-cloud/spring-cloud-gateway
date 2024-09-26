@@ -94,10 +94,16 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void headerRouteHandlesCommaSeparatedValues() {
-		testClient.get().uri("/get").header("X-Example-Header", "value1, value2 ,exact_match,value3").exchange()
-				.expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "header_test_comma_separated");
+		testClient.get()
+			.uri("/get")
+			.header("X-Example-Header", "value1, value2 ,exact_match,value3")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "header_test_comma_separated");
 	}
 
 	@EnableAutoConfiguration
@@ -111,10 +117,12 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("header_test_comma_separated", r -> r.header("X-Example-Header", "exact_match")
-							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
+				.route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.route("header_test_comma_separated",
+						r -> r.header("X-Example-Header", "exact_match")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.build();
 		}
 
 	}
