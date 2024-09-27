@@ -51,6 +51,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  * @author Ronny Bräunlich
  * @author Denis Cutic
+ * @author Andrey Muchnik
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
@@ -98,6 +99,30 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
 
+
+	@Test
+	public void redisRateLimiterWorksForMultipleRoutes() throws Exception {
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 10;
+		int burstCapacity = 2 * replenishRate;
+		int requestedTokens = 1;
+
+		String firstRouteId = "myroute";
+		String secondRouteId = "myroute2";
+		var config = rateLimiter.getConfig();
+		config.put(firstRouteId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+															  .setReplenishRate(replenishRate)
+															  .setRequestedTokens(requestedTokens));
+
+		config.put(secondRouteId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+															   .setReplenishRate(replenishRate)
+															   .setRequestedTokens(requestedTokens));
+
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, firstRouteId);
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, secondRouteId);
+	}
+
 	@Test
 	public void redisRateLimiterWorksForLowRates() throws Exception {
 		String id = UUID.randomUUID().toString();
@@ -137,8 +162,8 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void keysUseRedisKeyHashTags() {
-		assertThat(RedisRateLimiter.getKeys("1")).containsExactly("request_rate_limiter.{1}.tokens",
-				"request_rate_limiter.{1}.timestamp");
+		assertThat(RedisRateLimiter.getKeys("1", "routeId")).containsExactly("request_rate_limiter.{routeId.1}.tokens",
+				"request_rate_limiter.{routeId.1}.timestamp");
 	}
 
 	@Test
