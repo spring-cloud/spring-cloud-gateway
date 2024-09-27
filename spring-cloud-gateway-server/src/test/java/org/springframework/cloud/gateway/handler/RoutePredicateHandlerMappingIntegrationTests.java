@@ -94,6 +94,18 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 			.isEqualTo("hasquery");
 	}
 
+	@Test
+	public void andNestedOrQuery1() {
+		testClient.get().uri("/andnestedquery?query1=hasquery1").exchange().expectBody(String.class)
+				.isEqualTo("hasquery1,notsupplied");
+	}
+
+	@Test
+	public void andNestedOrQuery2() {
+		testClient.get().uri("/andnestedquery?query2=hasquery2").exchange().expectBody(String.class)
+				.isEqualTo("notsupplied,hasquery2");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -106,6 +118,12 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 		@GetMapping("/httpbin/andnotquery")
 		String andnotquery(@RequestParam(name = "myquery", defaultValue = "notsupplied") String myquery) {
 			return myquery;
+		}
+
+		@GetMapping("/httpbin/andnestedquery")
+		String andnotquery(@RequestParam(name = "query1", defaultValue = "notsupplied") String query1,
+				@RequestParam(name = "query2", defaultValue = "notsupplied") String query2) {
+			return query1 + "," + query2;
 		}
 
 		@GetMapping("/httpbin/hasquery")
@@ -128,6 +146,8 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 							.query("myquery")
 							.filters(f -> f.setPath("/httpbin/hasquery"))
 							.uri(uri))
+				.route("and_nested_query1_or_query2", r -> r.path("/andnestedquery").and().nested(p -> p.query("query1").or().query("query2"))
+							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 				.build();
 		}
 
