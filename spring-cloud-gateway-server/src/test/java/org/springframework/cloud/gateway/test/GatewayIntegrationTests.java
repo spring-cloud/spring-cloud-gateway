@@ -39,7 +39,6 @@ import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
@@ -84,12 +83,15 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 	}
 
 	@Test
-	void checkDisabledFilterNotPresent() {
-		Optional<RouteDefinition> disabledRoute = properties.getRoutes().stream()
-				.filter(r -> "disabled_config_test".equals(r.getId()))
-				.findFirst();
-		assertThat(disabledRoute).as("Disabled route is not present")
-				.isEmpty();
+	void checkFilterIsDisabled() {
+		Optional<RouteDefinition> disabledRoute = properties.getRoutes()
+			.stream()
+			.filter(r -> "disabled_config_test".equals(r.getId()))
+			.findFirst();
+		assertThat(disabledRoute).as("Disabled route is present")
+			.isPresent()
+			.get()
+			.hasFieldOrPropertyWithValue("enabled", false);
 	}
 
 	@Test

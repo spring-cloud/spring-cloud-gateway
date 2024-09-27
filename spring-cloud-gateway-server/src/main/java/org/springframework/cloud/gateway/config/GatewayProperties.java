@@ -69,7 +69,7 @@ public class GatewayProperties {
 	private boolean failOnRouteDefinitionError = true;
 
 	public List<RouteDefinition> getRoutes() {
-		return routes.stream().filter(RouteDefinition::isEnabled).toList();
+		return routes;
 	}
 
 	public void setRoutes(List<RouteDefinition> routes) {
