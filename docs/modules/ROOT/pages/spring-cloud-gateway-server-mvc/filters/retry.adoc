@@ -69,6 +69,8 @@ NOTE: When using the retry filter with a `forward:` prefixed URL, the target end
 For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
 Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
 
+NOTE: When using the retry filter, it will retry all filters that come after it. Make sure the results of the filters following the retry filter are as expected when they are executed multiple times.
+
 // WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is `org.springframework.core.io.buffer.DataBuffer`.
 
 A simplified "shortcut" notation can be added with a single `status` and `method`.
