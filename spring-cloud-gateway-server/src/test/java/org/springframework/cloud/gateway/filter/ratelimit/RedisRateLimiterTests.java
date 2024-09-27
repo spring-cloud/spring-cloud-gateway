@@ -99,7 +99,6 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
 
-
 	@Test
 	public void redisRateLimiterWorksForMultipleRoutes() throws Exception {
 		String id = UUID.randomUUID().toString();
@@ -111,13 +110,15 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		String firstRouteId = "myroute";
 		String secondRouteId = "myroute2";
 		var config = rateLimiter.getConfig();
-		config.put(firstRouteId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-															  .setReplenishRate(replenishRate)
-															  .setRequestedTokens(requestedTokens));
+		config.put(firstRouteId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+					.setReplenishRate(replenishRate)
+					.setRequestedTokens(requestedTokens));
 
-		config.put(secondRouteId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-															   .setReplenishRate(replenishRate)
-															   .setRequestedTokens(requestedTokens));
+		config.put(secondRouteId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+					.setReplenishRate(replenishRate)
+					.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, firstRouteId);
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, secondRouteId);

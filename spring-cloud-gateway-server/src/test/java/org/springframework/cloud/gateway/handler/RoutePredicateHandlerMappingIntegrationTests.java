@@ -96,14 +96,20 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void andNestedOrQuery1() {
-		testClient.get().uri("/andnestedquery?query1=hasquery1").exchange().expectBody(String.class)
-				.isEqualTo("hasquery1,notsupplied");
+		testClient.get()
+			.uri("/andnestedquery?query1=hasquery1")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("hasquery1,notsupplied");
 	}
 
 	@Test
 	public void andNestedOrQuery2() {
-		testClient.get().uri("/andnestedquery?query2=hasquery2").exchange().expectBody(String.class)
-				.isEqualTo("notsupplied,hasquery2");
+		testClient.get()
+			.uri("/andnestedquery?query2=hasquery2")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("notsupplied,hasquery2");
 	}
 
 	@EnableAutoConfiguration
@@ -146,8 +152,12 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 							.query("myquery")
 							.filters(f -> f.setPath("/httpbin/hasquery"))
 							.uri(uri))
-				.route("and_nested_query1_or_query2", r -> r.path("/andnestedquery").and().nested(p -> p.query("query1").or().query("query2"))
-							.filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.route("and_nested_query1_or_query2",
+						r -> r.path("/andnestedquery")
+							.and()
+							.nested(p -> p.query("query1").or().query("query2"))
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
 				.build();
 		}
 
