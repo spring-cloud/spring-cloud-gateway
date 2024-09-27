@@ -57,6 +57,7 @@ In addition, through the `spring.cloud.gateway.metrics.tags.path.enabled` proper
 * `path`: The path of the request.
 
 These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+You can also alarm with these useful metrics to take an example from link:gateway-alarming.adoc[alarming-template].
 
 NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
 
