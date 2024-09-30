@@ -55,4 +55,28 @@ public class BeforeFilterFunctionsTests {
 		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%20spaces");
 	}
 
+	@Test
+	public void rewritePathWithEnDash() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes");
+	}
+
+	@Test
+	public void rewritePathWithEnDashAndSpace() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes and spaces")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
+	}
+
 }
