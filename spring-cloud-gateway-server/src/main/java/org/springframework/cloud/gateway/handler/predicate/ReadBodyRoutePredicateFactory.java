@@ -83,7 +83,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				}
 
 				return ServerWebExchangeUtils.cacheRequestBodyObject(exchange, config.getInClass(), messageReaders,
-						(serverHttpRequest, bodyObject) -> Mono.just(config.predicate.test(bodyObject)));
+					(serverHttpRequest, bodyObject) -> Mono.just(config.predicate.test(bodyObject)));
 			}
 
 			@Override

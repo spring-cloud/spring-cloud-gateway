@@ -67,10 +67,10 @@ public class CacheRequestBodyGatewayFilterFactory
 				}
 
 				return ServerWebExchangeUtils.cacheRequestBodyObject(exchange, config.getBodyClass(), messageReaders,
-						(serverHttpRequest, cachedBody) -> {
-							exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-							return chain.filter(exchange.mutate().request(serverHttpRequest).build());
-						});
+					(serverHttpRequest, cachedBody) -> {
+						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
+						return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+					});
 			}
 
 			@Override

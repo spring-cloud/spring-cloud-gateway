@@ -122,14 +122,14 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 	@Test
 	public void cacheRequestBodyWithCircuitBreaker() {
 		testClient.post().uri("/post").header("Host", "www.cacherequestbodywithcircuitbreaker.org")
-				.bodyValue(BODY_VALUE).exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+			.bodyValue(BODY_VALUE).exchange().expectStatus().isOk().expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					String responseBody = (String) response.get("data");
-					assertThat(responseBody).isEqualTo(BODY_VALUE);
-				});
+				String responseBody = (String) response.get("data");
+				assertThat(responseBody).isEqualTo(BODY_VALUE);
+			});
 	}
 
 	@Test
@@ -179,17 +179,17 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 							.uri(uri))
 				.route("cache_request_body_with_circuitbreaker_test",
 						r -> r.path("/post")
-               .and()
-               .host("**.cacherequestbodywithcircuitbreaker.org")
-               .filters(f -> f.setHostHeader("www.cacherequestbody.org")
-								 .prefixPath("/httpbin")
-								 .cacheRequestBody(String.class)
-								 .filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
-								 .filter(new CheckCachedRequestBodyReleasedGatewayFilter())
-								 .circuitBreaker(config -> config.setStatusCodes(Collections.singleton("200"))
-                   .setFallbackUri("/post")))
-						  .uri(uri))
-					.build();
+							 .and()
+							 .host("**.cacherequestbodywithcircuitbreaker.org")
+							 .filters(f -> f.setHostHeader("www.cacherequestbody.org")
+							 	.prefixPath("/httpbin")
+							 	.cacheRequestBody(String.class)
+							 	.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
+							 	.filter(new CheckCachedRequestBodyReleasedGatewayFilter())
+							 	.circuitBreaker(config -> config.setStatusCodes(Collections.singleton("200"))
+							 		.setFallbackUri("/post")))
+							 .uri(uri))
+				.build();
 		}
 
 	}

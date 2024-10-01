@@ -342,9 +342,9 @@ public final class ServerWebExchangeUtils {
 	public static <C, T> Mono<T> cacheRequestBodyObject(ServerWebExchange exchange, Class<C> bodyClass,
 			List<HttpMessageReader<?>> messageReaders, BiFunction<ServerHttpRequest, C, Mono<T>> function) {
 		return cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> ServerRequest
-				.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders).bodyToMono(bodyClass)
-				.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-				.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody)));
+			.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders).bodyToMono(bodyClass)
+			.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+			.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody)));
 	}
 
 	/**
