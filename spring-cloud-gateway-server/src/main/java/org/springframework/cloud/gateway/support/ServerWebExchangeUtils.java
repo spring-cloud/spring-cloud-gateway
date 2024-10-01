@@ -20,14 +20,18 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import io.netty.buffer.Unpooled;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -174,6 +178,12 @@ public final class ServerWebExchangeUtils {
 	public static final String CACHED_REQUEST_BODY_ATTR = "cachedRequestBody";
 
 	/**
+	 * Cached request decoded body object key. Used when
+	 * {@link #cacheRequestBodyObject(ServerWebExchange, Class, List, BiFunction)}
+	 */
+	public static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
+
+	/**
 	 * Gateway LoadBalancer {@link Response} attribute name.
 	 */
 	public static final String GATEWAY_LOADBALANCER_RESPONSE_ATTR = qualify("gatewayLoadBalancerResponse");
@@ -313,6 +323,28 @@ public final class ServerWebExchangeUtils {
 
 	public static Map<String, String> getUriTemplateVariables(ServerWebExchange exchange) {
 		return exchange.getAttributeOrDefault(URI_TEMPLATE_VARIABLES_ATTRIBUTE, new HashMap<>());
+	}
+
+	/**
+	 * Caches the request body, the decoded body object and the created {@link ServerHttpRequestDecorator} in
+	 * ServerWebExchange attributes. Those attributes are
+	 * {@link #CACHE_REQUEST_BODY_OBJECT_KEY} and
+	 * {@link #CACHED_REQUEST_BODY_ATTR} and
+	 * {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} respectively.
+	 * @param exchange the available ServerWebExchange.
+	 * @param bodyClass the class of the body to be decoded
+	 * @param messageReaders the list of message readers for decoding the body.
+	 * @param function a function to apply on the decoded body and request.
+	 * @param <C> the class type of the decoded body.
+	 * @param <T> generic type for the return {@link Mono}.
+	 * @return Mono of type T created by the function parameter.
+	 */
+	public static <C, T> Mono<T> cacheRequestBodyObject(ServerWebExchange exchange, Class<C> bodyClass,
+			List<HttpMessageReader<?>> messageReaders, BiFunction<ServerHttpRequest, C, Mono<T>> function) {
+		return cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> ServerRequest
+				.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders).bodyToMono(bodyClass)
+				.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+				.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody)));
 	}
 
 	/**
