@@ -121,7 +121,11 @@ public class TokenRelayGatewayFilterFactoryTests {
 		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
-		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
+		ArgumentCaptor<ServerWebExchange> sweCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		verify(filterChain).filter(sweCaptor.capture());
+		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
+
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
@@ -161,7 +165,11 @@ public class TokenRelayGatewayFilterFactoryTests {
 		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply(config);
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
-		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
+		ArgumentCaptor<ServerWebExchange> sweCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		verify(filterChain).filter(sweCaptor.capture());
+		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
+
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
@@ -212,7 +220,10 @@ public class TokenRelayGatewayFilterFactoryTests {
 		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply(config);
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
-		assertThat(request.getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
+		ArgumentCaptor<ServerWebExchange> sweCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
+		verify(filterChain).filter(sweCaptor.capture());
+		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
 				Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor

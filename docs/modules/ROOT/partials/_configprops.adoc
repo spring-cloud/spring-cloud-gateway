@@ -20,7 +20,7 @@
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
 |spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter.
-|spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy |  | 
+|spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy | `+++skip-update-cache-entry+++` | 
 |spring.cloud.gateway.filter.local-response-cache.size |  | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
 |spring.cloud.gateway.filter.local-response-cache.time-to-live | `+++5m+++` | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
@@ -89,12 +89,12 @@
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
 |spring.cloud.gateway.httpclient.pool.metrics | `+++false+++` | Enables channel pools metrics to be collected and registered in Micrometer. Disabled by default.
 |spring.cloud.gateway.httpclient.pool.name | `+++proxy+++` | The channel pool map name, defaults to proxy.
-|spring.cloud.gateway.httpclient.pool.type |  | Type of pool for HttpClient to use, defaults to ELASTIC.
+|spring.cloud.gateway.httpclient.pool.type | `+++elastic+++` | Type of pool for HttpClient to use, defaults to ELASTIC.
 |spring.cloud.gateway.httpclient.proxy.host |  | Hostname for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
 |spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
-|spring.cloud.gateway.httpclient.proxy.type |  | proxyType for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type | `+++http+++` | proxyType for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.
@@ -120,7 +120,7 @@
 |spring.cloud.gateway.mvc.http-client.connect-timeout |  | The HttpClient connect timeout.
 |spring.cloud.gateway.mvc.http-client.read-timeout |  | The HttpClient read timeout.
 |spring.cloud.gateway.mvc.http-client.ssl-bundle |  | The name of the SSL bundle to use.
-|spring.cloud.gateway.mvc.http-client.type |  | The HttpClient type. Defaults to JDK.
+|spring.cloud.gateway.mvc.http-client.type | `+++jdk+++` | The HttpClient type. Defaults to JDK.
 |spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled | `+++true+++` | Enables the remove-content-length-request-headers-filter.
 |spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.

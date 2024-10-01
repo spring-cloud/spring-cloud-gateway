@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2021 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,7 +186,7 @@ public class GatewayAutoConfigurationTests {
 	public void tokenRelayBeansAreCreated() {
 		new ReactiveWebApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
-					ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class,
+					ReactiveOAuth2ClientAutoConfiguration.class,
 					GatewayAutoConfiguration.TokenRelayConfiguration.class))
 			.withPropertyValues(
 					"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
@@ -202,10 +202,10 @@ public class GatewayAutoConfigurationTests {
 	}
 
 	@Test
-	public void gatewayReactiveOAuth2AuthorizedClientManagerBacksOffForCustomBean() {
+	public void reactiveOAuth2AuthorizedClientManagerBacksOffForCustomBean() {
 		new ReactiveWebApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
-					ReactiveOAuth2ClientAutoConfiguration.class, GatewayReactiveOAuth2AutoConfiguration.class))
+					ReactiveOAuth2ClientAutoConfiguration.class))
 			.withUserConfiguration(TestReactiveOAuth2AuthorizedClientManagerConfig.class)
 			.withPropertyValues(
 					"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
