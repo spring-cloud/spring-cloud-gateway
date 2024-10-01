@@ -328,8 +328,8 @@ public final class ServerWebExchangeUtils {
 	/**
 	 * Caches the request body, the decoded body object and the created {@link ServerHttpRequestDecorator} in
 	 * ServerWebExchange attributes. Those attributes are
-	 * {@link #CACHE_REQUEST_BODY_OBJECT_KEY} and
 	 * {@link #CACHED_REQUEST_BODY_ATTR} and
+	 * {@link #CACHE_REQUEST_BODY_OBJECT_KEY} and
 	 * {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} respectively.
 	 * @param exchange the available ServerWebExchange.
 	 * @param bodyClass the class of the body to be decoded
