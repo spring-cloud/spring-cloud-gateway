@@ -344,7 +344,8 @@ public final class ServerWebExchangeUtils {
 		return cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> ServerRequest
 			.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders).bodyToMono(bodyClass)
 			.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-			.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody)));
+			.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody))
+			.switchIfEmpty(function.apply(serverHttpRequest, null)));
 	}
 
 	/**
