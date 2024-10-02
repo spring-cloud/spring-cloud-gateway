@@ -181,7 +181,7 @@ public final class ServerWebExchangeUtils {
 	 * Cached request decoded body object key. Used when
 	 * {@link #cacheRequestBodyObject(ServerWebExchange, Class, List, BiFunction)}
 	 */
-	public static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
+	public static final String CACHE_REQUEST_BODY_OBJECT_ATTR = "cachedRequestBodyObject";
 
 	/**
 	 * Gateway LoadBalancer {@link Response} attribute name.
@@ -329,7 +329,7 @@ public final class ServerWebExchangeUtils {
 	 * Caches the request body, the decoded body object and the created {@link ServerHttpRequestDecorator} in
 	 * ServerWebExchange attributes. Those attributes are
 	 * {@link #CACHED_REQUEST_BODY_ATTR} and
-	 * {@link #CACHE_REQUEST_BODY_OBJECT_KEY} and
+	 * {@link #CACHE_REQUEST_BODY_OBJECT_ATTR} and
 	 * {@link #CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR} respectively.
 	 * @param exchange the available ServerWebExchange.
 	 * @param bodyClass the class of the body to be decoded
@@ -343,7 +343,7 @@ public final class ServerWebExchangeUtils {
 			List<HttpMessageReader<?>> messageReaders, BiFunction<ServerHttpRequest, C, Mono<T>> function) {
 		return cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> ServerRequest
 			.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders).bodyToMono(bodyClass)
-			.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+			.doOnNext(objectValue -> exchange.getAttributes().put(CACHE_REQUEST_BODY_OBJECT_ATTR, objectValue))
 			.flatMap(cachedBody -> function.apply(serverHttpRequest, cachedBody))
 			.switchIfEmpty(function.apply(serverHttpRequest, null)));
 	}

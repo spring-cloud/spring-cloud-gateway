@@ -60,7 +60,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 		return new AsyncPredicate<ServerWebExchange>() {
 			@Override
 			public Publisher<Boolean> apply(ServerWebExchange exchange) {
-				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_KEY);
+				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 				// We can only read the body from the request once, once that happens if
 				// we try to read the body again an exception will be thrown. The below
 				// if/else caches the body object as a request attribute in the
