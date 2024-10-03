@@ -69,7 +69,8 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 					.getAttribute(ServerWebExchangeUtils.CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 				if (mutableRequest != null) {
 					return ServerRequest.create(exchange.mutate().request(mutableRequest).build(), messageReaders)
-						.bodyToMono(config.getInClass()).doOnNext(objectValue -> exchange.getAttributes()
+						.bodyToMono(config.getInClass())
+						.doOnNext(objectValue -> exchange.getAttributes()
 							.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
 						.map(objectValue -> {
 							boolean test = config.getPredicate().test(objectValue);
@@ -81,7 +82,8 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
 							(serverHttpRequest) -> ServerRequest
 								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
-								.bodyToMono(config.getInClass()).doOnNext(objectValue -> exchange.getAttributes()
+								.bodyToMono(config.getInClass())
+								.doOnNext(objectValue -> exchange.getAttributes()
 									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
 								.map(objectValue -> {
 									boolean test = config.getPredicate().test(objectValue);
