@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotEmpty;
-
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,13 +40,18 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 	 */
 	public static final String REGEXP_KEY = "regexp";
 
+	/**
+	 * Predicate key.
+	 */
+	public static final String PREDICATE_KEY = "predicate";
+
 	public QueryRoutePredicateFactory() {
 		super(Config.class);
 	}
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(PARAM_KEY, REGEXP_KEY);
+		return Arrays.asList(PARAM_KEY, REGEXP_KEY, PREDICATE_KEY);
 	}
 
 	@Override
@@ -55,7 +59,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				if (!StringUtils.hasText(config.regexp)) {
+				if (!StringUtils.hasText(config.regexp) && config.predicate == null) {
 					// check existence of header
 					return exchange.getRequest().getQueryParams().containsKey(config.param);
 				}
@@ -64,8 +68,13 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 				if (values == null) {
 					return false;
 				}
+
+				Predicate<String> predicate = config.predicate;
+				if (StringUtils.hasText(config.regexp)) {
+					predicate = value -> value.matches(config.regexp);
+				}
 				for (String value : values) {
-					if (value != null && value.matches(config.regexp)) {
+					if (value != null && predicate.test(value)) {
 						return true;
 					}
 				}
@@ -92,6 +101,8 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 
 		private String regexp;
 
+		private Predicate<String> predicate;
+
 		public String getParam() {
 			return param;
 		}
@@ -107,6 +118,15 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 
 		public Config setRegexp(String regexp) {
 			this.regexp = regexp;
+			return this;
+		}
+
+		public Predicate<String> getPredicate() {
+			return predicate;
+		}
+
+		public Config setPredicate(Predicate<String> predicate) {
+			this.predicate = predicate;
 			return this;
 		}
 
