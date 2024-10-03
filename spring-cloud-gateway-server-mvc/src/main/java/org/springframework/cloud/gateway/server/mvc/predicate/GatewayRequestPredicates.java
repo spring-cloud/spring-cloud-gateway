@@ -38,6 +38,7 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut.Type;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
+import org.springframework.cloud.gateway.server.mvc.filter.BodyFilterFunctions;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -59,7 +60,6 @@ import org.springframework.web.util.pattern.PathPatternParser;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_ROUTE_ID_ATTR;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.WEIGHT_ATTR;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.cacheAndReadBody;
-import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getAttribute;
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.putAttribute;
 
 public abstract class GatewayRequestPredicates {
@@ -487,22 +487,10 @@ public abstract class GatewayRequestPredicates {
 		@Override
 		@SuppressWarnings("unchecked")
 		public boolean test(ServerRequest request) {
-			try {
-				Object cachedBody = getAttribute(request, READ_BODY_CACHE_OBJECT_KEY);
+			ServerRequest cachedRequest = BodyFilterFunctions.adaptCachedBody().apply(request);
 
-				if (cachedBody != null) {
-					return predicate.test((T) cachedBody);
-				}
-			}
-			catch (ClassCastException e) {
-				if (log.isDebugEnabled()) {
-					log.debug("Predicate test failed because class in predicate "
-							+ "does not match the cached body object", e);
-				}
-			}
-
-			return cacheAndReadBody(request, toRead).map(body -> {
-				putAttribute(request, READ_BODY_CACHE_OBJECT_KEY, body);
+			return cacheAndReadBody(cachedRequest, toRead).map(body -> {
+				putAttribute(cachedRequest, READ_BODY_CACHE_OBJECT_KEY, body);
 				return predicate.test(body);
 			}).orElse(false);
 		}
