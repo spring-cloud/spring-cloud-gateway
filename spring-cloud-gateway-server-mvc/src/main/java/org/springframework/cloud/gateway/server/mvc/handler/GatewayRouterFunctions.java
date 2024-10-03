@@ -23,6 +23,7 @@ import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.RouterFunctions.Builder;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
 
 public abstract class GatewayRouterFunctions {
@@ -35,7 +36,7 @@ public abstract class GatewayRouterFunctions {
 	}
 
 	public static Builder route(String routeId) {
-		Builder builder = RouterFunctions.route().before(routeId(routeId));
+		Builder builder = RouterFunctions.route().before(routeId(routeId)).before(adaptCachedBody());
 		return new GatewayRouterFunctionsBuilder(builder, routeId);
 	}
 

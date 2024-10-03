@@ -154,6 +154,7 @@ public class RouterFunctionHolderFactory {
 			return next.handle(request);
 		});
 		builder.before(BeforeFilterFunctions.routeId(routeId));
+		builder.before(BeforeFilterFunctions.adaptCachedBody());
 
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
 		// TODO: cache?
