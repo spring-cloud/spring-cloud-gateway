@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -139,7 +138,7 @@ public class QueryParamRoutePredicateFactoryTests extends BaseWebClientTests {
 		}
 
 		private Predicate<String> queryParamPredicate() {
-			return p -> StringUtils.length(p) > PARAM_LENGTH;
+			return p -> p == null ? false : p.length() > PARAM_LENGTH;
 		}
 
 	}
