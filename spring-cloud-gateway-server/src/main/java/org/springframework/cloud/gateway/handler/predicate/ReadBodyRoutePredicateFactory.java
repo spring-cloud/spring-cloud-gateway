@@ -23,11 +23,11 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.codec.HttpMessageReader;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -63,38 +63,31 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 		return new AsyncPredicate<ServerWebExchange>() {
 			@Override
 			public Publisher<Boolean> apply(ServerWebExchange exchange) {
-				Class inClass = config.getInClass();
+				exchange.getAttributes().put(TEST_ATTRIBUTE, false);
 
-				Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
-				Mono<?> modifiedBody;
-				// We can only read the body from the request once, once that happens if
-				// we try to read the body again an exception will be thrown. The below
-				// if/else caches the body object as a request attribute in the
-				// ServerWebExchange so if this filter is run more than once (due to more
-				// than one route using it) we do not try to read the request body
-				// multiple times
-				if (cachedBody != null) {
-					try {
-						boolean test = config.predicate.test(cachedBody);
-						exchange.getAttributes().put(TEST_ATTRIBUTE, test);
-						return Mono.just(test);
-					}
-					catch (ClassCastException e) {
-						if (log.isDebugEnabled()) {
-							log.debug("Predicate test failed because class in predicate "
-									+ "does not match the cached body object", e);
-						}
-					}
-					return Mono.just(false);
+				ServerHttpRequest mutableRequest = exchange
+					.getAttribute(ServerWebExchangeUtils.CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
+				if (mutableRequest != null) {
+					return ServerRequest.create(exchange.mutate().request(mutableRequest).build(), messageReaders)
+						.bodyToMono(config.getInClass()).doOnNext(objectValue -> exchange.getAttributes()
+							.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+						.map(objectValue -> {
+							boolean test = config.getPredicate().test(objectValue);
+							exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+							return test;
+						});
 				}
 				else {
 					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
 							(serverHttpRequest) -> ServerRequest
 								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
-								.bodyToMono(inClass)
-								.doOnNext(objectValue -> exchange.getAttributes()
+								.bodyToMono(config.getInClass()).doOnNext(objectValue -> exchange.getAttributes()
 									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-								.map(objectValue -> config.getPredicate().test(objectValue)));
+								.map(objectValue -> {
+									boolean test = config.getPredicate().test(objectValue);
+									exchange.getAttributes().put(TEST_ATTRIBUTE, test);
+									return test;
+								}));
 				}
 			}
 
