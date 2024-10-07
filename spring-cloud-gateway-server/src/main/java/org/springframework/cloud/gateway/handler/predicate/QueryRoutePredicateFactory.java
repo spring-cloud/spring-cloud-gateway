@@ -19,7 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -128,6 +128,17 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		public Config setPredicate(Predicate<String> predicate) {
 			this.predicate = predicate;
 			return this;
+		}
+
+		/**
+		 * Enforces the validation done on predicate configuration: {@link #regexp} and
+		 * {@link #predicate} can't be both set at runtime.
+		 * @return <code>false</code> if {@link #regexp} and {@link #predicate} are both
+		 * set in this predicate factory configuration
+		 */
+		@AssertTrue
+		public boolean isValid() {
+			return !(StringUtils.hasText(regexp) && predicate != null);
 		}
 
 	}
