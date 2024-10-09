@@ -274,7 +274,7 @@ public class RouterFunctionHolderFactory {
 		Map<String, Object> args = new HashMap<>();
 		if (operationMethod.isConfigurable()) {
 			OperationParameter operationParameter = operationMethod.getParameters().get(0);
-			Object config = bindConfigurable(operationMethod, args, operationParameter);
+			Object config = bindConfigurable(operationMethod, operationArgs, operationParameter);
 			args.put(operationParameter.getName(), config);
 		}
 		else {
