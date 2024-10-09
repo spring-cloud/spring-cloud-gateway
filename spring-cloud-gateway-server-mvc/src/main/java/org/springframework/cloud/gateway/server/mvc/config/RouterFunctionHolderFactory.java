@@ -16,13 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -233,6 +234,11 @@ public class RouterFunctionHolderFactory {
 			T handlerFilterFunction = invokeOperation(opMethod, opMethod.getNormalizedArgs());
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
+			}
+			if (log.isDebugEnabled()) {
+				log.debug(LogMessage.format("Yaml Properties matched Operations name: %s, args: %s, params: %s",
+						normalizedName, opMethod.getNormalizedArgs().toString(),
+						Arrays.toString(opMethod.getParameters().stream().toArray())));
 			}
 		}
 		else {
