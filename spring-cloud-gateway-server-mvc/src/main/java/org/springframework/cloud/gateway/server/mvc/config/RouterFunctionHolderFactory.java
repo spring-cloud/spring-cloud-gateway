@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -233,6 +235,11 @@ public class RouterFunctionHolderFactory {
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
 			}
+			if (log.isDebugEnabled()) {
+				log.debug(LogMessage.format("Yaml Properties matched Operations name: %s, args: %s, params: %s",
+						normalizedName, opMethod.getNormalizedArgs().toString(),
+						Arrays.toString(opMethod.getParameters().stream().toArray())));
+			}
 		}
 		else {
 			throw new IllegalArgumentException(String.format("Unable to find operation %s for %s with args %s",
@@ -244,6 +251,7 @@ public class RouterFunctionHolderFactory {
 			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList())
 			.stream()
+			.sorted(Comparator.comparing(OperationMethod::isConfigurable))
 			.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 			.filter(opeMethod -> matchOperation(opeMethod, operationArgs))
 			.findFirst();
@@ -272,7 +280,7 @@ public class RouterFunctionHolderFactory {
 		Map<String, Object> args = new HashMap<>();
 		if (operationMethod.isConfigurable()) {
 			OperationParameter operationParameter = operationMethod.getParameters().get(0);
-			Object config = bindConfigurable(operationMethod, args, operationParameter);
+			Object config = bindConfigurable(operationMethod, operationArgs, operationParameter);
 			args.put(operationParameter.getName(), config);
 		}
 		else {
