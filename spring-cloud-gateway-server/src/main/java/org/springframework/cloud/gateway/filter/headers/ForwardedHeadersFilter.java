@@ -92,8 +92,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
-		HttpHeaders original = new HttpHeaders();
-		original.putAll(input);
+		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
