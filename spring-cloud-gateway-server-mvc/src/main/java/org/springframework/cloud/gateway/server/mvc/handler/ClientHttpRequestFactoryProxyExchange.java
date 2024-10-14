@@ -20,19 +20,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
-import org.springframework.cloud.gateway.server.mvc.common.HttpUtils;
+import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
+public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange {
 
 	private final ClientHttpRequestFactory requestFactory;
 
+	@Deprecated
 	public ClientHttpRequestFactoryProxyExchange(ClientHttpRequestFactory requestFactory) {
+		super(new GatewayMvcProperties());
+		this.requestFactory = requestFactory;
+	}
+
+	public ClientHttpRequestFactoryProxyExchange(ClientHttpRequestFactory requestFactory,
+			GatewayMvcProperties properties) {
+		super(properties);
 		this.requestFactory = requestFactory;
 	}
 
@@ -55,7 +64,7 @@ public class ClientHttpRequestFactoryProxyExchange implements ProxyExchange {
 						InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
 								MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 						// copy body from request to clientHttpRequest
-						HttpUtils.copyResponseBody(clientHttpResponse, inputStream,
+						ClientHttpRequestFactoryProxyExchange.this.copyResponseBody(clientHttpResponse, inputStream,
 								httpServletResponse.getOutputStream());
 					}
 					return null;

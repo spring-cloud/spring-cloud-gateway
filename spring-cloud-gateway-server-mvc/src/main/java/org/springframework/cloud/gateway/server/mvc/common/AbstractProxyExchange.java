@@ -20,21 +20,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
-import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
+public abstract class AbstractProxyExchange implements ProxyExchange {
 
-public abstract class HttpUtils {
+	private final GatewayMvcProperties properties;
 
-	private static final int BUFFER_SIZE = 16384;
-
-	private HttpUtils() {
-		throw new AssertionError("Must not instantiate utility class.");
+	protected AbstractProxyExchange(GatewayMvcProperties properties) {
+		this.properties = properties;
 	}
 
-	public static int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
+	protected int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
 			OutputStream outputStream) throws IOException {
 		Assert.notNull(clientResponse, "No ClientResponse specified");
 		Assert.notNull(inputStream, "No InputStream specified");
@@ -42,7 +42,7 @@ public abstract class HttpUtils {
 
 		int transferredBytes;
 
-		if (TEXT_EVENT_STREAM.equals(clientResponse.getHeaders().getContentType())) {
+		if (properties.getStreamingMediaTypes().contains(clientResponse.getHeaders().getContentType())) {
 			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
 		}
 		else {
@@ -52,11 +52,10 @@ public abstract class HttpUtils {
 		return transferredBytes;
 	}
 
-	private static int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream)
-			throws IOException {
+	private int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream) throws IOException {
 		int readBytes;
 		var totalReadBytes = 0;
-		var buffer = new byte[BUFFER_SIZE];
+		var buffer = new byte[properties.getStreamingBufferSize()];
 
 		while ((readBytes = inputStream.read(buffer)) != -1) {
 			outputStream.write(buffer, 0, readBytes);

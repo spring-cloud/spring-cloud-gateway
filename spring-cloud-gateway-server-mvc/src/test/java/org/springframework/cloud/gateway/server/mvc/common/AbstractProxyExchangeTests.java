@@ -22,8 +22,10 @@ import java.io.OutputStream;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.client.MockClientHttpResponse;
+import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Jens Mallien
  */
-public class HttpUtilsTests {
+public class AbstractProxyExchangeTests {
 
 	@Test
 	public void copyResponseBodyForJson() throws IOException {
@@ -46,7 +48,7 @@ public class HttpUtilsTests {
 		when(inputStream.transferTo(any())).thenReturn(3L);
 		OutputStream outputStream = mock(OutputStream.class);
 
-		int result = HttpUtils.copyResponseBody(mockResponse, inputStream, outputStream);
+		int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
 
 		assertThat(result).isEqualTo(3);
 		verify(outputStream, times(1)).flush();
@@ -58,14 +60,10 @@ public class HttpUtilsTests {
 		mockResponse.getHeaders().setContentType(MediaType.TEXT_EVENT_STREAM);
 
 		InputStream inputStream = mock(InputStream.class);
-		when(inputStream.read(any()))
-				.thenReturn(1)
-				.thenReturn(1)
-				.thenReturn(1)
-				.thenReturn(-1);
+		when(inputStream.read(any())).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(-1);
 		OutputStream outputStream = mock(OutputStream.class);
 
-		int result = HttpUtils.copyResponseBody(mockResponse, inputStream, outputStream);
+		int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
 
 		assertThat(result).isEqualTo(3);
 		verify(outputStream, times(4)).flush();
@@ -79,10 +77,23 @@ public class HttpUtilsTests {
 		when(inputStream.transferTo(any())).thenReturn(3L);
 		OutputStream outputStream = mock(OutputStream.class);
 
-		int result = HttpUtils.copyResponseBody(mockResponse, inputStream, outputStream);
+		int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
 
 		assertThat(result).isEqualTo(3);
 		verify(outputStream, times(1)).flush();
+	}
+
+	class TestProxyExchange extends AbstractProxyExchange {
+
+		protected TestProxyExchange() {
+			super(new GatewayMvcProperties());
+		}
+
+		@Override
+		public ServerResponse exchange(Request request) {
+			return ServerResponse.ok().build();
+		}
+
 	}
 
 }
