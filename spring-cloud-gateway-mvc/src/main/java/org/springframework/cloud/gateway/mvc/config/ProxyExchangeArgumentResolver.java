@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import org.springframework.util.ObjectUtils;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -88,9 +89,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Type type(MethodParameter parameter) {
 		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
-			type = param.getActualTypeArguments()[0];
+		if (type instanceof ParameterizedType parameterizedType) {
+			type = parameterizedType.getActualTypeArguments()[0];
 		}
 		return type;
 	}
@@ -115,7 +115,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
-		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
+		if (!ObjectUtils.isEmpty(autoForwardedHeaders)) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
 		}
 	}
