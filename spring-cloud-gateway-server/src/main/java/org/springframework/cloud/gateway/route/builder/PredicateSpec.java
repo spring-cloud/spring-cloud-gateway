@@ -31,7 +31,6 @@ import org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
-import org.springframework.cloud.gateway.handler.predicate.QueryParamRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
@@ -212,9 +211,9 @@ public class PredicateSpec extends UriSpec {
 	 * @param predicate a predicate to check the value of the param
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec queryParam(String param, Predicate<String> predicate) {
-		return asyncPredicate(getBean(QueryParamRoutePredicateFactory.class)
-			.applyAsync(c -> c.setParam(param).setPredicate(predicate)));
+	public BooleanSpec query(String param, Predicate<String> predicate) {
+		return asyncPredicate(
+				getBean(QueryRoutePredicateFactory.class).applyAsync(c -> c.setParam(param).setPredicate(predicate)));
 	}
 
 	/**
