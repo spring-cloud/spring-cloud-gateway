@@ -126,6 +126,8 @@
 |spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.mvc.routes |  | List of Routes.
 |spring.cloud.gateway.mvc.routes-map |  | Map of Routes.
+|spring.cloud.gateway.mvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
+|spring.cloud.gateway.mvc.streaming-media-types |  | Mime-types that are streaming.
 |spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
 |spring.cloud.gateway.mvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
