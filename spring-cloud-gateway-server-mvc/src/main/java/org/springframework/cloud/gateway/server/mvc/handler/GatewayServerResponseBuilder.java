@@ -207,6 +207,11 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 			.build();
 	}
 
+	@Override
+	public ServerResponse stream(Consumer<ServerResponse.StreamBuilder> streamConsumer) {
+		return GatewayStreamingServerResponse.create(this.statusCode, this.headers, this.cookies, streamConsumer, null);
+	}
+
 	private static class WriteFunctionResponse extends AbstractGatewayServerResponse {
 
 		private final WriteFunction writeFunction;

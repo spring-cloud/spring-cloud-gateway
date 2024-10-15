@@ -48,6 +48,7 @@ public abstract class RetryFilterFunctions {
 	private RetryFilterFunctions() {
 	}
 
+	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
 		return retry(config -> config.setRetries(retries));
 	}
@@ -58,7 +59,7 @@ public abstract class RetryFilterFunctions {
 		return retry(config);
 	}
 
-	@Shortcut
+	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();

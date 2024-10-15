@@ -88,8 +88,9 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ProxyExchange.class)
-	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder) {
-		return new RestClientProxyExchange(restClientBuilder.build());
+	public RestClientProxyExchange restClientProxyExchange(RestClient.Builder restClientBuilder,
+			GatewayMvcProperties properties) {
+		return new RestClientProxyExchange(restClientBuilder.build(), properties);
 	}
 
 	@Bean
