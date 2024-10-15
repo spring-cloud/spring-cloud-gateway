@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
+
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
@@ -104,7 +106,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		private Predicate<String> predicate;
 
 		public String getParam() {
-			return param;
+			return this.param;
 		}
 
 		public Config setParam(String param) {
@@ -113,7 +115,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		}
 
 		public String getRegexp() {
-			return regexp;
+			return this.regexp;
 		}
 
 		public Config setRegexp(String regexp) {
@@ -122,7 +124,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		}
 
 		public Predicate<String> getPredicate() {
-			return predicate;
+			return this.predicate;
 		}
 
 		public Config setPredicate(Predicate<String> predicate) {
@@ -138,7 +140,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		 */
 		@AssertTrue
 		public boolean isValid() {
-			return !(StringUtils.hasText(regexp) && predicate != null);
+			return !(StringUtils.hasText(this.regexp) && this.predicate != null);
 		}
 
 	}

@@ -38,15 +38,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * Test class for {@link QueryParamRoutePredicateFactory}.
  *
- * @see QueryParamRoutePredicateFactory
  * @author Francesco Poli
+ * @see QueryParamRoutePredicateFactory
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
@@ -105,8 +103,8 @@ public class QueryParamRoutePredicateFactoryTests extends BaseWebClientTests {
 		Config config = new Config();
 		config.setParam("query_param");
 		Predicate<ServerWebExchange> predicate = new QueryParamRoutePredicateFactory().apply(config);
-		assertTrue(predicate instanceof HasConfig, "Incongruent types for predicate");
-		assertSame(config, ((HasConfig) predicate).getConfig(), "Incongruent config");
+		assertThat(predicate).isInstanceOf(HasConfig.class);
+		assertThat(config).isSameAs(((HasConfig) predicate).getConfig());
 	}
 
 	@Test
