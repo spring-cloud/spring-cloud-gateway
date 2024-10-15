@@ -137,7 +137,6 @@ import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
-import org.springframework.cloud.gateway.handler.predicate.QueryParamRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
@@ -470,12 +469,6 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledPredicate
 	public PathRoutePredicateFactory pathRoutePredicateFactory() {
 		return new PathRoutePredicateFactory();
-	}
-
-	@Bean
-	@ConditionalOnEnabledPredicate
-	public QueryParamRoutePredicateFactory queryParamRoutePredicateFactory() {
-		return new QueryParamRoutePredicateFactory();
 	}
 
 	@Bean
