@@ -98,6 +98,7 @@ public class GRPCApplication {
 			if (server != null) {
 				server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
 			}
+			log.info("gRPC server stopped");
 		}
 
 		static class HelloService extends HelloServiceGrpc.HelloServiceImplBase {
@@ -106,7 +107,7 @@ public class GRPCApplication {
 			public void hello(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
 				if ("failWithRuntimeException!".equals(request.getFirstName())) {
 					StatusRuntimeException exception = Status.FAILED_PRECONDITION.withDescription("Invalid firstName")
-							.asRuntimeException();
+						.asRuntimeException();
 					responseObserver.onError(exception);
 					responseObserver.onCompleted();
 					return;

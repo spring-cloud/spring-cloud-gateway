@@ -38,11 +38,17 @@ public class SetRequestHostHeaderGatewayFilterFactoryTests extends BaseWebClient
 
 	@Test
 	public void setRequestHostHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).hasEntrySatisfying("Host", val -> assertThat(val).isEqualTo("otherhost.io"));
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.setrequesthostheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).hasEntrySatisfying("Host", val -> assertThat(val).isEqualTo("otherhost.io"));
+			});
 	}
 
 	@Test

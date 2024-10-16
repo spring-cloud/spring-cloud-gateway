@@ -1,0 +1,21 @@
+[[preservehostheader-gatewayfilter-factory]]
+= `PreserveHostHeader` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+The `PreserveHostHeader` `GatewayFilter` factory has no parameters.
+This filter sets a request attribute that the routing filter inspects to determine if the original host header should be sent rather than the host header determined by the HTTP client.
+The following example configures a `PreserveHostHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: preserve_host_route
+        uri: https://example.org
+        filters:
+        - PreserveHostHeader
+----
+

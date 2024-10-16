@@ -56,15 +56,23 @@ class NettyRoutingFilterCompatibleTests extends BaseWebClientTests {
 	void getLongHandlesStringAndNumber() {
 		assertThat(NettyRoutingFilter.getLong("5")).isEqualTo(5);
 		assertThat(NettyRoutingFilter.getLong(5)).isEqualTo(5);
+		assertThat(NettyRoutingFilter.getLong(50000L)).isEqualTo(50000);
 		assertThat(NettyRoutingFilter.getLong(null)).isNull();
 		assertThatThrownBy(() -> NettyRoutingFilter.getLong("notanumber")).isInstanceOf(NumberFormatException.class);
 	}
 
 	@Test
 	void shouldApplyResponseTimeoutPerRoute() {
-		testClient.get().uri("/route/delay/2").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
-				.expectBody().jsonPath("$.status").isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
-				.jsonPath("$.message").isEqualTo("Response took longer than timeout: PT1S");
+		testClient.get()
+			.uri("/route/delay/2")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
+			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.GATEWAY_TIMEOUT.value()))
+			.jsonPath("$.message")
+			.isEqualTo("Response took longer than timeout: PT1S");
 	}
 
 	@EnableAutoConfiguration

@@ -1,0 +1,38 @@
+[[secureheaders-gatewayfilter-factory]]
+= `SecureHeaders` `GatewayFilter` Factory
+
+The `SecureHeaders` `GatewayFilter` factory adds a number of headers to the response, per the recommendation made in https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
+
+The following headers (shown with their default values) are added:
+
+* `X-Xss-Protection:1 (mode=block`)
+* `Strict-Transport-Security (max-age=631138519`)
+* `X-Frame-Options (DENY)`
+* `X-Content-Type-Options (nosniff)`
+* `Referrer-Policy (no-referrer)`
+* `Content-Security-Policy (default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline)'`
+* `X-Download-Options (noopen)`
+* `X-Permitted-Cross-Domain-Policies (none)`
+
+To change the default values, set the appropriate property in the `spring.cloud.gateway.filter.secure-headers` namespace.
+The following properties are available:
+
+* `xss-protection-header`
+* `strict-transport-security`
+* `frame-options`
+* `content-type-options`
+* `referrer-policy`
+* `content-security-policy`
+* `download-options`
+* `permitted-cross-domain-policies`
+
+To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
+The following example shows how to do so:
+
+[source]
+----
+spring.cloud.gateway.filter.secure-headers.disable=x-frame-options,strict-transport-security
+----
+
+NOTE: The lowercase full name of the secure header needs to be used to disable it..
+

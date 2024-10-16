@@ -40,6 +40,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -98,6 +99,7 @@ import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilter
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RewriteRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SaveSessionGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory;
@@ -154,8 +156,8 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.cloud.gateway.support.KeyValueConverter;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
+import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -199,6 +201,15 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
+	}
+
+	/**
+	 * @deprecated in favour of
+	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConverter}
+	 */
+	@Bean
+	public org.springframework.cloud.gateway.support.KeyValueConverter deprecatedKeyValueConverter() {
+		return new org.springframework.cloud.gateway.support.KeyValueConverter();
 	}
 
 	@Bean
@@ -254,6 +265,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.cloud.client.discovery.event.HeartbeatMonitor")
+	@ConditionalOnProperty(prefix = GatewayProperties.PREFIX, name = ".route-refresh-listener.enabled",
+			matchIfMissing = true)
 	public RouteRefreshListener routeRefreshListener(ApplicationEventPublisher publisher) {
 		return new RouteRefreshListener(publisher);
 	}
@@ -344,7 +357,7 @@ public class GatewayAutoConfiguration {
 	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties)
 			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
-				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
 
 		return new GrpcSslConfigurer(properties.getSsl());
@@ -441,8 +454,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public HostRoutePredicateFactory hostRoutePredicateFactory() {
-		return new HostRoutePredicateFactory();
+	public HostRoutePredicateFactory hostRoutePredicateFactory(Environment env) {
+		boolean includePort = env.getProperty("spring.cloud.gateway.predicate.host.include-port", Boolean.class, true);
+		return new HostRoutePredicateFactory(includePort);
 	}
 
 	@Bean
@@ -549,8 +563,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
-	public CacheRequestBodyGatewayFilterFactory cacheRequestBodyGatewayFilterFactory() {
-		return new CacheRequestBodyGatewayFilterFactory();
+	public CacheRequestBodyGatewayFilterFactory cacheRequestBodyGatewayFilterFactory(
+			ServerCodecConfigurer codecConfigurer) {
+		return new CacheRequestBodyGatewayFilterFactory(codecConfigurer.getReaders());
 	}
 
 	@Bean
@@ -705,6 +720,12 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnEnabledFilter
+	public RewriteRequestParameterGatewayFilterFactory rewriteRequestParameterGatewayFilterFactory() {
+		return new RewriteRequestParameterGatewayFilterFactory();
+	}
+
+	@Bean
 	public GzipMessageBodyResolver gzipMessageBodyResolver() {
 		return new GzipMessageBodyResolver();
 	}
@@ -772,7 +793,7 @@ public class GatewayAutoConfiguration {
 				HttpClient httpClient) {
 			Supplier<WebsocketClientSpec.Builder> builderSupplier = () -> {
 				WebsocketClientSpec.Builder builder = WebsocketClientSpec.builder()
-						.handlePing(properties.getWebsocket().isProxyPing());
+					.handlePing(properties.getWebsocket().isProxyPing());
 				if (properties.getWebsocket().getMaxFramePayloadLength() != null) {
 					builder.maxFramePayloadLength(properties.getWebsocket().getMaxFramePayloadLength());
 				}
@@ -810,9 +831,9 @@ public class GatewayAutoConfiguration {
 		public GatewayControllerEndpoint gatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
 				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
-				RouteDefinitionLocator routeDefinitionLocator) {
+				RouteDefinitionLocator routeDefinitionLocator, WebEndpointProperties webEndpointProperties) {
 			return new GatewayControllerEndpoint(globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-					routeLocator, routeDefinitionLocator);
+					routeLocator, routeDefinitionLocator, webEndpointProperties);
 		}
 
 		@Bean
@@ -821,9 +842,10 @@ public class GatewayAutoConfiguration {
 		public GatewayLegacyControllerEndpoint gatewayLegacyControllerEndpoint(
 				RouteDefinitionLocator routeDefinitionLocator, List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
-				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator) {
+				RouteDefinitionWriter routeDefinitionWriter, RouteLocator routeLocator,
+				WebEndpointProperties webEndpointProperties) {
 			return new GatewayLegacyControllerEndpoint(routeDefinitionLocator, globalFilters, gatewayFilters,
-					routePredicates, routeDefinitionWriter, routeLocator);
+					routePredicates, routeDefinitionWriter, routeLocator, webEndpointProperties);
 		}
 
 	}
@@ -865,19 +887,19 @@ class GatewayHints implements RuntimeHintsRegistrar {
 			return;
 		}
 		hints.reflection()
-				.registerType(TypeReference.of(FilterDefinition.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(PredicateDefinition.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
-				.registerType(TypeReference.of(
-								"org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
-						hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
-								MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
+			.registerType(TypeReference.of(FilterDefinition.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference.of(PredicateDefinition.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference.of(AbstractNameValueGatewayFilterFactory.NameValueConfig.class),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS))
+			.registerType(TypeReference
+				.of("org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator$DelegatingServiceInstance"),
+					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS));
 	}
 
 }

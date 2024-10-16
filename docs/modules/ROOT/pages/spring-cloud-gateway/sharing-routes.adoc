@@ -1,0 +1,11 @@
+[[sharing-routes-between-multiple-gateway-instances]]
+= Sharing Routes between multiple Gateway instances
+
+Spring Cloud Gateway offers two `RouteDefinitionRepository` implementations. The first one is the
+`InMemoryRouteDefinitionRepository` which only lives within the memory of one Gateway instance.
+This type of Repository is not suited to populate Routes across multiple Gateway instances.
+
+In order to share Routes across a cluster of Spring Cloud Gateway instances, `RedisRouteDefinitionRepository` can be used.
+To enable this kind of repository, the following property has to set to true: `spring.cloud.gateway.redis-route-definition-repository.enabled`
+Likewise to the RedisRateLimiter Filter Factory it requires the use of the spring-boot-starter-data-redis-reactive Spring Boot starter.
+

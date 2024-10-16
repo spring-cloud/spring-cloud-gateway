@@ -1,0 +1,41 @@
+[[setresponseheader-gatewayfilter-factory]]
+= `SetResponseHeader` `GatewayFilter` Factory
+
+The `SetResponseHeader` `GatewayFilter` factory takes `name` and `value` parameters.
+The following listing configures a `SetResponseHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        filters:
+        - SetResponseHeader=X-Response-Red, Blue
+----
+
+This GatewayFilter replaces (rather than adding) all headers with the given name.
+So, if the downstream server responded with `X-Response-Red:1234`, it will be replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
+
+`SetResponseHeader` is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
+The following example configures an `SetResponseHeader` `GatewayFilter` that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetResponseHeader=foo, bar-{segment}
+----
+

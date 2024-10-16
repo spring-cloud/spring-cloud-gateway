@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class ResponseCacheGatewayFilterTest {
 
-	ResponseCacheManager cacheManagerToTest = new ResponseCacheManager(null, null, null);
+	ResponseCacheManager cacheManagerToTest = new ResponseCacheManager(null, null, null, null);
 
 	@Test
 	void requestShouldBeCacheable() {

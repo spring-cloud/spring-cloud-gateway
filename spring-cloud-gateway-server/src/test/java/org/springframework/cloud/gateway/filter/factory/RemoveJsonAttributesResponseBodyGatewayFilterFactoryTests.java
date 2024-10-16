@@ -46,49 +46,71 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 
 	@Test
 	public void removeJsonAttributeRootWorks() {
-		testClient.post().uri("/post").header("Host", "www.removejsonattributes.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).header("foo", "test")
-				.header("bar", "test").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.removejsonattributes.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.header("foo", "test")
+			.header("bar", "test")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					String responseBody = (String) response.get("data");
-					assertThat(responseBody).isNull();
+				String responseBody = (String) response.get("data");
+				assertThat(responseBody).isNull();
 
-					Map<String, Object> headers = getMap(response, "headers");
-					assertThat(headers).containsKey("user-agent");
+				Map<String, Object> headers = getMap(response, "headers");
+				assertThat(headers).containsKey("user-agent");
 
-				});
+			});
 	}
 
 	@Test
 	public void removeJsonAttributeRecursivelyWorks() {
 
-		testClient.post().uri("/post").header("Host", "www.removejsonattributesrecursively.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).header("foo", "test")
-				.header("bar", "test").exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.removejsonattributesrecursively.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.header("foo", "test")
+			.header("bar", "test")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					Map<String, Object> headers = getMap(response, "headers");
-					assertThat(headers).doesNotContainKey("foo");
-					assertThat(headers).containsEntry("bar", "test");
-				});
+				Map<String, Object> headers = getMap(response, "headers");
+				assertThat(headers).doesNotContainKey("foo");
+				assertThat(headers).containsEntry("bar", "test");
+			});
 	}
 
 	@Test
 	public void removeJsonAttributeNoMatchesWorks() {
 
-		testClient.post().uri("/post").header("Host", "www.removejsonattributesnomatches.org")
-				.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(result -> {
-					Map<?, ?> response = result.getResponseBody();
-					assertThat(response).isNotNull();
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.removejsonattributesnomatches.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
 
-					Map<String, Object> headers = getMap(response, "headers");
-					assertThat(headers).isNotNull();
-					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-				});
+				Map<String, Object> headers = getMap(response, "headers");
+				assertThat(headers).isNotNull();
+				assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			});
 	}
 
 	@EnableAutoConfiguration
@@ -102,16 +124,25 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("remove_json_attributes_root_level_java_test",
-							r -> r.path("/post").and().host("{sub}.removejsonattributes.org")
-									.filters(f -> f.removeJsonAttributes(false, "data", "foo")).uri(uri))
-					.route("remove_json_attributes_recursively_java_test",
-							r -> r.path("/post").and().host("{sub}.removejsonattributesrecursively.org")
-									.filters(f -> f.removeJsonAttributes(true, "foo")).uri(uri))
-					.route("remove_json_attributes_no_matches_java_test",
-							r -> r.path("/post").and().host("{sub}.removejsonattributesnomatches.org")
-									.filters(f -> f.removeJsonAttributes("test")).uri(uri))
-					.build();
+				.route("remove_json_attributes_root_level_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("{sub}.removejsonattributes.org")
+							.filters(f -> f.removeJsonAttributes(false, "data", "foo"))
+							.uri(uri))
+				.route("remove_json_attributes_recursively_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("{sub}.removejsonattributesrecursively.org")
+							.filters(f -> f.removeJsonAttributes(true, "foo"))
+							.uri(uri))
+				.route("remove_json_attributes_no_matches_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("{sub}.removejsonattributesnomatches.org")
+							.filters(f -> f.removeJsonAttributes("test"))
+							.uri(uri))
+				.build();
 		}
 
 	}

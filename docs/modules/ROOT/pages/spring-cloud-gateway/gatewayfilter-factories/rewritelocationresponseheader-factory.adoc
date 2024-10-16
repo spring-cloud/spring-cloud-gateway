@@ -1,0 +1,35 @@
+[[rewritelocationresponseheader-gatewayfilter-factory]]
+= `RewriteLocationResponseHeader` `GatewayFilter` Factory
+
+The `RewriteLocationResponseHeader` `GatewayFilter` factory modifies the value of the `Location` response header, usually to get rid of backend-specific details.
+It takes the `Mode`, `locationHeaderName`, `hostValue`, and `protocols` parameters.
+The following listing configures a `RewriteLocationResponseHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritelocationresponseheader_route
+        uri: http://example.org
+        filters:
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+----
+
+For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.
+
+The `Mode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
+
+* `NEVER_STRIP`: The version is not stripped, even if the original request path contains no version.
+* `AS_IN_REQUEST`: The version is stripped only if the original request path contains no version.
+* `ALWAYS_STRIP`: The version is always stripped, even if the original request path contains version.
+
+The `hostValue` parameter, if provided, is used to replace the `host:port` portion of the response `Location` header.
+If it is not provided, the value of the `Host` request header is used.
+
+The `protocols` parameter must be a valid regex `String`, against which the protocol name is matched.
+If it is not matched, the filter does nothing.
+The default is `https?|ftps?`.
+

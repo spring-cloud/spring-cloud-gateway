@@ -41,24 +41,46 @@ public class GatewayFilterSpecTests {
 
 	@Test
 	public void orderedInterfaceRespected() {
-		testFilter(MyOrderedFilter.class, new MyOrderedFilter(), 1000);
+		testFilter(MyOrderedFilter.class, new MyOrderedFilter(), 1000, null, false);
+	}
+
+	@Test
+	public void orderedInterfaceRespectedWhenOrderSpecified() {
+		testFilter(MyOrderedFilter.class, new MyOrderedFilter(), 1000, 5, false);
 	}
 
 	@Test
 	public void unorderedWithDefaultOrder() {
-		testFilter(OrderedGatewayFilter.class, new MyUnorderedFilter(), 0);
+		testFilter(OrderedGatewayFilter.class, new MyUnorderedFilter(), 0, null, false);
 	}
 
-	private void testFilter(Class<? extends GatewayFilter> type, GatewayFilter gatewayFilter, int order) {
+	@Test
+	public void forceOrderWithOrderedInterface() {
+		testFilter(OrderedGatewayFilter.class, new MyOrderedFilter(), 5, 5, true);
+	}
+
+	private void testFilter(Class<? extends GatewayFilter> type, GatewayFilter gatewayFilter, int expectedOrder,
+			Integer specifiedOrder, Boolean forceOrder) {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
-		spec.filter(gatewayFilter);
+
+		if (specifiedOrder != null) {
+			if (forceOrder != null) {
+				spec.filter(gatewayFilter, specifiedOrder, forceOrder);
+			}
+			else {
+				spec.filter(gatewayFilter, specifiedOrder);
+			}
+		}
+		else {
+			spec.filter(gatewayFilter);
+		}
 
 		Route route = routeBuilder.build();
 		assertThat(route.getFilters()).hasSize(1);
-		assertFilter(route.getFilters().get(0), type, order);
+		assertFilter(route.getFilters().get(0), type, expectedOrder);
 	}
 
 	private void assertFilter(GatewayFilter filter, Class<? extends GatewayFilter> type, int order) {
@@ -87,9 +109,9 @@ public class GatewayFilterSpecTests {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
 
-		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
-				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
+			.thenReturn(new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
+					Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -108,9 +130,9 @@ public class GatewayFilterSpecTests {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
 
-		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
-				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
+			.thenReturn(new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
+					Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -129,9 +151,9 @@ public class GatewayFilterSpecTests {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
 
-		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
-				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
+			.thenReturn(new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
+					Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
@@ -151,14 +173,14 @@ public class GatewayFilterSpecTests {
 		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
 		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
 
-		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class)).thenReturn(
-				new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
-						Collections.emptySet(), Collections.emptySet()));
+		when(context.getBean(ModifyResponseBodyGatewayFilterFactory.class))
+			.thenReturn(new ModifyResponseBodyGatewayFilterFactory(HandlerStrategies.withDefaults().messageReaders(),
+					Collections.emptySet(), Collections.emptySet()));
 
 		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
 		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
 		spec.modifyResponseBody((smth) -> new ModifyResponseBodyGatewayFilterFactory.Config()
-				.setRewriteFunction(String.class, String.class, (exchange, s) -> Mono.just(s)));
+			.setRewriteFunction(String.class, String.class, (exchange, s) -> Mono.just(s)));
 
 		Route route = routeBuilder.build();
 		assertThat(route.getFilters()).hasSize(1);

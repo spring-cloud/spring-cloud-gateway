@@ -53,9 +53,10 @@ public class GatewayPropagatingSenderTracingObservationHandler
 
 	@Override
 	public void onStart(GatewayContext context) {
-		this.propagator.fields().stream()
-				.filter(field -> !remoteFieldsLowerCase.contains(field.toLowerCase(Locale.ROOT)))
-				.forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
+		this.propagator.fields()
+			.stream()
+			.filter(field -> !remoteFieldsLowerCase.contains(field.toLowerCase(Locale.ROOT)))
+			.forEach(s -> Objects.requireNonNull(context.getCarrier()).remove(s));
 		super.onStart(context);
 	}
 

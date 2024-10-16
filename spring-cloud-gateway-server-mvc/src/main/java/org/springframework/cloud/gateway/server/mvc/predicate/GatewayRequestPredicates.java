@@ -20,18 +20,24 @@ import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import jakarta.servlet.http.Cookie;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier;
+import org.springframework.cloud.gateway.server.mvc.common.DefaultArgumentSuppliedEvent;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut.Type;
+import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,9 +56,15 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_ROUTE_ID_ATTR;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.WEIGHT_ATTR;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.cacheAndReadBody;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getAttribute;
+import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.putAttribute;
+
 public abstract class GatewayRequestPredicates {
 
-	private static final Log logger = LogFactory.getLog(GatewayRequestPredicates.class);
+	private static final Log log = LogFactory.getLog(GatewayRequestPredicates.class);
 
 	private static final String X_CF_FORWARDED_URL = "X-CF-Forwarded-Url";
 
@@ -61,6 +73,8 @@ public abstract class GatewayRequestPredicates {
 	private static final String X_CF_PROXY_METADATA = "X-CF-Proxy-Metadata";
 
 	private static final PathPatternParser DEFAULT_HOST_INSTANCE = new HostReadOnlyPathPatternParser();
+
+	private static final String READ_BODY_CACHE_OBJECT_KEY = "cachedRequestBodyObject";
 
 	private GatewayRequestPredicates() {
 	}
@@ -108,15 +122,25 @@ public abstract class GatewayRequestPredicates {
 
 	// TODO: implement parameter aliases for predicates in RequestPredicates for webflux
 	// compatibility?
-	@Shortcut(type = Shortcut.Type.LIST)
+	@Shortcut(type = Type.LIST)
 	public static RequestPredicate method(HttpMethod... methods) {
 		return RequestPredicates.methods(methods);
 	}
 
-	@Shortcut
 	public static RequestPredicate host(String pattern) {
 		Assert.notNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
+	}
+
+	@Shortcut(type = Type.LIST)
+	public static RequestPredicate host(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[i]));
+		}
+		return requestPredicate;
 	}
 
 	/**
@@ -142,14 +166,71 @@ public abstract class GatewayRequestPredicates {
 	 * @return a predicate that tests against the given path pattern
 	 */
 	// TODO: find a different way to add shortcut to RequestPredicates.*
-	@Shortcut
 	public static RequestPredicate path(String pattern) {
 		return RequestPredicates.path(pattern);
 	}
 
+	/**
+	 * Return a {@code RequestPredicate} that tests the request path against the given
+	 * path pattern.
+	 * @param patterns the list of patterns to match
+	 * @return a predicate that tests against the given path pattern
+	 */
+	@Shortcut(type = Type.LIST)
+	public static RequestPredicate path(String... patterns) {
+		Assert.notEmpty(patterns, "'patterns' must not be empty");
+		RequestPredicate requestPredicate = RequestPredicates.path(patterns[0]);
+		// I'm sure there's a functional way to do this, I'm just tired...
+		for (int i = 1; i < patterns.length; i++) {
+			requestPredicate = requestPredicate.or(RequestPredicates.path(patterns[i]));
+		}
+		return requestPredicate;
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter.
+	 * @param param the name of the query parameter
+	 * @return a predicate that tests for the presence of a given param
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param) {
+		return query(param, null);
+	}
+
+	/**
+	 * Return a {@code RequestPredicate} that tests the presence of a request parameter if
+	 * the regexp is empty, or, otherwise finds if any value of the parameter matches the
+	 * regexp.
+	 * @param param the name of the query parameter
+	 * @param regexp an optional regular expression to match.
+	 * @return a predicate that tests for the given param and regexp.
+	 */
+	@Shortcut
+	public static RequestPredicate query(String param, String regexp) {
+		if (!StringUtils.hasText(regexp)) {
+			return request -> request.param(param).isPresent();
+		}
+		return request -> request.param(param).stream().anyMatch(value -> value.matches(regexp));
+	}
+
+	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {
+		return new ReadBodyPredicate<>(inClass, predicate);
+	}
+
+	/**
+	 * A predicate which will select a route based on its assigned weight.
+	 * @param group the group the route belongs to
+	 * @param weight the weight for the route
+	 * @return a predicate that tests against the given group and weight.
+	 */
+	@Shortcut
+	public static RequestPredicate weight(String group, int weight) {
+		return new WeightPredicate(group, weight);
+	}
+
 	private static void traceMatch(String prefix, Object desired, @Nullable Object actual, boolean match) {
-		if (logger.isTraceEnabled()) {
-			logger.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
+		if (log.isTraceEnabled()) {
+			log.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual));
 		}
 	}
@@ -295,7 +376,7 @@ public abstract class GatewayRequestPredicates {
 			String host = request.headers().firstHeader(HttpHeaders.HOST);
 			PathContainer pathContainer = PathContainer.parsePath(host, PathContainer.Options.MESSAGE_ROUTE);
 			PathPattern.PathMatchInfo info = this.pattern.matchAndExtract(pathContainer);
-			traceMatch("Pattern", this.pattern.getPatternString(), request.path(), info != null);
+			traceMatch("Pattern", this.pattern.getPatternString(), host, info != null);
 			if (info != null) {
 				MvcUtils.putUriTemplateVariables(request, info.getUriVariables());
 				return true;
@@ -388,6 +469,112 @@ public abstract class GatewayRequestPredicates {
 
 			void changeParser(PathPatternParser parser);
 
+		}
+
+	}
+
+	private static final class ReadBodyPredicate<T> implements RequestPredicate {
+
+		private final Class<T> toRead;
+
+		private final Predicate<T> predicate;
+
+		ReadBodyPredicate(Class<T> toRead, Predicate<T> predicate) {
+			this.toRead = toRead;
+			this.predicate = predicate;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public boolean test(ServerRequest request) {
+			try {
+				Object cachedBody = getAttribute(request, READ_BODY_CACHE_OBJECT_KEY);
+
+				if (cachedBody != null) {
+					return predicate.test((T) cachedBody);
+				}
+			}
+			catch (ClassCastException e) {
+				if (log.isDebugEnabled()) {
+					log.debug("Predicate test failed because class in predicate "
+							+ "does not match the cached body object", e);
+				}
+			}
+
+			return cacheAndReadBody(request, toRead).map(body -> {
+				putAttribute(request, READ_BODY_CACHE_OBJECT_KEY, body);
+				return predicate.test(body);
+			}).orElse(false);
+		}
+
+		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.unknown(this);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("ReadBody=%s predicate=%s", toRead.getSimpleName(), predicate);
+		}
+
+	}
+
+	private static final class WeightPredicate implements RequestPredicate, ArgumentSupplier<WeightConfig> {
+
+		final String group;
+
+		final int weight;
+
+		private WeightPredicate(String group, int weight) {
+			this.group = group;
+			this.weight = weight;
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public boolean test(ServerRequest request) {
+			Map<String, String> weights = (Map<String, String>) request.attributes()
+				.getOrDefault(WEIGHT_ATTR, Collections.emptyMap());
+
+			String routeId = (String) request.attributes().get(GATEWAY_ROUTE_ID_ATTR);
+			if (ObjectUtils.isEmpty(routeId)) {
+				// no routeId to test against
+				// TODO: maybe log a warning
+				return false;
+			}
+
+			// all calculations and comparison against random num happened in
+			// WeightCalculatorHandlerInterceptor
+			if (weights.containsKey(group)) {
+
+				String chosenRoute = weights.get(group);
+				if (log.isTraceEnabled()) {
+					log.trace("in group weight: " + group + ", current route: " + routeId + ", chosen route: "
+							+ chosenRoute);
+				}
+
+				return routeId.equals(chosenRoute);
+			}
+			else if (log.isTraceEnabled()) {
+				log.trace("no weights found for group: " + group + ", current route: " + routeId);
+			}
+
+			return false;
+		}
+
+		@Override
+		public void accept(RequestPredicates.Visitor visitor) {
+			visitor.unknown(this);
+		}
+
+		@Override
+		public ArgumentSuppliedEvent<WeightConfig> getArgumentSuppliedEvent() {
+			return new DefaultArgumentSuppliedEvent<>(this, WeightConfig.class, new WeightConfig(null, group, weight));
+		}
+
+		@Override
+		public String toString() {
+			return String.format("Weight=%d group=%s", weight, group);
 		}
 
 	}

@@ -180,8 +180,12 @@ public class XpathAssertions {
 	}
 
 	private String getCharset() {
-		return Optional.of(this.bodySpec.returnResult()).map(EntityExchangeResult::getResponseHeaders)
-				.map(HttpHeaders::getContentType).map(MimeType::getCharset).orElse(StandardCharsets.UTF_8).name();
+		return Optional.of(this.bodySpec.returnResult())
+			.map(EntityExchangeResult::getResponseHeaders)
+			.map(HttpHeaders::getContentType)
+			.map(MimeType::getCharset)
+			.orElse(StandardCharsets.UTF_8)
+			.name();
 	}
 
 	@Override

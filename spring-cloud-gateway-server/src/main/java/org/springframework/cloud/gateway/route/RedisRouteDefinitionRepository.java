@@ -53,24 +53,25 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return reactiveRedisTemplate.scan(ScanOptions.scanOptions().match(createKey("*")).build())
-				.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
-				.onErrorContinue((throwable, routeDefinition) -> {
-					if (log.isErrorEnabled()) {
-						log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
-					}
-				});
+			.flatMap(key -> reactiveRedisTemplate.opsForValue().get(key))
+			.onErrorContinue((throwable, routeDefinition) -> {
+				if (log.isErrorEnabled()) {
+					log.error("get routes from redis error cause : {}", throwable.toString(), throwable);
+				}
+			});
 	}
 
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
 		return route.flatMap(routeDefinition -> routeDefinitionReactiveValueOperations
-				.set(createKey(routeDefinition.getId()), routeDefinition).flatMap(success -> {
-					if (success) {
-						return Mono.empty();
-					}
-					return Mono.defer(() -> Mono.error(new RuntimeException(
-							String.format("Could not add route to redis repository: %s", routeDefinition))));
-				}));
+			.set(createKey(routeDefinition.getId()), routeDefinition)
+			.flatMap(success -> {
+				if (success) {
+					return Mono.empty();
+				}
+				return Mono.defer(() -> Mono.error(new RuntimeException(
+						String.format("Could not add route to redis repository: %s", routeDefinition))));
+			}));
 	}
 
 	@Override

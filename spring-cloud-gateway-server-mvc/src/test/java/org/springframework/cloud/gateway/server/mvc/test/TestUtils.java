@@ -27,6 +27,7 @@ public class TestUtils {
 	public static Map<String, Object> getMap(Map<String, Object> map, String mapKey) {
 		assertThat(map).isNotEmpty().containsKey(mapKey);
 		Map<String, Object> headers = (Map<String, Object>) map.get(mapKey);
+		assertThat(headers).isNotNull();
 		Map<String, Object> newHeaders = new HashMap<>();
 
 		// flatten map as mccutchen/go-httpbin only gets lists

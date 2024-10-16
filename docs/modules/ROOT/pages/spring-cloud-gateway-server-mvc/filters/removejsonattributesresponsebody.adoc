@@ -1,0 +1,43 @@
+[[removejsonattributesresponsebody-filter]]
+= `RemoveJsonAttributesResponseBody` Filter
+
+The `RemoveJsonAttributesResponseBody` filter takes a collection of `attribute names` to search for, an optional last parameter from the list can be a boolean to remove the attributes just at root level (that's the default value if not present at the end of the parameter configuration, `false`) or recursively (`true`).
+It provides a convenient method to apply a transformation to JSON body content by deleting attributes from it.
+
+The following example configures an `RemoveJsonAttributesResponseBody` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: removejsonattributes_route
+          uri: https://example.org
+          filters:
+          - RemoveJsonAttributesResponseBody=id,color
+----
+
+This removes attributes "id" and "color" from the JSON content body at root level.
+
+The following example configures an `RemoveJsonAttributesResponseBody` filter that uses the optional last parameter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removejsonattributes_recursively_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment}
+        filters:
+        - RemoveJsonAttributesResponseBody=id,color,true
+----
+
+This removes attributes "id" and "color" from the JSON content body at any level.
+

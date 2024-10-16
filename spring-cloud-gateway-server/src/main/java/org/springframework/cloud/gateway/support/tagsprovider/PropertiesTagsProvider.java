@@ -32,8 +32,10 @@ public class PropertiesTagsProvider implements GatewayTagsProvider {
 	private final Tags propertiesTags;
 
 	public PropertiesTagsProvider(Map<String, String> tagsMap) {
-		this.propertiesTags = Tags.of(tagsMap.entrySet().stream().map(entry -> Tag.of(entry.getKey(), entry.getValue()))
-				.collect(Collectors.toList()));
+		this.propertiesTags = Tags.of(tagsMap.entrySet()
+			.stream()
+			.map(entry -> Tag.of(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList()));
 	}
 
 	@Override

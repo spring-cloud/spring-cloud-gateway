@@ -40,7 +40,7 @@ public class MvcFailureAnalyzerApplicationTests {
 	@Test
 	public void exceptionThrown(CapturedOutput output) {
 		assertThatThrownBy(() -> new SpringApplication(MvcFailureAnalyzerApplication.class).run("--server.port=0"))
-				.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
+			.hasRootCauseInstanceOf(MvcFoundOnClasspathException.class);
 		assertThat(output).contains(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
 				MvcFoundOnClasspathFailureAnalyzer.ACTION);
 	}
@@ -48,7 +48,7 @@ public class MvcFailureAnalyzerApplicationTests {
 	@Test
 	public void exceptionNotThrownWhenDisabled(CapturedOutput output) {
 		assertThatCode(() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
-				.run("--spring.cloud.gateway.enabled=false", "--server.port=0")).doesNotThrowAnyException();
+			.run("--spring.cloud.gateway.enabled=false", "--server.port=0")).doesNotThrowAnyException();
 		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
 				MvcFoundOnClasspathFailureAnalyzer.ACTION);
 	}
@@ -57,11 +57,16 @@ public class MvcFailureAnalyzerApplicationTests {
 	public void exceptionNotThrownWhenReactiveTypeSet(CapturedOutput output) {
 		assertThatCode(() -> {
 			ConfigurableApplicationContext context = new SpringApplication(MvcFailureAnalyzerApplication.class)
-					.run("--spring.main.web-application-type=reactive", "--server.port=0", "--debug=true");
+				.run("--spring.main.web-application-type=reactive", "--server.port=0", "--debug=true");
 			Integer port = context.getEnvironment().getProperty("local.server.port", Integer.class);
 			WebTestClient client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
-			client.get().uri("/myprefix/hello").exchange().expectStatus().isOk().expectBody(String.class)
-					.isEqualTo("Hello");
+			client.get()
+				.uri("/myprefix/hello")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody(String.class)
+				.isEqualTo("Hello");
 			context.close();
 		}).doesNotThrowAnyException();
 		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,

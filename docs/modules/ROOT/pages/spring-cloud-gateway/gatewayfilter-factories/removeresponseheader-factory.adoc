@@ -1,0 +1,26 @@
+[[removeresponseheader-gatewayfilter-factory]]
+= `RemoveResponseHeader` `GatewayFilter` Factory
+
+The `RemoveResponseHeader` `GatewayFilter` factory takes a `name` parameter.
+It is the name of the header to be removed.
+The following listing configures a `RemoveResponseHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: removeresponseheader_route
+        uri: https://example.org
+        filters:
+        - RemoveResponseHeader=X-Response-Foo
+----
+
+This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
+
+To remove any kind of sensitive header, you should configure this filter for any routes for which you may want to do so.
+In addition, you can configure this filter once by using `spring.cloud.gateway.default-filters` and have it applied to all routes.
+
+

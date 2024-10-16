@@ -37,8 +37,10 @@ public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-				ServerHttpRequest request = exchange.getRequest().mutate()
-						.headers(httpHeaders -> httpHeaders.set(config.name, value)).build();
+				ServerHttpRequest request = exchange.getRequest()
+					.mutate()
+					.headers(httpHeaders -> httpHeaders.set(config.name, value))
+					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
 			}
@@ -46,7 +48,8 @@ public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetRequestHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getValue()).toString();
+					.append(config.getName(), config.getValue())
+					.toString();
 			}
 		};
 	}

@@ -21,10 +21,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 @ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
@@ -51,7 +53,8 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	public void setHeaders(Set<String> headers) {
-		this.headers = headers;
+		Assert.notNull(headers, "headers may not be null");
+		this.headers = headers.stream().map(String::toLowerCase).collect(Collectors.toSet());
 	}
 
 	@Override
@@ -64,11 +67,14 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	@Override
-	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
+	public HttpHeaders filter(HttpHeaders originalHeaders, ServerWebExchange exchange) {
 		HttpHeaders filtered = new HttpHeaders();
+		List<String> connectionOptions = originalHeaders.getConnection().stream().map(String::toLowerCase).toList();
+		Set<String> headersToRemove = new HashSet<>(headers);
+		headersToRemove.addAll(connectionOptions);
 
-		for (Map.Entry<String, List<String>> entry : input.entrySet()) {
-			if (!this.headers.contains(entry.getKey().toLowerCase())) {
+		for (Map.Entry<String, List<String>> entry : originalHeaders.entrySet()) {
+			if (!headersToRemove.contains(entry.getKey().toLowerCase())) {
 				filtered.addAll(entry.getKey(), entry.getValue());
 			}
 		}

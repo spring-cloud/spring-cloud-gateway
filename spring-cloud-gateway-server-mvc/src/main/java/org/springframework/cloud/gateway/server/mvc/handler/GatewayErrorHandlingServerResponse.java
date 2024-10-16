@@ -79,7 +79,7 @@ abstract class GatewayErrorHandlingServerResponse implements ServerResponse {
 		for (ErrorHandler<?> errorHandler : this.errorHandlers) {
 			if (errorHandler.test(t)) {
 				ServerRequest serverRequest = (ServerRequest) servletRequest
-						.getAttribute(RouterFunctions.REQUEST_ATTRIBUTE);
+					.getAttribute(RouterFunctions.REQUEST_ATTRIBUTE);
 				return errorHandler.handle(t, serverRequest);
 			}
 		}

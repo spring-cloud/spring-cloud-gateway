@@ -1,0 +1,25 @@
+[[savesession-filter]]
+= `SaveSession` Filter
+
+The `SaveSession` filter forces a `WebSession::save` operation _before_ forwarding the call downstream.
+This is of particular use when using something like https://projects.spring.io/spring-session/[Spring Session] with a lazy data store, and you need to ensure the session state has been saved before making the forwarded call.
+The following example configures a `SaveSession` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: save_session
+          uri: https://example.org
+          predicates:
+          - Path=/foo/**
+          filters:
+          - SaveSession=
+----
+
+If you integrate https://projects.spring.io/spring-security/[Spring Security] with Spring Session and want to ensure security details have been forwarded to the remote process, this is critical.
+

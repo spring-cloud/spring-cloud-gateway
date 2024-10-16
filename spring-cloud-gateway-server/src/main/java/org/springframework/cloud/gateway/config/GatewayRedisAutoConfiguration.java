@@ -87,7 +87,7 @@ class GatewayRedisAutoConfiguration {
 		Jackson2JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson2JsonRedisSerializer<>(
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
-				.newSerializationContext(keySerializer);
+			.newSerializationContext(keySerializer);
 		RedisSerializationContext<String, RouteDefinition> context = builder.value(valueSerializer).build();
 
 		return new ReactiveRedisTemplate<>(factory, context);

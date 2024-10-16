@@ -1,0 +1,24 @@
+[[rewritepath-gatewayfilter-factory]]
+= `RewritePath` `GatewayFilter` Factory
+
+The `RewritePath` `GatewayFilter` factory takes a path `regexp` parameter and a `replacement` parameter.
+This uses Java regular expressions for a flexible way to rewrite the request path.
+The following listing configures a `RewritePath` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: rewritepath_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/**
+        filters:
+        - RewritePath=/red/?(?<segment>.*), /$\{segment}
+----
+
+For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request. Note that the `$` should be replaced with `$\` because of the YAML specification.
+

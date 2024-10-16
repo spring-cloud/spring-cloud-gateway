@@ -129,14 +129,18 @@ public class HttpBinCompatibleController {
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<Map<String, Object>> postFormData(@RequestBody Mono<MultiValueMap<String, Part>> parts) {
 		// StringDecoder decoder = StringDecoder.allMimeTypes(true);
-		return parts.flux().flatMap(map -> Flux.fromIterable(map.values())).flatMap(Flux::fromIterable)
-				.filter(part -> part instanceof FilePart).reduce(new HashMap<String, Object>(), (files, part) -> {
-					MediaType contentType = part.headers().getContentType();
-					long contentLength = part.headers().getContentLength();
-					// TODO: get part data
-					files.put(part.name(), "data:" + contentType + ";base64," + contentLength);
-					return files;
-				}).map(files -> Collections.singletonMap("files", files));
+		return parts.flux()
+			.flatMap(map -> Flux.fromIterable(map.values()))
+			.flatMap(Flux::fromIterable)
+			.filter(part -> part instanceof FilePart)
+			.reduce(new HashMap<String, Object>(), (files, part) -> {
+				MediaType contentType = part.headers().getContentType();
+				long contentLength = part.headers().getContentLength();
+				// TODO: get part data
+				files.put(part.name(), "data:" + contentType + ";base64," + contentLength);
+				return files;
+			})
+			.map(files -> Collections.singletonMap("files", files));
 	}
 
 	@PostMapping(path = "/post", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
@@ -171,11 +175,14 @@ public class HttpBinCompatibleController {
 
 	@RequestMapping(value = "/responseheaders/{status}", method = { RequestMethod.GET, RequestMethod.POST })
 	public ResponseEntity<Map<String, Object>> responseHeaders(@PathVariable int status, ServerWebExchange exchange) {
-		HttpHeaders httpHeaders = exchange.getRequest().getHeaders().entrySet().stream()
-				.filter(entry -> entry.getKey().startsWith("X-Test-"))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-						(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
-						HttpHeaders::new));
+		HttpHeaders httpHeaders = exchange.getRequest()
+			.getHeaders()
+			.entrySet()
+			.stream()
+			.filter(entry -> entry.getKey().startsWith("X-Test-"))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+					(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
+					HttpHeaders::new));
 
 		return ResponseEntity.status(status).headers(httpHeaders).body(Collections.singletonMap("status", status));
 	}

@@ -16,16 +16,13 @@
 
 package org.springframework.cloud.gateway.test;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.test.ClassPathExclusions;
-import org.springframework.cloud.test.ModifiedClassPathRunner;
 
-@RunWith(ModifiedClassPathRunner.class)
 @ClassPathExclusions({ "spring-webflux-*.jar" })
 public class WebfluxNotIncludedTests {
 

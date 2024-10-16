@@ -42,7 +42,7 @@ public class SaveSessionGatewayFilterFactory extends AbstractGatewayFilterFactor
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return exchange.getSession().map(WebSession::save).then(chain.filter(exchange));
+				return exchange.getSession().flatMap(WebSession::save).then(chain.filter(exchange));
 			}
 
 			@Override

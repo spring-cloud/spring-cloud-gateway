@@ -106,8 +106,9 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 
 	private static void addGenericsForClass(Set<Class<?>> genericsToAdd, ResolvableType resolvableType) {
 		if (resolvableType.getSuperType().hasGenerics()) {
-			genericsToAdd.addAll(Arrays.stream(resolvableType.getSuperType().getGenerics()).map(ResolvableType::toClass)
-					.collect(Collectors.toSet()));
+			genericsToAdd.addAll(Arrays.stream(resolvableType.getSuperType().getGenerics())
+				.map(ResolvableType::toClass)
+				.collect(Collectors.toSet()));
 		}
 	}
 

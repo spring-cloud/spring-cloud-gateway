@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -52,11 +53,19 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	static WebSession mockWebSession = mock(WebSession.class);
 
+	private final Map<String, WebSession> fakeSessionStore = new ConcurrentHashMap<>();
+
+	private static final String SESSION_ID = "RANDOM_SESSION_ID";
+
 	@Test
 	public void webCallShouldTriggerWebSessionSaveAction() {
 
 		when(mockWebSession.getAttributes()).thenReturn(new HashMap<>());
-		when(mockWebSession.save()).thenReturn(Mono.empty());
+		Mono<Void> doSaveSession = Mono.fromRunnable(() -> {
+			// Do save session. Need to make sure the Mono is subscribed
+			fakeSessionStore.put(SESSION_ID, mockWebSession);
+		});
+		when(mockWebSession.save()).thenReturn(doSaveSession);
 
 		Mono<Map> result = webClient.get().uri("/get").retrieve().bodyToMono(Map.class);
 
@@ -65,6 +74,7 @@ public class SaveSessionGatewayFilterFactoryTests extends BaseWebClientTests {
 		}).expectComplete().verify(Duration.ofMinutes(10));
 
 		verify(mockWebSession).save();
+		assertThat(fakeSessionStore.get(SESSION_ID)).isEqualTo(mockWebSession);
 	}
 
 	@Test

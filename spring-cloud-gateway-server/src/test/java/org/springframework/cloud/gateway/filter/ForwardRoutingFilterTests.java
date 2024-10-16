@@ -37,6 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -93,9 +94,8 @@ public class ForwardRoutingFilterTests {
 		forwardRoutingFilter.filter(exchange, chain);
 
 		verifyNoMoreInteractions(chain);
-		verify(dispatcherHandler).handle(exchange);
-
-		assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull();
+		verify(dispatcherHandler).handle(
+				assertArg(exchange -> assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull()));
 	}
 
 	@Test

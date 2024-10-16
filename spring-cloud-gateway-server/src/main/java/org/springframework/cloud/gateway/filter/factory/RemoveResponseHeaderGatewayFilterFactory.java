@@ -48,13 +48,14 @@ public class RemoveResponseHeaderGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().remove(config.getName())));
+					.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().remove(config.getName())));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(RemoveResponseHeaderGatewayFilterFactory.this)
-						.append("name", config.getName()).toString();
+					.append("name", config.getName())
+					.toString();
 			}
 		};
 	}

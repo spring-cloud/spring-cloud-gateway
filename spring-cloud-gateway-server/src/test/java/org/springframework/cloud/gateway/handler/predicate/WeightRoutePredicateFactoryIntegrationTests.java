@@ -58,16 +58,28 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 	public void highWeight() {
 		filter.setRandomSupplier(getRandom(0.9));
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weighthigh.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_high_test");
+		testClient.get()
+			.uri("/get")
+			.header(HttpHeaders.HOST, "www.weighthigh.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "weight_high_test");
 	}
 
 	@Test
 	public void lowWeight() {
 		filter.setRandomSupplier(getRandom(0.1));
 
-		testClient.get().uri("/get").header(HttpHeaders.HOST, "www.weightlow.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "weight_low_test");
+		testClient.get()
+			.uri("/get")
+			.header(HttpHeaders.HOST, "www.weightlow.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "weight_low_test");
 	}
 
 	@Test
@@ -93,8 +105,14 @@ public class WeightRoutePredicateFactoryIntegrationTests extends BaseWebClientTe
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("weight_low_test", r -> r.weight("group1", 2).and().host("**.weightlow.org")
-					.filters(f -> f.prefixPath("/httpbin")).uri(this.uri)).build();
+			return builder.routes()
+				.route("weight_low_test",
+						r -> r.weight("group1", 2)
+							.and()
+							.host("**.weightlow.org")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(this.uri))
+				.build();
 		}
 
 	}

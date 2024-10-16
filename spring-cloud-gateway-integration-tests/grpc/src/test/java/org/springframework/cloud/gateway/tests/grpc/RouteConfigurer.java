@@ -101,7 +101,9 @@ public class RouteConfigurer {
 				NoopHostnameVerifier.INSTANCE);
 
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("https", sslSocketFactory).register("http", new PlainConnectionSocketFactory()).build();
+			.register("https", sslSocketFactory)
+			.register("http", new PlainConnectionSocketFactory())
+			.build();
 
 		HttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
 		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();

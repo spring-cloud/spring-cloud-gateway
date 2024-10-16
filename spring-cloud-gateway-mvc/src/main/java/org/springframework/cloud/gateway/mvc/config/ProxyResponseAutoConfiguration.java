@@ -17,8 +17,11 @@
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -30,6 +33,8 @@ import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -70,7 +75,14 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
 		resolver.setHeaders(proxy.convertHeaders());
 		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-		resolver.setSensitive(proxy.getSensitive()); // can be null
+		Set<String> excludedHeaderNames = new HashSet<>();
+		if (proxy.getSensitive() != null) {
+			excludedHeaderNames.addAll(proxy.getSensitive());
+		}
+		if (proxy.getSkipped() != null) {
+			excludedHeaderNames.addAll(proxy.getSkipped());
+		}
+		resolver.setExcluded(excludedHeaderNames);
 		return resolver;
 	}
 
@@ -83,6 +95,15 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
+		}
+
+		@Override
+		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
+		}
+
+		@Override
+		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method)
+				throws IOException {
 		}
 
 	}

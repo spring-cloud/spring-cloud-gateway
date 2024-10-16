@@ -49,11 +49,15 @@ class OnEnabledFilterTests {
 				FallbackHeadersGatewayFilterFactory.class, MapRequestHeaderGatewayFilterFactory.class,
 				SpringCloudCircuitBreakerResilience4JFilterFactory.class);
 
-		List<String> resultNames = predicates.stream().map(onEnabledFilter::normalizeComponentName)
-				.collect(Collectors.toList());
+		List<String> resultNames = predicates.stream()
+			.map(onEnabledFilter::normalizeComponentName)
+			.collect(Collectors.toList());
 
-		List<String> expectedNames = Stream.of("add-request-header", "dedupe-response-header", "fallback-headers",
-				"map-request-header", "circuit-breaker").map(s -> "filter." + s).collect(Collectors.toList());
+		List<String> expectedNames = Stream
+			.of("add-request-header", "dedupe-response-header", "fallback-headers", "map-request-header",
+					"circuit-breaker")
+			.map(s -> "filter." + s)
+			.collect(Collectors.toList());
 
 		assertThat(resultNames).isEqualTo(expectedNames);
 	}

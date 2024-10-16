@@ -49,7 +49,7 @@ public class HttpbinTestcontainers implements ApplicationContextInitializer<Conf
 
 	public static GenericContainer<?> createContainer() {
 		return new GenericContainer<>(DEFAULT_IMAGE_NAME).withExposedPorts(DEFAULT_PORT)
-				.waitingFor(new HttpWaitStrategy().forPort(DEFAULT_PORT));
+			.waitingFor(new HttpWaitStrategy().forPort(DEFAULT_PORT));
 	}
 
 	@Override

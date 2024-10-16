@@ -19,22 +19,23 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 import java.time.Duration;
 import java.util.List;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.config.LocalResponseCacheAutoConfiguration;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.util.unit.DataSize;
 import org.springframework.validation.annotation.Validated;
 
 /**
  * {@link org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory} of
- * {@link ResponseCacheGatewayFilter}.
- *
- * By default, a global cache (defined as properties in the application) is used. For
- * specific route configuration, parameters can be added following
- * {@link RouteCacheConfiguration} class.
+ * {@link ResponseCacheGatewayFilter}. By default, a global cache (defined as properties
+ * in the application) is used. For specific route configuration, parameters can be added
+ * following {@link RouteCacheConfiguration} class.
  *
  * @author Marta Medio
  * @author Ignacio Lozano
@@ -49,32 +50,49 @@ public class LocalResponseCacheGatewayFilterFactory
 	 */
 	public static final String LOCAL_RESPONSE_CACHE_FILTER_APPLIED = "LocalResponseCacheGatewayFilter-Applied";
 
-	private ResponseCacheManagerFactory cacheManagerFactory;
+	private final ResponseCacheManagerFactory cacheManagerFactory;
 
-	private Duration defaultTimeToLive;
+	private final Duration defaultTimeToLive;
 
-	private DataSize defaultSize;
+	private final DataSize defaultSize;
 
+	private final RequestOptions requestOptions;
+
+	private final CaffeineCacheManager caffeineCacheManager;
+
+	@Deprecated
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive) {
-		this(cacheManagerFactory, defaultTimeToLive, null);
+			Duration defaultTimeToLive, DataSize defaultSize) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, new RequestOptions());
 	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize) {
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager());
+	}
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
+			CaffeineCacheManager caffeineCacheManager) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;
 		this.defaultSize = defaultSize;
+		this.requestOptions = requestOptions;
+		this.caffeineCacheManager = caffeineCacheManager;
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		Cache routeCache = LocalResponseCacheAutoConfiguration.createGatewayCacheManager(cacheProperties)
-				.getCache(config.getRouteId() + "-cache");
-		return new ResponseCacheGatewayFilter(cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive()));
+		Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
+		String cacheName = config.getRouteId() + "-cache";
+		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+		Cache routeCache = caffeineCacheManager.getCache(cacheName);
+		return new ResponseCacheGatewayFilter(
+				cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive(), requestOptions));
 
 	}
 

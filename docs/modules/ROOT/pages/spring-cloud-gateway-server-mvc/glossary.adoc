@@ -1,0 +1,11 @@
+[[glossary]]
+= Glossary
+:page-section-summary-toc: 1
+
+* *Route*: The basic building block of the gateway.
+It is defined by an ID, a destination URI, a collection of predicates, and a collection of filters. A route is matched if the aggregate predicate is true.
+* *Predicate*: This is a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicate.html[Spring WebMvc.fn `RequestPredicate`]. The input type is a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/ServerRequest.html[Spring WebMvc.fn `ServerRequest`].
+This lets you match on anything from the HTTP request, such as headers or parameters.
+* *Filter*: These are instances of https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html[`HandlerFilterFunction`].
+Here, you can modify requests and responses before or after sending the downstream request. Filters may also implement `Function<ServerRequest, ServerRequest>` and adapted to a `HandlerFilterFunction` by https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html#ofRequestProcessor(java.util.function.Function)[`HandlerFilterFunction.ofRequestProcessor()`] for 'before' filters. For 'after' filters, `BiFunction<ServerRequest,T extends ServerResponse,R extends ServerResponse>` may be implemented and adapted by https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html#ofResponseProcessor(java.util.function.BiFunction)[`HandlerFilterFunction.ofResponseProcessor()`].
+

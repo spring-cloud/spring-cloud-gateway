@@ -21,12 +21,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.NameUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.DefaultOperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -34,13 +37,13 @@ public class NormalizedOperationMethod implements OperationMethod {
 
 	private final OperationMethod delegate;
 
-	private final Map<String, String> normalizedArgs;
+	private final Map<String, Object> normalizedArgs;
 
 	/**
 	 * Create a new {@link DefaultOperationMethod} instance.
 	 * @param method the source method
 	 */
-	public NormalizedOperationMethod(OperationMethod delegate, Map<String, String> args) {
+	public NormalizedOperationMethod(OperationMethod delegate, Map<String, Object> args) {
 		this.delegate = delegate;
 		normalizedArgs = normalizeArgs(args);
 	}
@@ -50,36 +53,49 @@ public class NormalizedOperationMethod implements OperationMethod {
 		return delegate.getMethod();
 	}
 
+	public boolean isConfigurable() {
+		MergedAnnotation<Configurable> configurable = MergedAnnotations.from(delegate.getMethod())
+			.get(Configurable.class);
+		return configurable.isPresent() && delegate.getParameters().getParameterCount() == 1;
+	}
+
 	@Override
 	public OperationParameters getParameters() {
 		return delegate.getParameters();
 	}
 
-	public Map<String, String> getNormalizedArgs() {
+	public Map<String, Object> getNormalizedArgs() {
 		return normalizedArgs;
 	}
 
-	private Map<String, String> normalizeArgs(Map<String, String> operationArgs) {
+	@Override
+	public String toString() {
+		return delegate.toString();
+	}
+
+	private Map<String, Object> normalizeArgs(Map<String, Object> operationArgs) {
 		if (hasGeneratedKey(operationArgs)) {
-			Shortcut shortcut = getMethod().getAnnotation(Shortcut.class);
-			if (shortcut != null) {
+			MergedAnnotation<Shortcut> shortcutMergedAnnotation = MergedAnnotations.from(delegate.getMethod())
+				.get(Shortcut.class);
+			if (shortcutMergedAnnotation.isPresent()) {
+				Shortcut shortcut = shortcutMergedAnnotation.synthesize();
 				String[] fieldOrder = getFieldOrder(shortcut);
 				return switch (shortcut.type()) {
 					case DEFAULT -> {
-						Map<String, String> map = new HashMap<>();
+						Map<String, Object> map = new HashMap<>();
 						int entryIdx = 0;
-						for (Map.Entry<String, String> entry : operationArgs.entrySet()) {
+						for (Map.Entry<String, Object> entry : operationArgs.entrySet()) {
 							String key = normalizeKey(entry.getKey(), entryIdx, operationArgs, fieldOrder);
 							// TODO: support spel?
 							// getValue(parser, beanFactory, entry.getValue());
-							String value = entry.getValue();
+							Object value = entry.getValue();
 							map.put(key, value);
 							entryIdx++;
 						}
 						yield map;
 					}
 					case LIST -> {
-						Map<String, String> map = new HashMap<>();
+						Map<String, Object> map = new HashMap<>();
 						// field order should be of size 1
 						Assert.isTrue(fieldOrder != null && fieldOrder.length == 1,
 								"Shortcut Configuration Type GATHER_LIST must have shortcutFieldOrder of size 1");
@@ -104,11 +120,11 @@ public class NormalizedOperationMethod implements OperationMethod {
 		return fieldOrder;
 	}
 
-	private static boolean hasGeneratedKey(Map<String, String> operationArgs) {
+	private static boolean hasGeneratedKey(Map<String, Object> operationArgs) {
 		return operationArgs.keySet().stream().anyMatch(key -> key.startsWith(NameUtils.GENERATED_NAME_PREFIX));
 	}
 
-	static String normalizeKey(String key, int entryIdx, Map<String, String> args, String[] fieldOrder) {
+	static String normalizeKey(String key, int entryIdx, Map<String, Object> args, String[] fieldOrder) {
 		// RoutePredicateFactory has name hints and this has a fake key name
 		// replace with the matching key hint
 		if (key.startsWith(NameUtils.GENERATED_NAME_PREFIX) && fieldOrder.length > 0 && entryIdx < args.size()

@@ -21,6 +21,7 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -41,15 +42,25 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
+	@Autowired
+	private HostRoutePredicateFactory hostPredicate;
+
 	@Test
 	public void hostRouteWorks() {
 		expectHostRoute("www.example.org", "host_example_to_httpbin");
 	}
 
 	public void expectHostRoute(String host, String routeId) {
-		testClient.get().uri("/get").header("Host", host).exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, routeId);
+		testClient.get()
+			.uri("/get")
+			.header("Host", host)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, routeId);
 	}
 
 	@Test
@@ -75,6 +86,15 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void sameHostWithPort() {
+		expectHostRoute("hostpatternarg.org:8080", "host_with_port_pattern");
+
+		hostPredicate.setIncludePort(false);
+		expectHostRoute("hostpatternarg.org:8080", "host_without_port_pattern");
+		hostPredicate.setIncludePort(true);
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("pattern1", "pattern2"));
 		Predicate predicate = new HostRoutePredicateFactory().apply(config);
@@ -91,8 +111,12 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("host_multi_dsl", r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
-					.filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+			return builder.routes()
+				.route("host_multi_dsl",
+						r -> r.host("**.hostmultidsl1.org", "**.hostmultidsl2.org")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.build();
 		}
 
 	}

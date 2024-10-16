@@ -1,0 +1,44 @@
+[[redirectto-gatewayfilter-factory]]
+= `RedirectTo` `GatewayFilter` Factory
+
+The `RedirectTo` `GatewayFilter` factory takes three parameters, `status`, `url`, and optionally `includeRequestParams`.
+The `status` parameter should be a 300 series redirect HTTP code, such as 301.
+The `url` parameter should be a valid URL.
+This is the value of the `Location` header.
+The `includeRequestParams` parameter indicates whether request query parameters should be included on the `url`.
+When not set, it will be treated as `false`.
+For relative redirects, you should use `uri: no://op` as the uri of your route definition.
+The following listing configures a `RedirectTo` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: prefixpath_route
+        uri: https://example.org
+        filters:
+        - RedirectTo=302, https://acme.org
+----
+
+This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
+
+The following example configures a `RedirectTo` `GatewayFilter` with `includeRequestParams` set to `true`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: prefixpath_route
+        uri: https://example.org
+        filters:
+        - RedirectTo=302, https://acme.org, true
+----
+
+When a request with query `?skip=10` is made to the gateway, the gateway will send a status 302 with a
+`Location:https://acme.org?skip=10` header to perform a redirect.

@@ -49,8 +49,10 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void secureHeadersFilterWorks() {
-		Mono<ClientResponse> result = webClient.get().uri("/headers").header("Host", "www.secureheaders.org")
-				.exchangeToMono(Mono::just);
+		Mono<ClientResponse> result = webClient.get()
+			.uri("/headers")
+			.header("Host", "www.secureheaders.org")
+			.exchangeToMono(Mono::just);
 
 		SecureHeadersProperties defaults = new SecureHeadersProperties();
 
@@ -59,23 +61,27 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 			HttpHeaders httpHeaders = response.headers().asHttpHeaders();
 			// assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
 			assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
-					.isEqualTo(defaults.getStrictTransportSecurity());
+				.isEqualTo(defaults.getStrictTransportSecurity());
 			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
 			assertThat(httpHeaders.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER)).isEqualTo(defaults.getContentTypeOptions());
 			assertThat(httpHeaders.getFirst(REFERRER_POLICY_HEADER)).isEqualTo(defaults.getReferrerPolicy());
 			assertThat(httpHeaders.getFirst(CONTENT_SECURITY_POLICY_HEADER))
-					.isEqualTo(defaults.getContentSecurityPolicy());
+				.isEqualTo(defaults.getContentSecurityPolicy());
 			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
 			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
-					.isEqualTo(defaults.getPermittedCrossDomainPolicies());
+				.isEqualTo(defaults.getPermittedCrossDomainPolicies());
 		}).expectComplete().verify(DURATION);
 	}
 
 	@Test
 	public void addsSecureHeadersAfterResponseIsReceived() {
-		Mono<ResponseEntity<String>> responseEntity = webClient.patch().uri("/headers")
-				.header("Host", "www.secureheaders.org").contentType(MediaType.APPLICATION_JSON)
-				.bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }").retrieve().toEntity(String.class);
+		Mono<ResponseEntity<String>> responseEntity = webClient.patch()
+			.uri("/headers")
+			.header("Host", "www.secureheaders.org")
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue("{ \"X-Frame-Options\": \"sameorigin\" }")
+			.retrieve()
+			.toEntity(String.class);
 
 		StepVerifier.create(responseEntity).consumeNextWith(response -> {
 			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -1,0 +1,45 @@
+[[stripprefix-filter]]
+= `StripPrefix` Filter
+
+The `StripPrefix` filter takes one parameter, `parts`.
+The `parts` parameter indicates the number of parts in the path to strip from the request before sending it downstream.
+The following listing configures a `StripPrefix` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: nameRoot
+          uri: https://nameservice
+          predicates:
+          - Path=/name/**
+          filters:
+          - StripPrefix=2
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
+		return route("nameRoot")
+				.GET("/name/**", http("https://example.org"))
+					.before(stripPrefix(2))
+					.build();
+    }
+}
+----
+
+When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
+

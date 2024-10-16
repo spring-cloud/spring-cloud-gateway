@@ -118,7 +118,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			};
 
 			statusCodeRepeat = Repeat.onlyIf(repeatPredicate)
-					.doOnRepeat(context -> reset(context.applicationContext()));
+				.doOnRepeat(context -> reset(context.applicationContext()));
 
 			BackoffConfig backoff = retryConfig.getBackoff();
 			if (backoff != null) {
@@ -157,7 +157,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 				return false;
 			};
 			exceptionRetry = Retry.onlyIf(retryContextPredicate)
-					.doOnRetry(context -> reset(context.applicationContext())).retryMax(retryConfig.getRetries());
+				.doOnRetry(context -> reset(context.applicationContext()))
+				.retryMax(retryConfig.getRetries());
 			BackoffConfig backoff = retryConfig.getBackoff();
 			if (backoff != null) {
 				exceptionRetry = exceptionRetry.backoff(getBackoff(backoff));
@@ -174,9 +175,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			@Override
 			public String toString() {
 				return filterToStringCreator(RetryGatewayFilterFactory.this).append("routeId", retryConfig.getRouteId())
-						.append("retries", retryConfig.getRetries()).append("series", retryConfig.getSeries())
-						.append("statuses", retryConfig.getStatuses()).append("methods", retryConfig.getMethods())
-						.append("exceptions", retryConfig.getExceptions()).toString();
+					.append("retries", retryConfig.getRetries())
+					.append("series", retryConfig.getSeries())
+					.append("statuses", retryConfig.getStatuses())
+					.append("methods", retryConfig.getMethods())
+					.append("exceptions", retryConfig.getExceptions())
+					.toString();
 			}
 		};
 	}
@@ -234,14 +238,15 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 			// chain.filter returns a Mono<Void>
 			Publisher<Void> publisher = chain.filter(exchange)
-					// .log("retry-filter", Level.INFO)
-					.doOnSuccess(aVoid -> updateIteration(exchange)).doOnError(throwable -> updateIteration(exchange));
+				// .log("retry-filter", Level.INFO)
+				.doOnSuccess(aVoid -> updateIteration(exchange))
+				.doOnError(throwable -> updateIteration(exchange));
 
 			if (retry != null) {
 				// retryWhen returns a Mono<Void>
 				// retry needs to go before repeat
 				publisher = ((Mono<Void>) publisher)
-						.retryWhen(reactor.util.retry.Retry.withThrowable(retry.withApplicationContext(exchange)));
+					.retryWhen(reactor.util.retry.Retry.withThrowable(retry.withApplicationContext(exchange)));
 			}
 			if (repeat != null) {
 				// repeatWhen returns a Flux<Void>

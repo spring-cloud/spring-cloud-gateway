@@ -34,6 +34,7 @@ import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -56,15 +57,32 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").exchange()
-				.expectStatus().isNotFound();
+		String baseUrl = "http://localhost:" + managementPort;
+		testClient.mutate()
+			.uriBuilderFactory(new DefaultUriBuilderFactory(baseUrl))
+			.baseUrl(baseUrl)
+			.build()
+			.get()
+			.uri("/get")
+			.exchange()
+			.expectStatus()
+			.isNotFound();
 	}
 
 	@Test
 	public void requestsToManagementPortAndHostHeaderReturn404() {
 		String host = "example.com:8888";
-		testClient.mutate().baseUrl("http://localhost:" + managementPort).build().get().uri("/get").header("host", host)
-				.exchange().expectStatus().isNotFound();
+		String baseUrl = "http://localhost:" + managementPort;
+		testClient.mutate()
+			.uriBuilderFactory(new DefaultUriBuilderFactory(baseUrl))
+			.baseUrl(baseUrl)
+			.build()
+			.get()
+			.uri("/get")
+			.header("host", host)
+			.exchange()
+			.expectStatus()
+			.isNotFound();
 	}
 
 	@Test
@@ -74,8 +92,29 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void andNotWorksWithParameter() {
-		testClient.get().uri("/andnotquery?myquery=shouldnotsee").exchange().expectBody(String.class)
-				.isEqualTo("hasquery");
+		testClient.get()
+			.uri("/andnotquery?myquery=shouldnotsee")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("hasquery");
+	}
+
+	@Test
+	public void andNestedOrQuery1() {
+		testClient.get()
+			.uri("/andnestedquery?query1=hasquery1")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("hasquery1,notsupplied");
+	}
+
+	@Test
+	public void andNestedOrQuery2() {
+		testClient.get()
+			.uri("/andnestedquery?query2=hasquery2")
+			.exchange()
+			.expectBody(String.class)
+			.isEqualTo("notsupplied,hasquery2");
 	}
 
 	@EnableAutoConfiguration
@@ -92,6 +131,12 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 			return myquery;
 		}
 
+		@GetMapping("/httpbin/andnestedquery")
+		String andnotquery(@RequestParam(name = "query1", defaultValue = "notsupplied") String query1,
+				@RequestParam(name = "query2", defaultValue = "notsupplied") String query2) {
+			return query1 + "," + query2;
+		}
+
 		@GetMapping("/httpbin/hasquery")
 		String hasquery() {
 			return "hasquery";
@@ -100,12 +145,25 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 		@Bean
 		RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("and_not_missing_myquery",
-							r -> r.path("/andnotquery").and().not(p -> p.query("myquery"))
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.route("and_not_has_myquery", r -> r.path("/andnotquery").and().query("myquery")
-							.filters(f -> f.setPath("/httpbin/hasquery")).uri(uri))
-					.build();
+				.route("and_not_missing_myquery",
+						r -> r.path("/andnotquery")
+							.and()
+							.not(p -> p.query("myquery"))
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.route("and_not_has_myquery",
+						r -> r.path("/andnotquery")
+							.and()
+							.query("myquery")
+							.filters(f -> f.setPath("/httpbin/hasquery"))
+							.uri(uri))
+				.route("and_nested_query1_or_query2",
+						r -> r.path("/andnestedquery")
+							.and()
+							.nested(p -> p.query("query1").or().query("query2"))
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.build();
 		}
 
 	}

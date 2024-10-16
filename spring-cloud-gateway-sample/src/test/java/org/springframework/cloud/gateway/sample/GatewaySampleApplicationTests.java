@@ -92,100 +92,171 @@ public class GatewaySampleApplicationTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void readBodyPredicateStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.readbody.org").bodyValue("hi").exchange().expectStatus()
-				.isOk().expectHeader().valueEquals("X-TestHeader", "read_body_pred").expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "hi"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.readbody.org")
+			.bodyValue("hi")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "read_body_pred")
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "hi"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriterequestupper.org").bodyValue("hello").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_request_upper")
-				.expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.rewriterequestupper.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_request_upper")
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyObjectWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriterequestobj.org").bodyValue("hello").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_request")
-				.expectBody(Map.class).consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data",
-						"{\"message\":\"HELLO\"}"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.rewriterequestobj.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_request")
+			.expectBody(Map.class)
+			.consumeWith(
+					result -> assertThat(result.getResponseBody()).containsEntry("data", "{\"message\":\"HELLO\"}"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseBodyStringWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriteresponseupper.org").bodyValue("hello").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_response_upper")
-				.expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.rewriteresponseupper.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_response_upper")
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponseEmptyBodyToStringWorks() {
-		webClient.post().uri("/post/empty").header("Host", "www.rewriteemptyresponse.org").exchange().expectStatus()
-				.isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_empty_response").expectBody(String.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("emptybody"));
+		webClient.post()
+			.uri("/post/empty")
+			.header("Host", "www.rewriteemptyresponse.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_empty_response")
+			.expectBody(String.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("emptybody"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void emptyBodySupplierNotCalledWhenBodyPresent() {
-		webClient.post().uri("/post").header("Host", "www.rewriteresponsewithfailsupplier.org").bodyValue("hello")
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-TestHeader", "rewrite_response_fail_supplier").expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.rewriteresponsewithfailsupplier.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_response_fail_supplier")
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("DATA", "HELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteResponeBodyObjectWorks() {
-		webClient.post().uri("/post").header("Host", "www.rewriteresponseobj.org").bodyValue("hello").exchange()
-				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "rewrite_response_obj")
-				.expectBody(String.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("hello"));
+		webClient.post()
+			.uri("/post")
+			.header("Host", "www.rewriteresponseobj.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "rewrite_response_obj")
+			.expectBody(String.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).isEqualTo("hello"));
 	}
 
 	@Test
 	public void complexPredicate() {
-		webClient.get().uri("/anything/png").header("Host", "www.abc.org").exchange().expectHeader()
-				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();
+		webClient.get()
+			.uri("/anything/png")
+			.header("Host", "www.abc.org")
+			.exchange()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "foobar")
+			.expectStatus()
+			.isOk();
 	}
 
 	@Test
 	public void routeFromKotlin() {
-		webClient.get().uri("/anything/kotlinroute").header("Host", "kotlin.abc.org").exchange().expectHeader()
-				.valueEquals("X-TestHeader", "foobar").expectStatus().isOk();
+		webClient.get()
+			.uri("/anything/kotlinroute")
+			.header("Host", "kotlin.abc.org")
+			.exchange()
+			.expectHeader()
+			.valueEquals("X-TestHeader", "foobar")
+			.expectStatus()
+			.isOk();
 	}
 
 	@Test
 	public void actuatorManagementPort() {
-		webClient.get().uri("http://localhost:" + managementPort + "/actuator/gateway/routes").exchange().expectStatus()
-				.isOk();
+		webClient.get()
+			.uri("http://localhost:" + managementPort + "/actuator/gateway/routes")
+			.exchange()
+			.expectStatus()
+			.isOk();
 	}
 
 	@Test
 	public void actuatorMetrics() {
 		contextLoads();
 		String metricName = metricsProperties.getPrefix() + ".requests";
-		webClient.get().uri("http://localhost:" + managementPort + "/actuator/metrics/" + metricName).exchange()
-				.expectStatus().isOk().expectBody().consumeWith(i -> {
-					String body = new String(i.getResponseBodyContent());
-					ObjectMapper mapper = new ObjectMapper();
-					try {
-						JsonNode actualObj = mapper.readTree(body);
-						JsonNode findValue = actualObj.findValue("name");
-						assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
-								.isEqualTo(metricName);
-					}
-					catch (IOException e) {
-						throw new IllegalStateException(e);
-					}
-				});
+		webClient.get()
+			.uri("http://localhost:" + managementPort + "/actuator/metrics/" + metricName)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.consumeWith(i -> {
+				String body = new String(i.getResponseBodyContent());
+				ObjectMapper mapper = new ObjectMapper();
+				try {
+					JsonNode actualObj = mapper.readTree(body);
+					JsonNode findValue = actualObj.findValue("name");
+					assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
+						.isEqualTo(metricName);
+				}
+				catch (IOException e) {
+					throw new IllegalStateException(e);
+				}
+			});
 	}
 
 	@Configuration(proxyBeanMethods = false)

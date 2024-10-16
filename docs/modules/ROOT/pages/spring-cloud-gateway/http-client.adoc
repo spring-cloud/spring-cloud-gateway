@@ -1,0 +1,49 @@
+[[http-client]]
+= The HttpClientCustomizer
+
+The HttpClientCustomizer interface in spring-cloud-gateway allows for the customization of the HTTP client used by the gateway. It provides a single method, customize, which takes an HttpClient as an argument and returns a customized version of it.
+
+This interface is useful for scenarios where you need to configure specific settings or behaviors for the HTTP client, such as setting timeouts, adding custom headers, or enabling specific features. By implementing this interface, you can provide a custom implementation that meets your specific requirements.
+
+Here's an example of how you might use the HttpClientCustomizer interface:
+
+.MyHttpClientCustomizer.java
+[source,java]
+----
+import org.springframework.cloud.gateway.config.HttpClientCustomizer;
+import reactor.netty.http.client.HttpClient;
+
+public class MyHttpClientCustomizer implements HttpClientCustomizer {
+
+    @Override
+    public HttpClient customize(HttpClient httpClient) {
+        // Customize the HTTP client here
+        return httpClient.tcpConfiguration(tcpClient -> {
+            // Set the connect timeout to 5 seconds
+            tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
+            // Set the read timeout to 10 seconds
+            tcpClient.option(ChannelOption.SO_TIMEOUT, 10000);
+            return tcpClient;
+        });
+    }
+}
+----
+
+In this example, the MyHttpClientCustomizer class implements the HttpClientCustomizer interface and overrides the customize method. Within this method, the HTTP client is customized by setting the connect timeout to 5 seconds and the read timeout to 10 seconds.
+
+To use this customizer, you would need to register it with the Spring Cloud Gateway configuration:
+
+.GatewayConfiguration.java
+[source,java]
+----
+@Configuration
+public class GatewayConfiguration {
+
+    @Bean
+    public HttpClientCustomizer myHttpClientCustomizer() {
+        return new MyHttpClientCustomizer();
+    }
+}
+----
+
+By registering the customizer as a bean, it will be automatically applied to the HTTP client used by the gateway.

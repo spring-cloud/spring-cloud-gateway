@@ -107,7 +107,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 				ServerWebExchangeUtils.setAlreadyRouted(exchange);
 				return modifiedResponse.writeWith(exchange.getRequest().getBody())
-						.then(chain.filter(exchange.mutate().response(modifiedResponse).build()));
+					.then(chain.filter(exchange.mutate().response(modifiedResponse).build()));
 			}
 
 			@Override
@@ -190,7 +190,7 @@ public class JsonToGrpcGatewayFilterFactory
 				Resource protoFile = resourceLoader.getResource(config.getProtoFile());
 
 				descriptor = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorFile.getInputStream())
-						.getDescriptorForType();
+					.getDescriptorForType();
 
 				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config,
 						descriptorFile.getInputStream());
@@ -218,19 +218,25 @@ public class JsonToGrpcGatewayFilterFactory
 		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 			exchange.getResponse().getHeaders().set("Content-Type", "application/json");
 
-			return getDelegate().writeWith(deserializeJSONRequest().map(callGRPCServer()).map(serialiseGRPCResponse())
-					.map(wrapGRPCResponse()).cast(DataBuffer.class).last());
+			return getDelegate().writeWith(deserializeJSONRequest().map(callGRPCServer())
+				.map(serialiseGRPCResponse())
+				.map(wrapGRPCResponse())
+				.cast(DataBuffer.class)
+				.last());
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
 				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
-					.marshaller(DynamicMessage.newBuilder(outputType).build());
+				.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
-					.<DynamicMessage, DynamicMessage>newBuilder().setType(MethodDescriptor.MethodType.UNKNOWN)
-					.setFullMethodName(MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(),
-							config.getMethod()))
-					.setRequestMarshaller(marshaller).setResponseMarshaller(marshaller).build();
+				.<DynamicMessage, DynamicMessage>newBuilder()
+				.setType(MethodDescriptor.MethodType.UNKNOWN)
+				.setFullMethodName(
+						MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(), config.getMethod()))
+				.setRequestMarshaller(marshaller)
+				.setResponseMarshaller(marshaller)
+				.build();
 			Channel channel = createChannel();
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
@@ -238,7 +244,7 @@ public class JsonToGrpcGatewayFilterFactory
 		private Descriptors.MethodDescriptor getMethodDescriptor(Config config, InputStream descriptorFile)
 				throws IOException, Descriptors.DescriptorValidationException {
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
-					.parseFrom(descriptorFile);
+				.parseFrom(descriptorFile);
 			DescriptorProtos.FileDescriptorProto fileProto = fileDescriptorSet.getFile(0);
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
 					new Descriptors.FileDescriptor[0]);
@@ -250,8 +256,10 @@ public class JsonToGrpcGatewayFilterFactory
 
 			List<Descriptors.MethodDescriptor> methods = serviceDescriptor.getMethods();
 
-			return methods.stream().filter(method -> method.getName().equals(config.getMethod())).findFirst()
-					.orElseThrow(() -> new NoSuchElementException("No Method found"));
+			return methods.stream()
+				.filter(method -> method.getName().equals(config.getMethod()))
+				.findFirst()
+				.orElseThrow(() -> new NoSuchElementException("No Method found"));
 		}
 
 		private ManagedChannel createChannel() {
@@ -296,7 +304,7 @@ public class JsonToGrpcGatewayFilterFactory
 			return jsonResponse -> {
 				try {
 					return new NettyDataBufferFactory(new PooledByteBufAllocator())
-							.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
+						.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
 				}
 				catch (JsonProcessingException e) {
 					return new NettyDataBufferFactory(new PooledByteBufAllocator()).allocateBuffer();

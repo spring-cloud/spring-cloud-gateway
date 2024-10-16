@@ -16,19 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier;
+import org.springframework.cloud.gateway.server.mvc.filter.SimpleFilterSupplier;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
-public class TestFilterSupplier implements FilterSupplier {
+public class TestFilterSupplier extends SimpleFilterSupplier {
 
-	@Override
-	public Collection<Method> get() {
-		return Arrays.asList(TestFilterSupplier.class.getMethods());
+	public TestFilterSupplier() {
+		super(TestFilterSupplier.class);
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> localServerPortUriResolver() {

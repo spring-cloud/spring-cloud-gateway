@@ -95,7 +95,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		}
 
 		List<ConfigurationPropertySource> propertySources = Collections
-				.singletonList(new MapConfigurationPropertySource(properties));
+			.singletonList(new MapConfigurationPropertySource(properties));
 
 		return new Binder(propertySources, null, conversionService).bindOrCreate(configurationPropertyName, bindable,
 				handler);
@@ -137,8 +137,8 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		@Override
 		protected Map<String, Object> normalizeProperties() {
 			if (this.service.beanFactory != null) {
-				return this.configurable.shortcutType().normalize(this.properties, this.configurable,
-						this.service.parser, this.service.beanFactory);
+				return this.configurable.shortcutType()
+					.normalize(this.properties, this.configurable, this.service.parser, this.service.beanFactory);
 			}
 			return super.normalizeProperties();
 		}

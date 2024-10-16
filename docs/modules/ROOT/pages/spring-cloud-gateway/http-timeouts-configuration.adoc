@@ -1,0 +1,75 @@
+[[http-timeouts-configuration]]
+= Http timeouts configuration
+
+Http timeouts (response and connect) can be configured for all routes and overridden for each specific route.
+
+[[global-timeouts]]
+== Global timeouts
+To configure Global http timeouts: +
+`connect-timeout` must be specified in milliseconds. +
+`response-timeout` must be specified as a java.time.Duration
+
+.global http timeouts example
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 5s
+----
+
+[[per-route-timeouts]]
+== Per-route timeouts
+To configure per-route timeouts: +
+`connect-timeout` must be specified in milliseconds. +
+`response-timeout` must be specified in milliseconds.
+
+.per-route http timeouts configuration via configuration
+[source,yaml]
+----
+      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: 200
+          connect-timeout: 200
+----
+
+.per-route timeouts configuration using Java DSL
+[source,java]
+----
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.CONNECT_TIMEOUT_ATTR;
+import static org.springframework.cloud.gateway.support.RouteMetadataUtils.RESPONSE_TIMEOUT_ATTR;
+
+      @Bean
+      public RouteLocator customRouteLocator(RouteLocatorBuilder routeBuilder){
+         return routeBuilder.routes()
+               .route("test1", r -> {
+                  return r.host("*.somehost.org").and().path("/somepath")
+                        .filters(f -> f.addRequestHeader("header1", "header-value-1"))
+                        .uri("http://someuri")
+                        .metadata(RESPONSE_TIMEOUT_ATTR, 200)
+                        .metadata(CONNECT_TIMEOUT_ATTR, 200);
+               })
+               .build();
+      }
+----
+
+A per-route `response-timeout` with a negative value will disable the global `response-timeout` value.
+
+----
+      - id: per_route_timeouts
+        uri: https://example.org
+        predicates:
+          - name: Path
+            args:
+              pattern: /delay/{timeout}
+        metadata:
+          response-timeout: -1
+----
+

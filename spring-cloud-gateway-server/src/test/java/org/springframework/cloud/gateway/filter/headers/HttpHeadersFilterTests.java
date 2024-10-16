@@ -35,8 +35,11 @@ public class HttpHeadersFilterTests {
 
 	@Test
 	public void httpHeadersFilterTests() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get").header("X-A", "aValue")
-				.header("X-B", "bValue").header("X-C", "cValue").build();
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
+			.header("X-A", "aValue")
+			.header("X-B", "bValue")
+			.header("X-C", "cValue")
+			.build();
 
 		List<HttpHeadersFilter> filters = Arrays.asList((h, e) -> HttpHeadersFilterTests.this.filter(h, "X-A"),
 				(h, e) -> HttpHeadersFilterTests.this.filter(h, "X-B"));
@@ -49,8 +52,10 @@ public class HttpHeadersFilterTests {
 	private HttpHeaders filter(HttpHeaders input, String keyToFilter) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		input.entrySet().stream().filter(entry -> !entry.getKey().equals(keyToFilter))
-				.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
+		input.entrySet()
+			.stream()
+			.filter(entry -> !entry.getKey().equals(keyToFilter))
+			.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
 
 		return filtered;
 	}

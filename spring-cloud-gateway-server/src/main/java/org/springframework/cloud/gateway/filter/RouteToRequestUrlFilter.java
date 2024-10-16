@@ -79,15 +79,18 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 		if ("lb".equalsIgnoreCase(routeUri.getScheme()) && routeUri.getHost() == null) {
 			// Load balanced URIs should always have a host. If the host is null it is
-			// most
-			// likely because the host name was invalid (for example included an
+			// most likely because the host name was invalid (for example included an
 			// underscore)
 			throw new IllegalStateException("Invalid host: " + routeUri.toString());
 		}
 
 		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
-				// .uri(routeUri)
-				.scheme(routeUri.getScheme()).host(routeUri.getHost()).port(routeUri.getPort()).build(encoded).toUri();
+			// .uri(routeUri)
+			.scheme(routeUri.getScheme())
+			.host(routeUri.getHost())
+			.port(routeUri.getPort())
+			.build(encoded)
+			.toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
 		return chain.filter(exchange);
 	}

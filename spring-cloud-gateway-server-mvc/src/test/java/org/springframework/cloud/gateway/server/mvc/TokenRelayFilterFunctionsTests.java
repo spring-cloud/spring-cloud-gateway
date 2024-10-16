@@ -86,8 +86,10 @@ public class TokenRelayFilterFunctionsTests {
 		when(accessToken.getTokenValue()).thenReturn("mytoken");
 
 		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
 		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
 
 		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(authorizedClient);

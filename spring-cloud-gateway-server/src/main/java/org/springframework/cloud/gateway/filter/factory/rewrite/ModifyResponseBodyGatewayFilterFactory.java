@@ -40,6 +40,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
+import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -66,9 +67,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 		super(Config.class);
 		this.messageReaders = messageReaders;
 		this.messageBodyDecoders = messageBodyDecoders.stream()
-				.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
+			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
 		this.messageBodyEncoders = messageBodyEncoders.stream()
-				.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
 	}
 
 	@Override
@@ -180,7 +181,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 		public String toString() {
 			Object obj = (this.gatewayFilterFactory != null) ? this.gatewayFilterFactory : this;
 			return filterToStringCreator(obj).append("New content type", config.getNewContentType())
-					.append("In class", config.getInClass()).append("Out class", config.getOutClass()).toString();
+				.append("In class", config.getInClass())
+				.append("Out class", config.getOutClass())
+				.toString();
 		}
 
 		public void setFactory(GatewayFilterFactory<Config> gatewayFilterFactory) {
@@ -220,8 +223,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 			// TODO: flux or mono
 			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
-					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+				.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
+				.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
 
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
@@ -233,6 +236,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
 					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
 				}
+
+				if (StringUtils.hasText(config.newContentType)) {
+					headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
+				}
+
 				// TODO: fail if isStreamingMediaType?
 				return getDelegate().writeWith(messageBody);
 			}));
@@ -260,11 +268,12 @@ public class ModifyResponseBodyGatewayFilterFactory
 			for (String encoding : encodingHeaders) {
 				MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
 				if (decoder != null) {
-					return clientResponse.bodyToMono(byte[].class).publishOn(Schedulers.parallel()).map(decoder::decode)
-							.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
-							.map(buffer -> prepareClientResponse(Mono.just(buffer),
-									exchange.getResponse().getHeaders()))
-							.flatMap(response -> response.bodyToMono(inClass));
+					return clientResponse.bodyToMono(byte[].class)
+						.publishOn(Schedulers.parallel())
+						.map(decoder::decode)
+						.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
+						.map(buffer -> prepareClientResponse(Mono.just(buffer), exchange.getResponse().getHeaders()))
+						.flatMap(response -> response.bodyToMono(inClass));
 				}
 			}
 

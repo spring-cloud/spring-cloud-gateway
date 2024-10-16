@@ -89,7 +89,7 @@ public class StripPrefixGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(StripPrefixGatewayFilterFactory.this).append("parts", config.getParts())
-						.toString();
+					.toString();
 			}
 		};
 	}

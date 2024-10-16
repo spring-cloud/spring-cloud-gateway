@@ -38,7 +38,7 @@ public class ConfigurationServiceTests {
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
 		Assertions.assertThrows(BindException.class, () -> ConfigurationService
-				.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
+			.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
 	}
 
 	@Test
@@ -58,7 +58,7 @@ public class ConfigurationServiceTests {
 		ValidatedConfig config = new ValidatedConfig();
 
 		Assertions.assertThrows(BindException.class, () -> ConfigurationService
-				.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
+			.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
 
 	}
 

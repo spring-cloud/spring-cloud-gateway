@@ -1,0 +1,44 @@
+[[modifyrequestbody-gatewayfilter-factory]]
+= `ModifyRequestBody` `GatewayFilter` Factory
+
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a request body `GatewayFilter`:
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_request_obj", r -> r.host("*.rewriterequestobj.org")
+            .filters(f -> f.prefixPath("/httpbin")
+                .modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (exchange, s) -> Mono.just(new Hello(s.toUpperCase())))).uri(uri))
+        .build();
+}
+
+static class Hello {
+    String message;
+
+    public Hello() { }
+
+    public Hello(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+----
+
+NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
+
+

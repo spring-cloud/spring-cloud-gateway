@@ -116,7 +116,8 @@ public abstract class AfterFilterFunctions {
 		return (request, response) -> {
 			response.headers().computeIfPresent(name, (key, values) -> {
 				List<String> rewrittenValues = values.stream()
-						.map(value -> pattern.matcher(value).replaceAll(replacement)).toList();
+					.map(value -> pattern.matcher(value).replaceAll(replacement))
+					.toList();
 				return new ArrayList<>(rewrittenValues);
 			});
 			return response;
@@ -134,6 +135,10 @@ public abstract class AfterFilterFunctions {
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(int statusCode) {
 		return setStatus(new HttpStatusHolder(null, statusCode));
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(String statusCode) {
+		return setStatus(HttpStatusHolder.valueOf(statusCode));
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> setStatus(HttpStatusCode statusCode) {

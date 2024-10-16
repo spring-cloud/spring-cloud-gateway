@@ -35,7 +35,8 @@ public abstract class GatewayRouterFunctions {
 	}
 
 	public static Builder route(String routeId) {
-		return RouterFunctions.route().before(routeId(routeId));
+		Builder builder = RouterFunctions.route().before(routeId(routeId));
+		return new GatewayRouterFunctionsBuilder(builder, routeId);
 	}
 
 	public static <T extends ServerResponse> RouterFunction<T> route(RequestPredicate predicate,

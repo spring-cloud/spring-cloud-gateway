@@ -78,7 +78,7 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetPathGatewayFilterFactory.this).append("template", config.getTemplate())
-						.toString();
+					.toString();
 			}
 		};
 	}

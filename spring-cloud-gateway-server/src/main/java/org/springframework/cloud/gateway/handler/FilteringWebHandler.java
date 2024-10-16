@@ -30,8 +30,11 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.core.DecoratingProxy;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 
@@ -43,6 +46,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  *
  * @author Rossen Stoyanchev
  * @author Spencer Gibb
+ * @author Yuxin Wang
  * @since 0.1
  */
 public class FilteringWebHandler implements WebHandler {
@@ -61,6 +65,12 @@ public class FilteringWebHandler implements WebHandler {
 			if (filter instanceof Ordered) {
 				int order = ((Ordered) filter).getOrder();
 				return new OrderedGatewayFilter(gatewayFilter, order);
+			}
+			else {
+				Order order = AnnotationUtils.findAnnotation(filter.getClass(), Order.class);
+				if (order != null) {
+					return new OrderedGatewayFilter(gatewayFilter, order.value());
+				}
 			}
 			return gatewayFilter;
 		}).collect(Collectors.toList());
@@ -124,7 +134,7 @@ public class FilteringWebHandler implements WebHandler {
 
 	}
 
-	private static class GatewayFilterAdapter implements GatewayFilter {
+	private static class GatewayFilterAdapter implements GatewayFilter, DecoratingProxy {
 
 		private final GlobalFilter delegate;
 
@@ -143,6 +153,11 @@ public class FilteringWebHandler implements WebHandler {
 			sb.append("delegate=").append(delegate);
 			sb.append('}');
 			return sb.toString();
+		}
+
+		@Override
+		public Class<?> getDecoratedClass() {
+			return delegate.getClass();
 		}
 
 	}

@@ -1,0 +1,40 @@
+[[addrequestheader-gatewayfilter-factory]]
+= `AddRequestHeader` `GatewayFilter` Factory
+
+The `AddRequestHeader` `GatewayFilter` factory takes a `name` and `value` parameter.
+The following example configures an `AddRequestHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: https://example.org
+        filters:
+        - AddRequestHeader=X-Request-red, blue
+----
+
+This listing adds `X-Request-red:blue` header to the downstream request's headers for all matching requests.
+
+`AddRequestHeader` is aware of the URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddRequestHeader` `GatewayFilter` that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment}
+        filters:
+        - AddRequestHeader=X-Request-Red, Blue-{segment}
+----
+

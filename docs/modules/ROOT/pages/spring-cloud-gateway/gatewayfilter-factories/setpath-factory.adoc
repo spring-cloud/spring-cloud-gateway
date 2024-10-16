@@ -1,0 +1,26 @@
+[[setpath-gatewayfilter-factory]]
+= `SetPath` `GatewayFilter` Factory
+
+The `SetPath` `GatewayFilter` factory takes a path `template` parameter.
+It offers a simple way to manipulate the request path by allowing templated segments of the path.
+This uses the URI templates from Spring Framework.
+Multiple matching segments are allowed.
+The following example configures a `SetPath` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setpath_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment}
+        filters:
+        - SetPath=/{segment}
+----
+
+For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request.
+

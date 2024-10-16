@@ -32,7 +32,8 @@ public class GRPCRequestHeadersFilterTest {
 	@Test
 	public void shouldIncludeTrailersHeaderIfGRPC() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-				.header(HttpHeaders.CONTENT_TYPE, "application/grpc").build();
+			.header(HttpHeaders.CONTENT_TYPE, "application/grpc")
+			.build();
 
 		GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
 
@@ -46,7 +47,8 @@ public class GRPCRequestHeadersFilterTest {
 	@Test
 	public void shouldNotIncludeTrailersHeaderIfNotGRPC() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-				.header(HttpHeaders.CONTENT_TYPE, "application/json").build();
+			.header(HttpHeaders.CONTENT_TYPE, "application/json")
+			.build();
 
 		GRPCRequestHeadersFilter filter = new GRPCRequestHeadersFilter();
 

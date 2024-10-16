@@ -50,18 +50,18 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return this.delegates.flatMapSequential(RouteDefinitionLocator::getRouteDefinitions)
-				.flatMap(routeDefinition -> {
-					if (routeDefinition.getId() == null) {
-						return randomId().map(id -> {
-							routeDefinition.setId(id);
-							if (log.isDebugEnabled()) {
-								log.debug("Id set on route definition: " + routeDefinition);
-							}
-							return routeDefinition;
-						});
-					}
-					return Mono.just(routeDefinition);
-				});
+			.flatMap(routeDefinition -> {
+				if (routeDefinition.getId() == null) {
+					return randomId().map(id -> {
+						routeDefinition.setId(id);
+						if (log.isDebugEnabled()) {
+							log.debug("Id set on route definition: " + routeDefinition);
+						}
+						return routeDefinition;
+					});
+				}
+				return Mono.just(routeDefinition);
+			});
 	}
 
 	protected Mono<String> randomId() {

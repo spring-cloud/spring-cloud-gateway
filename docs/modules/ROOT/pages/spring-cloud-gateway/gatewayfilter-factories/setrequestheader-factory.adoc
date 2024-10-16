@@ -1,0 +1,41 @@
+[[setrequestheader-gatewayfilter-factory]]
+= `SetRequestHeader` `GatewayFilter` Factory
+
+The `SetRequestHeader` `GatewayFilter` factory takes `name` and `value` parameters.
+The following listing configures a `SetRequestHeader` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        filters:
+        - SetRequestHeader=X-Request-Red, Blue
+----
+
+This `GatewayFilter` replaces (rather than adding) all headers with the given name.
+So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+
+`SetRequestHeader` is aware of URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `SetRequestHeader` `GatewayFilter` that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetRequestHeader=foo, bar-{segment}
+----
+

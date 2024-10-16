@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,7 @@ import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
+import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -77,17 +79,36 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 		int weightFilterIndex = applicationListeners.indexOf(context.getBean(WeightCalculatorWebFilter.class));
 		int routeLocatorIndex = applicationListeners.indexOf(context.getBean(CachingRouteLocator.class));
 		assertThat(weightFilterIndex > routeLocatorIndex).as("CachingRouteLocator is after WeightCalculatorWebFilter")
-				.isTrue();
+			.isTrue();
+	}
+
+	@Test
+	void checkFilterIsDisabled() {
+		Optional<RouteDefinition> disabledRoute = properties.getRoutes()
+			.stream()
+			.filter(r -> "disabled_config_test".equals(r.getId()))
+			.findFirst();
+		assertThat(disabledRoute).as("Disabled route is present")
+			.isPresent()
+			.get()
+			.hasFieldOrPropertyWithValue("enabled", false);
 	}
 
 	@Test
 	void complexContentTypeWorks() {
-		testClient.post().uri("/headers").contentType(MediaType.APPLICATION_JSON).bodyValue("testdata")
-				.header("Host", "www.complexcontenttype.org").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-				});
+		testClient.post()
+			.uri("/headers")
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue("testdata")
+			.header("Host", "www.complexcontenttype.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			});
 	}
 
 	@Test
@@ -97,61 +118,89 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 			assertThat(headers).containsKeys(ForwardedHeadersFilter.FORWARDED_HEADER,
 					XForwardedHeadersFilter.X_FORWARDED_FOR_HEADER, XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER,
 					XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER, XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER);
-			assertThat(headers.get(ForwardedHeadersFilter.FORWARDED_HEADER)).asString().contains("proto=http")
-					.contains("host=\"localhost:").contains("for=\"127.0.0.1:");
+			assertThat(headers.get(ForwardedHeadersFilter.FORWARDED_HEADER)).asString()
+				.contains("proto=http")
+				.contains("host=\"localhost:")
+				.contains("for=\"127.0.0.1:");
 			assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER)).asString()
-					.isEqualTo("localhost:" + this.port);
+				.isEqualTo("localhost:" + this.port);
 			assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER)).asString()
-					.isEqualTo("" + this.port);
+				.isEqualTo("" + this.port);
 			assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PROTO_HEADER)).asString().isEqualTo("http");
 		});
 	}
 
 	@Test
 	void compositeRouteWorks() {
-		testClient.get().uri("/headers?foo=bar&baz").header("Host", "www.foo.org").header("X-Request-Id", "123")
-				.cookie("chocolate", "chip").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "host_foo_path_headers_to_httpbin").expectHeader()
-				.valueEquals("X-Response-Foo", "Bar");
+		testClient.get()
+			.uri("/headers?foo=bar&baz")
+			.header("Host", "www.foo.org")
+			.header("X-Request-Id", "123")
+			.cookie("chocolate", "chip")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "host_foo_path_headers_to_httpbin")
+			.expectHeader()
+			.valueEquals("X-Response-Foo", "Bar");
 	}
 
 	@Test
 	void defaultFiltersWorks() {
 		assertThat(this.properties.getDefaultFilters()).isNotEmpty();
 
-		testClient.get().uri("/headers").header("Host", "www.addresponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Response-Default-Foo", "Default-Bar").returnResult(Object.class)
-				.consumeWith(result -> {
-					HttpHeaders httpHeaders = result.getResponseHeaders();
-					assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.addresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Response-Default-Foo", "Default-Bar")
+			.returnResult(Object.class)
+			.consumeWith(result -> {
+				HttpHeaders httpHeaders = result.getResponseHeaders();
+				assertThat(httpHeaders.get("X-Response-Default-Foo")).hasSize(1);
+			});
 	}
 
 	@Test
 	void loadBalancerFilterWorks() {
-		testClient.get().uri("/get").header("Host", "www.loadbalancerclient.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals(ROUTE_ID_HEADER, "load_balancer_client_test");
+		testClient.get()
+			.uri("/get")
+			.header("Host", "www.loadbalancerclient.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "load_balancer_client_test");
 	}
 
 	@Test
 	void loadBalancerFilterNoClientWorks() {
-		testClient.get().uri("/get").header("Host", "www.loadbalancerclientempty.org").exchange().expectStatus()
-				.value(new BaseMatcher<Integer>() {
-					@Override
-					public boolean matches(Object item) {
-						if (Integer.class.isInstance(item)) {
-							Integer toMatch = (Integer) item;
-							return toMatch.intValue() == 503;
-						}
-						return false;
+		testClient.get()
+			.uri("/get")
+			.header("Host", "www.loadbalancerclientempty.org")
+			.exchange()
+			.expectStatus()
+			.value(new BaseMatcher<Integer>() {
+				@Override
+				public boolean matches(Object item) {
+					if (Integer.class.isInstance(item)) {
+						Integer toMatch = (Integer) item;
+						return toMatch.intValue() == 503;
 					}
+					return false;
+				}
 
-					@Override
-					public void describeTo(Description description) {
-						description.appendText("Expected 503");
-					}
-				});
+				@Override
+				public void describeTo(Description description) {
+					description.appendText("Expected 503");
+				}
+			});
 	}
 
 	@Test

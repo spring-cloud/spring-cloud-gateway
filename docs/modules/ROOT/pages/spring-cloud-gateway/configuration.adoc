@@ -1,0 +1,45 @@
+[[configuration]]
+= Configuration
+
+Configuration for Spring Cloud Gateway is driven by a collection of `RouteDefinitionLocator` instances.
+The following listing shows the definition of the `RouteDefinitionLocator` interface:
+
+.RouteDefinitionLocator.java
+[source,java]
+----
+public interface RouteDefinitionLocator {
+	Flux<RouteDefinition> getRouteDefinitions();
+}
+----
+
+By default, a `PropertiesRouteDefinitionLocator` loads properties by using Spring Boot's `@ConfigurationProperties` mechanism.
+
+The earlier configuration examples all use a shortcut notation that uses positional arguments rather than named ones.
+The following two examples are equivalent:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setstatus_route
+        uri: https://example.org
+        filters:
+        - name: SetStatus
+          args:
+            status: 401
+      - id: setstatusshortcut_route
+        uri: https://example.org
+        filters:
+        - SetStatus=401
+----
+
+For some usages of the gateway, properties are adequate, but some production use cases benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories, such as Redis, MongoDB, and Cassandra.
+
+[[routedefinition-metrics]]
+== RouteDefinition Metrics
+
+To enable `RouteDefinition` metrics, add spring-boot-starter-actuator as a project dependency. Then, by default, the metrics will be available as long as the property `spring.cloud.gateway.metrics.enabled` is set to `true`. A gauge metric named `spring.cloud.gateway.routes.count` will be added, whose value is the number of `RouteDefinitions`. This metric will be available from `/actuator/metrics/spring.cloud.gateway.routes.count`.
+

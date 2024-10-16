@@ -112,8 +112,8 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("echo", r -> r.path("/route/echo").filters(f -> f.stripPrefix(1)).uri("lb://xferenc"))
-					.build();
+				.route("echo", r -> r.path("/route/echo").filters(f -> f.stripPrefix(1)).uri("lb://xferenc"))
+				.build();
 		}
 
 	}

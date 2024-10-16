@@ -187,6 +187,12 @@ public class Route implements Ordered {
 			this.uri = uri;
 			String scheme = this.uri.getScheme();
 			Assert.hasText(scheme, "The parameter [" + this.uri + "] format is incorrect, scheme can not be empty");
+			if (scheme.equalsIgnoreCase("localhost")) {
+				// common error
+				// TODO: find a general way to detect without breaking existing behavior
+				throw new IllegalArgumentException(
+						"The parameter [" + this.uri + "] format is incorrect, scheme can not be localhost");
+			}
 			if (this.uri.getPort() < 0 && scheme.startsWith("http")) {
 				// default known http ports
 				int port = this.uri.getScheme().equals("https") ? 443 : 80;

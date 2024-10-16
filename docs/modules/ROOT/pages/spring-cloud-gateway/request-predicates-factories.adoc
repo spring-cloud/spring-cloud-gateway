@@ -1,0 +1,376 @@
+[[gateway-request-predicates-factories]]
+= Route Predicate Factories
+
+Spring Cloud Gateway matches routes as part of the Spring WebFlux `HandlerMapping` infrastructure.
+Spring Cloud Gateway includes many built-in route predicate factories.
+All of these predicates match on different attributes of the HTTP request.
+You can combine multiple route predicate factories with logical `and` statements.
+
+[[after-route-predicate-factory]]
+== The After Route Predicate Factory
+
+The `After` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
+This predicate matches requests that happen after the specified datetime.
+The following example configures an after route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: after_route
+        uri: https://example.org
+        predicates:
+        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver).
+
+[[before-route-predicate-factory]]
+== The Before Route Predicate Factory
+
+The `Before` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
+This predicate matches requests that happen before the specified `datetime`.
+The following example configures a before route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: before_route
+        uri: https://example.org
+        predicates:
+        - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request made before Jan 20, 2017 17:42 Mountain Time (Denver).
+
+[[between-route-predicate-factory]]
+== The Between Route Predicate Factory
+
+The `Between` route predicate factory takes two parameters, `datetime1` and `datetime2`
+which are java `ZonedDateTime` objects.
+This predicate matches requests that happen after `datetime1` and before `datetime2`.
+The `datetime2` parameter must be after `datetime1`.
+The following example configures a between route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: between_route
+        uri: https://example.org
+        predicates:
+        - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+----
+
+This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver).
+This could be useful for maintenance windows.
+
+[[cookie-route-predicate-factory]]
+== The Cookie Route Predicate Factory
+
+The `Cookie` route predicate factory takes two parameters, the cookie `name` and a `regexp` (which is a Java regular expression).
+This predicate matches cookies that have the given name and whose values match the regular expression.
+The following example configures a cookie route predicate factory:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cookie_route
+        uri: https://example.org
+        predicates:
+        - Cookie=chocolate, ch.p
+----
+
+This route matches requests that have a cookie named `chocolate` whose value matches the `ch.p` regular expression.
+
+[[header-route-predicate-factory]]
+== The Header Route Predicate Factory
+
+The `Header` route predicate factory takes two parameters, the `header` and a `regexp` (which is a Java regular expression).
+This predicate matches with a header that has the given name whose value matches the regular expression.
+The following example configures a header route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: header_route
+        uri: https://example.org
+        predicates:
+        - Header=X-Request-Id, \d+
+----
+
+This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (that is, it has a value of one or more digits).
+
+[[host-route-predicate-factory]]
+== The Host Route Predicate Factory
+
+The `Host` route predicate factory takes one parameter: a list of host name `patterns`.
+The pattern is an Ant-style pattern with `.` as the separator.
+This predicates matches the `Host` header that matches the pattern.
+The following example configures a host route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: host_route
+        uri: https://example.org
+        predicates:
+        - Host=**.somehost.org,**.anotherhost.org
+----
+
+URI template variables (such as `\{sub}.myhost.org`) are supported as well.
+
+This route matches if the request has a `Host` header with a value of `www.somehost.org` or `beta.somehost.org` or `www.anotherhost.org`.
+
+This predicate extracts the URI template variables (such as `sub`, defined in the preceding example) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
+Those values are then available for use by <<gateway-route-filters,`GatewayFilter` factories>>
+
+
+[[method-route-predicate-factory]]
+== The Method Route Predicate Factory
+
+The `Method` Route Predicate Factory takes a `methods` argument which is one or more parameters: the HTTP methods to match.
+The following example configures a method route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: method_route
+        uri: https://example.org
+        predicates:
+        - Method=GET,POST
+----
+
+This route matches if the request method was a `GET` or a `POST`.
+
+[[path-route-predicate-factory]]
+== The Path Route Predicate Factory
+
+The `Path` Route Predicate Factory takes two parameters: a list of Spring `PathMatcher` `patterns` and an optional flag called `matchTrailingSlash` (defaults to `true`).
+The following example configures a path route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: path_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment},/blue/{segment}
+----
+
+This route matches if the request path was, for example: `/red/1` or `/red/1/` or `/red/blue` or `/blue/green`.
+
+If `matchTrailingSlash` is set to `false`, then request path `/red/1/` will not be matched.
+
+This predicate extracts the URI template variables (such as `segment`, defined in the preceding example) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
+Those values are then available for use by <<gateway-route-filters,`GatewayFilter` factories>>
+
+A utility method (called `get`) is available to make access to these variables easier.
+The following example shows how to use the `get` method:
+
+[source,java]
+----
+Map<String, String> uriVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange);
+
+String segment = uriVariables.get("segment");
+----
+
+[[query-route-predicate-factory]]
+== The Query Route Predicate Factory
+
+The `Query` route predicate factory takes two parameters: a required `param` and an optional `regexp` (which is a Java regular expression).
+The following example configures a query route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: query_route
+        uri: https://example.org
+        predicates:
+        - Query=green
+----
+
+The preceding route matches if the request contained a `green` query parameter.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: query_route
+        uri: https://example.org
+        predicates:
+        - Query=red, gree.
+----
+
+The preceding route matches if the request contained a `red` query parameter whose value matched the `gree.` regexp, so `green` and `greet` would match.
+
+
+[[remoteaddr-route-predicate-factory]]
+== The RemoteAddr Route Predicate Factory
+
+The `RemoteAddr` route predicate factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, such as `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
+The following example configures a RemoteAddr route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: remoteaddr_route
+        uri: https://example.org
+        predicates:
+        - RemoteAddr=192.168.1.1/24
+----
+
+This route matches if the remote address of the request was, for example, `192.168.1.10`.
+
+[[modifying-the-way-remote-addresses-are-resolved]]
+=== Modifying the Way Remote Addresses Are Resolved
+
+By default, the RemoteAddr route predicate factory uses the remote address from the incoming request.
+This may not match the actual client IP address if Spring Cloud Gateway sits behind a proxy layer.
+
+You can customize the way that the remote address is resolved by setting a custom `RemoteAddressResolver`.
+Spring Cloud Gateway comes with one non-default remote address resolver that is based off of the https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For[X-Forwarded-For header], `XForwardedRemoteAddressResolver`.
+
+`XForwardedRemoteAddressResolver` has two static constructor methods, which take different approaches to security:
+
+* `XForwardedRemoteAddressResolver::trustAll` returns a `RemoteAddressResolver` that always takes the first IP address found in the `X-Forwarded-For` header.
+This approach is vulnerable to spoofing, as a malicious client could set an initial value for the `X-Forwarded-For`, which would be accepted by the resolver.
+
+* `XForwardedRemoteAddressResolver::maxTrustedIndex` takes an index that correlates to the number of trusted infrastructure running in front of Spring Cloud Gateway.
+If Spring Cloud Gateway is, for example only accessible through HAProxy, then a value of 1 should be used.
+If two hops of trusted infrastructure are required before Spring Cloud Gateway is accessible, then a value of 2 should be used.
+
+Consider the following header value:
+
+[source]
+----
+X-Forwarded-For: 0.0.0.1, 0.0.0.2, 0.0.0.3
+----
+
+The following `maxTrustedIndex` values yield the following remote addresses:
+
+[options="header"]
+|===
+|`maxTrustedIndex`           | result
+|[`Integer.MIN_VALUE`,0]     | (invalid, `IllegalArgumentException` during initialization)
+|1                           | 0.0.0.3
+|2                           | 0.0.0.2
+|3                           | 0.0.0.1
+|[4, `Integer.MAX_VALUE`]    | 0.0.0.1
+|===
+
+[[gateway-route-filters]]
+The following example shows how to achieve the same configuration with Java:
+
+.GatewayConfig.java
+[source,java]
+----
+RemoteAddressResolver resolver = XForwardedRemoteAddressResolver
+    .maxTrustedIndex(1);
+
+...
+
+.route("direct-route",
+    r -> r.remoteAddr("10.1.1.1", "10.10.1.1/24")
+        .uri("https://downstream1")
+.route("proxied-route",
+    r -> r.remoteAddr(resolver, "10.10.1.1", "10.10.1.1/24")
+        .uri("https://downstream2")
+)
+----
+
+[[weight-route-predicate-factory]]
+== The Weight Route Predicate Factory
+
+The `Weight` route predicate factory takes two arguments: `group` and `weight` (an int). The weights are calculated per group.
+The following example configures a weight route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: weight_high
+        uri: https://weighthigh.org
+        predicates:
+        - Weight=group1, 8
+      - id: weight_low
+        uri: https://weightlow.org
+        predicates:
+        - Weight=group1, 2
+----
+
+This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org
+
+[[xforwarded-remote-addr-route-predicate-factory]]
+== The XForwarded Remote Addr Route Predicate Factory
+
+The `XForwarded Remote Addr` route predicate factory takes a list (min size 1) of `sources`, which are CIDR-notation (IPv4 or IPv6) strings, such as `192.168.0.1/16` (where `192.168.0.1` is an IP address and `16` is a subnet mask).
+
+This route predicate allows requests to be filtered based on the `X-Forwarded-For` HTTP header.
+
+This can be used with reverse proxies such as load balancers or web application firewalls where
+the request should only be allowed if it comes from a trusted list of IP addresses used by those
+reverse proxies.
+
+
+The following example configures a XForwardedRemoteAddr route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: xforwarded_remoteaddr_route
+        uri: https://example.org
+        predicates:
+        - XForwardedRemoteAddr=192.168.1.1/24
+----
+
+This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.
+

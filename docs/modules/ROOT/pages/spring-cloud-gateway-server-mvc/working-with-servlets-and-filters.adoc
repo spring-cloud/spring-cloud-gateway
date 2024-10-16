@@ -1,0 +1,30 @@
+[[working-with-servlets-and-filters]]
+= Working with Servlets and Servlet Filters
+
+Spring Cloud Gateway Server MVC is built for Servlet-stack web applications built on the Servlet API and deployed to Servlet containers. If your applications uses Servlets or Servlet Filters you may need to take care in their ordering.
+
+Because of the way Servlet Containers handle request parameters, when a Spring WebMVC application receives a content type of `application/x-www-form-urlencoded`, Servlet containers combine those with query parameters into "request" parameters. A special `FormFilter` bean is included in Spring Cloud Gateway Server MVC to rebuild the form body for downstream applications. Any Servlet Filter that reads request parameters before the filter chain is run will need to be ordered *before* `FormFilter`. See the example below.
+
+.MyFilter.java
+[source,java]
+----
+import jakarta.servlet.Filter;
+import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
+import org.springframework.core.Ordered;
+
+class MyFilter implements Filter, Ordered {
+
+    @Override
+    public int getOrder() {
+        return FormFilter.FORM_FILTER_ORDER - 1;
+    }
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+            throws IOException, ServletException {
+        // ...
+        filterChain.doFilter(request, response);
+        // ...
+    }
+}
+----

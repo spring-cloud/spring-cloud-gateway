@@ -43,9 +43,10 @@ public interface RouteLocator {
 			return true;
 		}
 		else {
-			return toCheck != null
-					&& expectedMetadata.entrySet().stream().allMatch(keyValue -> toCheck.containsKey(keyValue.getKey())
-							&& toCheck.get(keyValue.getKey()).equals(keyValue.getValue()));
+			return toCheck != null && expectedMetadata.entrySet()
+				.stream()
+				.allMatch(keyValue -> toCheck.containsKey(keyValue.getKey())
+						&& toCheck.get(keyValue.getKey()).equals(keyValue.getValue()));
 		}
 	}
 

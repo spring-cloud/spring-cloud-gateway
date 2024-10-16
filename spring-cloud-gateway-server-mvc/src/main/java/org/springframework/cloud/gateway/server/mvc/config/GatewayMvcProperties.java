@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import jakarta.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.http.MediaType;
 
 @ConfigurationProperties(GatewayMvcProperties.PREFIX)
 public class GatewayMvcProperties {
@@ -43,13 +45,25 @@ public class GatewayMvcProperties {
 	private List<RouteProperties> routes = new ArrayList<>();
 
 	/**
-	 * List of Routes.
+	 * Map of Routes.
 	 */
 	@NotNull
 	@Valid
 	private LinkedHashMap<String, RouteProperties> routesMap = new LinkedHashMap<>();
 
 	private HttpClient httpClient = new HttpClient();
+
+	/**
+	 * Mime-types that are streaming.
+	 */
+	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
+			new MediaType("application", "stream+json"), new MediaType("application", "grpc"),
+			new MediaType("application", "grpc+protobuf"), new MediaType("application", "grpc+json"));
+
+	/**
+	 * Buffer size for streaming media mime-types.
+	 */
+	private int streamingBufferSize = 16384;
 
 	public List<RouteProperties> getRoutes() {
 		return routes;
@@ -71,20 +85,44 @@ public class GatewayMvcProperties {
 		return httpClient;
 	}
 
+	public List<MediaType> getStreamingMediaTypes() {
+		return streamingMediaTypes;
+	}
+
+	public void setStreamingMediaTypes(List<MediaType> streamingMediaTypes) {
+		this.streamingMediaTypes = streamingMediaTypes;
+	}
+
+	public int getStreamingBufferSize() {
+		return streamingBufferSize;
+	}
+
+	public void setStreamingBufferSize(int streamingBufferSize) {
+		this.streamingBufferSize = streamingBufferSize;
+	}
+
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("httpClient", httpClient).append("routes", routes)
-				.append("routesMap", routesMap).toString();
+		return new ToStringCreator(this).append("httpClient", httpClient)
+			.append("routes", routes)
+			.append("routesMap", routesMap)
+			.append("streamingMediaTypes", streamingMediaTypes)
+			.append("streamingBufferSize", streamingBufferSize)
+			.toString();
 	}
 
 	public static class HttpClient {
 
+		/** The HttpClient connect timeout. */
 		private Duration connectTimeout;
 
+		/** The HttpClient read timeout. */
 		private Duration readTimeout;
 
+		/** The name of the SSL bundle to use. */
 		private String sslBundle;
 
+		/** The HttpClient type. Defaults to JDK. */
 		private HttpClientType type = HttpClientType.JDK;
 
 		public Duration getConnectTimeout() {
@@ -121,8 +159,11 @@ public class GatewayMvcProperties {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this).append("connectTimeout", connectTimeout).append("readTimeout", readTimeout)
-					.append("sslBundle", sslBundle).append("type", type).toString();
+			return new ToStringCreator(this).append("connectTimeout", connectTimeout)
+				.append("readTimeout", readTimeout)
+				.append("sslBundle", sslBundle)
+				.append("type", type)
+				.toString();
 		}
 
 	}

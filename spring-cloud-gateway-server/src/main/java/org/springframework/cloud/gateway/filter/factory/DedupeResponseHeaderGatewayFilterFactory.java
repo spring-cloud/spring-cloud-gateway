@@ -73,7 +73,10 @@ Modified response header Access-Control-Allow-Credentials: true
 public class DedupeResponseHeaderGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<DedupeResponseHeaderGatewayFilterFactory.Config> {
 
-	private static final String STRATEGY_KEY = "strategy";
+	/**
+	 * The name of the strategy key.
+	 */
+	public static final String STRATEGY_KEY = "strategy";
 
 	public DedupeResponseHeaderGatewayFilterFactory() {
 		super(Config.class);
@@ -90,13 +93,14 @@ public class DedupeResponseHeaderGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
+					.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getStrategy()).toString();
+					.append(config.getName(), config.getStrategy())
+					.toString();
 			}
 		};
 	}

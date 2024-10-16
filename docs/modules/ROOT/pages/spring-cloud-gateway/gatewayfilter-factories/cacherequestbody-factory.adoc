@@ -1,0 +1,42 @@
+[[cacherequestbody-gatewayfilter-factory]]
+= `CacheRequestBody` `GatewayFilter` Factory
+
+Some situations necessitate reading the request body. Since the request can be read only once, we need to cache the request body.
+You can use the `CacheRequestBody` filter to cache the request body before sending it downstream and getting the body from `exchange` attribute.
+
+The following listing shows how to cache the request body `GatewayFilter`:
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("cache_request_body_route", r -> r.path("/downstream/**")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.cacheRequestBody(String.class).uri(uri))
+        .build();
+}
+----
+
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: cache_request_body_route
+        uri: lb://downstream
+        predicates:
+        - Path=/downstream/**
+        filters:
+        - name: CacheRequestBody
+          args:
+            bodyClass: java.lang.String
+----
+`CacheRequestBody` extracts the request body and converts it to a body class (such as `java.lang.String`, defined in the preceding example).
+`CacheRequestBody` then places it in the attributes available from `ServerWebExchange.getAttributes()`, with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.
+
+NOTE: This filter works only with HTTP (including HTTPS) requests.
+

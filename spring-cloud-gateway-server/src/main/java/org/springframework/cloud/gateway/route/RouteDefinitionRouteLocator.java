@@ -98,7 +98,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	@Override
 	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
 		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
+			.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
 	}
 
 	@Override

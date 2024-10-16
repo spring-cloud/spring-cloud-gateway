@@ -1,6 +1,8 @@
 org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
   org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.FilterSupplier,\
   org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.FilterSupplier,\
+  org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.FilterSupplier,\
+  org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.FilterSupplier,\
   org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.FilterSupplier
 
 org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\

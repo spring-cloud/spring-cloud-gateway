@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier;
@@ -31,6 +32,10 @@ public class LoadBalancerHandlerSupplier implements HandlerSupplier {
 	@Override
 	public Collection<Method> get() {
 		return Arrays.asList(getClass().getMethods());
+	}
+
+	public static HandlerDiscoverer.Result lb(RouteProperties routeProperties) {
+		return lb(routeProperties.getUri());
 	}
 
 	public static HandlerDiscoverer.Result lb(URI uri) {

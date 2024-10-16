@@ -94,7 +94,7 @@ public class RequestRateLimiterGatewayFilterFactory
 		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter, defaultRateLimiter);
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
-				.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
+			.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
 
 		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY).flatMap(key -> {
 			if (EMPTY_KEY.equals(key)) {

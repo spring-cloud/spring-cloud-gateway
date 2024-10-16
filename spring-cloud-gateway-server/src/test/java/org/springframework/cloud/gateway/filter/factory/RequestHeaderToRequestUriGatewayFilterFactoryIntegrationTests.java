@@ -48,24 +48,34 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 
 	@Test
 	public void changeUriWorkWithProperties() {
-		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+		testClient.get()
+			.uri("/")
+			.header("Host", "www.changeuri.org")
+			.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
+			.exchange()
+			.expectBody(JsonNode.class)
+			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@Test
 	public void changeUriWorkWithDsl() {
-		testClient.get().uri("/").header("Host", "www.changeuri.org")
-				.header("X-Next-Url", "http://localhost:" + port + "/actuator/health").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+		testClient.get()
+			.uri("/")
+			.header("Host", "www.changeuri.org")
+			.header("X-Next-Url", "http://localhost:" + port + "/actuator/health")
+			.exchange()
+			.expectBody(JsonNode.class)
+			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@Test
 	public void changeUriWorkWithCustomLogic() {
 		testClient.get()
-				.uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build())
-				.header("Host", "www.changeuri.org").exchange().expectBody(JsonNode.class)
-				.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+			.uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build())
+			.header("Host", "www.changeuri.org")
+			.exchange()
+			.expectBody(JsonNode.class)
+			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@EnableAutoConfiguration
@@ -76,13 +86,18 @@ public class RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests exten
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route(r -> r.host("**.changeuri.org").and().header("X-Next-Url")
-							.filters(f -> f.requestHeaderToRequestUri("X-Next-Url")).uri("https://example.com"))
-					.route(r -> r.host("**.changeuri.org").and().query("url")
-							.filters(f -> f.changeRequestUri(
-									e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url")))))
-							.uri("https://example.com"))
-					.build();
+				.route(r -> r.host("**.changeuri.org")
+					.and()
+					.header("X-Next-Url")
+					.filters(f -> f.requestHeaderToRequestUri("X-Next-Url"))
+					.uri("https://example.com"))
+				.route(r -> r.host("**.changeuri.org")
+					.and()
+					.query("url")
+					.filters(f -> f.changeRequestUri(
+							e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url")))))
+					.uri("https://example.com"))
+				.build();
 		}
 
 	}

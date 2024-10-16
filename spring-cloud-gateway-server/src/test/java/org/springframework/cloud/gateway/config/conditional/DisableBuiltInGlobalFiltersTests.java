@@ -68,7 +68,7 @@ public class DisableBuiltInGlobalFiltersTests {
 		public void shouldInjectOnlyEnabledBuiltInFilters() {
 			assertThat(globalFilters).hasSizeGreaterThan(0);
 			assertThat(globalFilters).allSatisfy(filter -> assertThat(filter)
-					.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
+				.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
 		}
 
 	}

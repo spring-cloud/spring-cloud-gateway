@@ -1,0 +1,16 @@
+[[gateway-how-it-works]]
+= How It Works
+:page-section-summary-toc: 1
+
+The following diagram provides a high-level overview of how Spring Cloud Gateway works:
+
+image::spring_cloud_gateway_diagram.png[Spring Cloud Gateway Diagram]
+
+Clients make requests to Spring Cloud Gateway. If the Gateway Handler Mapping determines that a request matches a route, it is sent to the Gateway Web Handler.
+This handler runs the request through a filter chain that is specific to the request.
+The reason the filters are divided by the dotted line is that filters can run logic both before and after the proxy request is sent.
+All "`pre`" filter logic is executed. Then the proxy request is made. After the proxy request is made, the "`post`" filter logic is run.
+
+NOTE: URIs defined in routes without a port get default port values of 80 and 443 for the HTTP and HTTPS URIs, respectively.
+
+WARNING: Any path defined on a route URI will be ignored.

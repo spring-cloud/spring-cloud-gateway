@@ -73,7 +73,7 @@ class OnEnabledComponentTests {
 	private AnnotatedTypeMetadata mockMetaData(Class<?> value) {
 		AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
 		when(metadata.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName())))
-				.thenReturn(Collections.singletonMap("value", value));
+			.thenReturn(Collections.singletonMap("value", value));
 		return metadata;
 	}
 

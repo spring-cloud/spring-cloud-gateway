@@ -65,8 +65,10 @@ public class RewriteResponseHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewriteResponseHeaderGatewayFilterFactory.this)
-						.append("name", config.getName()).append("regexp", config.getRegexp())
-						.append("replacement", config.getReplacement()).toString();
+					.append("name", config.getName())
+					.append("regexp", config.getRegexp())
+					.append("replacement", config.getReplacement())
+					.toString();
 			}
 		};
 	}

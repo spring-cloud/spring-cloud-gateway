@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory.Config;
+import org.springframework.core.ParameterizedTypeReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,6 +31,18 @@ public class ModifyRequestBodyGatewayFilterFactoryUnitTests {
 		Config config = new Config();
 		config.setInClass(String.class);
 		config.setOutClass(Integer.class);
+		config.setContentType("mycontenttype");
+		GatewayFilter filter = new ModifyRequestBodyGatewayFilterFactory().apply(config);
+		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
+	}
+
+	@Test
+	public void toStringFormatWithParameterizedTypeReferences() {
+		Config config = new Config();
+		config.setInClass(new ParameterizedTypeReference<String>() {
+		});
+		config.setOutClass(new ParameterizedTypeReference<Integer>() {
+		});
 		config.setContentType("mycontenttype");
 		GatewayFilter filter = new ModifyRequestBodyGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
