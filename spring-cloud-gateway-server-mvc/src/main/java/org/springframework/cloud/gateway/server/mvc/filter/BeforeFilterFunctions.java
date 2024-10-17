@@ -191,7 +191,7 @@ public abstract class BeforeFilterFunctions {
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
-			String newPath = uri.getRawPath() + request.uri().getRawPath();
+			String newPath = uri.getPath() + request.uri().getPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
@@ -217,7 +217,7 @@ public abstract class BeforeFilterFunctions {
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
 				.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
-				.build()
+				.build(true)
 				.toUri();
 
 			// remove resolved params from request
@@ -324,7 +324,7 @@ public abstract class BeforeFilterFunctions {
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
 			// TODO: original request url
-			String path = request.uri().getRawPath();
+			String path = request.uri().getPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
 			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
@@ -350,7 +350,7 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
-			String newPath = uri.getRawPath();
+			String newPath = uri.getPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
@@ -385,7 +385,7 @@ public abstract class BeforeFilterFunctions {
 	public static Function<ServerRequest, ServerRequest> stripPrefix(int parts) {
 		return request -> {
 			// TODO: gateway url attributes
-			String path = request.uri().getRawPath();
+			String path = request.uri().getPath();
 			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
 			String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
 
