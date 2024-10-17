@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -89,6 +90,10 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
+		if (config.getRouteId() != null && getPublisher() != null) {
+			// send an event to enable caching
+			getPublisher().publishEvent(new EnableBodyCachingEvent(this, config.getRouteId()));
+		}
 		ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
 		Set<HttpStatus> statuses = config.getStatusCodes()
 			.stream()
