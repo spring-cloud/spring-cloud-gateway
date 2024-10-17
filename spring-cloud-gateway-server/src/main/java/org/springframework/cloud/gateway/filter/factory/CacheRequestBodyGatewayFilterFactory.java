@@ -24,13 +24,9 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -70,36 +66,11 @@ public class CacheRequestBodyGatewayFilterFactory
 					return chain.filter(exchange);
 				}
 
-				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
-				if (cachedBody != null) {
-					return chain.filter(exchange);
-				}
-
-				return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> {
-					final ServerRequest serverRequest = ServerRequest
-						.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
-					return serverRequest.bodyToMono((config.getBodyClass())).doOnNext(objectValue -> {
-						Object previousCachedBody = exchange.getAttributes()
-							.put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
-						if (previousCachedBody != null) {
-							// store previous cached body
-							exchange.getAttributes().put(CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR, previousCachedBody);
-						}
-					}).then(Mono.defer(() -> {
-						ServerHttpRequest cachedRequest = exchange
-							.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-						Assert.notNull(cachedRequest, "cache request shouldn't be null");
+				return ServerWebExchangeUtils.cacheRequestBodyObject(exchange, config.getBodyClass(), messageReaders,
+					(serverHttpRequest, cachedBody) -> {
 						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-						return chain.filter(exchange.mutate().request(cachedRequest).build()).doFinally(s -> {
-							//
-							Object backupCachedBody = exchange.getAttributes()
-								.get(CACHED_ORIGINAL_REQUEST_BODY_BACKUP_ATTR);
-							if (backupCachedBody instanceof DataBuffer dataBuffer) {
-								DataBufferUtils.release(dataBuffer);
-							}
-						});
-					}));
-				});
+						return chain.filter(exchange.mutate().request(serverHttpRequest).build());
+					});
 			}
 
 			@Override

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,19 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void cacheRequestBodyWithCircuitBreaker() {
+		testClient.post().uri("/post").header("Host", "www.cacherequestbodywithcircuitbreaker.org")
+			.bodyValue(BODY_VALUE).exchange().expectStatus().isOk().expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
+
+				String responseBody = (String) response.get("data");
+				assertThat(responseBody).isEqualTo(BODY_VALUE);
+			});
+	}
+
+	@Test
 	public void toStringFormat() {
 		CacheRequestBodyGatewayFilterFactory.Config config = new CacheRequestBodyGatewayFilterFactory.Config();
 		config.setBodyClass(String.class);
@@ -163,6 +177,18 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 								.cacheRequestBody(String.class)
 								.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
 							.uri(uri))
+				.route("cache_request_body_with_circuitbreaker_test",
+						r -> r.path("/post")
+							 .and()
+							 .host("**.cacherequestbodywithcircuitbreaker.org")
+							 .filters(f -> f.setHostHeader("www.cacherequestbody.org")
+							 	.prefixPath("/httpbin")
+							 	.cacheRequestBody(String.class)
+							 	.filter(new AssertCachedRequestBodyGatewayFilter(BODY_VALUE))
+							 	.filter(new CheckCachedRequestBodyReleasedGatewayFilter())
+							 	.circuitBreaker(config -> config.setStatusCodes(Collections.singleton("200"))
+							 		.setFallbackUri("/post")))
+							 .uri(uri))
 				.build();
 		}
 
@@ -181,7 +207,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			String body = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
+			String body = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 			if (exceptNullBody) {
 				assertThat(body).isNull();
 			}
@@ -203,7 +229,7 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-			exchange.getAttributes().put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, bodyToSetCache);
+			exchange.getAttributes().put(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR, bodyToSetCache);
 			return chain.filter(exchange);
 		}
 
