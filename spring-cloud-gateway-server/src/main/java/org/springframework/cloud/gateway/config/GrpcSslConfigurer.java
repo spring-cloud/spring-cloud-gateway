@@ -25,13 +25,17 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+
 /**
  * @author Alberto C. Ríos
+ * @author Dominic Niemann
  */
 public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder, ManagedChannel> {
 
-	public GrpcSslConfigurer(HttpClientProperties.Ssl sslProperties) {
-		super(sslProperties);
+	public GrpcSslConfigurer(HttpClientProperties.Ssl sslProperties, SslBundles bundles) {
+		super(sslProperties, bundles);
 	}
 
 	@Override
@@ -45,6 +49,7 @@ public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder
 
 		final HttpClientProperties.Ssl ssl = getSslProperties();
 		boolean useInsecureTrustManager = ssl.isUseInsecureTrustManager();
+		SslBundle bundle = getBundle();
 		if (useInsecureTrustManager) {
 			sslContextBuilder.trustManager(InsecureTrustManagerFactory.INSTANCE.getTrustManagers()[0]);
 		}
@@ -52,8 +57,17 @@ public class GrpcSslConfigurer extends AbstractSslConfigurer<NettyChannelBuilder
 		if (!useInsecureTrustManager && ssl.getTrustedX509Certificates().size() > 0) {
 			sslContextBuilder.trustManager(getTrustedX509CertificatesForTrustManager());
 		}
+		else if (bundle != null) {
+			sslContextBuilder.trustManager(bundle.getManagers().getTrustManagerFactory());
+		}
 
-		return sslContextBuilder.keyManager(getKeyManagerFactory()).build();
+		if (bundle != null) {
+			sslContextBuilder.keyManager(bundle.getManagers().getKeyManagerFactory());
+		}
+		else {
+			sslContextBuilder.keyManager(getKeyManagerFactory());
+		}
+		return sslContextBuilder.build();
 	}
 
 }
