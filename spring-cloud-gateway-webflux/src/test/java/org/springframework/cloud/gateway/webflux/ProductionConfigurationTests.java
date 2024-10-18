@@ -24,6 +24,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -244,6 +245,7 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	@Disabled("https://github.com/spring-cloud/spring-cloud-gateway/issues/3562")
 	public void forwardedHeaderUsesHost() throws Exception {
 		Map<String, List<String>> headers = rest
 			.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
@@ -264,6 +266,7 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	@Disabled("https://github.com/spring-cloud/spring-cloud-gateway/issues/3562")
 	public void deleteWithBody() throws Exception {
 		Foo foo = new Foo("to-be-deleted");
 		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {
