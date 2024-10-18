@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1533,12 +1534,12 @@ public class ServerMvcIntegrationTests {
 			return route("testmodifyrequestbodystring")
 					.POST("/post", host("**.modifyrequestbodystring.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase() + s.toUpperCase()))
+					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase(Locale.ROOT) + s.toUpperCase(Locale.ROOT)))
 					.build().and(
 				route("testmodifyrequestbodyobject")
 					.POST("/post", host("**.modifyrequestbodyobject.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
+					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase(Locale.ROOT))))
 					.build());
 			// @formatter:on
 		}
