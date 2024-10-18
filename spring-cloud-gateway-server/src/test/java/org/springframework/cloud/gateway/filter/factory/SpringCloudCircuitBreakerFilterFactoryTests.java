@@ -21,6 +21,7 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -240,6 +241,13 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 			.isOk()
 			.expectHeader()
 			.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_resume_without_error");
+	}
+
+	@Test
+	public void filterPostFallback() {
+		testClient.post().uri("/post").body(BodyInserters.fromValue("hello"))
+				.header("Host", "www.circuitbreakerfallbackpost.org").exchange().expectStatus()
+				.isOk().expectBody().json("{\"body\":\"hello\"}");
 	}
 
 }
