@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -30,12 +31,32 @@ import org.springframework.web.servlet.function.ServerResponse;
 public class HttpbinUriResolver
 		implements Function<ServerRequest, ServerRequest>, HandlerFilterFunction<ServerResponse, ServerResponse> {
 
+	private final boolean preservePath;
+
+	public HttpbinUriResolver(boolean preservePath) {
+		this.preservePath = preservePath;
+	}
+
+	public HttpbinUriResolver() {
+		this(false);
+	}
+
 	protected URI uri(ServerRequest request) {
 		ApplicationContext context = MvcUtils.getApplicationContext(request);
 		Integer port = context.getEnvironment().getProperty("httpbin.port", Integer.class);
 		String host = context.getEnvironment().getProperty("httpbin.host");
 		Assert.hasText(host, "httpbin.host is not set, did you initialize HttpbinTestcontainers?");
 		Assert.notNull(port, "httpbin.port is not set, did you initialize HttpbinTestcontainers?");
+		if (preservePath) {
+			URI original = request.uri();
+			try {
+				return new URI("http", original.getUserInfo(), host, port, original.getPath(),
+						original.getQuery(), original.getFragment());
+			} catch (URISyntaxException e) {
+				throw new IllegalArgumentException(e.getMessage(), e);
+			}
+		}
+
 		return URI.create(String.format("http://%s:%d", host, port));
 	}
 
