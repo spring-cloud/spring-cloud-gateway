@@ -36,6 +36,8 @@ import io.netty.handler.ssl.SslContextBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -43,6 +45,7 @@ import org.springframework.util.ResourceUtils;
  * configuration (can be the same as T).
  *
  * @author Abel Salgado Romero
+ * @author Dominic Niemann
  */
 public abstract class AbstractSslConfigurer<T, S> {
 
@@ -50,14 +53,27 @@ public abstract class AbstractSslConfigurer<T, S> {
 
 	private final HttpClientProperties.Ssl ssl;
 
-	protected AbstractSslConfigurer(HttpClientProperties.Ssl sslProperties) {
+	private final SslBundles bundles;
+
+	protected AbstractSslConfigurer(HttpClientProperties.Ssl sslProperties, SslBundles bundles) {
 		this.ssl = sslProperties;
+		this.bundles = bundles;
 	}
 
 	abstract public S configureSsl(T client) throws SSLException;
 
 	protected HttpClientProperties.Ssl getSslProperties() {
 		return ssl;
+	}
+
+	protected SslBundle getBundle() {
+		if(ssl.getSslBundle() == null || ssl.getSslBundle().length() > 0) {
+			return null;
+		}
+		if(bundles.getBundleNames().contains(ssl.getSslBundle())) {
+			return bundles.getBundle(ssl.getSslBundle());
+		}
+		return null;
 	}
 
 	protected X509Certificate[] getTrustedX509CertificatesForTrustManager() {
