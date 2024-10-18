@@ -48,9 +48,9 @@ import static org.springframework.cloud.gateway.handler.predicate.RoutePredicate
 				"spring.cloud.gateway.discovery.locator.lower-case-service-id=true"
 		/*
 		 * "spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
-		 * "spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
+		 * "spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase(Locale.ROOT)+'/**'",
 		 * "spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
-		 * "spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'"
+		 * "spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase(Locale.ROOT) + '/(?<remaining>.*)'"
 		 * ,
 		 * "spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
 		 */

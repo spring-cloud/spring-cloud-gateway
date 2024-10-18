@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -268,7 +269,7 @@ public final class ServerWebExchangeUtils {
 		}
 		catch (NumberFormatException e) {
 			// try the enum string
-			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());
+			httpStatus = HttpStatus.valueOf(statusString.toUpperCase(Locale.ROOT));
 		}
 		return httpStatus;
 	}

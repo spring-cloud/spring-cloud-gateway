@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -163,13 +164,13 @@ public class RouterFunctionHolderFactory {
 		String scheme = routeProperties.getUri().getScheme();
 		Map<String, Object> handlerArgs = new HashMap<>();
 		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
-				scheme.toLowerCase(), handlerArgs);
+				scheme.toLowerCase(Locale.ROOT), handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
 			// single RouteProperties param
 			handlerArgs.clear();
 			String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
 			handlerArgs.put(routePropsKey, routeProperties);
-			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), handlerArgs);
+			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(Locale.ROOT), handlerArgs);
 			if (handlerOperationMethod.isEmpty()) {
 				throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 			}

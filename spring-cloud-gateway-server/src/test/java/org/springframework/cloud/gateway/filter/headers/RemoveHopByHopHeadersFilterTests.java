@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.headers;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ public class RemoveHopByHopHeadersFilterTests {
 	public void caseInsensitive() {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
-		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header.toLowerCase(), header + "1"));
+		HEADERS_REMOVED_ON_REQUEST.forEach(header -> builder.header(header.toLowerCase(Locale.ROOT), header + "1"));
 
 		testFilter(MockServerWebExchange.from(builder));
 	}
@@ -60,7 +61,7 @@ public class RemoveHopByHopHeadersFilterTests {
 		MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest.get("http://localhost/get");
 
 		HEADERS_REMOVED_ON_REQUEST
-			.forEach(header -> builder.header(StringUtils.capitalize(header.toLowerCase()), header + "1"));
+			.forEach(header -> builder.header(StringUtils.capitalize(header.toLowerCase(Locale.ROOT)), header + "1"));
 
 		LinkedHashSet<String> customHeaders = new LinkedHashSet<>();
 		HEADERS_REMOVED_ON_REQUEST.forEach(header -> {
@@ -78,7 +79,7 @@ public class RemoveHopByHopHeadersFilterTests {
 
 		String arbitraryConnectionOption = "xyz";
 		assumeThat(HEADERS_REMOVED_ON_REQUEST).doesNotContain(arbitraryConnectionOption);
-		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive", arbitraryConnectionOption.toUpperCase());
+		builder.header(HttpHeaders.CONNECTION, "upgrade", "keep-alive", arbitraryConnectionOption.toUpperCase(Locale.ROOT));
 		builder.header(HttpHeaders.UPGRADE, "WebSocket");
 		builder.header("Keep-Alive", "timeout=5");
 		builder.header(arbitraryConnectionOption, "");
