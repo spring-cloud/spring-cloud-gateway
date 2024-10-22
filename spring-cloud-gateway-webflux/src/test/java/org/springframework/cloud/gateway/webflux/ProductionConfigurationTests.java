@@ -59,7 +59,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = { "debug=true", "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 @DirtiesContext
 public class ProductionConfigurationTests {
