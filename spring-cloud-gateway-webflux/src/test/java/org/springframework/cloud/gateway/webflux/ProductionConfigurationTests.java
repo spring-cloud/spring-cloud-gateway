@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,6 +45,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -59,7 +59,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = { "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "debug=true", "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 @DirtiesContext
 public class ProductionConfigurationTests {
@@ -76,6 +76,7 @@ public class ProductionConfigurationTests {
 	@BeforeEach
 	public void init() throws Exception {
 		application.setHome(new URI("http://localhost:" + port));
+		rest.getRestTemplate().setRequestFactory(new SimpleClientHttpRequestFactory());
 	}
 
 	@Test
@@ -245,7 +246,6 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
-	@Disabled("https://github.com/spring-cloud/spring-cloud-gateway/issues/3562")
 	public void forwardedHeaderUsesHost() throws Exception {
 		Map<String, List<String>> headers = rest
 			.exchange(RequestEntity.get(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/headers"))
@@ -266,7 +266,6 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
-	@Disabled("https://github.com/spring-cloud/spring-cloud-gateway/issues/3562")
 	public void deleteWithBody() throws Exception {
 		Foo foo = new Foo("to-be-deleted");
 		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {
