@@ -12,3 +12,6 @@ org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\
 org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
   org.springframework.cloud.gateway.server.mvc.predicate.MvcPredicateSupplier,\
   org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.PredicateSupplier
+
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration.GatewayHttpClientEnvironmentPostProcessor

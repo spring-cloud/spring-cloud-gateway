@@ -16,19 +16,19 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration;
-import org.springframework.boot.autoconfigure.http.client.HttpClientProperties;
+import org.springframework.boot.autoconfigure.http.client.HttpClientProperties.Factory;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
-import org.springframework.boot.http.client.JdkClientHttpRequestFactoryBuilder;
-import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings.Redirects;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
@@ -55,8 +55,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportRuntimeHints;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
@@ -85,8 +88,12 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	public RestClientCustomizer gatewayRestClientCustomizer(ClientHttpRequestFactory requestFactory) {
-		return restClientBuilder -> restClientBuilder.requestFactory(requestFactory);
+	public RestClientCustomizer gatewayRestClientCustomizer(
+			ObjectProvider<ClientHttpRequestFactory> requestFactoryProvider) {
+		return restClientBuilder -> {
+			// for backwards compatibility if user overrode
+			requestFactoryProvider.ifAvailable(restClientBuilder::requestFactory);
+		};
 	}
 
 	@Bean
@@ -109,36 +116,6 @@ public class GatewayServerMvcAutoConfiguration {
 			matchIfMissing = true)
 	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter() {
 		return new ForwardedRequestHeadersFilter();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(HttpClientProperties properties,
-			SslBundles sslBundles) {
-
-		SslBundle sslBundle = null;
-		if (StringUtils.hasText(properties.getSsl().getBundle())) {
-			sslBundle = sslBundles.getBundle(properties.getSsl().getBundle());
-		}
-		ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.ofSslBundle(sslBundle)
-			.withConnectTimeout(properties.getConnectTimeout())
-			.withReadTimeout(properties.getReadTimeout())
-			.withRedirects(ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW);
-
-		ClientHttpRequestFactoryBuilder<?> builder = ClientHttpRequestFactoryBuilder.detect();
-		if (builder instanceof JdkClientHttpRequestFactoryBuilder) {
-			// TODO: customize restricted headers
-			String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-			if (!StringUtils.hasText(restrictedHeaders)) {
-				System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
-			}
-			else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
-				System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
-			}
-		}
-
-		// Autodetect
-		return builder.build(settings);
 	}
 
 	@Bean
@@ -220,6 +197,48 @@ public class GatewayServerMvcAutoConfiguration {
 	@Bean
 	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
 		return new XForwardedRequestHeadersFilterProperties();
+	}
+
+	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+		static final boolean APACHE = ClassUtils.isPresent("org.apache.hc.client5.http.impl.classic.HttpClients", null);
+		static final boolean JETTY = ClassUtils.isPresent("org.eclipse.jetty.client.HttpClient", null);
+		static final boolean REACTOR_NETTY = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", null);
+		static final boolean JDK = ClassUtils.isPresent("java.net.http.HttpClient", null);
+		static final boolean HIGHER_PRIORITY = APACHE || JETTY || REACTOR_NETTY;
+
+		@Override
+		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+			Redirects redirects = environment.getProperty("spring.http.client.redirects", Redirects.class);
+			if (redirects == null) {
+				// the user hasn't set anything, change the default
+				environment.getPropertySources()
+					.addFirst(new MapPropertySource("gatewayHttpClientProperties",
+							Map.of("spring.http.client.redirects", Redirects.DONT_FOLLOW)));
+			}
+			Factory factory = environment.getProperty("spring.http.client.factory", Factory.class);
+			boolean setJdkHttpClientProperties = false;
+
+			if (factory == null && !HIGHER_PRIORITY) {
+				// autodetect
+				setJdkHttpClientProperties = JDK;
+			}
+			else if (factory == Factory.JDK) {
+				setJdkHttpClientProperties = JDK;
+			}
+
+			if (setJdkHttpClientProperties) {
+				// TODO: customize restricted headers
+				String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
+				if (!StringUtils.hasText(restrictedHeaders)) {
+					System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host");
+				}
+				else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
+					System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
+				}
+			}
+		}
+
 	}
 
 }

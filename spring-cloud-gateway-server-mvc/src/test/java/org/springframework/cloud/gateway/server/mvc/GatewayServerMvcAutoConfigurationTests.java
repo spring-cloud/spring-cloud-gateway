@@ -29,6 +29,9 @@ import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -40,8 +43,6 @@ import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNorma
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -136,21 +137,22 @@ public class GatewayServerMvcAutoConfigurationTests {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
 			.properties("spring.main.web-application-type=none",
 					"spring.cloud.gateway.mvc.http-client.connect-timeout=1s",
-					"spring.cloud.gateway.mvc.http-client.connect-timeout=1s",
 					"spring.cloud.gateway.mvc.http-client.read-timeout=2s",
 					"spring.cloud.gateway.mvc.http-client.ssl-bundle=mybundle",
 					"spring.cloud.gateway.mvc.http-client.type=autodetect",
 					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
 					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
 			.run();
-		JdkClientHttpRequestFactory requestFactory = context.getBean(JdkClientHttpRequestFactory.class);
+		ClientHttpRequestFactorySettings settings = context.getBean(ClientHttpRequestFactorySettings.class);
 		HttpClientProperties properties = context.getBean(HttpClientProperties.class);
 		assertThat(properties.getConnectTimeout()).hasSeconds(1);
 		assertThat(properties.getReadTimeout()).hasSeconds(2);
 		assertThat(properties.getSsl().getBundle()).isEqualTo("mybundle");
 		assertThat(properties.getFactory()).isNull();
-		Object readTimeout = ReflectionTestUtils.getField(requestFactory, "readTimeout");
-		assertThat(readTimeout).isEqualTo(Duration.ofSeconds(2));
+		assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
+		assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
+		assertThat(settings.sslBundle()).isNotNull();
+		assertThat(settings.redirects()).isEqualTo(ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW);
 	}
 
 	@Test
@@ -164,17 +166,28 @@ public class GatewayServerMvcAutoConfigurationTests {
 					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
 					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
 			.run(context -> {
-				assertThat(context).hasSingleBean(JdkClientHttpRequestFactory.class)
+				assertThat(context).hasSingleBean(ClientHttpRequestFactorySettings.class)
 					.hasSingleBean(HttpClientProperties.class);
 				HttpClientProperties httpClient = context.getBean(HttpClientProperties.class);
 				assertThat(httpClient.getConnectTimeout()).hasSeconds(1);
 				assertThat(httpClient.getReadTimeout()).hasSeconds(2);
 				assertThat(httpClient.getSsl().getBundle()).isEqualTo("mybundle");
 				assertThat(httpClient.getFactory()).isNull();
-				JdkClientHttpRequestFactory requestFactory = context.getBean(JdkClientHttpRequestFactory.class);
-				Object readTimeout = ReflectionTestUtils.getField(requestFactory, "readTimeout");
-				assertThat(readTimeout).isEqualTo(Duration.ofSeconds(2));
+				ClientHttpRequestFactorySettings settings = context.getBean(ClientHttpRequestFactorySettings.class);
+				assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
+				assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
+				assertThat(settings.sslBundle()).isNotNull();
+				// cant test redirects because EnvironmentPostProcessor is not run
 			});
+	}
+
+	@Test
+	void settingHttpClientFactoryWorks() {
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
+			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
+			.run();
+		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
+		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
 	}
 
 	@SpringBootConfiguration
