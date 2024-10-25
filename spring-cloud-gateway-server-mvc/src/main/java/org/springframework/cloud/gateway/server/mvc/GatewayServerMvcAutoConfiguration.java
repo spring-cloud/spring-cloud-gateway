@@ -22,10 +22,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
+import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
-import org.springframework.boot.web.client.ClientHttpRequestFactories;
-import org.springframework.boot.web.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
@@ -54,7 +54,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.env.Environment;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
@@ -118,8 +117,10 @@ public class GatewayServerMvcAutoConfiguration {
 		if (StringUtils.hasText(properties.getSslBundle())) {
 			sslBundle = sslBundles.getBundle(properties.getSslBundle());
 		}
-		ClientHttpRequestFactorySettings settings = new ClientHttpRequestFactorySettings(properties.getConnectTimeout(),
-				properties.getReadTimeout(), sslBundle);
+		ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.ofSslBundle(sslBundle)
+			.withConnectTimeout(properties.getConnectTimeout())
+			.withReadTimeout(properties.getReadTimeout())
+			.withRedirects(ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW);
 
 		if (properties.getType() == GatewayMvcProperties.HttpClientType.JDK) {
 			// TODO: customize restricted headers
@@ -131,11 +132,11 @@ public class GatewayServerMvcAutoConfiguration {
 				System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
 			}
 
-			return ClientHttpRequestFactories.get(JdkClientHttpRequestFactory.class, settings);
+			return ClientHttpRequestFactoryBuilder.jdk().build(settings);
 		}
 
 		// Autodetect
-		return ClientHttpRequestFactories.get(settings);
+		return ClientHttpRequestFactoryBuilder.detect().build(settings);
 	}
 
 	@Bean
