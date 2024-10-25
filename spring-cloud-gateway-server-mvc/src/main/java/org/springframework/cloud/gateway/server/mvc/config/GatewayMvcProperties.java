@@ -26,6 +26,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.MediaType;
 
@@ -111,6 +112,10 @@ public class GatewayMvcProperties {
 			.toString();
 	}
 
+	/**
+	 * @deprecated in favor of spring.http.client.
+	 */
+	@Deprecated
 	public static class HttpClient {
 
 		/** The HttpClient connect timeout. */
@@ -125,6 +130,8 @@ public class GatewayMvcProperties {
 		/** The HttpClient type. Defaults to JDK. */
 		private HttpClientType type = HttpClientType.JDK;
 
+		@Deprecated
+		@DeprecatedConfigurationProperty(replacement = "spring.http.client.connect-timeout", since = "4.2.0")
 		public Duration getConnectTimeout() {
 			return connectTimeout;
 		}
@@ -133,6 +140,8 @@ public class GatewayMvcProperties {
 			this.connectTimeout = connectTimeout;
 		}
 
+		@Deprecated
+		@DeprecatedConfigurationProperty(replacement = "spring.http.client.read-timeout", since = "4.2.0")
 		public Duration getReadTimeout() {
 			return readTimeout;
 		}
@@ -141,6 +150,8 @@ public class GatewayMvcProperties {
 			this.readTimeout = readTimeout;
 		}
 
+		@Deprecated
+		@DeprecatedConfigurationProperty(replacement = "spring.http.client.ssl.bundle", since = "4.2.0")
 		public String getSslBundle() {
 			return sslBundle;
 		}
@@ -149,6 +160,7 @@ public class GatewayMvcProperties {
 			this.sslBundle = sslBundle;
 		}
 
+		@Deprecated
 		public HttpClientType getType() {
 			return type;
 		}

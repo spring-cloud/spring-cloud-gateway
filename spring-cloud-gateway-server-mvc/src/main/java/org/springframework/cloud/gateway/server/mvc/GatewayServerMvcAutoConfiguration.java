@@ -20,10 +20,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.http.client.HttpClientProperties;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.http.client.JdkClientHttpRequestFactoryBuilder;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.web.client.RestClientCustomizer;
@@ -63,7 +66,8 @@ import org.springframework.web.client.RestClient;
  * @author Spencer Gibb
  * @author Jürgen Wißkirchen
  */
-@AutoConfiguration(after = { RestTemplateAutoConfiguration.class, RestClientAutoConfiguration.class })
+@AutoConfiguration(after = { HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+		RestClientAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 @ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
@@ -109,20 +113,20 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(GatewayMvcProperties gatewayMvcProperties,
+	public ClientHttpRequestFactory gatewayClientHttpRequestFactory(HttpClientProperties properties,
 			SslBundles sslBundles) {
-		GatewayMvcProperties.HttpClient properties = gatewayMvcProperties.getHttpClient();
 
 		SslBundle sslBundle = null;
-		if (StringUtils.hasText(properties.getSslBundle())) {
-			sslBundle = sslBundles.getBundle(properties.getSslBundle());
+		if (StringUtils.hasText(properties.getSsl().getBundle())) {
+			sslBundle = sslBundles.getBundle(properties.getSsl().getBundle());
 		}
 		ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.ofSslBundle(sslBundle)
 			.withConnectTimeout(properties.getConnectTimeout())
 			.withReadTimeout(properties.getReadTimeout())
 			.withRedirects(ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW);
 
-		if (properties.getType() == GatewayMvcProperties.HttpClientType.JDK) {
+		ClientHttpRequestFactoryBuilder<?> builder = ClientHttpRequestFactoryBuilder.detect();
+		if (builder instanceof JdkClientHttpRequestFactoryBuilder) {
 			// TODO: customize restricted headers
 			String restrictedHeaders = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
 			if (!StringUtils.hasText(restrictedHeaders)) {
@@ -131,12 +135,10 @@ public class GatewayServerMvcAutoConfiguration {
 			else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
 				System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
 			}
-
-			return ClientHttpRequestFactoryBuilder.jdk().build(settings);
 		}
 
 		// Autodetect
-		return ClientHttpRequestFactoryBuilder.detect().build(settings);
+		return builder.build(settings);
 	}
 
 	@Bean

@@ -25,6 +25,7 @@ import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfigur
 import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -46,7 +47,7 @@ public class TestAutoConfiguration {
 	}
 
 	@Bean
-	public DefaultTestRestClient testRestClient(TestRestTemplate testRestTemplate, Environment env) {
+	public DefaultTestRestClient testRestClient(@Lazy TestRestTemplate testRestTemplate, Environment env) {
 		return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {
 		});
 	}
