@@ -275,12 +275,12 @@ public class ServerMvcIntegrationTests {
 	public void setStatusGatewayRouterFunctionWorks() {
 		restClient.get()
 			.uri("/status/201")
+			.header("Host", "www.setstatus.org")
 			.exchange()
 			.expectStatus()
 			.isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
 			.expectHeader()
-			.valueEquals("x-status", "201"); // .expectBody(String.class).isEqualTo("Failed
-												// with 201");
+			.valueEquals("x-status", "201");
 	}
 
 	@Test
@@ -981,6 +981,11 @@ public class ServerMvcIntegrationTests {
 			});
 	}
 
+	@Test
+	public void notFoundWorks() {
+		restClient.get().uri("/status/404").header("Host", "www.notfound.org").exchange().expectStatus().isNotFound();
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -1032,7 +1037,7 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatusAndAddRespHeader() {
 			// @formatter:off
 			return route("testsetstatus")
-					.GET("/status/{status}", http())
+					.GET("/status/{status}", host("**.setstatus.org"), http())
 					.before(new HttpbinUriResolver())
 					.after(setStatus(HttpStatus.TOO_MANY_REQUESTS))
 					.after(addResponseHeader("X-Status", "{status}"))
@@ -1596,6 +1601,16 @@ public class ServerMvcIntegrationTests {
 						}
 						return response;
 					})
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctions404() {
+			// @formatter:off
+			return route("testnotfound")
+					.GET("/status/404", host("**.notfound.org"), http())
+					.before(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}

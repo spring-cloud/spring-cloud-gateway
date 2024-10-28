@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -69,9 +70,15 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 	}
 
 	private ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
-		InputStream body = clientResponse.getBody();
-		// put the body input stream in a request attribute so filters can read it.
-		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
+		try {
+			InputStream body = clientResponse.getBody();
+			// put the body input stream in a request attribute so filters can read it.
+			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
+		}
+		catch (FileNotFoundException e) {
+			// if using SimpleClientHttpRequestFactory
+			return ServerResponse.notFound().build();
+		}
 		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
 			.build((req, httpServletResponse) -> {
 				try (clientResponse) {
