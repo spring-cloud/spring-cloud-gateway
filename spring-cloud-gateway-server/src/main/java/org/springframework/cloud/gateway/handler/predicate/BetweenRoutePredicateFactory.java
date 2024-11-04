@@ -24,7 +24,6 @@ import java.util.function.Predicate;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.util.Assert;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -75,7 +74,6 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		@NotNull

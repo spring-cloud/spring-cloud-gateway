@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -104,6 +109,31 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 			.expectHeader()
 			.valueEquals(ROUTE_ID_HEADER, "header_test_comma_separated");
+	}
+
+	@Test
+	public void testConfig() {
+		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setHeader("myheader");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 	@EnableAutoConfiguration

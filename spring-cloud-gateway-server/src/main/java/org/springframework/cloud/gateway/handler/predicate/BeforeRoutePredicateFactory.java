@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -65,6 +66,7 @@ public class BeforeRoutePredicateFactory extends AbstractRoutePredicateFactory<B
 
 	public static class Config {
 
+		@NotNull
 		private ZonedDateTime datetime;
 
 		public ZonedDateTime getDatetime() {

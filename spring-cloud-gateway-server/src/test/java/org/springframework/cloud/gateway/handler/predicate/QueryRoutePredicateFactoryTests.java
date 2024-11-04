@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -85,6 +90,31 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setRegexp("myregexp");
 		Predicate predicate = new QueryRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
+	}
+
+	@Test
+	public void testConfig() {
+		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setParam("myparam");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 	@EnableAutoConfiguration
