@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.InetSocketAddress;
@@ -44,6 +45,7 @@ import jakarta.servlet.http.Part;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -142,6 +144,65 @@ public abstract class BodyFilterFunctions {
 		}).orElse(request);
 	}
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <T, R> BiFunction<ServerRequest, ServerResponse, ServerResponse> modifyResponseBody(Class<T> inClass, Class<R> outClass,
+					String newContentType, RewriteResponseFunction<T, R> rewriteFunction) {
+		return (request, response) -> {
+			Object o = request.attributes().get(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+			if (o instanceof InputStream inputStream) {
+				try {
+					List<HttpMessageConverter<?>> converters = request.messageConverters();
+					Optional<HttpMessageConverter<?>> inConverter = converters.stream().filter(c -> c.canRead(inClass, response.headers().getContentType())).findFirst();
+					if (inConverter.isEmpty()) {
+						//TODO: throw exception?
+						return response;
+					}
+					HttpMessageConverter<?> inputConverter = inConverter.get();
+					T input = (T) inputConverter.read((Class)inClass, new SimpleInputMessage(inputStream, response.headers()));
+					R output = rewriteFunction.apply(request, response, input);
+
+					Optional<HttpMessageConverter<?>> outConverter = converters.stream().filter(c -> c.canWrite(outClass, null)).findFirst();
+					if (outConverter.isEmpty()) {
+						//TODO: throw exception?
+						return response;
+					}
+					HttpMessageConverter<R> byteConverter = (HttpMessageConverter<R>) outConverter.get();
+					ByteArrayHttpOutputMessage outputMessage = new ByteArrayHttpOutputMessage(response.headers());
+					byteConverter.write(output, null, outputMessage);
+					request.attributes().put(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, new ByteArrayInputStream(outputMessage.body.toByteArray()));
+					if (StringUtils.hasText(newContentType)) {
+						response.headers().setContentType(MediaType.parseMediaType(newContentType));
+					}
+					response.headers().remove(HttpHeaders.CONTENT_LENGTH);
+				}
+				catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			}
+			return response;
+		};
+	}
+
+	private final static class SimpleInputMessage implements HttpInputMessage {
+		private final InputStream inputStream;
+		private final HttpHeaders headers;
+
+		private SimpleInputMessage(InputStream inputStream, HttpHeaders headers) {
+			this.inputStream = inputStream;
+			this.headers = headers;
+		}
+
+		@Override
+		public InputStream getBody() throws IOException {
+			return this.inputStream;
+		}
+
+		@Override
+		public HttpHeaders getHeaders() {
+			return this.headers;
+		}
+	}
+
 	private final static class ByteArrayHttpOutputMessage implements HttpOutputMessage {
 
 		private final HttpHeaders headers;
@@ -171,6 +232,10 @@ public abstract class BodyFilterFunctions {
 
 	public interface RewriteFunction<T, R> extends BiFunction<ServerRequest, T, R> {
 
+	}
+
+	public interface RewriteResponseFunction<T, R> {
+		R apply(ServerRequest request, ServerResponse response, T t);
 	}
 
 	private static class ByteArrayServletInputStream extends ServletInputStream {
