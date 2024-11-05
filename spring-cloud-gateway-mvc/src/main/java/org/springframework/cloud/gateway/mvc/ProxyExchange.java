@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
@@ -234,7 +235,7 @@ public class ProxyExchange<T> {
 
 		this.excluded.clear();
 		for (String name : names) {
-			this.excluded.add(name.toLowerCase());
+			this.excluded.add(name.toLowerCase(Locale.ROOT));
 		}
 		return this;
 	}
@@ -384,7 +385,7 @@ public class ProxyExchange<T> {
 	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
 		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
 		return headerNames.stream()
-			.filter(header -> !excludedHeaders.contains(header.toLowerCase()))
+			.filter(header -> !excludedHeaders.contains(header.toLowerCase(Locale.ROOT)))
 			.collect(Collectors.toSet());
 	}
 

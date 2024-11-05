@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.List;
+import java.util.Locale;
 
 import reactor.core.publisher.Mono;
 
@@ -136,7 +137,7 @@ public class SecureHeadersGatewayFilterFactory
 	}
 
 	private boolean isEnabled(List<String> disabledHeaders, String header) {
-		return !disabledHeaders.contains(header.toLowerCase());
+		return !disabledHeaders.contains(header.toLowerCase(Locale.ROOT));
 	}
 
 	public static class Config {

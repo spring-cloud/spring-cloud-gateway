@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -221,7 +222,7 @@ public class ProxyExchange<T> {
 
 		this.excluded.clear();
 		for (String name : names) {
-			this.excluded.add(name.toLowerCase());
+			this.excluded.add(name.toLowerCase(Locale.ROOT));
 		}
 		return this;
 	}
@@ -407,7 +408,7 @@ public class ProxyExchange<T> {
 		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
 		return headers.keySet()
 			.stream()
-			.filter(header -> !excludedHeaders.contains(header.toLowerCase()))
+			.filter(header -> !excludedHeaders.contains(header.toLowerCase(Locale.ROOT)))
 			.collect(Collectors.toSet());
 	}
 

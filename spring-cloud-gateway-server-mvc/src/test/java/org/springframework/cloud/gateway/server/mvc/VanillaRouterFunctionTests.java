@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,7 @@ public class VanillaRouterFunctionTests {
 			// @formatter:off
 			return RouterFunctions.route()
 					.POST("/anything/routerfunctionsroute", host("**.routerfunctionsroute.org"), http())
-					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase()))
+					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase(Locale.ROOT)))
 					.before(new HttpbinUriResolver())
 					.build();
 			// @formatter:on

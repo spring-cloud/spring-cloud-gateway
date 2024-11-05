@@ -84,6 +84,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-properties-migrator</artifactId>
+			<scope>test</scope>
+		</dependency>
         <!-- Third party test dependencies -->
         <dependency>
             <groupId>com.bucket4j</groupId>

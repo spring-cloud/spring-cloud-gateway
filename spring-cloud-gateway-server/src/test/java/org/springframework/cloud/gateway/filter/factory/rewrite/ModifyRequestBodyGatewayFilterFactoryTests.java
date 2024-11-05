@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Locale;
+
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -134,7 +136,7 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 										if (body == null) {
 											return Mono.just("modifyrequest");
 										}
-										return Mono.just(body.toUpperCase());
+										return Mono.just(body.toUpperCase(Locale.ROOT));
 									}))
 							.uri(uri))
 				.route("test_modify_request_body_to_large",
@@ -152,7 +154,7 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 							.filters(f -> f.modifyRequestBody(new ParameterizedTypeReference<String>() {
 							}, new ParameterizedTypeReference<String>() {
 							}, (swe, body) -> {
-								return Mono.just(body.replaceAll(" ", "_").toUpperCase());
+								return Mono.just(body.replaceAll(" ", "_").toUpperCase(Locale.ROOT));
 							}))
 							.uri(uri))
 				.build();
