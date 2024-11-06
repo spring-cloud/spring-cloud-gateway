@@ -25,6 +25,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.util.CollectionUtils;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
 
@@ -58,6 +59,13 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 			}
 			else if (ssl.isUseInsecureTrustManager()) {
 				setTrustManager(sslContextBuilder, InsecureTrustManagerFactory.INSTANCE);
+			}
+
+			if (!CollectionUtils.isEmpty(ssl.getProtocols())) {
+				sslContextBuilder.protocols(ssl.getProtocols());
+			}
+			if (!CollectionUtils.isEmpty(ssl.getCiphers())) {
+				sslContextBuilder.ciphers(ssl.getCiphers());
 			}
 
 			try {
