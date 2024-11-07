@@ -52,38 +52,40 @@ public class BodyFilterFunctionsTests {
 	@Test
 	public void modifyResponseBodySimple() {
 		restClient.get()
-				.uri("/anything/modifyresponsebodysimple")
-				.header("X-Foo", "fooval")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Foo", "FOOVAL");
-				});
+			.uri("/anything/modifyresponsebodysimple")
+			.header("X-Foo", "fooval")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Foo", "FOOVAL");
+			});
 	}
 
 	@Test
 	public void modifyResponseBodyComplex() {
 		restClient.get()
-				.uri("/deny")
-				.header("X-Foo", "fooval")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				// deny returns text/plain
-				.expectHeader().contentType(MediaType.APPLICATION_JSON)
-				.expectBody(Message.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody().message()).isNotEmpty();
-				});
+			.uri("/deny")
+			.header("X-Foo", "fooval")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			// deny returns text/plain
+			.expectHeader()
+			.contentType(MediaType.APPLICATION_JSON)
+			.expectBody(Message.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody().message()).isNotEmpty();
+			});
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	protected static class TestConfiguration {
+
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBodySimple() {
 			// @formatter:off
@@ -107,9 +109,11 @@ public class BodyFilterFunctionsTests {
 					.build();
 			// @formatter:on
 		}
+
 	}
 
 	record Message(String message) {
 
 	}
+
 }

@@ -144,32 +144,39 @@ public abstract class BodyFilterFunctions {
 		}).orElse(request);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	public static <T, R> BiFunction<ServerRequest, ServerResponse, ServerResponse> modifyResponseBody(Class<T> inClass, Class<R> outClass,
-					String newContentType, RewriteResponseFunction<T, R> rewriteFunction) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T, R> BiFunction<ServerRequest, ServerResponse, ServerResponse> modifyResponseBody(Class<T> inClass,
+			Class<R> outClass, String newContentType, RewriteResponseFunction<T, R> rewriteFunction) {
 		return (request, response) -> {
 			Object o = request.attributes().get(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 			if (o instanceof InputStream inputStream) {
 				try {
 					List<HttpMessageConverter<?>> converters = request.messageConverters();
-					Optional<HttpMessageConverter<?>> inConverter = converters.stream().filter(c -> c.canRead(inClass, response.headers().getContentType())).findFirst();
+					Optional<HttpMessageConverter<?>> inConverter = converters.stream()
+						.filter(c -> c.canRead(inClass, response.headers().getContentType()))
+						.findFirst();
 					if (inConverter.isEmpty()) {
-						//TODO: throw exception?
+						// TODO: throw exception?
 						return response;
 					}
 					HttpMessageConverter<?> inputConverter = inConverter.get();
-					T input = (T) inputConverter.read((Class)inClass, new SimpleInputMessage(inputStream, response.headers()));
+					T input = (T) inputConverter.read((Class) inClass,
+							new SimpleInputMessage(inputStream, response.headers()));
 					R output = rewriteFunction.apply(request, response, input);
 
-					Optional<HttpMessageConverter<?>> outConverter = converters.stream().filter(c -> c.canWrite(outClass, null)).findFirst();
+					Optional<HttpMessageConverter<?>> outConverter = converters.stream()
+						.filter(c -> c.canWrite(outClass, null))
+						.findFirst();
 					if (outConverter.isEmpty()) {
-						//TODO: throw exception?
+						// TODO: throw exception?
 						return response;
 					}
 					HttpMessageConverter<R> byteConverter = (HttpMessageConverter<R>) outConverter.get();
 					ByteArrayHttpOutputMessage outputMessage = new ByteArrayHttpOutputMessage(response.headers());
 					byteConverter.write(output, null, outputMessage);
-					request.attributes().put(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, new ByteArrayInputStream(outputMessage.body.toByteArray()));
+					request.attributes()
+						.put(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR,
+								new ByteArrayInputStream(outputMessage.body.toByteArray()));
 					if (StringUtils.hasText(newContentType)) {
 						response.headers().setContentType(MediaType.parseMediaType(newContentType));
 					}
@@ -184,7 +191,9 @@ public abstract class BodyFilterFunctions {
 	}
 
 	private final static class SimpleInputMessage implements HttpInputMessage {
+
 		private final InputStream inputStream;
+
 		private final HttpHeaders headers;
 
 		private SimpleInputMessage(InputStream inputStream, HttpHeaders headers) {
@@ -201,6 +210,7 @@ public abstract class BodyFilterFunctions {
 		public HttpHeaders getHeaders() {
 			return this.headers;
 		}
+
 	}
 
 	private final static class ByteArrayHttpOutputMessage implements HttpOutputMessage {
@@ -235,7 +245,9 @@ public abstract class BodyFilterFunctions {
 	}
 
 	public interface RewriteResponseFunction<T, R> {
+
 		R apply(ServerRequest request, ServerResponse response, T t);
+
 	}
 
 	private static class ByteArrayServletInputStream extends ServletInputStream {
