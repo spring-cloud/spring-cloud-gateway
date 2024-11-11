@@ -22,7 +22,9 @@ import java.util.function.Predicate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +36,8 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.web.server.WebFilterChainProxy;
+import org.springframework.security.web.server.firewall.StrictServerWebExchangeFirewall;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -93,7 +97,7 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
-	@Disabled
+	//@Disabled
 	public void pathRouteWorksWithPercent() {
 		testClient.get()
 			.uri("/abc/123%/function")
@@ -148,6 +152,22 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		@Value("${test.uri}")
 		String uri;
+
+		// TODO: move to bean of StrictServerWebExchangeFirewall
+		@Bean
+		public BeanPostProcessor firewallPostProcessor() {
+			return new BeanPostProcessor() {
+				@Override
+				public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+					if (bean instanceof WebFilterChainProxy webFilterChainProxy) {
+						StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
+						firewall.setAllowUrlEncodedPercent(true);
+						webFilterChainProxy.setFirewall(firewall);
+					}
+					return bean;
+				}
+			};
+		}
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
