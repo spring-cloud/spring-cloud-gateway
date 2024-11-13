@@ -69,19 +69,17 @@ public class GatewayProperties {
 	private boolean failOnRouteDefinitionError = true;
 
 	/**
-	 * org.springframework.cloud.gateway.handler.FilteringWebHandler#handle add filter cache
-	 * if true then enable filter cache
+	 * Enables the route filter cache, defaults to false.
 	 */
-	private boolean filterCache = false;
+	private boolean routeFilterCacheEnabled = false;
 
-	public boolean isFilterCache() {
-		return filterCache;
+	public boolean isRouteFilterCacheEnabled() {
+		return routeFilterCacheEnabled;
 	}
 
-	public void setFilterCache(boolean filterCache) {
-		this.filterCache = filterCache;
+	public void setRouteFilterCacheEnabled(boolean routeFilterCacheEnabled) {
+		this.routeFilterCacheEnabled = routeFilterCacheEnabled;
 	}
-
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;
@@ -124,7 +122,8 @@ public class GatewayProperties {
 			.append("defaultFilters", defaultFilters)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
-			.append("filterCache", filterCache).toString();
+			.append("routeFilterCacheEnabled", routeFilterCacheEnabled)
+			.toString();
 
 	}
 
