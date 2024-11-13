@@ -83,6 +83,13 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	public static final String REQUESTED_TOKENS_HEADER = "X-RateLimit-Requested-Tokens";
 
+	/**
+	 * Constant representing the maximum number that can be safely used in Redis scripts.
+	 * This is the largest number that can be represented accurately in Java's `long` type
+	 * and is equal to 2^53 - 1, which is the largest number that Lua can reliably handle.
+	 */
+	private static final Long REDIS_LUA_MAX_SAFE_INTEGER = 9007199254740991L;
+
 	private Log log = LogFactory.getLog(getClass());
 
 	private ReactiveStringRedisTemplate redisTemplate;
@@ -129,7 +136,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
 	 * algorithm.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity) {
+	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
 		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate).setBurstCapacity(defaultBurstCapacity);
 	}
@@ -141,7 +148,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 * algorithm.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, int defaultBurstCapacity, int defaultRequestedTokens) {
+	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity, int defaultRequestedTokens) {
 		this(defaultReplenishRate, defaultBurstCapacity);
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
@@ -240,7 +247,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		int replenishRate = routeConfig.getReplenishRate();
 
 		// How much bursting do you want to allow?
-		int burstCapacity = routeConfig.getBurstCapacity();
+		long burstCapacity = routeConfig.getBurstCapacity();
 
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
@@ -313,7 +320,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		private int replenishRate;
 
 		@Min(0)
-		private int burstCapacity = 1;
+		private long burstCapacity = 1;
 
 		@Min(1)
 		private int requestedTokens = 1;
@@ -327,13 +334,15 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			return this;
 		}
 
-		public int getBurstCapacity() {
+		public long getBurstCapacity() {
 			return burstCapacity;
 		}
 
-		public Config setBurstCapacity(int burstCapacity) {
+		public Config setBurstCapacity(long burstCapacity) {
 			Assert.isTrue(burstCapacity >= this.replenishRate, "BurstCapacity(" + burstCapacity
 					+ ") must be greater than or equal than replenishRate(" + this.replenishRate + ")");
+			Assert.isTrue(burstCapacity <= REDIS_LUA_MAX_SAFE_INTEGER, "BurstCapacity(" + burstCapacity
+					+ ") must not exceed the maximum allowed value of " + REDIS_LUA_MAX_SAFE_INTEGER);
 			this.burstCapacity = burstCapacity;
 			return this;
 		}
