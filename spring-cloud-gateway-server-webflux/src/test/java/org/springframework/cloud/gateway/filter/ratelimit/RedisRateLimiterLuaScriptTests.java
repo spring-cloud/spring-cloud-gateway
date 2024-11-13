@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RedisRateLimiterLuaScriptTests {
 
 	static final String KEY_PREFIX = "redis-rate-limiter-lua-script-tests";
+	static final Long REDIS_LUA_MAX_SAFE_INTEGER = 9007199254740991L;
 
 	@Container
 	public static GenericContainer redis = new GenericContainer<>("redis:5.0.14-alpine").withExposedPorts(6379);
@@ -145,6 +146,22 @@ public class RedisRateLimiterLuaScriptTests {
 		List<Long> result = redisTemplate.execute(redisScript, keys, args).blockFirst();
 		assertThat(result.get(0)).isEqualTo(0);
 		assertThat(result.get(1)).isEqualTo(10);
+	}
+
+	@Test
+	public void testCapacityExceedsMaxInt() {
+		long rate = 1;
+		long capacity = REDIS_LUA_MAX_SAFE_INTEGER;
+		long now = System.currentTimeMillis();
+		long requested = 1;
+
+		List<String> keys = getKeys("capacity_exceeds_max_int");
+		List<String> args = getArgs(rate, capacity, now, requested);
+
+		List<Long> result = redisTemplate.execute(redisScript, keys, args).blockFirst();
+
+		assertThat(result.get(0)).isEqualTo(1);
+		assertThat(result.get(1)).isEqualTo(REDIS_LUA_MAX_SAFE_INTEGER - 1);
 	}
 
 	@EnableAutoConfiguration
