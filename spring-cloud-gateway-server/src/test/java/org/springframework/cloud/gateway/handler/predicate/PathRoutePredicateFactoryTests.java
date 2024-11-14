@@ -96,6 +96,7 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	// @Disabled
 	public void pathRouteWorksWithPercent() {
 		testClient.get()
 			.uri("/abc/123%/function")

@@ -202,7 +202,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
-		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : original.headerSet()) {
 			updated.addAll(entry.getKey(), entry.getValue());
 		}
 

@@ -143,7 +143,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
-				for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+				for (Map.Entry<String, List<String>> entry : headers.headerSet()) {
 					if (!entry.getKey().toLowerCase(Locale.ROOT).startsWith("sec-websocket")) {
 						filtered.addAll(entry.getKey(), entry.getValue());
 					}
