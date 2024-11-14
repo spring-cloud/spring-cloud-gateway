@@ -166,6 +166,7 @@
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `+++X-RateLimit-Requested-Tokens+++` | The name of the header that returns the requested tokens configuration.
 |spring.cloud.gateway.redis-route-definition-repository.enabled | `+++true+++` | If RedisRouteDefinitionRepository should be enabled.
 |spring.cloud.gateway.restrictive-property-accessor.enabled | `+++true+++` | Restricts method and property access in SpEL.
+|spring.cloud.gateway.route-filter-cache-enabled | `+++false+++` | Enables the route filter cache, defaults to false.
 |spring.cloud.gateway.route-refresh-listener.enabled | `+++true+++` | If RouteRefreshListener should be turned on.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
