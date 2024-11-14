@@ -74,7 +74,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 		Set<String> headersToRemove = new HashSet<>(headers);
 		headersToRemove.addAll(connectionOptions);
 
-		for (Map.Entry<String, List<String>> entry : originalHeaders.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : originalHeaders.headerSet()) {
 			if (!headersToRemove.contains(entry.getKey().toLowerCase(Locale.ROOT))) {
 				filtered.addAll(entry.getKey(), entry.getValue());
 			}

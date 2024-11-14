@@ -33,7 +33,7 @@ public class GRPCRequestHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
 		HttpHeaders updated = new HttpHeaders();
 
-		for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : headers.headerSet()) {
 			updated.addAll(entry.getKey(), entry.getValue());
 		}
 
