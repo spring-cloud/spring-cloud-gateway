@@ -60,16 +60,16 @@ public class FilteringWebHandler implements WebHandler, ApplicationListener<Refr
 
 	private final ConcurrentHashMap<Route, List<GatewayFilter>> routeFilterMap = new ConcurrentHashMap();
 
-	private final boolean filterCacheEnabled;
+	private final boolean routeFilterCacheEnabled;
 
 	@Deprecated
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
 		this(globalFilters, false);
 	}
 
-	public FilteringWebHandler(List<GlobalFilter> globalFilters, boolean filterCacheEnabled) {
+	public FilteringWebHandler(List<GlobalFilter> globalFilters, boolean routeFilterCacheEnabled) {
 		this.globalFilters = loadFilters(globalFilters);
-		this.filterCacheEnabled = filterCacheEnabled;
+		this.routeFilterCacheEnabled = routeFilterCacheEnabled;
 	}
 
 	/* for testing */ ConcurrentHashMap<Route, List<GatewayFilter>> getRouteFilterMap() {
@@ -95,7 +95,7 @@ public class FilteringWebHandler implements WebHandler, ApplicationListener<Refr
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
-		if (this.filterCacheEnabled) {
+		if (this.routeFilterCacheEnabled) {
 			routeFilterMap.clear();
 		}
 	}
@@ -113,7 +113,7 @@ public class FilteringWebHandler implements WebHandler, ApplicationListener<Refr
 	}
 
 	protected List<GatewayFilter> getCombinedFilters(Route route) {
-		if (this.filterCacheEnabled) {
+		if (this.routeFilterCacheEnabled) {
 			return routeFilterMap.computeIfAbsent(route, this::getAllFilters);
 		}
 		else {

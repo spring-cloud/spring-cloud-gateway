@@ -42,8 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.route-filter-cache-enabled=true", "management.endpoint.gateway.enabled=true",
-				"management.endpoints.web.exposure.include=*", "spring.cloud.gateway.actuator.verbose.enabled=true" })
+		properties = { "spring.cloud.gateway.route-filter-cache-enabled=true",
+				"management.endpoint.gateway.enabled=true", "management.endpoints.web.exposure.include=*",
+				"spring.cloud.gateway.actuator.verbose.enabled=true" })
 @DirtiesContext
 public class FilteringWebHandlerCacheEnabledIntegrationTests extends BaseWebClientTests {
 
