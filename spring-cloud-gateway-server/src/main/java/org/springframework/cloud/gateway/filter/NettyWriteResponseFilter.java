@@ -66,6 +66,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 		// until the NettyRoutingFilter is run
 		// @formatter:off
 		return chain.filter(exchange)
+				.doOnError(throwable -> cleanup(exchange))
 				.then(Mono.defer(() -> {
 					Connection connection = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
 
@@ -98,8 +99,8 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					return (isStreamingMediaType(contentType)
 							? response.writeAndFlushWith(body.map(Flux::just))
 							: response.writeWith(body));
-				})).doOnCancel(() -> cleanup(exchange))
-				.doOnError(throwable -> cleanup(exchange));
+				}))
+				.doOnCancel(() -> cleanup(exchange));
 		// @formatter:on
 	}
 
