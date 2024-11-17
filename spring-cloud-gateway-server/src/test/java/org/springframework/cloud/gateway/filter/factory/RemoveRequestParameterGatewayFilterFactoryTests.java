@@ -123,4 +123,41 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 		assertThat(actualRequest.getQueryParams()).containsEntry("ccc", singletonList(",xyz"));
 	}
 
+
+	@Test
+	public void removeRequestParameterFilterShouldHandleEncodedParameterName() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("baz[]", "qux")
+			.build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("baz[]");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("baz[]");
+		assertThat(actualRequest.getQueryParams()).containsEntry("foo", singletonList("bar"));
+	}
+
+	@Test
+	public void removeRequestParameterFilterShouldMaintainEncodedParameters() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("baz[]", "qux")
+			.build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("foo");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
+		assertThat(actualRequest.getQueryParams()).containsEntry("baz[]", singletonList("qux"));
+	}
+
 }
