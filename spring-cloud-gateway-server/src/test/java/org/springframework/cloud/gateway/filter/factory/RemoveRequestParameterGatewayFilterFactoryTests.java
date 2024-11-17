@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Thirunavukkarasu Ravichandran
  */
-public class RemoveRequestParameterGatewayFilterFactoryTests {
+class RemoveRequestParameterGatewayFilterFactoryTests {
 
 	private ServerWebExchange exchange;
 
@@ -46,7 +46,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	private ArgumentCaptor<ServerWebExchange> captor;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		filterChain = mock(GatewayFilterChain.class);
 		captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
@@ -54,7 +54,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterWorks() {
+	void removeRequestParameterFilterWorks() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 			.queryParam("foo", singletonList("bar"))
 			.build();
@@ -70,7 +70,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterWorksWhenParamIsNotPresentInRequest() {
+	void removeRequestParameterFilterWorksWhenParamIsNotPresentInRequest() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
@@ -84,7 +84,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterShouldOnlyRemoveSpecifiedParam() {
+	void removeRequestParameterFilterShouldOnlyRemoveSpecifiedParam() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 			.queryParam("foo", "bar")
 			.queryParam("abc", "xyz")
@@ -102,7 +102,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
+	void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 			.queryParam("foo", "bar")
 			.queryParam("aaa", "abc xyz")
@@ -123,9 +123,8 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 		assertThat(actualRequest.getQueryParams()).containsEntry("ccc", singletonList(",xyz"));
 	}
 
-
 	@Test
-	public void removeRequestParameterFilterShouldHandleEncodedParameterName() {
+	void removeRequestParameterFilterShouldHandleEncodedParameterName() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 			.queryParam("foo", "bar")
 			.queryParam("baz[]", "qux")
@@ -143,7 +142,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterShouldMaintainEncodedParameters() {
+	void removeRequestParameterFilterShouldMaintainEncodedParameters() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
 			.queryParam("foo", "bar")
 			.queryParam("baz[]", "qux")
