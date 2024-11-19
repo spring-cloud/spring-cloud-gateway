@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -125,6 +127,16 @@ public class DedupeResponseHeaderGatewayFilterFactoryUnitTests {
 		config.setStrategy(Strategy.RETAIN_LAST);
 		GatewayFilter filter = new DedupeResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains(Strategy.RETAIN_LAST.toString());
+	}
+
+	@Test
+	public void ignoreReadOnlyHeaders() {
+		var headers = new HttpHeaders();
+		headers.addAll(NAME_1, List.of("2", "3", "3", "4"));
+		config.setName(NAME_1);
+		config.setStrategy(Strategy.RETAIN_UNIQUE);
+		var filter = new DedupeResponseHeaderGatewayFilterFactory();
+		Assertions.assertDoesNotThrow(() -> filter.dedupe(HttpHeaders.readOnlyHttpHeaders(headers), config));
 	}
 
 }

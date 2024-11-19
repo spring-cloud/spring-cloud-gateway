@@ -130,6 +130,9 @@ public class DedupeResponseHeaderGatewayFilterFactory
 		if (headers == null || names == null || strategy == null) {
 			return;
 		}
+		if (headers.getClass().getName().equals("org.springframework.http.ReadOnlyHttpHeaders")) {
+			return;
+		}
 		for (String name : names.split(" ")) {
 			dedupe(headers, name.trim(), strategy);
 		}
