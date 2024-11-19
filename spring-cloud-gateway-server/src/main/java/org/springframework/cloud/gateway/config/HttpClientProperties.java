@@ -208,6 +208,11 @@ public class HttpClientProperties {
 		 */
 		private boolean metrics = false;
 
+		/**
+		 * Configures the leasing strategy for the pool, defaults to FIFO which is Netty's default.
+		 */
+		private LeasingStrategy leasingStrategy = LeasingStrategy.FIFO;
+
 		public PoolType getType() {
 			return type;
 		}
@@ -272,11 +277,20 @@ public class HttpClientProperties {
 			this.metrics = metrics;
 		}
 
+		public LeasingStrategy getLeasingStrategy() {
+			return leasingStrategy;
+		}
+
+		public void setLeasingStrategy(LeasingStrategy leasingStrategy) {
+			this.leasingStrategy = leasingStrategy;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
 					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
-					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics + '}';
+					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics
+					+ ", leasingStrategy=" + leasingStrategy + '}';
 		}
 
 		public enum PoolType {
@@ -295,6 +309,20 @@ public class HttpClientProperties {
 			 * Disabled pool type.
 			 */
 			DISABLED
+
+		}
+
+		public enum LeasingStrategy {
+
+			/**
+			 * FIFO leasing strategy.
+			 */
+			FIFO,
+
+			/**
+			 * LIFO leasing strategy.
+			 */
+			LIFO
 
 		}
 

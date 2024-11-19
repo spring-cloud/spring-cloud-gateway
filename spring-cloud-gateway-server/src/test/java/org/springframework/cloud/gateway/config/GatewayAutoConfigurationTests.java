@@ -52,6 +52,7 @@ import org.springframework.boot.test.context.runner.ReactiveWebApplicationContex
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
+import org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
@@ -119,6 +120,7 @@ public class GatewayAutoConfigurationTests {
 					"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 					"spring.cloud.gateway.httpclient.pool.type=fixed",
 					"spring.cloud.gateway.httpclient.pool.metrics=true",
+					"spring.cloud.gateway.httpclient.pool.leasing-strategy=lifo",
 					"spring.cloud.gateway.httpclient.compression=true", "spring.cloud.gateway.httpclient.wiretap=true",
 					// greater than integer max value
 					"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
@@ -133,6 +135,7 @@ public class GatewayAutoConfigurationTests {
 				assertThat(properties.isCompression()).isEqualTo(true);
 				assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
 				assertThat(properties.getPool().isMetrics()).isEqualTo(true);
+				assertThat(properties.getPool().getLeasingStrategy()).isEqualTo(LeasingStrategy.LIFO);
 
 				assertThat(httpClient.configuration().isAcceptGzip()).isTrue();
 				assertThat(httpClient.configuration().loggingHandler()).isNotNull();
