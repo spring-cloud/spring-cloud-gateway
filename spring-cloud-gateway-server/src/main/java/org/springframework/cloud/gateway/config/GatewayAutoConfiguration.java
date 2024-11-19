@@ -757,8 +757,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		public HttpClientSslConfigurer httpClientSslConfigurer(ServerProperties serverProperties,
-				HttpClientProperties httpClientProperties,
-				SslBundles bundles) {
+				HttpClientProperties httpClientProperties, SslBundles bundles) {
 			return new HttpClientSslConfigurer(httpClientProperties.getSsl(), serverProperties, bundles) {
 			};
 		}

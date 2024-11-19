@@ -32,7 +32,8 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 
 	private final ServerProperties serverProperties;
 
-	public HttpClientSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties, SslBundles bundles) {
+	public HttpClientSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties,
+			SslBundles bundles) {
 		super(sslProperties, bundles);
 		this.serverProperties = serverProperties;
 	}
@@ -67,7 +68,7 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 			}
 
 			try {
-				if(bundle != null) {
+				if (bundle != null) {
 					sslContextBuilder.keyManager(bundle.getManagers().getKeyManagerFactory());
 				}
 				else {

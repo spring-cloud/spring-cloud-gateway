@@ -351,8 +351,7 @@ public class GatewayAutoConfigurationTests {
 		@Bean
 		@Primary
 		CustomSslConfigurer customSslContextFactory(ServerProperties serverProperties,
-				HttpClientProperties httpClientProperties,
-				SslBundles bundles) {
+				HttpClientProperties httpClientProperties, SslBundles bundles) {
 			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties, bundles);
 		}
 
@@ -365,6 +364,7 @@ public class GatewayAutoConfigurationTests {
 			});
 			return registry;
 		}
+
 	}
 
 	protected static class CustomHttpClientFactory extends HttpClientFactory {
@@ -408,7 +408,8 @@ public class GatewayAutoConfigurationTests {
 
 			boolean insecureTrustManagerSet;
 
-			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties, SslBundles bundles) {
+			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties,
+					SslBundles bundles) {
 				super(sslProperties, serverProperties, bundles);
 			}
 
