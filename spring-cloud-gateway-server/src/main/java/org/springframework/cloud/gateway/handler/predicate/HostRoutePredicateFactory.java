@@ -27,7 +27,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -115,7 +114,6 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		private List<String> patterns = new ArrayList<>();
