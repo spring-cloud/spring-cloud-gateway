@@ -94,7 +94,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void testConfig() {
-		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
 			Validator validator = factory.getValidator();
 
 			Config config = new Config();
@@ -106,7 +106,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void testConfigNullField() {
-		try(ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
 			Validator validator = factory.getValidator();
 
 			Config config = new Config();
