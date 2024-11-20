@@ -209,7 +209,8 @@ public class HttpClientProperties {
 		private boolean metrics = false;
 
 		/**
-		 * Configures the leasing strategy for the pool, defaults to FIFO which is Netty's default.
+		 * Configures the leasing strategy for the pool, defaults to FIFO which is Netty's
+		 * default.
 		 */
 		private LeasingStrategy leasingStrategy = LeasingStrategy.FIFO;
 
