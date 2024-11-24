@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.support;
 
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,7 +80,7 @@ public final class NameUtils {
 				matcher.appendReplacement(stringBuffer, matcher.group(1));
 			}
 		}
-		return stringBuffer.toString().toLowerCase();
+		return stringBuffer.toString().toLowerCase(Locale.ROOT);
 	}
 
 	private static String removeGarbage(String s) {

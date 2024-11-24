@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.common;
 
+import java.util.Locale;
+
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -36,7 +38,7 @@ public class HttpStatusHolder {
 	public static HttpStatusHolder valueOf(String status) {
 		HttpStatusCode httpStatus;
 		try {
-			httpStatus = HttpStatus.valueOf(status.toUpperCase());
+			httpStatus = HttpStatus.valueOf(status.toUpperCase(Locale.ROOT));
 		}
 		catch (IllegalArgumentException e) {
 			httpStatus = null;

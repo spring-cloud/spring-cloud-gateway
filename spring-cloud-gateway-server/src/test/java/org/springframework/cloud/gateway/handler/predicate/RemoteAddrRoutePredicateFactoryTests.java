@@ -17,8 +17,13 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -87,6 +92,31 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setSources("1.2.3.4", "5.6.7.8");
 		Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setSources("1.2.3.4", "5.6.7.8");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 	@EnableAutoConfiguration

@@ -19,11 +19,17 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.convert.ApplicationConversionService;
+import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -152,19 +158,45 @@ public class BetweenRoutePredicateFactoryTests {
 
 		BetweenRoutePredicateFactory factory = new BetweenRoutePredicateFactory();
 
-		BetweenRoutePredicateFactory.Config config = bindConfig(map, factory);
+		Config config = bindConfig(map, factory);
 
 		return factory.apply(config).test(getExchange());
 	}
 
 	@Test
 	public void toStringFormat() {
-		BetweenRoutePredicateFactory.Config config = new BetweenRoutePredicateFactory.Config();
+		Config config = new Config();
 		config.setDatetime1(ZonedDateTime.now());
 		config.setDatetime2(ZonedDateTime.now().plusHours(1));
 		Predicate predicate = new BetweenRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString())
 			.contains("Between: " + config.getDatetime1() + " and " + config.getDatetime2());
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setDatetime1(ZonedDateTime.now());
+			config.setDatetime2(ZonedDateTime.now());
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(2);
+		}
 	}
 
 }

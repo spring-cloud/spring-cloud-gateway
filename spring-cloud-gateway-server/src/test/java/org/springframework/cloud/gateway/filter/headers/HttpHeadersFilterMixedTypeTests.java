@@ -59,7 +59,7 @@ public class HttpHeadersFilterMixedTypeTests {
 			@Override
 			public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
 				HttpHeaders result = new HttpHeaders();
-				headers.entrySet().forEach(entry -> {
+				headers.headerSet().forEach(entry -> {
 					if (!headerNamesSet.contains(entry.getKey())) {
 						result.put(entry.getKey(), entry.getValue());
 					}

@@ -20,6 +20,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -101,7 +102,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		HttpHeaders headers = new HttpHeaders();
 		while (headerNames.hasMoreElements()) {
 			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
+			if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
 				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
 			}
 		}
