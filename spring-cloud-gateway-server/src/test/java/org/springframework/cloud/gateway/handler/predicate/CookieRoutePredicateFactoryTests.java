@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory.Config;
@@ -62,6 +67,32 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setRegexp("myregexp");
 		Predicate predicate = new CookieRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("Cookie: name=mycookie regexp=myregexp");
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setName("mycookie");
+			config.setRegexp("myregexp");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(2);
+		}
 	}
 
 }

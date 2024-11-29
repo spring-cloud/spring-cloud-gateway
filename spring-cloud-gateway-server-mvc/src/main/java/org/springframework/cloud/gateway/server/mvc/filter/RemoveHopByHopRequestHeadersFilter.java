@@ -55,7 +55,7 @@ public class RemoveHopByHopRequestHeadersFilter implements RequestHttpHeadersFil
 	static HttpHeaders filter(HttpHeaders input, Set<String> headersToRemove) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		for (Map.Entry<String, List<String>> entry : input.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : input.headerSet()) {
 			if (!headersToRemove.contains(entry.getKey().toLowerCase(Locale.ROOT))) {
 				filtered.addAll(entry.getKey(), entry.getValue());
 			}

@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.springframework.http.HttpMethod;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.Arrays.stream;
@@ -67,7 +66,6 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		private HttpMethod[] methods;

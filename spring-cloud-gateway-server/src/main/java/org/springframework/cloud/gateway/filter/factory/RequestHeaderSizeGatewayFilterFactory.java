@@ -69,7 +69,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 				HttpHeaders headers = request.getHeaders();
 				HashMap<String, Long> longHeaders = new HashMap<>();
 
-				for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
+				for (Map.Entry<String, List<String>> headerEntry : headers.headerSet()) {
 					long headerSizeInBytes = 0L;
 					headerSizeInBytes += headerEntry.getKey().getBytes().length;
 					List<String> values = headerEntry.getValue();

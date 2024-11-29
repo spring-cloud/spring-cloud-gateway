@@ -36,6 +36,7 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 import reactor.netty.transport.ProxyProvider;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
@@ -45,13 +46,17 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.reactive.ReactiveOAuth2ClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.ssl.DefaultSslBundleRegistry;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
+import org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
@@ -114,11 +119,13 @@ public class GatewayAutoConfigurationTests {
 					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
 					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
 			.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
+					"spring.cloud.gateway.httpclient.ssl.ssl-bundle=mybundle",
 					"spring.cloud.gateway.httpclient.connect-timeout=10",
 					"spring.cloud.gateway.httpclient.response-timeout=10s",
 					"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
 					"spring.cloud.gateway.httpclient.pool.type=fixed",
 					"spring.cloud.gateway.httpclient.pool.metrics=true",
+					"spring.cloud.gateway.httpclient.pool.leasing-strategy=lifo",
 					"spring.cloud.gateway.httpclient.compression=true", "spring.cloud.gateway.httpclient.wiretap=true",
 					// greater than integer max value
 					"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
@@ -133,6 +140,8 @@ public class GatewayAutoConfigurationTests {
 				assertThat(properties.isCompression()).isEqualTo(true);
 				assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
 				assertThat(properties.getPool().isMetrics()).isEqualTo(true);
+				assertThat(properties.getPool().getLeasingStrategy()).isEqualTo(LeasingStrategy.LIFO);
+				assertThat(properties.getSsl().getSslBundle()).isEqualTo("mybundle");
 
 				assertThat(httpClient.configuration().isAcceptGzip()).isTrue();
 				assertThat(httpClient.configuration().loggingHandler()).isNotNull();
@@ -342,8 +351,18 @@ public class GatewayAutoConfigurationTests {
 		@Bean
 		@Primary
 		CustomSslConfigurer customSslContextFactory(ServerProperties serverProperties,
-				HttpClientProperties httpClientProperties) {
-			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties);
+				HttpClientProperties httpClientProperties, SslBundles bundles) {
+			return new CustomSslConfigurer(httpClientProperties.getSsl(), serverProperties, bundles);
+		}
+
+		@Bean
+		@Primary
+		SslBundles sslBundleRegistry(ObjectProvider<SslBundleRegistrar> sslBundleRegistrars) {
+			DefaultSslBundleRegistry registry = new DefaultSslBundleRegistry();
+			sslBundleRegistrars.orderedStream().forEach((registrar) -> {
+				registrar.registerBundles(registry);
+			});
+			return registry;
 		}
 
 	}
@@ -389,8 +408,9 @@ public class GatewayAutoConfigurationTests {
 
 			boolean insecureTrustManagerSet;
 
-			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
-				super(sslProperties, serverProperties);
+			protected CustomSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties,
+					SslBundles bundles) {
+				super(sslProperties, serverProperties, bundles);
 			}
 
 			@Override

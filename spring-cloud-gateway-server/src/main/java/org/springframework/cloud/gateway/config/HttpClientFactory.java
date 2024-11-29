@@ -33,6 +33,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy.FIFO;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
 
@@ -189,6 +190,16 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 			}
 			builder.evictInBackground(pool.getEvictionInterval());
 			builder.metrics(pool.isMetrics());
+
+			// Define the pool leasing strategy
+			if (pool.getLeasingStrategy() == FIFO) {
+				builder.fifo();
+			}
+			else {
+				// LIFO
+				builder.lifo();
+			}
+
 			connectionProvider = builder.build();
 		}
 		return connectionProvider;

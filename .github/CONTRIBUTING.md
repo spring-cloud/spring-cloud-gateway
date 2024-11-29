@@ -16,7 +16,7 @@ author credit if we do.  Active contributors might be asked to join the core tea
 given the ability to merge pull requests.
 
 ## Code of Conduct
-This project adheres to the Contributor Covenant [Code of conduct](https://github.com/spring-cloud/spring-cloud-build/blob/master/docs/src/main/asciidoc/code-of-conduct.adoc). By participating, you  are expected to uphold this code. Please report
+This project adheres to the Contributor Covenant [Code of conduct](https://github.com/spring-cloud/spring-cloud-build/blob/main/docs/modules/ROOT/partials/code-of-conduct.adoc). By participating, you  are expected to uphold this code. Please report
 unacceptable behavior to spring-code-of-conduct@pivotal.io.
 
 ## Code Conventions and Housekeeping

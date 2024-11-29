@@ -24,7 +24,6 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 
 import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -95,7 +94,6 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		@NotEmpty

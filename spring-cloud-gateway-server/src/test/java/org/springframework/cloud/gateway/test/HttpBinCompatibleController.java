@@ -177,7 +177,7 @@ public class HttpBinCompatibleController {
 	public ResponseEntity<Map<String, Object>> responseHeaders(@PathVariable int status, ServerWebExchange exchange) {
 		HttpHeaders httpHeaders = exchange.getRequest()
 			.getHeaders()
-			.entrySet()
+			.headerSet()
 			.stream()
 			.filter(entry -> entry.getKey().startsWith("X-Test-"))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,

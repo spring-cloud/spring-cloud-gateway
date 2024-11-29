@@ -85,7 +85,7 @@
 //*** xref:spring-cloud-gateway-server-mvc/filters/local-cache-response-filter.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/maprequestheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/modifyrequestbody.adoc[]
-//*** xref:spring-cloud-gateway-server-mvc/filters/modifyresponsebody.adoc[]
+*** xref:spring-cloud-gateway-server-mvc/filters/modifyresponsebody.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/prefixpath.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/preservehostheader.adoc[]
 *** xref:spring-cloud-gateway-server-mvc/filters/redirectto.adoc[]

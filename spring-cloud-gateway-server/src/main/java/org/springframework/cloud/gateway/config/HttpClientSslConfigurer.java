@@ -25,20 +25,23 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
 
 import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
 
 	private final ServerProperties serverProperties;
 
-	public HttpClientSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties) {
-		super(sslProperties);
+	public HttpClientSslConfigurer(HttpClientProperties.Ssl sslProperties, ServerProperties serverProperties,
+			SslBundles bundles) {
+		super(sslProperties, bundles);
 		this.serverProperties = serverProperties;
 	}
 
 	public HttpClient configureSsl(HttpClient client) {
 		final HttpClientProperties.Ssl ssl = getSslProperties();
 
-		if ((ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
+		if (getBundle() != null || (ssl.getKeyStore() != null && ssl.getKeyStore().length() > 0)
 				|| getTrustedX509CertificatesForTrustManager().length > 0 || ssl.isUseInsecureTrustManager()) {
 			client = client.secure(sslContextSpec -> {
 				// configure ssl
@@ -53,15 +56,24 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 				? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
 		clientSslContext.configure(sslContextBuilder -> {
 			X509Certificate[] trustedX509Certificates = getTrustedX509CertificatesForTrustManager();
+			SslBundle bundle = getBundle();
 			if (trustedX509Certificates.length > 0) {
 				setTrustManager(sslContextBuilder, trustedX509Certificates);
 			}
 			else if (ssl.isUseInsecureTrustManager()) {
 				setTrustManager(sslContextBuilder, InsecureTrustManagerFactory.INSTANCE);
 			}
+			else if (bundle != null) {
+				setTrustManager(sslContextBuilder, bundle.getManagers().getTrustManagerFactory());
+			}
 
 			try {
-				sslContextBuilder.keyManager(getKeyManagerFactory());
+				if (bundle != null) {
+					sslContextBuilder.keyManager(bundle.getManagers().getKeyManagerFactory());
+				}
+				else {
+					sslContextBuilder.keyManager(getKeyManagerFactory());
+				}
 			}
 			catch (Exception e) {
 				logger.error(e);

@@ -18,18 +18,21 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.DecoratingProxy;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
@@ -49,14 +52,28 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  * @author Yuxin Wang
  * @since 0.1
  */
-public class FilteringWebHandler implements WebHandler {
+public class FilteringWebHandler implements WebHandler, ApplicationListener<RefreshRoutesEvent> {
 
 	protected static final Log logger = LogFactory.getLog(FilteringWebHandler.class);
 
 	private final List<GatewayFilter> globalFilters;
 
+	private final ConcurrentHashMap<Route, List<GatewayFilter>> routeFilterMap = new ConcurrentHashMap();
+
+	private final boolean routeFilterCacheEnabled;
+
+	@Deprecated
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
+		this(globalFilters, false);
+	}
+
+	public FilteringWebHandler(List<GlobalFilter> globalFilters, boolean routeFilterCacheEnabled) {
 		this.globalFilters = loadFilters(globalFilters);
+		this.routeFilterCacheEnabled = routeFilterCacheEnabled;
+	}
+
+	/* for testing */ ConcurrentHashMap<Route, List<GatewayFilter>> getRouteFilterMap() {
+		return routeFilterMap;
 	}
 
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
@@ -76,26 +93,40 @@ public class FilteringWebHandler implements WebHandler {
 		}).collect(Collectors.toList());
 	}
 
-	/*
-	 * TODO: relocate @EventListener(RefreshRoutesEvent.class) void handleRefresh() {
-	 * this.combinedFiltersForRoute.clear();
-	 */
+	@Override
+	public void onApplicationEvent(RefreshRoutesEvent event) {
+		if (this.routeFilterCacheEnabled) {
+			routeFilterMap.clear();
+		}
+	}
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
-		List<GatewayFilter> gatewayFilters = route.getFilters();
-
-		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
-		combined.addAll(gatewayFilters);
-		// TODO: needed or cached?
-		AnnotationAwareOrderComparator.sort(combined);
+		List<GatewayFilter> combined = getCombinedFilters(route);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: " + combined);
 		}
 
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
+	}
+
+	protected List<GatewayFilter> getCombinedFilters(Route route) {
+		if (this.routeFilterCacheEnabled) {
+			return routeFilterMap.computeIfAbsent(route, this::getAllFilters);
+		}
+		else {
+			return getAllFilters(route);
+		}
+	}
+
+	protected List<GatewayFilter> getAllFilters(Route route) {
+		List<GatewayFilter> gatewayFilters = route.getFilters();
+		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
+		combined.addAll(gatewayFilters);
+		AnnotationAwareOrderComparator.sort(combined);
+		return combined;
 	}
 
 	private static class DefaultGatewayFilterChain implements GatewayFilterChain {

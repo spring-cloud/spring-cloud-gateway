@@ -2,4 +2,4 @@
 
 ## Reporting a Vulnerability
 
-To report security vulnerabilities, please go to https://pivotal.io/security.
+To report security vulnerabilities, please go to https://spring.io/security-policy.
