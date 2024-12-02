@@ -116,7 +116,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 			byteBuf.release();
 			return buffer;
 		}
-		throw new IllegalArgumentException("Unkown DataBufferFactory type " + bufferFactory.getClass());
+		throw new IllegalArgumentException("Unknown DataBufferFactory type " + bufferFactory.getClass());
 	}
 
 	private void cleanup(ServerWebExchange exchange) {
