@@ -79,8 +79,8 @@ public class FilteringWebHandler implements WebHandler, ApplicationListener<Refr
 	private static List<GatewayFilter> loadFilters(List<GlobalFilter> filters) {
 		return filters.stream().map(filter -> {
 			GatewayFilterAdapter gatewayFilter = new GatewayFilterAdapter(filter);
-			if (filter instanceof Ordered) {
-				int order = ((Ordered) filter).getOrder();
+			if (filter instanceof Ordered ordered) {
+				int order = ordered.getOrder();
 				return new OrderedGatewayFilter(gatewayFilter, order);
 			}
 			else {

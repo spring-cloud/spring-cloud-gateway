@@ -74,8 +74,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Type type(MethodParameter parameter) {
 		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
+		if (type instanceof ParameterizedType param) {
 			type = param.getActualTypeArguments()[0];
 		}
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
