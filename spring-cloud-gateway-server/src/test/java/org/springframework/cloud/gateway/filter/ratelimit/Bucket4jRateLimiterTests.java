@@ -31,25 +31,18 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
-import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
- * see
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L36-L62
- *
  * @author Spencer Gibb
- * @author Ronny Bräunlich
- * @author Denis Cutic
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.redis.enabled=false")
 @DirtiesContext
 public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 
@@ -139,13 +132,6 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
-
-		@Bean
-		@Primary
-		public Bucket4jRateLimiter bucket4jRateLimiter(AsyncProxyManager<String> proxyManager,
-				ConfigurationService configurationService) {
-			return new Bucket4jRateLimiter(proxyManager, configurationService);
-		}
 
 		@Bean
 		public AsyncProxyManager<String> caffeineProxyManager() {
