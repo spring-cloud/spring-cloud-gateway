@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
@@ -33,8 +35,14 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.util.Assert;
 
 public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter.Config> {
+
+	/**
+	 * Default Header Name.
+	 */
+	public static final String DEFAULT_HEADER_NAME = "X-RateLimit-Remaining";
 
 	/**
 	 * Redis Rate Limiter property name.
@@ -56,9 +64,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 	public Mono<Response> isAllowed(String routeId, String id) {
 		Config routeConfig = loadRouteConfiguration(routeId);
 
-		BucketConfiguration bucketConfiguration = getBucketConfiguration(routeConfig);
-
-		AsyncBucketProxy bucket = proxyManager.builder().build(id, bucketConfiguration);
+		AsyncBucketProxy bucket = proxyManager.builder().build(id, routeConfig.getConfigurationSupplier());
 		CompletableFuture<ConsumptionProbe> bucketFuture = bucket
 			.tryConsumeAndReturnRemaining(routeConfig.getRequestedTokens());
 		return Mono.fromFuture(bucketFuture).onErrorResume(throwable -> {
@@ -78,12 +84,6 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		});
 	}
 
-	protected static BucketConfiguration getBucketConfiguration(Config routeConfig) {
-		return BucketConfiguration.builder()
-			.addLimit(Bandwidth.simple(routeConfig.getCapacity(), routeConfig.getPeriod()))
-			.build();
-	}
-
 	protected Config loadRouteConfiguration(String routeId) {
 		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 
@@ -99,18 +99,32 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
+		// TODO: configurable isIncludeHeaders?
 		// if (isIncludeHeaders()) {
-		// TODO: configurable headers ala RedisRateLimiter
-		headers.put("X-RateLimit-Remaining", tokensLeft.toString());
+		headers.put(config.getHeaderName(), tokensLeft.toString());
 		// }
 		return headers;
 	}
 
 	public static class Config {
 
-		// TODO: create simple and classic w/Refill
+		// TODO: create simple and classic w/Refill (see builder)
+
+		private static final Function<Config, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
+			.builder()
+			.addLimit(Bandwidth.builder()
+				.capacity(config.getCapacity())
+				.refillGreedy(config.getCapacity(), config.getPeriod())
+				.build())
+			.build();
 
 		long capacity;
+
+		Function<Config, BucketConfiguration> configurationBuilder = DEFAULT_CONFIGURATION_BUILDER;
+
+		Supplier<CompletableFuture<BucketConfiguration>> configurationSupplier;
+
+		String headerName = DEFAULT_HEADER_NAME;
 
 		Duration period;
 
@@ -122,6 +136,37 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		public Config setCapacity(long capacity) {
 			this.capacity = capacity;
+			return this;
+		}
+
+		public Function<Config, BucketConfiguration> getConfigurationBuilder() {
+			return configurationBuilder;
+		}
+
+		public void setConfigurationBuilder(Function<Config, BucketConfiguration> configurationBuilder) {
+			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			this.configurationBuilder = configurationBuilder;
+		}
+
+		public Supplier<CompletableFuture<BucketConfiguration>> getConfigurationSupplier() {
+			if (configurationSupplier != null) {
+				return configurationSupplier;
+			}
+			return () -> CompletableFuture.completedFuture(getConfigurationBuilder().apply(this));
+		}
+
+		public void setConfigurationSupplier(Function<Config, BucketConfiguration> configurationBuilder) {
+			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			this.configurationBuilder = configurationBuilder;
+		}
+
+		public String getHeaderName() {
+			return headerName;
+		}
+
+		public Config setHeaderName(String headerName) {
+			Assert.notNull(headerName, "headerName may not be null");
+			this.headerName = headerName;
 			return this;
 		}
 
@@ -145,8 +190,9 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		public String toString() {
 			return new ToStringCreator(this).append("capacity", capacity)
-				.append("requestedTokens", requestedTokens)
+				.append("headerName", headerName)
 				.append("period", period)
+				.append("requestedTokens", requestedTokens)
 				.toString();
 		}
 
