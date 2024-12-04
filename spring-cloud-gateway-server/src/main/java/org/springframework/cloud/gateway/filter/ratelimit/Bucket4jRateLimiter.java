@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BandwidthBuilder.BandwidthBuilderBuildStage;
+import io.github.bucket4j.BandwidthBuilder.BandwidthBuilderRefillStage;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.AsyncBucketProxy;
@@ -108,16 +111,18 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 	public static class Config {
 
-		// TODO: options for refill Intervally, IntervallyAligned
+		private static final Function<Config, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> {
+			BandwidthBuilderRefillStage bandwidth = Bandwidth.builder().capacity(config.getCapacity());
 
-		// default using deprecated Bandwidth.simple
-		private static final Function<Config, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
-			.builder()
-			.addLimit(Bandwidth.builder()
-				.capacity(config.getCapacity())
-				.refillGreedy(config.getCapacity(), config.getPeriod())
-				.build())
-			.build();
+			BandwidthBuilderBuildStage refill = switch (config.getRefillStyle()) {
+				case GREEDY -> bandwidth.refillGreedy(config.getCapacity(), config.getPeriod());
+				case INTERVALLY -> bandwidth.refillIntervally(config.getCapacity(), config.getPeriod());
+				case INTERVALLY_ALIGNED -> bandwidth.refillIntervallyAligned(config.getCapacity(), config.getPeriod(),
+						config.getTimeOfFirstRefill());
+			};
+
+			return BucketConfiguration.builder().addLimit(refill.build()).build();
+		};
 
 		long capacity;
 
@@ -129,7 +134,12 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		Duration period;
 
-		private long requestedTokens = 1;
+		RefillStyle refillStyle = RefillStyle.GREEDY;
+
+		long requestedTokens = 1;
+
+		// for RefillStyle.INTERVALLY_ALIGNED
+		Instant timeOfFirstRefill;
 
 		public long getCapacity() {
 			return capacity;
@@ -180,6 +190,15 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
+		public RefillStyle getRefillStyle() {
+			return refillStyle;
+		}
+
+		public Config setRefillStyle(RefillStyle refillStyle) {
+			this.refillStyle = refillStyle;
+			return this;
+		}
+
 		public long getRequestedTokens() {
 			return requestedTokens;
 		}
@@ -189,13 +208,44 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
+		public Instant getTimeOfFirstRefill() {
+			return timeOfFirstRefill;
+		}
+
+		public Config setTimeOfFirstRefill(Instant timeOfFirstRefill) {
+			this.timeOfFirstRefill = timeOfFirstRefill;
+			return this;
+		}
+
 		public String toString() {
 			return new ToStringCreator(this).append("capacity", capacity)
 				.append("headerName", headerName)
 				.append("period", period)
+				.append("refillStyle", refillStyle)
 				.append("requestedTokens", requestedTokens)
+				.append("timeOfFirstRefill", timeOfFirstRefill)
 				.toString();
 		}
+
+	}
+
+	public enum RefillStyle {
+
+		/**
+		 * Greedy tries to add the tokens to the bucket as soon as possible.
+		 */
+		GREEDY,
+
+		/**
+		 * Intervally, in opposite to greedy, waits until the whole period has elapsed
+		 * before refilling tokens.
+		 */
+		INTERVALLY,
+
+		/**
+		 * IntervallyAligned, like Intervally, but with an specified first refill time.
+		 */
+		INTERVALLY_ALIGNED;
 
 	}
 

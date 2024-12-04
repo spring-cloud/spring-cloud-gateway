@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.filter.ratelimit.Bucket4jRateLimiter.RefillStyle;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +51,16 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 	private Bucket4jRateLimiter rateLimiter;
 
 	@RetryingTest(3)
-	public void bucket4jRateLimiterWorks() throws Exception {
+	public void bucket4jRateLimiterGreedyWorks() throws Exception {
+		bucket4jRateLimiterWorks(RefillStyle.GREEDY);
+	}
+
+	@RetryingTest(3)
+	public void bucket4jRateLimiterIntervallyWorks() throws Exception {
+		bucket4jRateLimiterWorks(RefillStyle.INTERVALLY);
+	}
+
+	public void bucket4jRateLimiterWorks(RefillStyle refillStyle) throws Exception {
 		String id = UUID.randomUUID().toString();
 
 		long capacity = 10;
@@ -59,7 +69,11 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 
 		String routeId = "myroute";
 		rateLimiter.getConfig()
-			.put(routeId, new Bucket4jRateLimiter.Config().setCapacity(capacity).setPeriod(Duration.ofSeconds(1)));
+			.put(routeId,
+					new Bucket4jRateLimiter.Config().setRefillStyle(refillStyle)
+						.setHeaderName("X-RateLimit-Custom")
+						.setCapacity(capacity)
+						.setPeriod(Duration.ofSeconds(1)));
 
 		checkLimitEnforced(id, capacity, requestedTokens, routeId);
 	}
@@ -100,9 +114,9 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 		for (int i = 0; i < capacity / requestedTokens; i++) {
 			Response response = rateLimiter.isAllowed(routeId, id).block();
 			assertThat(response.isAllowed()).as("Burst # %s is allowed", i).isTrue();
-			assertThat(response.getHeaders()).containsKey("X-RateLimit-Remaining");
+			assertThat(response.getHeaders()).containsKey("X-RateLimit-Custom");
 			System.err.println("response headers: " + response.getHeaders());
-			long remaining = Long.parseLong(response.getHeaders().get("X-RateLimit-Remaining"));
+			long remaining = Long.parseLong(response.getHeaders().get("X-RateLimit-Custom"));
 			assertThat(remaining).isLessThan(previousRemaining);
 			previousRemaining = remaining;
 			// TODO: assert additional headers
