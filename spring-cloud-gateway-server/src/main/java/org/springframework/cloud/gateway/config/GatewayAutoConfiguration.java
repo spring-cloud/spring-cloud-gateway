@@ -738,10 +738,10 @@ public class GatewayAutoConfiguration {
 		return new ConfigurableHintsRegistrationProcessor();
 	}
 
-
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(AsyncProxyManager.class)
 	protected static class Bucket4jConfiguration {
+
 		@Bean
 		@ConditionalOnBean(AsyncProxyManager.class)
 		@ConditionalOnEnabledFilter(RequestRateLimiterGatewayFilterFactory.class)
@@ -749,6 +749,7 @@ public class GatewayAutoConfiguration {
 				ConfigurationService configurationService) {
 			return new Bucket4jRateLimiter(proxyManager, configurationService);
 		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)
