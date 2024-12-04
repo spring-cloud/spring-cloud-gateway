@@ -60,7 +60,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		AsyncBucketProxy bucket = proxyManager.builder().build(id, bucketConfiguration);
 		CompletableFuture<ConsumptionProbe> bucketFuture = bucket
-				.tryConsumeAndReturnRemaining(routeConfig.getRequestedTokens());
+			.tryConsumeAndReturnRemaining(routeConfig.getRequestedTokens());
 		return Mono.fromFuture(bucketFuture).onErrorResume(throwable -> {
 			if (log.isDebugEnabled()) {
 				log.debug("Error calling Bucket4J rate limiter", throwable);
@@ -80,7 +80,8 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 	protected static BucketConfiguration getBucketConfiguration(Config routeConfig) {
 		return BucketConfiguration.builder()
-				.addLimit(Bandwidth.simple(routeConfig.getCapacity(), routeConfig.getPeriod())).build();
+			.addLimit(Bandwidth.simple(routeConfig.getCapacity(), routeConfig.getPeriod()))
+			.build();
 	}
 
 	protected Config loadRouteConfiguration(String routeId) {
@@ -107,7 +108,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 	public static class Config {
 
-		//TODO: create simple and classic w/Refill
+		// TODO: create simple and classic w/Refill
 
 		long capacity;
 
@@ -143,8 +144,10 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public String toString() {
-			return new ToStringCreator(this).append("capacity", capacity).append("requestedTokens", requestedTokens)
-					.append("period", period).toString();
+			return new ToStringCreator(this).append("capacity", capacity)
+				.append("requestedTokens", requestedTokens)
+				.append("period", period)
+				.toString();
 		}
 
 	}

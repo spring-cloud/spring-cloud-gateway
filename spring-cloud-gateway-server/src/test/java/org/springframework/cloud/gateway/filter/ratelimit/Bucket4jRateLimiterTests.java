@@ -65,8 +65,8 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 1;
 
 		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId,
-				new Bucket4jRateLimiter.Config().setCapacity(capacity).setPeriod(Duration.ofSeconds(1)));
+		rateLimiter.getConfig()
+			.put(routeId, new Bucket4jRateLimiter.Config().setCapacity(capacity).setPeriod(Duration.ofSeconds(1)));
 
 		checkLimitEnforced(id, capacity, requestedTokens, routeId);
 	}
@@ -79,8 +79,11 @@ public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 2;
 
 		String routeId = "zero_capacity_route";
-		rateLimiter.getConfig().put(routeId, new Bucket4jRateLimiter.Config().setCapacity(capacity)
-				.setPeriod(Duration.ofSeconds(1)).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new Bucket4jRateLimiter.Config().setCapacity(capacity)
+						.setPeriod(Duration.ofSeconds(1))
+						.setRequestedTokens(requestedTokens));
 
 		Response response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).isFalse();
