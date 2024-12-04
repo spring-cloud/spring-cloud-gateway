@@ -108,7 +108,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 	public static class Config {
 
-		// TODO: create simple and classic w/Refill (see builder)
+		// TODO: create simple and classic w/Refill (see Bandwidth)
 
 		private static final Function<Config, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> BucketConfiguration
 			.builder()
