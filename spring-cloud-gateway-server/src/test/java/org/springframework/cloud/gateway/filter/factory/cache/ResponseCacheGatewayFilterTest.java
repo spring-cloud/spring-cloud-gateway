@@ -102,6 +102,14 @@ class ResponseCacheGatewayFilterTest {
 		response.setStatusCode(HttpStatus.OK);
 
 		assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
+
+		headers = new HttpHeaders();
+		headers.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, max-age=0, must-revalidate");
+		response = new MockServerHttpResponse();
+		response.getHeaders().putAll(headers);
+		response.setStatusCode(HttpStatus.OK);
+
+		assertThat(cacheManagerToTest.isResponseCacheable(response)).isFalse();
 	}
 
 }
