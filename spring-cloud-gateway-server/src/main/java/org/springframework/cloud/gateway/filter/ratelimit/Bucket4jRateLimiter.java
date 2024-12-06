@@ -114,10 +114,12 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		private static final Function<Config, BucketConfiguration> DEFAULT_CONFIGURATION_BUILDER = config -> {
 			BandwidthBuilderRefillStage bandwidth = Bandwidth.builder().capacity(config.getCapacity());
 
+			long refillTokens = config.getRefillTokens() == null ? config.getCapacity() : config.getRefillTokens();
+
 			BandwidthBuilderBuildStage refill = switch (config.getRefillStyle()) {
-				case GREEDY -> bandwidth.refillGreedy(config.getCapacity(), config.getPeriod());
-				case INTERVALLY -> bandwidth.refillIntervally(config.getCapacity(), config.getPeriod());
-				case INTERVALLY_ALIGNED -> bandwidth.refillIntervallyAligned(config.getCapacity(), config.getPeriod(),
+				case GREEDY -> bandwidth.refillGreedy(refillTokens, config.getRefillPeriod());
+				case INTERVALLY -> bandwidth.refillIntervally(refillTokens, config.getRefillPeriod());
+				case INTERVALLY_ALIGNED -> bandwidth.refillIntervallyAligned(refillTokens, config.getRefillPeriod(),
 						config.getTimeOfFirstRefill());
 			};
 
@@ -132,9 +134,11 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		String headerName = DEFAULT_HEADER_NAME;
 
-		Duration period;
+		Duration refillPeriod;
 
 		RefillStyle refillStyle = RefillStyle.GREEDY;
+
+		Long refillTokens;
 
 		long requestedTokens = 1;
 
@@ -181,12 +185,12 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Duration getPeriod() {
-			return period;
+		public Duration getRefillPeriod() {
+			return refillPeriod;
 		}
 
-		public Config setPeriod(Duration period) {
-			this.period = period;
+		public Config setRefillPeriod(Duration refillPeriod) {
+			this.refillPeriod = refillPeriod;
 			return this;
 		}
 
@@ -196,6 +200,15 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		public Config setRefillStyle(RefillStyle refillStyle) {
 			this.refillStyle = refillStyle;
+			return this;
+		}
+
+		public Long getRefillTokens() {
+			return refillTokens;
+		}
+
+		public Config setRefillTokens(Long refillTokens) {
+			this.refillTokens = refillTokens;
 			return this;
 		}
 
@@ -220,8 +233,9 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		public String toString() {
 			return new ToStringCreator(this).append("capacity", capacity)
 				.append("headerName", headerName)
-				.append("period", period)
+				.append("refillPeriod", refillPeriod)
 				.append("refillStyle", refillStyle)
+				.append("refillTokens", refillTokens)
 				.append("requestedTokens", requestedTokens)
 				.append("timeOfFirstRefill", timeOfFirstRefill)
 				.toString();
@@ -237,13 +251,13 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		GREEDY,
 
 		/**
-		 * Intervally, in opposite to greedy, waits until the whole period has elapsed
+		 * Intervally, in opposite to greedy, waits until the whole refillPeriod has elapsed
 		 * before refilling tokens.
 		 */
 		INTERVALLY,
 
 		/**
-		 * IntervallyAligned, like Intervally, but with an specified first refill time.
+		 * IntervallyAligned, like Intervally, but with a specified first refill time.
 		 */
 		INTERVALLY_ALIGNED;
 
