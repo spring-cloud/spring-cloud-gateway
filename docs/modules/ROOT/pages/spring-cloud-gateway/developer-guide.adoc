@@ -134,8 +134,9 @@ public GlobalFilter customGlobalFilter() {
         .defaultIfEmpty("Default User")
         .map(userName -> {
           //adds header to proxied request
-          exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName).build();
-          return exchange;
+          ServerHttpRequest.Builder builder = exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName);
+          //use builder to manipulate the request
+          return exchange.mutate().request(builder.build()).build();
         })
         .flatMap(chain::filter);
 }
