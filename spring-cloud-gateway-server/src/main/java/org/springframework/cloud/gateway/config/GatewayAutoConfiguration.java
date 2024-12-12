@@ -190,6 +190,7 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Alberto C. Ríos
  * @author Olga Maciaszek-Sharma
  * @author Dominic Niemann
+ * @author Guo FuYiNan
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)

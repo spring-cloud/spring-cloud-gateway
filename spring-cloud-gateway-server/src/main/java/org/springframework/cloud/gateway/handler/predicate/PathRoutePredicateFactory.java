@@ -89,12 +89,14 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
 				String basePath = webFluxProperties.getBasePath();
-				if (StringUtils.hasText(basePath)) {
+				boolean basePathIsNotBlank = StringUtils.hasText(basePath);
+				if (basePathIsNotBlank) {
 					if (pattern.length() > 1 && !pattern.startsWith("/")) {
 						basePath += ("/");
 					}
 				}
-				PathPattern pathPattern = this.pathPatternParser.parse(basePath + pattern);
+				String pathPatternStr = basePathIsNotBlank ? basePath + pattern : pattern;
+				PathPattern pathPattern = this.pathPatternParser.parse(pathPatternStr);
 				pathPatterns.add(pathPattern);
 			});
 		}
