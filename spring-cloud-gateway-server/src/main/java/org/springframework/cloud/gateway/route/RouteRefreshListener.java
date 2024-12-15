@@ -46,7 +46,12 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
 			ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
-			if (!WebServerApplicationContext.hasServerNamespace(refreshedEvent.getApplicationContext(), "management")) {
+			boolean isManagementCtxt = WebServerApplicationContext
+				.hasServerNamespace(refreshedEvent.getApplicationContext(), "management");
+			boolean isLoadBalancerCtxt = refreshedEvent.getApplicationContext().getDisplayName() != null
+					&& refreshedEvent.getApplicationContext().getDisplayName().startsWith("LoadBalancerClientFactory-");
+
+			if (!isManagementCtxt && !isLoadBalancerCtxt) {
 				reset();
 			}
 		}

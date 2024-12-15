@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
 import jakarta.validation.constraints.NotEmpty;
 
 import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -90,7 +89,6 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		@NotEmpty

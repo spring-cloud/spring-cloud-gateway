@@ -68,7 +68,7 @@ public abstract class CircuitBreakerFilterFunctions {
 		return circuitBreaker(config);
 	}
 
-	@Shortcut
+	@Shortcut("id")
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> circuitBreaker(CircuitBreakerConfig config) {
 		Set<HttpStatusCode> failureStatuses = config.getStatusCodes()

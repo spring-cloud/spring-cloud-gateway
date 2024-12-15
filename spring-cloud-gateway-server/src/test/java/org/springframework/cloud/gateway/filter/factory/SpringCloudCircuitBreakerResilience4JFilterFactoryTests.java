@@ -46,7 +46,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Ryan Baxter
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "logging.level.org.springframework.cloud.gateway=INFO", "debug=false",
+		properties = { "logging.level.org.springframework.cloud.gateway=INFO", "debug=true",
 				"spring.cloud.circuitbreaker.hystrix.enabled=false" })
 @ContextConfiguration(classes = SpringCloudCircuitBreakerResilience4JFilterFactoryTests.Config.class)
 @DirtiesContext

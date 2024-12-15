@@ -23,7 +23,6 @@ import java.util.function.Predicate;
 import jakarta.validation.constraints.NotEmpty;
 
 import org.springframework.http.HttpCookie;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -79,7 +78,6 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		@NotEmpty

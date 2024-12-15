@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.headers;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,8 +74,8 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 		Set<String> headersToRemove = new HashSet<>(headers);
 		headersToRemove.addAll(connectionOptions);
 
-		for (Map.Entry<String, List<String>> entry : originalHeaders.entrySet()) {
-			if (!headersToRemove.contains(entry.getKey().toLowerCase())) {
+		for (Map.Entry<String, List<String>> entry : originalHeaders.headerSet()) {
+			if (!headersToRemove.contains(entry.getKey().toLowerCase(Locale.ROOT))) {
 				filtered.addAll(entry.getKey(), entry.getValue());
 			}
 		}

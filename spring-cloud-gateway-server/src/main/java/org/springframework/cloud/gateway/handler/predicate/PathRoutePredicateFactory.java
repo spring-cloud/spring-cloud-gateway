@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
@@ -134,7 +133,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		private List<String> patterns = new ArrayList<>();

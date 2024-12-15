@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.sample;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -77,7 +78,7 @@ public class GatewaySampleApplication {
 							.addResponseHeader("X-TestHeader", "rewrite_request")
 							.modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
 									(exchange, s) -> {
-										return Mono.just(new Hello(s.toUpperCase()));
+										return Mono.just(new Hello(s.toUpperCase(Locale.ROOT)));
 									})
 					).uri(uri)
 				)
@@ -86,7 +87,7 @@ public class GatewaySampleApplication {
 							.addResponseHeader("X-TestHeader", "rewrite_request_upper")
 							.modifyRequestBody(String.class, String.class,
 									(exchange, s) -> {
-										return Mono.just(s.toUpperCase() + s.toUpperCase());
+										return Mono.just(s.toUpperCase(Locale.ROOT) + s.toUpperCase(Locale.ROOT));
 									})
 					).uri(uri)
 				)
@@ -95,7 +96,7 @@ public class GatewaySampleApplication {
 							.addResponseHeader("X-TestHeader", "rewrite_response_upper")
 							.modifyResponseBody(String.class, String.class,
 									(exchange, s) -> {
-										return Mono.just(s.toUpperCase());
+										return Mono.just(s.toUpperCase(Locale.ROOT));
 									})
 					).uri(uri)
 				)
@@ -107,7 +108,7 @@ public class GatewaySampleApplication {
 										if (s == null) {
 											return Mono.just("emptybody");
 										}
-										return Mono.just(s.toUpperCase());
+										return Mono.just(s.toUpperCase(Locale.ROOT));
 									})
 
 					).uri(uri)
@@ -120,7 +121,7 @@ public class GatewaySampleApplication {
 										if (s == null) {
 											return Mono.error(new IllegalArgumentException("this should not happen"));
 										}
-										return Mono.just(s.toUpperCase());
+										return Mono.just(s.toUpperCase(Locale.ROOT));
 									})
 					).uri(uri)
 				)

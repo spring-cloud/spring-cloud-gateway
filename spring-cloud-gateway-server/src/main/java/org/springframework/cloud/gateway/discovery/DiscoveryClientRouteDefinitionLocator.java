@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -170,7 +171,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		@Override
 		public String getServiceId() {
 			if (properties.isLowerCaseServiceId()) {
-				return delegate.getServiceId().toLowerCase();
+				return delegate.getServiceId().toLowerCase(Locale.ROOT);
 			}
 			return delegate.getServiceId();
 		}

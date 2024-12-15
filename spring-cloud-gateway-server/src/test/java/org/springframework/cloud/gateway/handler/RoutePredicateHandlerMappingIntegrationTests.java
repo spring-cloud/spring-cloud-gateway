@@ -34,6 +34,7 @@ import org.springframework.test.util.TestSocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -56,8 +57,10 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 
 	@Test
 	public void requestsToManagementPortReturn404() {
+		String baseUrl = "http://localhost:" + managementPort;
 		testClient.mutate()
-			.baseUrl("http://localhost:" + managementPort)
+			.uriBuilderFactory(new DefaultUriBuilderFactory(baseUrl))
+			.baseUrl(baseUrl)
 			.build()
 			.get()
 			.uri("/get")
@@ -69,8 +72,10 @@ public class RoutePredicateHandlerMappingIntegrationTests extends BaseWebClientT
 	@Test
 	public void requestsToManagementPortAndHostHeaderReturn404() {
 		String host = "example.com:8888";
+		String baseUrl = "http://localhost:" + managementPort;
 		testClient.mutate()
-			.baseUrl("http://localhost:" + managementPort)
+			.uriBuilderFactory(new DefaultUriBuilderFactory(baseUrl))
+			.baseUrl(baseUrl)
 			.build()
 			.get()
 			.uri("/get")
