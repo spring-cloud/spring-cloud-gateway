@@ -67,10 +67,7 @@ public abstract class AbstractSslConfigurer<T, S> {
 	}
 
 	protected SslBundle getBundle() {
-		if (ssl.getSslBundle() == null || ssl.getSslBundle().length() > 0) {
-			return null;
-		}
-		if (bundles.getBundleNames().contains(ssl.getSslBundle())) {
+		if (ssl.getSslBundle() != null && ssl.getSslBundle().length() > 0 && bundles.getBundleNames().contains(ssl.getSslBundle())) {
 			return bundles.getBundle(ssl.getSslBundle());
 		}
 		return null;
