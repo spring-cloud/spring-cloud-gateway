@@ -1,0 +1,14 @@
+[[gateway-starter]]
+= How to Include Spring Cloud Gateway Server Web MVC
+:page-section-summary-toc: 1
+
+To include Spring Cloud Gateway Server Web MVC in your project, use the starter with a group ID of `org.springframework.cloud` and an artifact ID of `spring-cloud-starter-gateway-server-webmvc`.
+See the https://projects.spring.io/spring-cloud/[Spring Cloud Project page] for details on setting up your build system with the current Spring Cloud Release Train.
+
+If you include the starter, but you do not want the gateway to be enabled, set `spring.cloud.gateway.mvc.enabled=false`.
+
+IMPORTANT: Spring Cloud Gateway Server MVC is built on https://spring.io/projects/spring-boot#learn[Spring Boot] and https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html[Spring WebMvc.fn].
+As a consequence, many of the asynchronous or reactive libraries may not apply when you use Spring Cloud Gateway Server MVC.
+
+IMPORTANT: Spring Cloud Gateway Server MVC works with traditional Servlet runtimes such as Tomcat and Jetty.
+

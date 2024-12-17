@@ -1,0 +1,201 @@
+[[global-filters]]
+= Global Filters
+
+The `GlobalFilter` interface has the same signature as `GatewayFilter`.
+These are special filters that are conditionally applied to all routes.
+
+NOTE: This interface and its usage are subject to change in future milestone releases.
+
+[[gateway-combined-global-filter-and-gatewayfilter-ordering]]
+== Combined Global Filter and `GatewayFilter` Ordering
+
+When a request matches a route, the filtering web handler adds all instances of `GlobalFilter` and all route-specific instances of `GatewayFilter` to a filter chain.
+This combined filter chain is sorted by the `org.springframework.core.Ordered` interface, which you can set by implementing the `getOrder()` method.
+
+As Spring Cloud Gateway distinguishes between "`pre`" and "`post`" phases for filter logic execution (see xref:spring-cloud-gateway-server-webflux/how-it-works.adoc[How it Works]), the filter with the highest precedence is the first in the "`pre`"-phase and the last in the "`post`"-phase.
+
+The following listing configures a filter chain:
+
+.ExampleConfiguration.java
+[source,java]
+----
+@Bean
+public GlobalFilter customFilter() {
+    return new CustomGlobalFilter();
+}
+
+public class CustomGlobalFilter implements GlobalFilter, Ordered {
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        log.info("custom global filter");
+        return chain.filter(exchange);
+    }
+
+    @Override
+    public int getOrder() {
+        return -1;
+    }
+}
+----
+
+[[gateway-metrics-filter]]
+== The Gateway Metrics Filter
+
+To enable gateway metrics, add `spring-boot-starter-actuator` as a project dependency. Then, by default, the gateway metrics filter runs as long as the `spring.cloud.gateway.metrics.enabled` property is not set to `false`.
+This filter adds a timer metric named `spring.cloud.gateway.requests` with the following tags:
+
+* `routeId`: The route ID.
+* `routeUri`: The URI to which the API is routed.
+* `outcome`: The outcome, as classified by link:https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpStatus.Series.html[HttpStatus.Series].
+* `status`: The HTTP status of the request returned to the client.
+* `httpStatusCode`: The HTTP Status of the request returned to the client.
+* `httpMethod`: The HTTP method used for the request.
+
+In addition, through the `spring.cloud.gateway.metrics.tags.path.enabled` property (by default, `false`), you can activate an extra metric with the path tag:
+
+* `path`: The path of the request.
+
+These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
+You can also alarm with these useful metrics to take an example from link:gateway-alarming.adoc[alarming-template].
+
+NOTE: To enable the prometheus endpoint, add `micrometer-registry-prometheus` as a project dependency.
+
+[[local-cache-response-global-filter]]
+== The Local Response Cache Filter
+
+The `LocalResponseCache` runs if associated properties are enabled:
+
+* `spring.cloud.gateway.global-filter.local-response-cache.enabled`: Activates the global cache for all routes
+* `spring.cloud.gateway.filter.local-response-cache.enabled`: Activates the associated filter to use at route level
+
+This feature enables a local cache using Caffeine for all responses that meet the following criteria:
+
+* The request is a bodiless GET.
+* The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
+
+It accepts two configuration parameters:
+
+* `spring.cloud.gateway.filter.local-response-cache.size`: Sets the maximum size of the cache to evict entries for this route (in KB, MB and GB).
+* `spring.cloud.gateway.filter.local-response-cache.time-to-live` Sets the time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
+
+If none of these parameters are configured but the global filter is enabled, by default, it configures 5 minutes of time to live for the cached response.
+
+This filter also implements the automatic calculation of the `max-age` value in the HTTP `Cache-Control` header.
+If `max-age` is present on the original response, the value is rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In subsequent calls, this value is recalculated with the number of seconds left until the response expires.
+
+Setting `spring.cloud.gateway.global-filter.local-response-cache.enabled` to `false` deactivate the local response cache for all routes, the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/local-cache-response-filter.adoc[LocalResponseCache filter] allows to use this functionality at route level.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
+[[forward-routing-filter]]
+== Forward Routing Filter
+
+The `ForwardRoutingFilter` looks for a URI in the exchange attribute `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
+If the URL has a `forward` scheme (such as `forward:///localendpoint`), it uses the Spring `DispatcherHandler` to handle the request.
+The path part of the request URL is overridden with the path in the forward URL.
+The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+
+[[netty-routing-filter]]
+== The Netty Routing Filter
+
+The Netty routing filter runs if the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `http` or `https` scheme.
+It uses the Netty `HttpClient` to make the downstream proxy request.
+The response is put in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute for use in a later filter.
+(There is also an experimental `WebClientHttpRoutingFilter` that performs the same function but does not require Netty.)
+
+[[netty-write-response-filter]]
+== The Netty Write Response Filter
+
+The `NettyWriteResponseFilter` runs if there is a Netty `HttpClientResponse` in the `ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR` exchange attribute.
+It runs after all other filters have completed and writes the proxy response back to the gateway client response.
+(There is also an experimental `WebClientWriteResponseFilter` that performs the same function but does not require Netty.)
+
+[[reactive-loadbalancer-client-filter]]
+== `ReactiveLoadBalancerClientFilter`
+
+The `ReactiveLoadBalancerClientFilter` looks for a URI in the exchange attribute named `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR`.
+If the URL has a `lb` scheme (such as `lb://myservice`), it uses the Spring Cloud `ReactorLoadBalancer` to resolve the name (`myservice` in this example) to an actual host and port and replaces the URI in the same attribute.
+The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The filter also looks in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` attribute to see if it equals `lb`.
+If so, the same rules apply.
+The following listing configures a `ReactiveLoadBalancerClientFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: myRoute
+        uri: lb://service
+        predicates:
+        - Path=/service/**
+----
+
+NOTE: By default, when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` is returned.
+You can configure the gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `ReactiveLoadBalancerClientFilter` overrides
+the scheme specified in the request made to the Gateway.
+For example, if the request comes into the Gateway over `HTTPS` but the `ServiceInstance` indicates it is not secure, the downstream request is made over `HTTP`.
+The opposite situation can also apply.
+However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
+
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
+
+[[routetorequesturl-filter]]
+== `RouteToRequestUrl` Filter
+
+If there is a `Route` object in the `ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR` exchange attribute, the `RouteToRequestUrlFilter` runs.
+It creates a new URI, based off of the request URI but updated with the URI attribute of the `Route` object.
+The new URI is placed in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute.
+
+If the URI has a scheme prefix, such as `lb:ws://serviceid`, the `lb` scheme is stripped from the URI and placed in the `ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR` for use later in the filter chain.
+
+[[websocket-routing-filter]]
+== The Websocket Routing Filter
+
+If the URL located in the `ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR` exchange attribute has a `ws` or `wss` scheme, the websocket routing filter runs. It uses the Spring WebSocket infrastructure to forward the websocket request downstream.
+
+You can load-balance websockets by prefixing the URI with `lb`, such as `lb:ws://serviceid`.
+
+NOTE: If you use https://github.com/sockjs[SockJS] as a fallback over normal HTTP, you should configure a normal HTTP route as well as the websocket Route.
+
+The following listing configures a websocket routing filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      # SockJS route
+      - id: websocket_sockjs_route
+        uri: http://localhost:3001
+        predicates:
+        - Path=/websocket/info/**
+      # Normal Websocket route
+      - id: websocket_route
+        uri: ws://localhost:3001
+        predicates:
+        - Path=/websocket/**
+----
+
+[[marking-an-exchange-as-routed]]
+== Marking An Exchange As Routed
+
+After the gateway has routed a `ServerWebExchange`, it marks that exchange as "`routed`" by adding `gatewayAlreadyRouted`
+to the exchange attributes. Once a request has been marked as routed, other routing filters will not route the request again,
+essentially skipping the filter. There are convenience methods that you can use to mark an exchange as routed
+or check if an exchange has already been routed.
+
+* `ServerWebExchangeUtils.isAlreadyRouted` takes a `ServerWebExchange` object and checks if it has been "`routed`".
+* `ServerWebExchangeUtils.setAlreadyRouted` takes a `ServerWebExchange` object and marks it as "`routed`".
+
