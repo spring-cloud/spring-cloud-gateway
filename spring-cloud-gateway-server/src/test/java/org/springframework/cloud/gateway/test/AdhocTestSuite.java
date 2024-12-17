@@ -46,6 +46,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactoryTests.class,
+		org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactoryPredicateTests.class,
 		org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.handler.predicate.HeaderRoutePredicateFactoryTests.class,
 		org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactoryTests.class,
