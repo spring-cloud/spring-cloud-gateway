@@ -29,7 +29,6 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -42,8 +41,6 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 	protected static final Log log = LogFactory.getLog(ReadBodyRoutePredicateFactory.class);
 
 	private static final String TEST_ATTRIBUTE = "read_body_predicate_test_attribute";
-
-	private static final String CACHE_REQUEST_BODY_OBJECT_KEY = "cachedRequestBodyObject";
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
@@ -63,10 +60,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 		return new AsyncPredicate<ServerWebExchange>() {
 			@Override
 			public Publisher<Boolean> apply(ServerWebExchange exchange) {
-				Class inClass = config.getInClass();
-
-				Object cachedBody = exchange.getAttribute(CACHE_REQUEST_BODY_OBJECT_KEY);
-				Mono<?> modifiedBody;
+				Object cachedBody = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
 				// We can only read the body from the request once, once that happens if
 				// we try to read the body again an exception will be thrown. The below
 				// if/else caches the body object as a request attribute in the
@@ -87,15 +81,14 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 					}
 					return Mono.just(false);
 				}
-				else {
-					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
-							(serverHttpRequest) -> ServerRequest
-								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
-								.bodyToMono(inClass)
-								.doOnNext(objectValue -> exchange.getAttributes()
-									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-								.map(objectValue -> config.getPredicate().test(objectValue)));
-				}
+
+				return ServerWebExchangeUtils.cacheRequestBodyObject(exchange, config.getInClass(), messageReaders,
+					(serverHttpRequest, bodyObject) -> {
+						if (bodyObject == null) {
+							return Mono.just(false);
+						}
+						return Mono.just(config.predicate.test(bodyObject));
+					});
 			}
 
 			@Override
