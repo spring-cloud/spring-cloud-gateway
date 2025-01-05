@@ -434,7 +434,7 @@ public abstract class BeforeFilterFunctions {
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
 				.replacePath(newPath.toString())
-				.build()
+				.build(true)
 				.toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
