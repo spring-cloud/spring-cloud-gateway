@@ -215,10 +215,12 @@ public abstract class BeforeFilterFunctions {
 			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
 			queryParams.remove(name);
 
+			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
-				.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
-				.build()
+				.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+				.build(true)
 				.toUri();
 
 			// remove resolved params from request
