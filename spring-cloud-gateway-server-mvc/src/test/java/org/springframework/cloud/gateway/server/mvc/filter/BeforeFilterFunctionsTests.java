@@ -157,4 +157,42 @@ class BeforeFilterFunctionsTests {
 		assertThat(result.uri().toString()).isEqualTo("http://localhost/new/path?foo%5B%5D=bar%5B%5D");
 	}
 
+	@Test
+	void stripPrefix() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripPrefix(2).apply(request);
+
+		assertThat(result.uri().toString()).isEqualTo("http://localhost/depth3");
+	}
+
+	@Test
+	void stripPrefixWithEncodedPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3/é")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripPrefix(2).apply(request);
+
+		assertThat(result.uri().toString()).isEqualTo("http://localhost/depth3/%C3%A9");
+	}
+
+	@Test
+	void stripPrefixWithEncodedParameters() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3")
+				.queryParam("baz[]", "qux[]")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripPrefix(2).apply(request);
+
+		assertThat(result.param("baz[]")).isPresent().hasValue("qux[]");
+		assertThat(result.uri().toString()).isEqualTo("http://localhost/depth3?baz%5B%5D=qux%5B%5D");
+	}
+
 }
