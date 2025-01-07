@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.MediaType;
+import org.springframework.util.unit.DataSize;
 
 @ConfigurationProperties(GatewayMvcProperties.PREFIX)
 public class GatewayMvcProperties {
@@ -74,6 +75,16 @@ public class GatewayMvcProperties {
 	 * Framework retry as your retry filter, set this property to true.
 	 */
 	private boolean useFrameworkRetryFilter = false;
+
+	/**
+	 * Temp file buffer for request.
+	 */
+	private boolean fileBufferEnabled = true;
+
+	/**
+	 * The size threshold which a request will be written to disk.
+	 */
+	private DataSize fileBufferSizeThreshold =  DataSize.ofMegabytes(1L);
 
 	public List<RouteProperties> getRoutes() {
 		return routes;
@@ -123,6 +134,22 @@ public class GatewayMvcProperties {
 		this.trustedProxies = trustedProxies;
 	}
 
+	public boolean isFileBufferEnabled() {
+		return fileBufferEnabled;
+	}
+
+	public void setFileBufferEnabled(boolean fileBufferEnabled) {
+		this.fileBufferEnabled = fileBufferEnabled;
+	}
+
+	public DataSize getFileBufferSizeThreshold() {
+		return fileBufferSizeThreshold;
+	}
+
+	public void setFileBufferSizeThreshold(DataSize fileBufferSizeThreshold) {
+		this.fileBufferSizeThreshold = fileBufferSizeThreshold;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes)
@@ -130,6 +157,8 @@ public class GatewayMvcProperties {
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
 			.append("trustedProxies", trustedProxies)
+			.append("fileBufferEnabled", fileBufferEnabled)
+			.append("fileBufferSizeThreshold", fileBufferSizeThreshold)
 			.toString();
 	}
 
