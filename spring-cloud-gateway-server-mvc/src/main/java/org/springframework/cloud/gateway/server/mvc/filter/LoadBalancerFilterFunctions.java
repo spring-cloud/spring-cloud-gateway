@@ -147,6 +147,8 @@ public abstract class LoadBalancerFilterFunctions {
 
 		private String overrideScheme;
 
+		private static final Set<String> SECURE_SCHEMES = Set.of("https", "wss");
+
 		DelegatingServiceInstance(ServiceInstance delegate, String overrideScheme) {
 			this.delegate = delegate;
 			this.overrideScheme = overrideScheme;
@@ -169,8 +171,7 @@ public abstract class LoadBalancerFilterFunctions {
 
 		@Override
 		public boolean isSecure() {
-			// TODO: move to map
-			if ("https".equals(this.overrideScheme) || "wss".equals(this.overrideScheme)) {
+			if (SECURE_SCHEMES.contains(this.overrideScheme)) {
 				return true;
 			}
 			return delegate.isSecure();
