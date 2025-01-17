@@ -251,8 +251,8 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		GREEDY,
 
 		/**
-		 * Intervally, in opposite to greedy, waits until the whole refillPeriod has elapsed
-		 * before refilling tokens.
+		 * Intervally, in opposite to greedy, waits until the whole refillPeriod has
+		 * elapsed before refilling tokens.
 		 */
 		INTERVALLY,
 
