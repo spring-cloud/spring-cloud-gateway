@@ -1,0 +1,55 @@
+[[local-cache-response-filter]]
+= `LocalResponseCache` Filter
+
+This filter allows caching the response body and headers to follow these rules:
+
+* It can only cache bodiless GET requests.
+* It caches the response only for one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
+* Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
+* If the response is already cached and a new request is performed with no-cache value in `Cache-Control` header, it returns a bodiless response with 304 (Not Modified).
+
+This filter configures the local response cache per route and is available only if the `spring.cloud.gateway.filter.local-response-cache.enabled` property is enabled. And a xref:spring-cloud-gateway-server-webflux/global-filters.adoc#local-cache-response-global-filter[local response cache configured globally] is also available as feature.
+
+It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (`KB`, `MB`, or `GB`).
+
+The following listing shows how to add local response cache  filter:
+
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("rewrite_response_upper", r -> r.host("*.rewriteresponseupper.org")
+            .filters(f -> f.prefixPath("/httpbin")
+        		.localResponseCache(Duration.ofMinutes(30), "500MB")
+            ).uri(uri))
+        .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - LocalResponseCache=30m,500MB
+----
+
+NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.
+Only if `max-age` is present on the original response is the value rewritten with the number of seconds set in the `timeToLive` configuration parameter.
+In consecutive calls, this value is recalculated with the number of seconds left until the response expires.
+
+NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `spring-boot-starter-cache` as project dependencies.
+
+WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
+
+
