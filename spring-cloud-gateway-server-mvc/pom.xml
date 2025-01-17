@@ -75,7 +75,7 @@
         <!-- Third party dependencies -->
         <dependency>
             <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-core</artifactId>
+            <artifactId>bucket4j_jdk17-core</artifactId>
             <optional>true</optional>
         </dependency>
         <!-- Spring test dependencies -->
@@ -92,7 +92,7 @@
         <!-- Third party test dependencies -->
         <dependency>
             <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-caffeine</artifactId>
+            <artifactId>bucket4j_jdk17-caffeine</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
