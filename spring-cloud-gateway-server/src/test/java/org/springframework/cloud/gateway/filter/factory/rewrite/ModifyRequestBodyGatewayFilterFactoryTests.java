@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -37,7 +39,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.BodyInserters;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
 /**
  * @author Junghoon Song
@@ -109,6 +113,21 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 			.isEqualTo("FOO_BAR_BAZ");
 	}
 
+	@Test
+	public void modifyRequestBodyWithAddRequestHeaderForSameKeyWorks() {
+		testClient.post()
+			.uri("/multivalueheaders")
+			.header("Host", "www.modifyrequestbodywithaddheadersforsamekeyworks.org")
+			.header("X-Request-Example", "ValueA")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Request-Example", Arrays.asList("ValueA", "ValueB"));
+			});
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -156,6 +175,18 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 							}, (swe, body) -> {
 								return Mono.just(body.replaceAll(" ", "_").toUpperCase(Locale.ROOT));
 							}))
+							.uri(uri))
+				.route("test_modify_request_body_with_add_request_header",
+						r -> r.order(-1)
+							 .host("**.modifyrequestbodywithaddheadersforsamekeyworks.org")
+							 .filters(f -> f.modifyRequestBody(String.class, String.class,
+									 MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
+									 	 if (body == null) {
+											 return Mono.just("modifyrequest");
+										 }
+										 return Mono.just(body.toUpperCase());
+							         })
+									 .addRequestHeader("X-Request-Example", "ValueB"))
 							.uri(uri))
 				.build();
 		}
