@@ -403,30 +403,27 @@ public class ProxyExchange<T> {
 
 	private void appendXForwarded(URI uri) {
 		// Append the legacy headers if they were already added upstream
-		String host = headers.getFirst("x-forwarded-host");
-		if (host == null) {
-			return;
+		appendXForwardedHeader("x-forwarded-host", () -> uri.getHost());
+		appendXForwardedHeader("x-forwarded-proto", () -> uri.getScheme());
+	}
+	
+	private void appendXForwardedHeader(String headerName, Supplier<String> uriValue) {
+		String existingValue = headers.getFirst(headerName);
+		if (existingValue != null) {
+			StringBuilder builder = new StringBuilder(existingValue);
+			builder.append(",").append(uriValue.get());
+			headers.set(headerName, builder.toString());
 		}
-		host = host + "," + uri.getHost();
-		headers.set("x-forwarded-host", host);
-		String proto = headers.getFirst("x-forwarded-proto");
-		if (proto == null) {
-			return;
-		}
-		proto = proto + "," + uri.getScheme();
-		headers.set("x-forwarded-proto", proto);
 	}
 
 	private void appendForwarded(URI uri) {
-		String forwarded = headers.getFirst("forwarded");
-		if (forwarded != null) {
-			forwarded = forwarded + ",";
+		String forwarded = headers.getFirst("forwarded");		
+		StringBuilder builder = new StringBuilder();
+		if (StringUtils.hasText(forwarded)) {
+			builder.append(forwarded).append(",");
 		}
-		else {
-			forwarded = "";
-		}
-		forwarded = forwarded + forwarded(uri, webRequest.getHeader("host"));
-		headers.set("forwarded", forwarded);
+		builder.append(forwarded(uri, webRequest.getHeader("host")));
+		headers.set("forwarded", builder.toString());
 	}
 
 	private String forwarded(URI uri, String hostHeader) {
