@@ -29,7 +29,7 @@ import reactor.core.scheduler.Schedulers;
 public class CustomBlockHoundIntegrationTest {
 
 	@Test
-	@DisabledForJreRange(min = JRE.JAVA_16)
+	@DisabledForJreRange(min = JRE.JAVA_18)
 	public void shouldThrowErrorForBlockingCallWithCustomBlockHoundIntegration() {
 		Assertions.assertThrows(RuntimeException.class, () -> Mono.fromCallable(() -> {
 			Thread.sleep(1);

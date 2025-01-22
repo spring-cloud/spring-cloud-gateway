@@ -25,20 +25,28 @@
 		<micrometer-docs-generator.inclusionPattern>.*</micrometer-docs-generator.inclusionPattern>
 		<micrometer-docs-generator.outputPath>${maven.multiModuleProjectDirectory}/docs/modules/ROOT/partials/</micrometer-docs-generator.outputPath>
 	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-cloud-starter-gateway</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
-		</dependency>
-	</dependencies>
 	<build>
 		<sourceDirectory>src/main/asciidoc</sourceDirectory>
 	</build>
 	<profiles>
+		<profile>
+			<id>enable-configuration-properties</id>
+			<activation>
+				<property>
+					<name>!disableConfigurationProperties</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>spring-cloud-starter-gateway</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>${project.groupId}</groupId>
+					<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
+				</dependency>
+			</dependencies>
+		</profile>
 		<profile>
 			<id>docs</id>
 			<build>
