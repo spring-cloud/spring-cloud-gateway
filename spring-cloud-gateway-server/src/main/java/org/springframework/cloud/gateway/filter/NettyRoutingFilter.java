@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -254,7 +254,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	 * @return the configured HttpClient.
 	 */
 	protected HttpClient getHttpClient(Route route, ServerWebExchange exchange) {
-		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR);
+		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR) != null
+				? route.getMetadata().get(CONNECT_TIMEOUT_ATTR) : properties.getConnectTimeout();
 		if (connectTimeoutAttr != null) {
 			Integer connectTimeout = getInteger(connectTimeoutAttr);
 			return this.httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
