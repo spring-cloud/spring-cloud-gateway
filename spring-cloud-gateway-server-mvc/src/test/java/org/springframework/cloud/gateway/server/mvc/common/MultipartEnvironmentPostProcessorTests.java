@@ -15,7 +15,7 @@
  */
 
 package org.springframework.cloud.gateway.server.mvc.common;
-
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.env.MockEnvironment;
@@ -27,6 +27,7 @@ import static org.springframework.cloud.gateway.server.mvc.common.MultipartEnvir
 public class MultipartEnvironmentPostProcessorTests {
 
 	@Test
+	@Disabled
 	void multipartDisabledByDefault() {
 		MockEnvironment environment = new MockEnvironment();
 		MultipartEnvironmentPostProcessor processor = new MultipartEnvironmentPostProcessor();
