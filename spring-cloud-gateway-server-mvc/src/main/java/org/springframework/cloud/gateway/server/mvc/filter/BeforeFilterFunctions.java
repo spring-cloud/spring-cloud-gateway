@@ -352,13 +352,10 @@ public abstract class BeforeFilterFunctions {
 				.build(true)
 				.toUri();
 
-			return ServerRequest.from(request)
-					.params(params -> {
-						params.remove(name);
-						params.add(name, replacement);
-					})
-					.uri(rewrittenUri)
-					.build();
+			return ServerRequest.from(request).params(params -> {
+				params.remove(name);
+				params.add(name, replacement);
+			}).uri(rewrittenUri).build();
 		};
 	}
 
