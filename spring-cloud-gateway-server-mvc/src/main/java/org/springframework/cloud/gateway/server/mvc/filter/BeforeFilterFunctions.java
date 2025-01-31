@@ -45,6 +45,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
@@ -334,6 +335,30 @@ public abstract class BeforeFilterFunctions {
 			// TODO: can this be restored at some point?
 			// MvcUtils.setRequestUrl(modified, modified.uri());
 			return modified;
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> rewriteRequestParameter(String name, String replacement) {
+		return request -> {
+			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
+			if (queryParams.containsKey(name)) {
+				queryParams.remove(name);
+				queryParams.add(name, replacement);
+			}
+
+			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
+				.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+				.build(true)
+				.toUri();
+
+			return ServerRequest.from(request)
+					.params(params -> {
+						params.remove(name);
+						params.add(name, replacement);
+					})
+					.uri(rewrittenUri)
+					.build();
 		};
 	}
 
