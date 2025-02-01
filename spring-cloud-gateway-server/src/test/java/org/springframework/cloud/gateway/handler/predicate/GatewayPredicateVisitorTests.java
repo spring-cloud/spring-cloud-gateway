@@ -39,18 +39,18 @@ public class GatewayPredicateVisitorTests {
 		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory1 = new ReadBodyRoutePredicateFactory();
 		ReadBodyRoutePredicateFactory readBodyRoutePredicateFactory2 = new ReadBodyRoutePredicateFactory();
 		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate
-				.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()))
-				.and(AsyncPredicate.from(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig())))
-				.and(readBodyRoutePredicateFactory1.applyAsync(readBodyRoutePredicateFactory1.newConfig()))
-				.and(readBodyRoutePredicateFactory2.applyAsync(readBodyRoutePredicateFactory2.newConfig()));
+			.from(pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig()))
+			.and(AsyncPredicate.from(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig())))
+			.and(readBodyRoutePredicateFactory1.applyAsync(readBodyRoutePredicateFactory1.newConfig()))
+			.and(readBodyRoutePredicateFactory2.applyAsync(readBodyRoutePredicateFactory2.newConfig()));
 
 		Route route = Route.async().id("git").uri("http://myuri").asyncPredicate(predicate).build();
 		ArrayList<Object> configs = new ArrayList<>();
 		route.getPredicate().accept(p -> configs.add(p.getConfig()));
 
-		assertThat(configs).hasSize(4).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class,
-				HostRoutePredicateFactory.Config.class, ReadBodyRoutePredicateFactory.Config.class,
-				ReadBodyRoutePredicateFactory.Config.class);
+		assertThat(configs).hasSize(4)
+			.hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class, HostRoutePredicateFactory.Config.class,
+					ReadBodyRoutePredicateFactory.Config.class, ReadBodyRoutePredicateFactory.Config.class);
 	}
 
 	@Test
@@ -58,14 +58,14 @@ public class GatewayPredicateVisitorTests {
 		PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory();
 		HostRoutePredicateFactory hostRoutePredicateFactory = new HostRoutePredicateFactory();
 		Predicate<ServerWebExchange> predicate = pathRoutePredicateFactory.apply(pathRoutePredicateFactory.newConfig())
-				.and(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig()));
+			.and(hostRoutePredicateFactory.apply(hostRoutePredicateFactory.newConfig()));
 
 		Route route = Route.async().id("git").uri("http://myuri").predicate(predicate).build();
 		ArrayList<Object> configs = new ArrayList<>();
 		route.getPredicate().accept(p -> configs.add(p.getConfig()));
 
-		assertThat(configs).hasSize(2).hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class,
-				HostRoutePredicateFactory.Config.class);
+		assertThat(configs).hasSize(2)
+			.hasExactlyElementsOfTypes(PathRoutePredicateFactory.Config.class, HostRoutePredicateFactory.Config.class);
 	}
 
 }

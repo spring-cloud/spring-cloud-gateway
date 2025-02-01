@@ -1,0 +1,5 @@
+[[configuration-properties]]
+= Configuration properties
+:page-section-summary-toc: 1
+
+To see the list of all Spring Cloud Gateway related configuration properties, see link:../appendix.html[the appendix].

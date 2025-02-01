@@ -20,7 +20,7 @@
 |spring.cloud.gateway.filter.hystrix.enabled | `+++true+++` | Enables the hystrix filter.
 |spring.cloud.gateway.filter.json-to-grpc.enabled | `+++true+++` | Enables the JSON to gRPC filter.
 |spring.cloud.gateway.filter.local-response-cache.enabled | `+++false+++` | Enables the local-response-cache filter.
-|spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy |  | 
+|spring.cloud.gateway.filter.local-response-cache.request.no-cache-strategy | `+++skip-update-cache-entry+++` | 
 |spring.cloud.gateway.filter.local-response-cache.size |  | Maximum size of the cache to evict entries for this route (in KB, MB and GB).
 |spring.cloud.gateway.filter.local-response-cache.time-to-live | `+++5m+++` | Time to expire a cache entry (expressed in s for seconds, m for minutes, and h for hours).
 |spring.cloud.gateway.filter.map-request-header.enabled | `+++true+++` | Enables the map-request-header filter.
@@ -84,17 +84,18 @@
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for acquiring.
 |spring.cloud.gateway.httpclient.pool.eviction-interval | `+++0+++` | Perform regular eviction checks in the background at a specified interval. Disabled by default ({@link Duration#ZERO})
+|spring.cloud.gateway.httpclient.pool.leasing-strategy | `+++fifo+++` | Configures the leasing strategy for the pool, defaults to FIFO which is Netty's default.
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
 |spring.cloud.gateway.httpclient.pool.metrics | `+++false+++` | Enables channel pools metrics to be collected and registered in Micrometer. Disabled by default.
 |spring.cloud.gateway.httpclient.pool.name | `+++proxy+++` | The channel pool map name, defaults to proxy.
-|spring.cloud.gateway.httpclient.pool.type |  | Type of pool for HttpClient to use, defaults to ELASTIC.
+|spring.cloud.gateway.httpclient.pool.type | `+++elastic+++` | Type of pool for HttpClient to use, defaults to ELASTIC.
 |spring.cloud.gateway.httpclient.proxy.host |  | Hostname for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
 |spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
-|spring.cloud.gateway.httpclient.proxy.type |  | proxyType for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type | `+++http+++` | proxyType for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.
@@ -105,6 +106,7 @@
 |spring.cloud.gateway.httpclient.ssl.key-store-password |  | Keystore password.
 |spring.cloud.gateway.httpclient.ssl.key-store-provider |  | Keystore provider for Netty HttpClient, optional field.
 |spring.cloud.gateway.httpclient.ssl.key-store-type | `+++JKS+++` | Keystore type for Netty HttpClient, default is JKS.
+|spring.cloud.gateway.httpclient.ssl.ssl-bundle |  | The name of the SSL bundle to use.
 |spring.cloud.gateway.httpclient.ssl.trusted-x509-certificates |  | Trusted certificates for verifying the remote endpoint's certificate.
 |spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager | `+++false+++` | Installs the netty InsecureTrustManagerFactory. This is insecure and not suitable for production.
 |spring.cloud.gateway.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
@@ -120,12 +122,14 @@
 |spring.cloud.gateway.mvc.http-client.connect-timeout |  | The HttpClient connect timeout.
 |spring.cloud.gateway.mvc.http-client.read-timeout |  | The HttpClient read timeout.
 |spring.cloud.gateway.mvc.http-client.ssl-bundle |  | The name of the SSL bundle to use.
-|spring.cloud.gateway.mvc.http-client.type |  | The HttpClient type. Defaults to JDK.
+|spring.cloud.gateway.mvc.http-client.type | `+++jdk+++` | The HttpClient type. Defaults to JDK.
 |spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled | `+++true+++` | Enables the remove-content-length-request-headers-filter.
 |spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.mvc.routes |  | List of Routes.
 |spring.cloud.gateway.mvc.routes-map |  | Map of Routes.
+|spring.cloud.gateway.mvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
+|spring.cloud.gateway.mvc.streaming-media-types |  | Mime-types that are streaming.
 |spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
 |spring.cloud.gateway.mvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
@@ -164,6 +168,7 @@
 |spring.cloud.gateway.redis-rate-limiter.requested-tokens-header | `+++X-RateLimit-Requested-Tokens+++` | The name of the header that returns the requested tokens configuration.
 |spring.cloud.gateway.redis-route-definition-repository.enabled | `+++true+++` | If RedisRouteDefinitionRepository should be enabled.
 |spring.cloud.gateway.restrictive-property-accessor.enabled | `+++true+++` | Restricts method and property access in SpEL.
+|spring.cloud.gateway.route-filter-cache-enabled | `+++false+++` | Enables the route filter cache, defaults to false.
 |spring.cloud.gateway.route-refresh-listener.enabled | `+++true+++` | If RouteRefreshListener should be turned on.
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.

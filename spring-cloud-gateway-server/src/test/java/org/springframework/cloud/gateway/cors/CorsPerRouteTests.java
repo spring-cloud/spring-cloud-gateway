@@ -48,59 +48,79 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequest() {
-		testClient.options().uri("/abc").header("Origin", "domain.com").header("Access-Control-Request-Method", "GET")
-				.exchange().expectBody(Map.class).consumeWith(result -> {
-					assertThat(result.getResponseBody()).isNull();
-					assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+		testClient.options()
+			.uri("/abc")
+			.header("Origin", "domain.com")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
 
-					HttpHeaders responseHeaders = result.getResponseHeaders();
-					assertThat(responseHeaders.getAccessControlAllowOrigin())
-							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("domain.com");
-					assertThat(responseHeaders.getAccessControlAllowMethods())
-							.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-							.containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
-					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
-							.isEqualTo(30L);
-					assertThat(responseHeaders.getAccessControlAllowCredentials())
-							.as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS)).isEqualTo(true);
-				});
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("domain.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
+				assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+					.isEqualTo(30L);
+				assertThat(responseHeaders.getAccessControlAllowCredentials())
+					.as(missingHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS))
+					.isEqualTo(true);
+			});
 	}
 
 	@Test
 	public void testPreFlightCorsRequestJavaConfig() {
-		testClient.options().uri("/route-test").header("Origin", "another-domain.com")
-				.header("Host", "www.javaconfhost.org").header("Access-Control-Request-Method", "GET").exchange()
-				.expectBody(Map.class).consumeWith(result -> {
-					assertThat(result.getResponseBody()).isNull();
-					assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+		testClient.options()
+			.uri("/route-test")
+			.header("Origin", "another-domain.com")
+			.header("Host", "www.javaconfhost.org")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
 
-					HttpHeaders responseHeaders = result.getResponseHeaders();
-					assertThat(responseHeaders.getAccessControlAllowOrigin())
-							.as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("another-domain.com");
-					assertThat(responseHeaders.getAccessControlAllowMethods())
-							.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
-							.containsExactlyInAnyOrder(HttpMethod.GET);
-					assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
-							.isEqualTo(50L);
-				});
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("another-domain.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactlyInAnyOrder(HttpMethod.GET);
+				assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+					.isEqualTo(50L);
+			});
 	}
 
 	@Test
 	public void testPreFlightForbiddenCorsRequest() {
-		testClient.get().uri("/cors").header("Origin", "domain.com").header("Access-Control-Request-Method", "GET")
-				.exchange().expectBody(Map.class).consumeWith(result -> {
-					assertThat(result.getResponseBody()).isNull();
-					assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
-				});
+		testClient.get()
+			.uri("/cors")
+			.header("Origin", "domain.com")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+			});
 	}
 
 	@Test
 	public void testCorsValidatedRequest() {
-		testClient.get().uri("/cors/status/201").header("Origin", "https://test.com").exchange()
-				.expectBody(String.class).consumeWith(result -> {
-					assertThat(result.getResponseBody()).endsWith("201");
-					assertThat(result.getStatus()).isEqualTo(HttpStatus.CREATED);
-				});
+		testClient.get()
+			.uri("/cors/status/201")
+			.header("Origin", "https://test.com")
+			.exchange()
+			.expectBody(String.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).endsWith("201");
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.CREATED);
+			});
 	}
 
 	private String missingHeader(String accessControlAllowOrigin) {
@@ -118,13 +138,16 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("cors_route_java_test",
-							r -> r.host("*.javaconfhost.org").and().path("/route-test/**")
-									.filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
-									.metadata(Map.of("cors", Map.of("allowedOrigins", "another-domain.com",
-											"allowedMethods", HttpMethod.GET.name(), "maxAge", 50)))
-									.uri(uri))
-					.build();
+				.route("cors_route_java_test",
+						r -> r.host("*.javaconfhost.org")
+							.and()
+							.path("/route-test/**")
+							.filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
+							.metadata(Map.of("cors",
+									Map.of("allowedOrigins", "another-domain.com", "allowedMethods",
+											HttpMethod.GET.name(), "maxAge", 50)))
+							.uri(uri))
+				.build();
 		}
 
 	}

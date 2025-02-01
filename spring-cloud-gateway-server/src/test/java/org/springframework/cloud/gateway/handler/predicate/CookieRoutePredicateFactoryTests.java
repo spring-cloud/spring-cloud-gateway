@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.handler.predicate.CookieRoutePredicateFactory.Config;
@@ -37,7 +42,7 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		Predicate<ServerWebExchange> predicate = new CookieRoutePredicateFactory()
-				.apply(new Config().setName("mycookie").setRegexp("ch.p"));
+			.apply(new Config().setName("mycookie").setRegexp("ch.p"));
 
 		assertThat(predicate.test(exchange)).isFalse();
 	}
@@ -45,11 +50,12 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void okOneCookieForYou() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("https://example.com")
-				.cookie(new HttpCookie("yourcookie", "sugar"), new HttpCookie("mycookie", "chip")).build();
+			.cookie(new HttpCookie("yourcookie", "sugar"), new HttpCookie("mycookie", "chip"))
+			.build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 
 		Predicate<ServerWebExchange> predicate = new CookieRoutePredicateFactory()
-				.apply(new Config().setName("mycookie").setRegexp("ch.p"));
+			.apply(new Config().setName("mycookie").setRegexp("ch.p"));
 
 		assertThat(predicate.test(exchange)).isTrue();
 	}
@@ -61,6 +67,32 @@ public class CookieRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setRegexp("myregexp");
 		Predicate predicate = new CookieRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("Cookie: name=mycookie regexp=myregexp");
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setName("mycookie");
+			config.setRegexp("myregexp");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(2);
+		}
 	}
 
 }

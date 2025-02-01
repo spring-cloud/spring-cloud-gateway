@@ -34,6 +34,7 @@ import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCache
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties.RequestOptions;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.AfterCacheExchangeMutator;
+import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.RemoveHeadersAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetMaxAgeHeaderAfterCacheExchangeMutator;
 import org.springframework.cloud.gateway.filter.factory.cache.postprocessor.SetResponseHeadersAfterCacheExchangeMutator;
@@ -80,6 +81,7 @@ public class ResponseCacheManager {
 		this.ignoreNoCacheUpdate = isSkipNoCacheUpdateActive(requestOptions);
 		this.afterCacheExchangeMutators = List.of(new SetResponseHeadersAfterCacheExchangeMutator(),
 				new SetStatusCodeAfterCacheExchangeMutator(),
+				new RemoveHeadersAfterCacheExchangeMutator(HttpHeaders.PRAGMA, HttpHeaders.EXPIRES),
 				new SetMaxAgeHeaderAfterCacheExchangeMutator(configuredTimeToLive, Clock.systemDefaultZone(),
 						ignoreNoCacheUpdate),
 				new SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator());
@@ -106,7 +108,7 @@ public class ResponseCacheManager {
 		final CachedResponseMetadata metadata = new CachedResponseMetadata(response.getHeaders().getVary());
 		final String key = resolveKey(exchange, metadata.varyOnHeaders());
 		CachedResponse.Builder cachedResponseBuilder = CachedResponse.create(response.getStatusCode())
-				.headers(response.getHeaders());
+			.headers(response.getHeaders());
 		CachedResponse toProcess = cachedResponseBuilder.build();
 		afterCacheExchangeMutators.forEach(processor -> processor.accept(exchange, toProcess));
 
@@ -152,7 +154,7 @@ public class ResponseCacheManager {
 		saveMetadataInCache(metadataKey, new CachedResponseMetadata(cachedResponse.headers().getVary()));
 
 		return response
-				.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
+			.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
 	}
 
 	private CachedResponseMetadata retrieveMetadata(String metadataKey) {

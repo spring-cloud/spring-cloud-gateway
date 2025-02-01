@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -79,7 +80,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 	/* for testing */
 	static String convertHttpToWs(String scheme) {
-		scheme = scheme.toLowerCase();
+		scheme = scheme.toLowerCase(Locale.ROOT);
 		return "http".equals(scheme) ? "ws" : "https".equals(scheme) ? "wss" : scheme;
 	}
 
@@ -142,8 +143,8 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 			headersFilters.add((headers, exchange) -> {
 				HttpHeaders filtered = new HttpHeaders();
-				for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-					if (!entry.getKey().toLowerCase().startsWith("sec-websocket")) {
+				for (Map.Entry<String, List<String>> entry : headers.headerSet()) {
+					if (!entry.getKey().toLowerCase(Locale.ROOT).startsWith("sec-websocket")) {
 						filtered.addAll(entry.getKey(), entry.getValue());
 					}
 				}
@@ -157,7 +158,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	static void changeSchemeIfIsWebSocketUpgrade(ServerWebExchange exchange) {
 		// Check the Upgrade
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		String scheme = requestUrl.getScheme().toLowerCase();
+		String scheme = requestUrl.getScheme().toLowerCase(Locale.ROOT);
 		String upgrade = exchange.getRequest().getHeaders().getUpgrade();
 		// change the scheme if the socket client send a "http" or "https"
 		if ("WebSocket".equalsIgnoreCase(upgrade) && ("http".equals(scheme) || "https".equals(scheme))) {
@@ -244,28 +245,32 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 				@Override
 				public Mono<Void> handle(WebSocketSession proxySession) {
-					Mono<Void> serverClose = proxySession.closeStatus().filter(__ -> session.isOpen())
-							.map(this::adaptCloseStatus).flatMap(session::close);
-					Mono<Void> proxyClose = session.closeStatus().filter(__ -> proxySession.isOpen())
-							.map(this::adaptCloseStatus).flatMap(proxySession::close);
+					Mono<Void> serverClose = proxySession.closeStatus()
+						.filter(__ -> session.isOpen())
+						.map(this::adaptCloseStatus)
+						.flatMap(session::close);
+					Mono<Void> proxyClose = session.closeStatus()
+						.filter(__ -> proxySession.isOpen())
+						.map(this::adaptCloseStatus)
+						.flatMap(proxySession::close);
 					// Use retain() for Reactor Netty
 					Mono<Void> proxySessionSend = proxySession
-							.send(session.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
-								if (log.isTraceEnabled()) {
-									log.trace("proxySession(send from client): " + proxySession.getId()
-											+ ", corresponding session:" + session.getId() + ", packet: "
-											+ webSocketMessage.getPayloadAsText());
-								}
-							}));
+						.send(session.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+							if (log.isTraceEnabled()) {
+								log.trace("proxySession(send from client): " + proxySession.getId()
+										+ ", corresponding session:" + session.getId() + ", packet: "
+										+ webSocketMessage.getPayloadAsText());
+							}
+						}));
 					// .log("proxySessionSend", Level.FINE);
-					Mono<Void> serverSessionSend = session.send(
-							proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
-								if (log.isTraceEnabled()) {
-									log.trace("session(send from backend): " + session.getId()
-											+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
-											+ webSocketMessage.getPayloadAsText());
-								}
-							}));
+					Mono<Void> serverSessionSend = session
+						.send(proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
+							if (log.isTraceEnabled()) {
+								log.trace("session(send from backend): " + session.getId()
+										+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
+										+ webSocketMessage.getPayloadAsText());
+							}
+						}));
 					// .log("sessionSend", Level.FINE);
 					// Ensure closeStatus from one propagates to the other
 					Mono.when(serverClose, proxyClose).subscribe();

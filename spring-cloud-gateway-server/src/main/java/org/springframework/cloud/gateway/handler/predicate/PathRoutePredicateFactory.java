@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
@@ -90,9 +89,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
-				PathContainer path = (PathContainer) exchange.getAttributes().computeIfAbsent(
-						GATEWAY_PREDICATE_PATH_CONTAINER_ATTR,
-						s -> parsePath(exchange.getRequest().getURI().getRawPath()));
+				PathContainer path = (PathContainer) exchange.getAttributes()
+					.computeIfAbsent(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR,
+							s -> parsePath(exchange.getRequest().getURI().getRawPath()));
 
 				PathPattern match = null;
 				for (int i = 0; i < pathPatterns.size(); i++) {
@@ -134,7 +133,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		};
 	}
 
-	@Validated
 	public static class Config {
 
 		private List<String> patterns = new ArrayList<>();
@@ -179,7 +177,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("patterns", patterns)
-					.append(MATCH_TRAILING_SLASH, matchTrailingSlash).toString();
+				.append(MATCH_TRAILING_SLASH, matchTrailingSlash)
+				.toString();
 		}
 
 	}

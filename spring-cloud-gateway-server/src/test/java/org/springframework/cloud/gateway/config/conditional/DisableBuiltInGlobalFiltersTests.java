@@ -49,7 +49,7 @@ public class DisableBuiltInGlobalFiltersTests {
 
 		@Test
 		public void shouldInjectBuiltInFilters() {
-			assertThat(globalFilters).hasSizeGreaterThanOrEqualTo(10);
+			assertThat(globalFilters).hasSizeGreaterThanOrEqualTo(12);
 		}
 
 	}
@@ -68,7 +68,7 @@ public class DisableBuiltInGlobalFiltersTests {
 		public void shouldInjectOnlyEnabledBuiltInFilters() {
 			assertThat(globalFilters).hasSizeGreaterThan(0);
 			assertThat(globalFilters).allSatisfy(filter -> assertThat(filter)
-					.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
+				.isNotInstanceOfAny(RemoveCachedBodyFilter.class, RouteToRequestUrlFilter.class));
 		}
 
 	}
@@ -86,6 +86,8 @@ public class DisableBuiltInGlobalFiltersTests {
 					"spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled=false",
 					"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
 					"spring.cloud.gateway.global-filter.load-balancer-service-instance-cookie.enabled=false",
+					"spring.cloud.gateway.global-filter.function-routing.enabled=false",
+					"spring.cloud.gateway.global-filter.stream-routing.enabled=false",
 					"spring.cloud.gateway.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public class DisableAllGlobalFiltersByProperty {

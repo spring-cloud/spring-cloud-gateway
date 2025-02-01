@@ -108,7 +108,7 @@ public class WeightCalculatorWebFilterTests {
 		filter.setRandomSupplier(random);
 
 		MockServerWebExchange exchange = MockServerWebExchange
-				.from(MockServerHttpRequest.get("http://localhost").build());
+			.from(MockServerHttpRequest.get("http://localhost").build());
 
 		WebFilterChain filterChain = mock(WebFilterChain.class);
 		filter.filter(exchange, filterChain);

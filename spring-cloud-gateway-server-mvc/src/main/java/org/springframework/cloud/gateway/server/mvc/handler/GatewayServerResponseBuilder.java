@@ -173,30 +173,43 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 
 	@Override
 	public ServerResponse body(Object body) {
-		return GatewayEntityResponseBuilder.fromObject(body).status(this.statusCode)
-				.headers(headers -> headers.putAll(this.headers)).cookies(cookies -> cookies.addAll(this.cookies))
-				.build();
+		return GatewayEntityResponseBuilder.fromObject(body)
+			.status(this.statusCode)
+			.headers(headers -> headers.putAll(this.headers))
+			.cookies(cookies -> cookies.addAll(this.cookies))
+			.build();
 	}
 
 	@Override
 	public <T> ServerResponse body(T body, ParameterizedTypeReference<T> bodyType) {
-		return GatewayEntityResponseBuilder.fromObject(body, bodyType).status(this.statusCode)
-				.headers(headers -> headers.putAll(this.headers)).cookies(cookies -> cookies.addAll(this.cookies))
-				.build();
+		return GatewayEntityResponseBuilder.fromObject(body, bodyType)
+			.status(this.statusCode)
+			.headers(headers -> headers.putAll(this.headers))
+			.cookies(cookies -> cookies.addAll(this.cookies))
+			.build();
 	}
 
 	@Override
 	public ServerResponse render(String name, Object... modelAttributes) {
 		return new GatewayRenderingResponseBuilder(name).status(this.statusCode)
-				.headers(headers -> headers.putAll(this.headers)).cookies(cookies -> cookies.addAll(this.cookies))
-				.modelAttributes(modelAttributes).build();
+			.headers(headers -> headers.putAll(this.headers))
+			.cookies(cookies -> cookies.addAll(this.cookies))
+			.modelAttributes(modelAttributes)
+			.build();
 	}
 
 	@Override
 	public ServerResponse render(String name, Map<String, ?> model) {
 		return new GatewayRenderingResponseBuilder(name).status(this.statusCode)
-				.headers(headers -> headers.putAll(this.headers)).cookies(cookies -> cookies.addAll(this.cookies))
-				.modelAttributes(model).build();
+			.headers(headers -> headers.putAll(this.headers))
+			.cookies(cookies -> cookies.addAll(this.cookies))
+			.modelAttributes(model)
+			.build();
+	}
+
+	@Override
+	public ServerResponse stream(Consumer<ServerResponse.StreamBuilder> streamConsumer) {
+		return GatewayStreamingServerResponse.create(this.statusCode, this.headers, this.cookies, streamConsumer, null);
 	}
 
 	private static class WriteFunctionResponse extends AbstractGatewayServerResponse {

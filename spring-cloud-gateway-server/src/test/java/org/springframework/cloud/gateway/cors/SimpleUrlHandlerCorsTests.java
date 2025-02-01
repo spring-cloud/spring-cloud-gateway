@@ -47,28 +47,40 @@ public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
 
 	@Test
 	public void testPreFlightCorsRequestNotHandledByGW() {
-		ResponseEntity<String> response = webClient.options().uri("/abc/123/function").header("Origin", "domain.com")
-				.header("Access-Control-Request-Method", "GET").retrieve().toEntity(String.class).block();
+		ResponseEntity<String> response = webClient.options()
+			.uri("/abc/123/function")
+			.header("Origin", "domain.com")
+			.header("Access-Control-Request-Method", "GET")
+			.retrieve()
+			.toEntity(String.class)
+			.block();
 		HttpHeaders asHttpHeaders = response.getHeaders();
 		// pre-flight request shouldn't return the response body
 		assertThat(response.getBody()).isNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
-				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+			.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+			.isEqualTo("*");
 		assertThat(asHttpHeaders.getAccessControlAllowMethods())
-				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
-				.isEqualTo(List.of(HttpMethod.GET));
+			.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
+			.isEqualTo(List.of(HttpMethod.GET));
 		assertThat(response.getStatusCode()).as("Pre Flight call failed.").isEqualTo(HttpStatus.OK);
 	}
 
 	@Test
 	public void testCorsRequestNotHandledByGW() {
-		ResponseEntity<String> responseEntity = webClient.get().uri("/abc/123/function").header("Origin", "domain.com")
-				.header(HttpHeaders.HOST, "www.path.org").retrieve()
-				.onStatus(HttpStatusCode::isError, t -> Mono.empty()).toEntity(String.class).block();
+		ResponseEntity<String> responseEntity = webClient.get()
+			.uri("/abc/123/function")
+			.header("Origin", "domain.com")
+			.header(HttpHeaders.HOST, "www.path.org")
+			.retrieve()
+			.onStatus(HttpStatusCode::isError, t -> Mono.empty())
+			.toEntity(String.class)
+			.block();
 		HttpHeaders asHttpHeaders = responseEntity.getHeaders();
 		assertThat(responseEntity.getBody()).isNotNull();
 		assertThat(asHttpHeaders.getAccessControlAllowOrigin())
-				.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).isEqualTo("*");
+			.as("Missing header value in response: " + HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+			.isEqualTo("*");
 		assertThat(responseEntity.getStatusCode()).as("CORS request failed.").isEqualTo(HttpStatus.NOT_FOUND);
 	}
 

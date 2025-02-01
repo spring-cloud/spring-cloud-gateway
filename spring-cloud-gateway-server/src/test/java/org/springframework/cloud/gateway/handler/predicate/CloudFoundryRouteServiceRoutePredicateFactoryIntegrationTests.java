@@ -45,26 +45,42 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests exten
 
 	@Test
 	public void predicateWorkWithProperties() {
-		testClient.get().uri("/").header("Host", "props.routeservice.example.com")
-				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
-				.header("X-CF-Proxy-Signature", "foo").header("X-CF-Proxy-Metadata", "bar").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+		testClient.get()
+			.uri("/")
+			.header("Host", "props.routeservice.example.com")
+			.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
+			.header("X-CF-Proxy-Signature", "foo")
+			.header("X-CF-Proxy-Metadata", "bar")
+			.exchange()
+			.expectBody(JsonNode.class)
+			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@Test
 	public void predicateWillNotWorkUnlessHeadersAreEnough() {
-		testClient.get().uri("/").header("Host", "props.routeservice.example.com")
-				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
-				.header("X-CF-Proxy-Metadata", "bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+		testClient.get()
+			.uri("/")
+			.header("Host", "props.routeservice.example.com")
+			.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
+			.header("X-CF-Proxy-Metadata", "bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
 	@Test
 	public void predicateWorkWithDsl() {
-		testClient.get().uri("/").header("Host", "dsl.routeservice.example.com")
-				.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
-				.header("X-CF-Proxy-Signature", "foo").header("X-CF-Proxy-Metadata", "bar").exchange()
-				.expectBody(JsonNode.class).consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+		testClient.get()
+			.uri("/")
+			.header("Host", "dsl.routeservice.example.com")
+			.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
+			.header("X-CF-Proxy-Signature", "foo")
+			.header("X-CF-Proxy-Metadata", "bar")
+			.exchange()
+			.expectBody(JsonNode.class)
+			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
 	}
 
 	@EnableAutoConfiguration
@@ -75,9 +91,12 @@ public class CloudFoundryRouteServiceRoutePredicateFactoryIntegrationTests exten
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route(r -> r.cloudFoundryRouteService().and().header("Host", "dsl.routeservice.example.com")
-							.filters(f -> f.requestHeaderToRequestUri("X-CF-Forwarded-Url")).uri("https://example.com"))
-					.build();
+				.route(r -> r.cloudFoundryRouteService()
+					.and()
+					.header("Host", "dsl.routeservice.example.com")
+					.filters(f -> f.requestHeaderToRequestUri("X-CF-Forwarded-Url"))
+					.uri("https://example.com"))
+				.build();
 		}
 
 	}

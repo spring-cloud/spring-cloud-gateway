@@ -92,6 +92,12 @@ public abstract class AfterFilterFunctions {
 		}
 	}
 
+	public static <T, R> BiFunction<ServerRequest, ServerResponse, ServerResponse> modifyResponseBody(Class<T> inClass,
+			Class<R> outClass, String newContentType,
+			BodyFilterFunctions.RewriteResponseFunction<T, R> rewriteFunction) {
+		return BodyFilterFunctions.modifyResponseBody(inClass, outClass, newContentType, rewriteFunction);
+	}
+
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeResponseHeader(String name) {
 		return (request, response) -> {
 			response.headers().remove(name);
@@ -116,7 +122,8 @@ public abstract class AfterFilterFunctions {
 		return (request, response) -> {
 			response.headers().computeIfPresent(name, (key, values) -> {
 				List<String> rewrittenValues = values.stream()
-						.map(value -> pattern.matcher(value).replaceAll(replacement)).toList();
+					.map(value -> pattern.matcher(value).replaceAll(replacement))
+					.toList();
 				return new ArrayList<>(rewrittenValues);
 			});
 			return response;

@@ -86,8 +86,10 @@ public class TokenRelayFilterFunctionsTests {
 		when(accessToken.getTokenValue()).thenReturn("mytoken");
 
 		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
-				.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS).clientId("myclientid")
-				.tokenUri("mytokenuri").build();
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
 		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
 
 		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(authorizedClient);
@@ -96,6 +98,29 @@ public class TokenRelayFilterFunctionsTests {
 				Collections.emptyList(), "myId");
 		request.setUserPrincipal(authenticationToken);
 
+		filter.filter(ServerRequest.create(request, converters), req -> {
+			assertThat(req.headers().firstHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer mytoken");
+			return null;
+		});
+	}
+
+	@Test
+	public void whenDefaultClientRegistrationIdProvidedAuthorizationHeaderAdded() throws Exception {
+		OAuth2AccessToken accessToken = mock(OAuth2AccessToken.class);
+		when(accessToken.getTokenValue()).thenReturn("mytoken");
+
+		ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("myregistrationid")
+			.authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+			.clientId("myclientid")
+			.tokenUri("mytokenuri")
+			.build();
+		OAuth2AuthorizedClient authorizedClient = new OAuth2AuthorizedClient(clientRegistration, "joe", accessToken);
+
+		when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(authorizedClient);
+
+		request.setUserPrincipal(new TestingAuthenticationToken("my", null));
+
+		filter = TokenRelayFilterFunctions.tokenRelay("myId");
 		filter.filter(ServerRequest.create(request, converters), req -> {
 			assertThat(req.headers().firstHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer mytoken");
 			return null;

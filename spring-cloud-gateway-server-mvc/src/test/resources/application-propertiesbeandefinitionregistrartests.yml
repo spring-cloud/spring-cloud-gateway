@@ -34,6 +34,7 @@ spring.cloud.gateway.mvc:
         - HttpbinUriResolver=
         - TokenRelay
         - AddRequestHeader=X-Test,listRoute2
+        - Retry=3,SERVER_ERROR
     - id: listRoute3
       uri: lb://httpbin
       predicates:

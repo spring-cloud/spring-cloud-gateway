@@ -39,11 +39,18 @@ public class RemoveRequestHeaderGatewayFilterFactoryTests extends BaseWebClientT
 
 	@Test
 	public void removeRequestHeaderFilterWorks() {
-		testClient.get().uri("/headers").header("Host", "www.removerequestheader.org").header("X-Request-Foo", "Bar")
-				.exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(result -> {
-					Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-					assertThat(headers).doesNotContainKey("X-Request-Foo");
-				});
+		testClient.get()
+			.uri("/headers")
+			.header("Host", "www.removerequestheader.org")
+			.header("X-Request-Foo", "Bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
+				assertThat(headers).doesNotContainKey("X-Request-Foo");
+			});
 	}
 
 	@Test

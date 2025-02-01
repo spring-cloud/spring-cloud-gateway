@@ -150,7 +150,7 @@ public class StatusAssertions {
 	public TestRestClient.ResponseSpec reasonEquals(String reason) {
 		String actual = getReasonPhrase(this.exchangeResult.getStatus());
 		this.exchangeResult
-				.assertWithDiagnostics(() -> AssertionErrors.assertEquals("Response status reason", reason, actual));
+			.assertWithDiagnostics(() -> AssertionErrors.assertEquals("Response status reason", reason, actual));
 		return this.responseSpec;
 	}
 

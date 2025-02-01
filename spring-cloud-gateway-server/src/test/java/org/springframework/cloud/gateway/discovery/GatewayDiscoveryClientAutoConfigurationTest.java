@@ -41,7 +41,8 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final SimpleEvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
-			.withInstanceMethods().build();
+		.withInstanceMethods()
+		.build();
 
 	private static final FilterDefinition DEFAULT_FILTER = GatewayDiscoveryClientAutoConfiguration.initFilters().get(0);
 
@@ -87,7 +88,7 @@ public class GatewayDiscoveryClientAutoConfigurationTest {
 
 	private String evaluateExpression(String expression) {
 		return Objects
-				.requireNonNull(PARSER.parseExpression(expression).getValue(CONTEXT, serviceInstance, String.class));
+			.requireNonNull(PARSER.parseExpression(expression).getValue(CONTEXT, serviceInstance, String.class));
 	}
 
 }

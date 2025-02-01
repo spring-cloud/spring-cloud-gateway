@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -50,7 +55,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void noQueryParamWorks(CapturedOutput output) {
-		this.testClient.get()
+		testClient.get()
 			.uri("/get")
 			.exchange()
 			.expectStatus()
@@ -62,7 +67,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void queryParamWorks() {
-		this.testClient.get()
+		testClient.get()
 			.uri("/get?foo=bar")
 			.exchange()
 			.expectStatus()
@@ -73,7 +78,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void emptyQueryParamWorks(CapturedOutput output) {
-		this.testClient.get()
+		testClient.get()
 			.uri("/get?foo")
 			.exchange()
 			.expectStatus()
@@ -92,6 +97,31 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
 	}
 
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setParam("myparam");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -103,8 +133,7 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-				.route("foo_query_param",
-						r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(this.uri))
+				.route("foo_query_param", r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri))
 				.build();
 		}
 

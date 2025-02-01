@@ -111,13 +111,14 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getResponse().setStatusCode(HttpStatus.OK);
-		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
-				Route.async().id("myroute").predicate(ex -> true).uri("http://localhost").build());
+		exchange.getAttributes()
+			.put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
+					Route.async().id("myroute").predicate(ex -> true).uri("http://localhost").build());
 
 		when(this.filterChain.filter(exchange)).thenReturn(Mono.empty());
 
 		RequestRateLimiterGatewayFilterFactory factory = this.context
-				.getBean(RequestRateLimiterGatewayFilterFactory.class);
+			.getBean(RequestRateLimiterGatewayFilterFactory.class);
 		if (denyEmptyKey != null) {
 			factory.setDenyEmptyKey(denyEmptyKey);
 		}

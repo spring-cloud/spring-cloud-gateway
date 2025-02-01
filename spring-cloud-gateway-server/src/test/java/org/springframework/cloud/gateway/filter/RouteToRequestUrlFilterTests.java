@@ -92,8 +92,10 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void encodedParameters() {
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]").buildAndExpand().encode()
-				.toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?a=b&c=d[]")
+			.buildAndExpand()
+			.encode()
+			.toUri();
 
 		// prove that it is encoded
 		assertThat(url.getRawQuery()).isEqualTo("a=b&c=d%5B%5D");
@@ -114,8 +116,9 @@ public class RouteToRequestUrlFilterTests {
 	public void partialEncodedParameters() {
 		assumeTrue("partialEncodedParameters ignored for boot 2.2", SpringBootVersion.getVersion().startsWith("2.3."));
 
-		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?key[]=test= key&start=1533108081").build()
-				.toUri();
+		URI url = UriComponentsBuilder.fromUriString("http://localhost/get?key[]=test= key&start=1533108081")
+			.build()
+			.toUri();
 
 		// prove that it is partial encoded
 		assertThat(url.getRawQuery()).isEqualTo("key[]=test=%20key&start=1533108081");
@@ -127,10 +130,12 @@ public class RouteToRequestUrlFilterTests {
 
 		ServerWebExchange webExchange = testFilter(request, "http://myhost");
 		URI uri = webExchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).hasScheme("http").hasHost("myhost")
-				// since https://github.com/joel-costigliola/assertj-core/issues/1699
-				// assertj uses raw query
-				.hasParameter("key[]", "test=%20key").hasParameter("start", "1533108081");
+		assertThat(uri).hasScheme("http")
+			.hasHost("myhost")
+			// since https://github.com/joel-costigliola/assertj-core/issues/1699
+			// assertj uses raw query
+			.hasParameter("key[]", "test=%20key")
+			.hasParameter("start", "1533108081");
 
 		// prove that it is double encoded since partial encoded uri is treated as
 		// unencoded.

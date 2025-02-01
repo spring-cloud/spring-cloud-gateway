@@ -48,6 +48,7 @@ public abstract class RetryFilterFunctions {
 	private RetryFilterFunctions() {
 	}
 
+	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
 		return retry(config -> config.setRetries(retries));
 	}
@@ -58,7 +59,7 @@ public abstract class RetryFilterFunctions {
 		return retry(config);
 	}
 
-	@Shortcut
+	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
@@ -67,7 +68,7 @@ public abstract class RetryFilterFunctions {
 		config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
 		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
 		compositeRetryPolicy
-				.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
+			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
 		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
 		return (request, next) -> retryTemplate.execute(context -> {
 			ServerResponse serverResponse = next.handle(request);

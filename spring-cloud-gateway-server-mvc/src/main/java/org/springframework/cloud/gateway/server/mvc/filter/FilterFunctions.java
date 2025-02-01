@@ -66,6 +66,7 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.addResponseHeader(name, values));
 	}
 
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> dedupeResponseHeader(String name) {
 		return ofResponseProcessor(AfterFilterFunctions.dedupeResponseHeader(name));
 	}
@@ -117,8 +118,8 @@ public interface FilterFunctions {
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
 		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
 
-		return (request, next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString())
-				.build();
+		return (request,
+				next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString()).build();
 	}
 
 	@Shortcut
@@ -162,9 +163,11 @@ public interface FilterFunctions {
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
 			String locationHeaderName, String hostValue, String protocolsRegex) {
-		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(
-				config -> config.setStripVersion(stripVersion).setLocationHeaderName(locationHeaderName)
-						.setHostValue(hostValue).setProtocolsRegex(protocolsRegex)));
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
+				.setLocationHeaderName(locationHeaderName)
+				.setHostValue(hostValue)
+				.setProtocolsRegex(protocolsRegex)));
 	}
 
 	@Shortcut

@@ -68,6 +68,19 @@ public class GatewayProperties {
 	 */
 	private boolean failOnRouteDefinitionError = true;
 
+	/**
+	 * Enables the route filter cache, defaults to false.
+	 */
+	private boolean routeFilterCacheEnabled = false;
+
+	public boolean isRouteFilterCacheEnabled() {
+		return routeFilterCacheEnabled;
+	}
+
+	public void setRouteFilterCacheEnabled(boolean routeFilterCacheEnabled) {
+		this.routeFilterCacheEnabled = routeFilterCacheEnabled;
+	}
+
 	public List<RouteDefinition> getRoutes() {
 		return routes;
 	}
@@ -105,9 +118,12 @@ public class GatewayProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("routes", routes).append("defaultFilters", defaultFilters)
-				.append("streamingMediaTypes", streamingMediaTypes)
-				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).toString();
+		return new ToStringCreator(this).append("routes", routes)
+			.append("defaultFilters", defaultFilters)
+			.append("streamingMediaTypes", streamingMediaTypes)
+			.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+			.append("routeFilterCacheEnabled", routeFilterCacheEnabled)
+			.toString();
 
 	}
 

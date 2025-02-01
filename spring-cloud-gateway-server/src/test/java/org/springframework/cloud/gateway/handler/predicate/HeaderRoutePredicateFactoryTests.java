@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -42,26 +47,45 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void headerRouteWorks() {
-		testClient.get().uri("/get").header("Foo", "bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "header_test");
+		testClient.get()
+			.uri("/get")
+			.header("Foo", "bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "header_test");
 	}
 
 	@Test
 	@SuppressWarnings("Duplicates")
 	public void headerRouteIgnoredWhenHeaderMissing() {
-		testClient.get().uri("/get")
-				// no headers set. Test used to throw a null pointer exception.
-				.exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+		testClient.get()
+			.uri("/get")
+			// no headers set. Test used to throw a null pointer exception.
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 	}
 
 	@Test
 	public void headerExistsWorksWithDsl() {
-		testClient.get().uri("/get").header("X-Foo", "bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
+		testClient.get()
+			.uri("/get")
+			.header("X-Foo", "bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "header_exists_dsl");
 	}
 
 	@Test
@@ -71,6 +95,45 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setRegexp("myregexp");
 		Predicate predicate = new HeaderRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("Header: myheader regexp=myregexp");
+	}
+
+	@Test
+	public void headerRouteHandlesCommaSeparatedValues() {
+		testClient.get()
+			.uri("/get")
+			.header("X-Example-Header", "value1, value2 ,exact_match,value3")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "header_test_comma_separated");
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setHeader("myheader");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 	@EnableAutoConfiguration
@@ -84,8 +147,12 @@ public class HeaderRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
+				.route("header_exists_dsl", r -> r.header("X-Foo").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.route("header_test_comma_separated",
+						r -> r.header("X-Example-Header", "exact_match")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.build();
 		}
 
 	}

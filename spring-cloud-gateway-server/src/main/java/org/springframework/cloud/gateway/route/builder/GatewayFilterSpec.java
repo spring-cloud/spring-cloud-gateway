@@ -184,7 +184,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec addRequestHeader(String headerName, String headerValue) {
 		return filter(getBean(AddRequestHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setName(headerName).setValue(headerValue)));
+			.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	/**
@@ -195,8 +195,10 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec addRequestHeadersIfNotPresent(String... headers) {
 		return filter(getBean(AddRequestHeadersIfNotPresentGatewayFilterFactory.class).apply(c -> {
-			KeyValue[] values = Arrays.stream(headers).map(header -> header.split(":"))
-					.map(parts -> new KeyValue(parts[0], parts[1])).toArray(size -> new KeyValue[size]);
+			KeyValue[] values = Arrays.stream(headers)
+				.map(header -> header.split(":"))
+				.map(parts -> new KeyValue(parts[0], parts[1]))
+				.toArray(size -> new KeyValue[size]);
 			c.setKeyValues(values);
 		}));
 	}
@@ -220,7 +222,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setName(headerName).setValue(headerValue)));
+			.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	/**
@@ -236,7 +238,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec localResponseCache(Duration timeToLive, DataSize size) {
 		return filter(getBean(LocalResponseCacheGatewayFilterFactory.class)
-				.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
+			.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
 	}
 
 	/**
@@ -248,7 +250,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec dedupeResponseHeader(String headerName, String strategy) {
 		return filter(getBean(DedupeResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
+			.apply(c -> c.setStrategy(Strategy.valueOf(strategy)).setName(headerName)));
 	}
 
 	public GatewayFilterSpec circuitBreaker(Consumer<SpringCloudCircuitBreakerFilterFactory.Config> configConsumer) {
@@ -272,7 +274,9 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec jsonToGRPC(String protoDescriptor, String protoFile, String service, String method) {
 		return filter(getBean(JsonToGrpcGatewayFilterFactory.class).apply(c -> c.setMethod(method)
-				.setProtoDescriptor(protoDescriptor).setProtoFile(protoFile).setService(service)));
+			.setProtoDescriptor(protoDescriptor)
+			.setProtoFile(protoFile)
+			.setService(service)));
 	}
 
 	/**
@@ -283,7 +287,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec mapRequestHeader(String fromHeader, String toHeader) {
 		return filter(getBean(MapRequestHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setFromHeader(fromHeader).setToHeader(toHeader)));
+			.apply(c -> c.setFromHeader(fromHeader).setToHeader(toHeader)));
 	}
 
 	/**
@@ -299,7 +303,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass,
 			RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 
 	/**
@@ -316,7 +320,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
 			ParameterizedTypeReference<R> outClass, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 
 	/**
@@ -332,7 +336,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType,
 			RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
 
 	/**
@@ -350,7 +354,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
 			ParameterizedTypeReference<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
 
 	/**
@@ -400,7 +404,7 @@ public class GatewayFilterSpec extends UriSpec {
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass,
 			RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction)));
 	}
 
 	/**
@@ -418,8 +422,8 @@ public class GatewayFilterSpec extends UriSpec {
 	// TODO: setup custom spec
 	public <T, R> GatewayFilterSpec modifyResponseBody(Class<T> inClass, Class<R> outClass, String newContentType,
 			RewriteFunction<T, R> rewriteFunction) {
-		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class).apply(
-				c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setNewContentType(newContentType)));
+		return filter(getBean(ModifyResponseBodyGatewayFilterFactory.class)
+			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setNewContentType(newContentType)));
 	}
 
 	/**
@@ -603,7 +607,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec removeJsonAttributes(boolean deleteRecursively, String... attributes) {
 		return filter(getBean(RemoveJsonAttributesResponseBodyGatewayFilterFactory.class)
-				.apply(c -> c.setFieldList(Arrays.asList(attributes)).setDeleteRecursively(deleteRecursively)));
+			.apply(c -> c.setFieldList(Arrays.asList(attributes)).setDeleteRecursively(deleteRecursively)));
 
 	}
 
@@ -665,7 +669,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec rewritePath(String regex, String replacement) {
 		return filter(getBean(RewritePathGatewayFilterFactory.class)
-				.apply(c -> c.setRegexp(regex).setReplacement(replacement)));
+			.apply(c -> c.setRegexp(regex).setReplacement(replacement)));
 	}
 
 	/**
@@ -741,7 +745,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec setRequestHeader(String headerName, String headerValue) {
 		return filter(getBean(SetRequestHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setName(headerName).setValue(headerValue)));
+			.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	/**
@@ -753,7 +757,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec setResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(SetResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setName(headerName).setValue(headerValue)));
+			.apply(c -> c.setName(headerName).setValue(headerValue)));
 	}
 
 	/**
@@ -766,7 +770,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec rewriteResponseHeader(String headerName, String regex, String replacement) {
 		return filter(getBean(RewriteResponseHeaderGatewayFilterFactory.class)
-				.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
+			.apply(c -> c.setReplacement(replacement).setRegexp(regex).setName(headerName)));
 	}
 
 	/**
@@ -781,9 +785,11 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec rewriteLocationResponseHeader(String stripVersionMode, String locationHeaderName,
 			String hostValue, String protocolsRegex) {
-		return filter(getBean(RewriteLocationResponseHeaderGatewayFilterFactory.class).apply(
-				c -> c.setStripVersion(StripVersion.valueOf(stripVersionMode)).setLocationHeaderName(locationHeaderName)
-						.setHostValue(hostValue).setProtocols(protocolsRegex)));
+		return filter(getBean(RewriteLocationResponseHeaderGatewayFilterFactory.class)
+			.apply(c -> c.setStripVersion(StripVersion.valueOf(stripVersionMode))
+				.setLocationHeaderName(locationHeaderName)
+				.setHostValue(hostValue)
+				.setProtocols(protocolsRegex)));
 	}
 
 	/**
@@ -794,7 +800,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec rewriteRequestParameter(String name, String replacement) {
 		return filter(getBean(RewriteRequestParameterGatewayFilterFactory.class)
-				.apply(c -> c.setReplacement(replacement).setName(name)));
+			.apply(c -> c.setReplacement(replacement).setName(name)));
 	}
 
 	/**

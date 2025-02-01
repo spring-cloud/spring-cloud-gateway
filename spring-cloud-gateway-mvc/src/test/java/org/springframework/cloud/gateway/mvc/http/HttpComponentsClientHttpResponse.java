@@ -26,11 +26,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.AbstractClientHttpResponse;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
-final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse {
+final class HttpComponentsClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpResponse response;
 
@@ -42,8 +43,8 @@ final class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse 
 	}
 
 	@Override
-	public int getRawStatusCode() throws IOException {
-		return response.getStatusLine().getStatusCode();
+	public HttpStatusCode getStatusCode() throws IOException {
+		return HttpStatusCode.valueOf(response.getStatusLine().getStatusCode());
 	}
 
 	@Override

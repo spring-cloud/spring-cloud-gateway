@@ -52,7 +52,7 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 			routerFunction.accept(routerFunctionVisitor);
 			if (predicateVisitor.argumentSupplier != null) {
 				ArgumentSuppliedEvent<?> argumentSuppliedEvent = predicateVisitor.argumentSupplier
-						.getArgumentSuppliedEvent();
+					.getArgumentSuppliedEvent();
 				if (predicateVisitor.attributes != null) {
 					argumentSuppliedEvent = new AttributedArugmentSuppliedEvent<>(argumentSuppliedEvent,
 							predicateVisitor.attributes);
