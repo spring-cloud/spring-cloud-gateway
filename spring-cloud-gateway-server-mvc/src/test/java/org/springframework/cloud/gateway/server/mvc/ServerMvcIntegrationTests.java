@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -488,7 +489,7 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void rewritePathPostLocalWorks() {
 		restClient.post()
-			.uri("/baz/post")
+			.uri("/baz/localpost")
 			.bodyValue("hello")
 			.header("Host", "www.rewritepathpostlocal.org")
 			.exchange()
@@ -640,8 +641,21 @@ public class ServerMvcIntegrationTests {
 	private void assertMultipartData(Map responseBody) {
 		Map<String, Object> files = (Map<String, Object>) responseBody.get("files");
 		assertThat(files).containsKey("imgpart");
-		String file = (String) files.get("imgpart");
-		assertThat(file).startsWith("data:").contains(";base64,");
+		Object imgpart = files.get("imgpart");
+		if (imgpart instanceof List l) {
+			String file = (String) l.get(0);
+			assertThat(isPNG(file.getBytes()));
+		}
+		else {
+			String file = (String) imgpart;
+			assertThat(file).startsWith("data:").contains(";base64,");
+		}
+	}
+
+	private static boolean isPNG(byte[] bytes) {
+		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
+		return Arrays.equals(pngSignature, header);
 	}
 
 	@Test
@@ -1288,8 +1302,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testform")
 					.POST("/post", host("**.testform.org"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(prefixPath("/test"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Test", "form"))
 					.build();
 			// @formatter:on
