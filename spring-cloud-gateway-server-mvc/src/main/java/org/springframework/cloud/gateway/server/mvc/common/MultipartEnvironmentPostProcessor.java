@@ -37,7 +37,7 @@ public class MultipartEnvironmentPostProcessor implements EnvironmentPostProcess
 			// no user set property, set it to false.
 			MapPropertySource propertySource = new MapPropertySource(MULTIPART_PROPERTY_SOURCE_NAME,
 					Map.of(MULTIPART_ENABLED_PROPERTY, Boolean.FALSE));
-			// environment.getPropertySources().addFirst(propertySource);
+			environment.getPropertySources().addFirst(propertySource);
 		}
 	}
 
