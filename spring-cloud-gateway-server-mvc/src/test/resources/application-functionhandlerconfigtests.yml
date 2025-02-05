@@ -10,7 +10,11 @@ spring.cloud.gateway.mvc:
       predicates:
         - Path=/templatedfunction/{fnName}
         - Method=POST
-
+    testsupplierfunction:
+      uri: fn:hello
+      predicates:
+        - Path=/supplierfunction
+        - Method=GET
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE

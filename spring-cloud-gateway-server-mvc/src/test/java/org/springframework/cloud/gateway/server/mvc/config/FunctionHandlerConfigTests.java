@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +64,18 @@ public class FunctionHandlerConfigTests {
 			.isEqualTo("HELLO");
 	}
 
+	@Test
+	public void testSupplierFunctionWorks() {
+		restClient.get()
+			.uri("/supplierfunction")
+			.accept(MediaType.TEXT_PLAIN)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("hello");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
@@ -70,6 +83,11 @@ public class FunctionHandlerConfigTests {
 		@Bean
 		Function<String, String> upper() {
 			return s -> s.toUpperCase(Locale.ROOT);
+		}
+
+		@Bean
+		Supplier<String> hello() {
+			return () -> "hello";
 		}
 
 	}
