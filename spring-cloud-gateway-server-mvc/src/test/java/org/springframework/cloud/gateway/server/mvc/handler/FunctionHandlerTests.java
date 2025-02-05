@@ -20,7 +20,6 @@ import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +67,6 @@ public class FunctionHandlerTests {
 			.isEqualTo("HELLO");
 	}
 
-	@Disabled
 	@Test
 	public void testSupplierFunctionWorks() {
 		restClient.get()
@@ -105,7 +103,7 @@ public class FunctionHandlerTests {
 					.POST("/templatedfunction/{fnName}", fn("{fnName}"))
 					.build())
 				.and(route("testsupplierfunction")
-					.POST("/supplierfunction", fn("hello"))
+					.GET("/supplierfunction", fn("hello"))
 					.build());
 			// @formatter:on
 		}
