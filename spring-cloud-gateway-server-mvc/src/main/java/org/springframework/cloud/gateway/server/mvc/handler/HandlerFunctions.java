@@ -61,7 +61,7 @@ public abstract class HandlerFunctions {
 			FunctionInvocationWrapper function = functionCatalog.lookup(expandedFunctionName,
 					request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
 			if (function != null) {
-				Object body = request.body(function.getRawInputType());
+				Object body = function.isSupplier() ? null : request.body(function.getRawInputType());
 				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList());
 			}
 			return ServerResponse.notFound().build();

@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,19 @@ public class FunctionHandlerTests {
 			.isEqualTo("HELLO");
 	}
 
+	@Disabled
+	@Test
+	public void testSupplierFunctionWorks() {
+		restClient.get()
+			.uri("/supplierfunction")
+			.accept(MediaType.TEXT_PLAIN)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("hello");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	protected static class TestConfiguration {
@@ -76,6 +91,11 @@ public class FunctionHandlerTests {
 		}
 
 		@Bean
+		Supplier<String> hello() {
+			return () -> "hello";
+		}
+
+		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsSimpleFunction() {
 			// @formatter:off
 			return route("testsimplefunction")
@@ -83,6 +103,9 @@ public class FunctionHandlerTests {
 					.build()
 				.and(route("testtemplatedfunction")
 					.POST("/templatedfunction/{fnName}", fn("{fnName}"))
+					.build())
+				.and(route("testsupplierfunction")
+					.POST("/supplierfunction", fn("hello"))
 					.build());
 			// @formatter:on
 		}
