@@ -206,6 +206,18 @@ public class GatewaySampleApplicationTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	public void doubleEncoding() {
+		webClient.post().uri("/post?query=key==%27abc%27").header("Host", "www.readbody.org").bodyValue("hi").exchange()
+				.expectStatus().isOk().expectHeader().valueEquals("X-TestHeader", "read_body_pred")
+				.expectBody(Map.class).consumeWith(result -> {
+					assertThat(result.getResponseBody()).containsEntry("data", "hi");
+					assertThat(result.getResponseBody()).containsKey("url");
+					assertThat((String) result.getResponseBody().get("url")).endsWith("/post?query=key==%27abc%27");
+				});
+	}
+
+	@Test
 	public void complexPredicate() {
 		webClient.get()
 			.uri("/anything/png")
