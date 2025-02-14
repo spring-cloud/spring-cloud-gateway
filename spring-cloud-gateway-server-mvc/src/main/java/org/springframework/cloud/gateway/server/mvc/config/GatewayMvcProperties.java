@@ -29,6 +29,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.MediaType;
+import org.springframework.util.unit.DataSize;
 
 @ConfigurationProperties(GatewayMvcProperties.PREFIX)
 public class GatewayMvcProperties {
@@ -66,6 +67,16 @@ public class GatewayMvcProperties {
 	 */
 	private int streamingBufferSize = 16384;
 
+	/**
+	 * Temp file buffer for request.
+	 */
+	private boolean fileBufferEnabled = true;
+
+	/**
+	 * The size threshold which a request will be written to disk.
+	 */
+	private DataSize fileBufferSizeThreshold =  DataSize.ofMegabytes(1L);
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -102,6 +113,22 @@ public class GatewayMvcProperties {
 		this.streamingBufferSize = streamingBufferSize;
 	}
 
+	public boolean isFileBufferEnabled() {
+		return fileBufferEnabled;
+	}
+
+	public void setFileBufferEnabled(boolean fileBufferEnabled) {
+		this.fileBufferEnabled = fileBufferEnabled;
+	}
+
+	public DataSize getFileBufferSizeThreshold() {
+		return fileBufferSizeThreshold;
+	}
+
+	public void setFileBufferSizeThreshold(DataSize fileBufferSizeThreshold) {
+		this.fileBufferSizeThreshold = fileBufferSizeThreshold;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("httpClient", httpClient)
@@ -109,6 +136,8 @@ public class GatewayMvcProperties {
 			.append("routesMap", routesMap)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
+			.append("fileBufferEnabled", fileBufferEnabled)
+			.append("fileBufferSizeThreshold", fileBufferSizeThreshold)
 			.toString();
 	}
 
