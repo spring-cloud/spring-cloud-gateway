@@ -21,15 +21,25 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
 
+import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
+import org.springframework.cloud.stream.function.StreamOperations;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.Assert;
+import org.springframework.util.MimeType;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
+import static org.springframework.cloud.gateway.server.mvc.handler.FunctionHandlerRequestProcessingHelper.processRequest;
 
 public abstract class HandlerFunctions {
 
@@ -37,6 +47,51 @@ public abstract class HandlerFunctions {
 
 	}
 
+	// for properties
+	public static HandlerFunction<ServerResponse> fn(RouteProperties routeProperties) {
+		// fn:fnName
+		return fn(routeProperties.getUri().getSchemeSpecificPart());
+	}
+
+	public static HandlerFunction<ServerResponse> fn(String functionName) {
+		Assert.hasText(functionName, "'functionName' must not be empty");
+		return request -> {
+			String expandedFunctionName = MvcUtils.expand(request, functionName);
+			FunctionCatalog functionCatalog = MvcUtils.getApplicationContext(request).getBean(FunctionCatalog.class);
+			FunctionInvocationWrapper function = functionCatalog.lookup(expandedFunctionName,
+					request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			if (function != null) {
+				Object body = function.isSupplier() ? null : request.body(function.getRawInputType());
+				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList());
+			}
+			return ServerResponse.notFound().build();
+		};
+	}
+
+	// for properties
+	public static HandlerFunction<ServerResponse> stream(RouteProperties routeProperties) {
+		// stream:bindingName
+		return stream(routeProperties.getUri().getSchemeSpecificPart());
+	}
+
+	public static HandlerFunction<ServerResponse> stream(String bindingName) {
+		Assert.hasText(bindingName, "'bindingName' must not be empty");
+		// TODO: validate bindingName
+		return request -> {
+			String expandedBindingName = MvcUtils.expand(request, bindingName);
+			StreamOperations streamOps = MvcUtils.getApplicationContext(request).getBean(StreamOperations.class);
+			byte[] body = request.body(byte[].class);
+			MessageHeaders messageHeaders = FunctionHandlerHeaderUtils
+				.fromHttp(FunctionHandlerHeaderUtils.sanitize(request.headers().asHttpHeaders()));
+			boolean send = streamOps.send(expandedBindingName, MessageBuilder.createMessage(body, messageHeaders));
+			if (send) {
+				return ServerResponse.accepted().build();
+			}
+			return ServerResponse.badRequest().build();
+		};
+	}
+
+	// for properties
 	public static HandlerFunction<ServerResponse> forward(RouteProperties routeProperties) {
 		return forward(routeProperties.getUri().getPath());
 	}
