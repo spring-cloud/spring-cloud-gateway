@@ -374,6 +374,9 @@ public abstract class GatewayRequestPredicates {
 		@Override
 		public boolean test(ServerRequest request) {
 			String host = request.headers().firstHeader(HttpHeaders.HOST);
+			if (host == null) {
+				host = "";
+			}
 			PathContainer pathContainer = PathContainer.parsePath(host, PathContainer.Options.MESSAGE_ROUTE);
 			PathPattern.PathMatchInfo info = this.pattern.matchAndExtract(pathContainer);
 			traceMatch("Pattern", this.pattern.getPatternString(), host, info != null);
