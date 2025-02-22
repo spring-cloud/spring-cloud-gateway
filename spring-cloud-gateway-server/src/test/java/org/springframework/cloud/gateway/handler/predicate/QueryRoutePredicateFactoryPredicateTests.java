@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.Set;
 import java.util.function.Predicate;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -35,27 +30,29 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
- * Test class for {@link QueryRoutePredicateFactory} for <code>regex</code> parameter.
+ * Test class for {@link QueryRoutePredicateFactory} for <code>predicate</code> parameter.
  *
  * @see QueryRoutePredicateFactory
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @ExtendWith(OutputCaptureExtension.class)
-public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
+public class QueryRoutePredicateFactoryPredicateTests extends BaseWebClientTests {
 
 	@Test
 	public void noQueryParamWorks(CapturedOutput output) {
-		testClient.get()
+		this.testClient.get()
 			.uri("/get")
 			.exchange()
 			.expectStatus()
@@ -66,9 +63,9 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
-	public void queryParamWorks() {
-		testClient.get()
-			.uri("/get?foo=bar")
+	public void queryParamPredicateTrue() {
+		this.testClient.get()
+			.uri("/get?foo=1234567")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -77,8 +74,20 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void queryParamPredicateFalse(CapturedOutput output) {
+		this.testClient.get()
+			.uri("/get?foo=123")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
+		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
+	}
+
+	@Test
 	public void emptyQueryParamWorks(CapturedOutput output) {
-		testClient.get()
+		this.testClient.get()
 			.uri("/get?foo")
 			.exchange()
 			.expectStatus()
@@ -89,37 +98,20 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void testConfig() {
+		Config config = new Config();
+		config.setParam("query_param");
+		Predicate<ServerWebExchange> predicate = new QueryRoutePredicateFactory().apply(config);
+		assertThat(predicate).isInstanceOf(HasConfig.class);
+		assertThat(config).isSameAs(((HasConfig) predicate).getConfig());
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
-		config.setParam("myparam");
-		config.setRegexp("myregexp");
-		Predicate predicate = new QueryRoutePredicateFactory().apply(config);
-		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
-	}
-
-	@Test
-	public void testConfig() {
-		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-			Validator validator = factory.getValidator();
-
-			Config config = new Config();
-			config.setParam("myparam");
-
-			assertThat(validator.validate(config).isEmpty()).isTrue();
-		}
-	}
-
-	@Test
-	public void testConfigNullField() {
-		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
-			Validator validator = factory.getValidator();
-
-			Config config = new Config();
-			Set<ConstraintViolation<Config>> validate = validator.validate(config);
-
-			assertThat(validate.isEmpty()).isFalse();
-			assertThat(validate.size()).isEqualTo(1);
-		}
+		config.setParam("query_param");
+		Predicate<ServerWebExchange> predicate = new QueryRoutePredicateFactory().apply(config);
+		assertThat(predicate.toString()).contains("Query: param=query_param");
 	}
 
 	@EnableAutoConfiguration
@@ -127,14 +119,21 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
 
+		private static final int PARAM_LENGTH = 5;
+
 		@Value("${test.uri}")
 		private String uri;
 
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-				.route("foo_query_param", r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.route("foo_query_param",
+						r -> r.query("foo", queryParamPredicate()).filters(f -> f.prefixPath("/httpbin")).uri(this.uri))
 				.build();
+		}
+
+		private Predicate<String> queryParamPredicate() {
+			return p -> p == null ? false : p.length() > PARAM_LENGTH;
 		}
 
 	}
