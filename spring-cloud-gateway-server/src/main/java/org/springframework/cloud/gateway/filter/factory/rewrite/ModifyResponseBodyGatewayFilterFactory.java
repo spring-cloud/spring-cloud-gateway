@@ -91,7 +91,18 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 		private String newContentType;
 
+		/**
+		 * Deprecated in favour of {@link FluxRewriteFunction} &
+		 * {@link MonoRewriteFunction} Use {@link MonoRewriteFunction} for modifying
+		 * non-streaming response body Use {@link FluxRewriteFunction} for modifying
+		 * streaming response body
+		 */
+		@Deprecated
 		private RewriteFunction rewriteFunction;
+
+		private FluxRewriteFunction fluxRewriteFunction;
+
+		private MonoRewriteFunction monoRewriteFunction;
 
 		public Class getInClass() {
 			return inClass;
@@ -138,15 +149,42 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
+		@Deprecated
 		public RewriteFunction getRewriteFunction() {
 			return rewriteFunction;
 		}
 
+		public <T, R> MonoRewriteFunction<Mono<T>, Mono<R>> getMonoRewriteFunction() {
+			return monoRewriteFunction;
+		}
+
+		public <T, R> FluxRewriteFunction<Flux<T>, Flux<R>> getFluxRewriteFunction() {
+			return fluxRewriteFunction;
+		}
+
+		/**
+		 * Deprecated in favour of {@link Config#setMonoRewriteFunction} &
+		 * {@link Config#setFluxRewriteFunction} Use {@link Config#setMonoRewriteFunction}
+		 * for modifying non-streaming response body Use
+		 * {@link Config#setFluxRewriteFunction} for modifying streaming response body
+		 */
+		@Deprecated
 		public Config setRewriteFunction(RewriteFunction rewriteFunction) {
 			this.rewriteFunction = rewriteFunction;
 			return this;
 		}
 
+		public Config setMonoRewriteFunction(MonoRewriteFunction monoRewriteFunction) {
+			this.monoRewriteFunction = monoRewriteFunction;
+			return this;
+		}
+
+		public Config setFluxRewriteFunction(FluxRewriteFunction fluxRewriteFunction) {
+			this.fluxRewriteFunction = fluxRewriteFunction;
+			return this;
+		}
+
+		@Deprecated
 		public <T, R> Config setRewriteFunction(Class<T> inClass, Class<R> outClass,
 				RewriteFunction<T, R> rewriteFunction) {
 			setInClass(inClass);
@@ -155,6 +193,21 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
+		public <T, R> Config setFluxRewriteFunction(Class<T> inClass, Class<R> outClass,
+				FluxRewriteFunction<T, R> fluxRewriteFunction) {
+			setInClass(inClass);
+			setOutClass(outClass);
+			setFluxRewriteFunction(fluxRewriteFunction);
+			return this;
+		}
+
+		public <T, R> Config setMonoRewriteFunction(Class<T> inClass, Class<R> outClass,
+				MonoRewriteFunction<T, R> monoRewriteFunction) {
+			setInClass(inClass);
+			setOutClass(outClass);
+			setMonoRewriteFunction(monoRewriteFunction);
+			return this;
+		}
 	}
 
 	public class ModifyResponseGatewayFilter implements GatewayFilter, Ordered {
@@ -204,51 +257,99 @@ public class ModifyResponseBodyGatewayFilterFactory
 			this.config = config;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
 			Class inClass = config.getInClass();
 			Class outClass = config.getOutClass();
 
-			String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
+			HttpHeaders httpHeaders = prepareHttpHeaders();
+			ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
+
+			var modifiedBody = extractBody(exchange, clientResponse, inClass);
+			if (config.getRewriteFunction() != null) {
+				// TODO: to be removed with removal of rewriteFunction
+				modifiedBody = modifiedBody
+						.flatMap(originalBody -> config.getRewriteFunction()
+								.apply(exchange, originalBody))
+						.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction()
+								.apply(exchange, null)));
+			}
+			if (config.getMonoRewriteFunction() != null) {
+				modifiedBody = config.getMonoRewriteFunction().apply(exchange,
+						modifiedBody);
+			}
+
+			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody,
+					outClass);
+			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
+					exchange.getResponse().getHeaders());
+			return bodyInserter.insert(outputMessage, new BodyInserterContext())
+					.then(Mono.defer(() -> {
+						Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
+						HttpHeaders headers = getDelegate().getHeaders();
+						if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
+								|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+							messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+						}
+
+						if (StringUtils.hasText(config.newContentType)) {
+							headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
+						}
+
+						// TODO: fail if isStreamingMediaType?
+						return getDelegate().writeWith(messageBody);
+					}));
+		}
+
+		@Override
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Mono<Void> writeAndFlushWith(
+				Publisher<? extends Publisher<? extends DataBuffer>> body) {
+			final var httpHeaders = prepareHttpHeaders();
+			final var fluxRewriteConfig = config.getFluxRewriteFunction();
+			final var publisher = Flux.from(body).flatMapSequential(r -> r);
+			final var clientResponse = prepareClientResponse(publisher, httpHeaders);
+			var modifiedBody = clientResponse.bodyToFlux(config.inClass);
+			if (config.getRewriteFunction() != null) {
+				// TODO: to be removed with removal of rewriteFunction
+				modifiedBody = modifiedBody
+						.flatMap(originalBody -> config.getRewriteFunction()
+								.apply(exchange, originalBody))
+						.switchIfEmpty(Flux.defer(() -> (Flux) config.getRewriteFunction()
+								.apply(exchange, null)));
+			}
+			if (config.getFluxRewriteFunction() != null) {
+				modifiedBody = fluxRewriteConfig.apply(exchange, modifiedBody);
+			}
+			final var bodyInserter = BodyInserters.fromPublisher(modifiedBody,
+					config.outClass);
+			final var outputMessage = new CachedBodyOutputMessage(exchange,
+					exchange.getResponse().getHeaders());
+
+			return bodyInserter.insert(outputMessage, new BodyInserterContext())
+					.then(Mono.defer(() -> {
+						final var messageBody = outputMessage.getBody();
+						HttpHeaders headers = getDelegate().getHeaders();
+						if (StringUtils.hasText(config.newContentType)) {
+							headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
+						}
+						return getDelegate()
+								.writeAndFlushWith(messageBody.map(Flux::just));
+					}));
+		}
+
+		private HttpHeaders prepareHttpHeaders() {
+			String originalResponseContentType = exchange
+					.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
 			HttpHeaders httpHeaders = new HttpHeaders();
 			// explicitly add it in this way instead of
 			// 'httpHeaders.setContentType(originalResponseContentType)'
 			// this will prevent exception in case of using non-standard media
 			// types like "Content-Type: image"
 			httpHeaders.add(HttpHeaders.CONTENT_TYPE, originalResponseContentType);
-
-			ClientResponse clientResponse = prepareClientResponse(body, httpHeaders);
-
-			// TODO: flux or mono
-			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
-				.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-				.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
-
-			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
-			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
-					exchange.getResponse().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
-				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
-				HttpHeaders headers = getDelegate().getHeaders();
-				if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
-					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-				}
-
-				if (StringUtils.hasText(config.newContentType)) {
-					headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
-				}
-
-				// TODO: fail if isStreamingMediaType?
-				return getDelegate().writeWith(messageBody);
-			}));
-		}
-
-		@Override
-		public Mono<Void> writeAndFlushWith(Publisher<? extends Publisher<? extends DataBuffer>> body) {
-			return writeWith(Flux.from(body).flatMapSequential(p -> p));
+			return httpHeaders;
 		}
 
 		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
