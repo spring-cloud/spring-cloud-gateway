@@ -75,7 +75,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
 				HttpHeaders headers = new HttpHeaders();
-				headers.putAll(exchange.getRequest().getHeaders());
+				headers.addAll(exchange.getRequest().getHeaders());
 
 				// the new content type will be computed by bodyInserter
 				// and then set in the request decorator
