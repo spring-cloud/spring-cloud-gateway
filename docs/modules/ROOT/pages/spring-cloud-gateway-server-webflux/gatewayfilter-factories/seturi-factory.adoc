@@ -1,4 +1,4 @@
-[[rewritepath-gatewayfilter-factory]]
+[[seturi-gatewayfilter-factory]]
 = `SetRequestUri` `GatewayFilter` Factory
 
 The `SetRequestUri` `GatewayFilter` factory takes a `uri` parameter.
