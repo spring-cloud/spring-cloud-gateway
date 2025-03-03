@@ -108,6 +108,7 @@ import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
@@ -708,6 +709,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public RequestHeaderToRequestUriGatewayFilterFactory requestHeaderToRequestUriGatewayFilterFactory() {
 		return new RequestHeaderToRequestUriGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public SetRequestUriGatewayFilterFactory setRequestUriGatewayFilterFactory() {
+		return new SetRequestUriGatewayFilterFactory();
 	}
 
 	@Bean
