@@ -42,10 +42,8 @@ public class SetRequestUriGatewayFilterFactoryTests {
 	@Test
 	public void filterChangeRequestUri() {
 		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
-		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-			.header("X-CF-Forwarded-Url", "https://example.com")
-			.build();
+		GatewayFilter filter = factory.apply(c -> c.setName("https://example.com"));
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
@@ -59,29 +57,10 @@ public class SetRequestUriGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void filterDoesNotChangeRequestUriIfHeaderIsAbsent() {
+	public void filterDoesNotChangeRequestUriIfUriIsInvalid() throws Exception {
 		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
-		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
+		GatewayFilter filter = factory.apply(c -> c.setName("invalid_uri"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
-		ServerWebExchange exchange = MockServerWebExchange.from(request);
-		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
-		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);
-		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
-		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
-		filter.filter(exchange, filterChain);
-		ServerWebExchange webExchange = captor.getValue();
-		URI uri = (URI) webExchange.getAttributes().get(GATEWAY_REQUEST_URL_ATTR);
-		assertThat(uri).isNotNull();
-		assertThat(uri.toString()).isEqualTo("http://localhost");
-	}
-
-	@Test
-	public void filterDoesNotChangeRequestUriIfHeaderIsInvalid() throws Exception {
-		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
-		GatewayFilter filter = factory.apply(c -> c.setName("X-CF-Forwarded-Url"));
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-			.header("X-CF-Forwarded-Url", "example")
-			.build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
 		GatewayFilterChain filterChain = mock(GatewayFilterChain.class);

@@ -66,7 +66,7 @@ public class SetRequestUriGatewayFilterFactory
 
 	@Override
 	protected Optional<URI> determineRequestUri(ServerWebExchange exchange, NameConfig config) {
-		String requestUrl = exchange.getRequest().getHeaders().getFirst(config.getName());
+		String requestUrl = config.getName();
 		return Optional.ofNullable(requestUrl).map(url -> {
 			try {
 				URI uri = URI.create(url);
