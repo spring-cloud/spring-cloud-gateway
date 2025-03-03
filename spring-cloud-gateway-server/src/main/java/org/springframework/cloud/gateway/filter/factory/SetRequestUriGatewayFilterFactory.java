@@ -34,7 +34,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * This filter changes the request uri by a request header.
  *
- * @author Toshiaki Maki
+ * @author Stepan Mikhailiuk
  */
 public class SetRequestUriGatewayFilterFactory
 		extends AbstractChangeRequestUriGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
