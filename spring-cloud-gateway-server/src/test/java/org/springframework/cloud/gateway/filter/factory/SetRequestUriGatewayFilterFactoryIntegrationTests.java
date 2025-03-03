@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
- * @author Toshiaki Maki
+ * @author Stepan Mikhailiuk
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
