@@ -65,7 +65,7 @@ public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 	}
 
 	protected Mono<String> randomId() {
-		return Mono.fromSupplier(idGenerator::generateId).map(UUID::toString).publishOn(Schedulers.boundedElastic());
+		return Mono.fromSupplier(idGenerator::generateId).publishOn(Schedulers.boundedElastic()).map(UUID::toString);
 	}
 
 }
