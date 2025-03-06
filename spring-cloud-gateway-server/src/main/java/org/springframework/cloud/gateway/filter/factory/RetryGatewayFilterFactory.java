@@ -30,6 +30,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.retry.Backoff;
+import reactor.retry.Jitter;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
@@ -70,7 +71,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList("retries", "statuses", "methods", "backoff.firstBackoff", "backoff.maxBackoff",
-				"backoff.factor", "backoff.basedOnPreviousValue");
+				"backoff.factor", "backoff.basedOnPreviousValue", "jitter.randomFactor", "timeout");
 	}
 
 	@Override
@@ -124,9 +125,16 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (backoff != null) {
 				statusCodeRepeat = statusCodeRepeat.backoff(getBackoff(backoff));
 			}
+			JitterConfig jitter = retryConfig.getJitter();
+			if (jitter != null) {
+				statusCodeRepeat = statusCodeRepeat.jitter(getJitter(jitter));
+			}
+			Duration timeout = retryConfig.getTimeout();
+			if (timeout != null) {
+				statusCodeRepeat = statusCodeRepeat.timeout(timeout);
+			}
 		}
 
-		// TODO: support timeout, backoff, jitter, etc... in Builder
 
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
@@ -162,6 +170,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			BackoffConfig backoff = retryConfig.getBackoff();
 			if (backoff != null) {
 				exceptionRetry = exceptionRetry.backoff(getBackoff(backoff));
+			}
+			JitterConfig jitter = retryConfig.getJitter();
+			if (jitter != null) {
+				statusCodeRepeat = statusCodeRepeat.jitter(getJitter(jitter));
+			}
+			Duration timeout = retryConfig.getTimeout();
+			if (timeout != null) {
+				statusCodeRepeat = statusCodeRepeat.timeout(timeout);
 			}
 		}
 
@@ -202,6 +218,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	private Backoff getBackoff(BackoffConfig backoff) {
 		return Backoff.exponential(backoff.firstBackoff, backoff.maxBackoff, backoff.factor,
 				backoff.basedOnPreviousValue);
+	}
+
+	private Jitter getJitter(JitterConfig jitter) {
+		return Jitter.random(jitter.randomFactor);
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
@@ -295,6 +315,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private BackoffConfig backoff;
 
+		private JitterConfig jitter;
+
+		private Duration timeout;
+
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
 		}
@@ -307,6 +331,30 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (this.backoff != null) {
 				this.backoff.validate();
 			}
+			if (this.jitter != null) {
+				this.jitter.validate();
+			}
+			if (this.timeout != null) {
+				Assert.isTrue(!timeout.isNegative(), "timeout should be >= 0");
+			}
+		}
+
+		public Duration getTimeout() {
+			return timeout;
+		}
+
+		public RetryConfig setTimeout(Duration timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		public JitterConfig getJitter() {
+			return jitter;
+		}
+
+		public RetryConfig setJitter(JitterConfig jitter) {
+			this.jitter = jitter;
+			return this;
 		}
 
 		public BackoffConfig getBackoff() {
@@ -437,6 +485,30 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			this.basedOnPreviousValue = basedOnPreviousValue;
 		}
 
+	}
+
+	public static class JitterConfig {
+
+		private double randomFactor = 0.5;
+
+		public void validate() {
+			Assert.isTrue(randomFactor >= 0 && randomFactor <= 1, "random factor must be between 0 and 1 (default 0.5)");
+		}
+
+		public JitterConfig() {
+		}
+
+		public JitterConfig(double randomFactor) {
+			this.randomFactor = randomFactor;
+		}
+
+		public double getRandomFactor() {
+			return randomFactor;
+		}
+
+		public void setRandomFactor(double randomFactor) {
+			this.randomFactor = randomFactor;
+		}
 	}
 
 }
