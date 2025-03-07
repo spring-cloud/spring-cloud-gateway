@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -359,10 +361,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
 	@ConditionalOnClass(name = "io.grpc.Channel")
 	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties, SslBundles bundles)
-			throws KeyStoreException, NoSuchAlgorithmException {
+			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 			.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
+		KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		keyStore.load(null);
+		trustManagerFactory.init(keyStore);
 
 		return new GrpcSslConfigurer(properties.getSsl(), bundles);
 	}
