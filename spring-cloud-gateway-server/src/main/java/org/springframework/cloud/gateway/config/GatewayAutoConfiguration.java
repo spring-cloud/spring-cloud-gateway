@@ -362,7 +362,9 @@ public class GatewayAutoConfiguration {
 			throws KeyStoreException, NoSuchAlgorithmException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
 			.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		trustManagerFactory.init(KeyStore.getInstance(KeyStore.getDefaultType()));
+		KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		keyStore.load(null);
+		trustManagerFactory.init(keyStore);
 
 		return new GrpcSslConfigurer(properties.getSsl(), bundles);
 	}
