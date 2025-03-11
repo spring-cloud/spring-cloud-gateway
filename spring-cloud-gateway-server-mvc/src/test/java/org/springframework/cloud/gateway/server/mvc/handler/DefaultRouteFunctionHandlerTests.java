@@ -16,14 +16,13 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -31,6 +30,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(properties = {}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DefaultRouteFunctionHandlerTests {

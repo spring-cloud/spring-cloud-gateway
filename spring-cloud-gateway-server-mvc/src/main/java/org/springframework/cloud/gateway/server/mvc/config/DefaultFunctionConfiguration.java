@@ -16,15 +16,15 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
-import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.fn;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
+
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.fn;
 
 @Configuration
 @ConditionalOnClass(name = "org.springframework.cloud.function.context.FunctionCatalog")
