@@ -22,14 +22,18 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.cloud.function.context.FunctionProperties;
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
+import org.springframework.cloud.function.context.config.RoutingFunction;
 import org.springframework.cloud.gateway.server.mvc.GatewayMvcClassPathWarningAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
@@ -80,11 +84,25 @@ public abstract class HandlerFunctions {
 						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
 			}
 
+			/*
+			 * If function can not be found in the current runtime, we will default to
+			 * RoutingFunction which has additional logic to determine the function to
+			 * invoke.
+			 */
+			Map<String, String> additionalRequestHeaders = new HashMap<>();
+			if (function == null) {
+				additionalRequestHeaders.put(FunctionProperties.FUNCTION_DEFINITION, expandedFunctionName);
+
+				function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME,
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			}
+
 			if (function != null) {
 				if (body == null) {
 					body = function.isSupplier() ? null : request.body(function.getRawInputType());
 				}
-				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList());
+				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList(),
+						additionalRequestHeaders);
 			}
 			return ServerResponse.notFound().build();
 		};
