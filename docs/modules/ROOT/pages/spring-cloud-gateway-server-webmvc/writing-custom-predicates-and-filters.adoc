@@ -29,7 +29,7 @@ The `RequestPredicate` implementations in Spring WebMvc.fn https://docs.spring.i
 .SampleRequestPredicates.java
 [source,java]
 ----
-import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.servlet.function.RequestPredicate;
 
 class SampleRequestPredicates {
     public static RequestPredicate headerExists(String header) {
