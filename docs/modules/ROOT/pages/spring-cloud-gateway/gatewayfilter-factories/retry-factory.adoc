@@ -12,6 +12,9 @@ The `Retry` `GatewayFilter` factory supports the following parameters:
 Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
 If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
 If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
+* `jitter`: The configured random jitter for the retries.
+Generating a backoff between `[backoff - backoff*randomFactor, backoff + backoff*randomFactor]`
+* `timeout`:  The configured timeout for the retries.
 
 The following defaults are configured for `Retry` filter, if enabled:
 
@@ -20,6 +23,8 @@ The following defaults are configured for `Retry` filter, if enabled:
 * `methods`: GET method
 * `exceptions`: `IOException` and `TimeoutException`
 * `backoff`: disabled
+* `jitter`: disabled
+* `timeout`: unlimited
 
 The following listing configures a Retry `GatewayFilter`:
 
@@ -45,6 +50,9 @@ spring:
               maxBackoff: 50ms
               factor: 2
               basedOnPreviousValue: false
+            jitter:
+              randomFactor: 0.5
+            timeout: 100ms
 ----
 
 NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that, in case of an error, it does not do anything that could result in a response being sent to the client and committed.
@@ -77,10 +85,13 @@ spring:
               maxBackoff: 50ms
               factor: 2
               basedOnPreviousValue: false
+            jitter:
+              randomFactor: 0.5
+            timeout: 100ms
 
       - id: retryshortcut_route
         uri: https://example.org
         filters:
-        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false
+        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false,0.5,100ms
 ----
 

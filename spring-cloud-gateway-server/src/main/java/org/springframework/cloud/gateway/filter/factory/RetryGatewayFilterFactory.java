@@ -492,7 +492,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		private double randomFactor = 0.5;
 
 		public void validate() {
-			Assert.isTrue(randomFactor >= 0 && randomFactor <= 1, "random factor must be between 0 and 1 (default 0.5)");
+			Assert.isTrue(randomFactor >= 0 && randomFactor <= 1,
+					"random factor must be between 0 and 1 (default 0.5)");
 		}
 
 		public JitterConfig() {
@@ -509,6 +510,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		public void setRandomFactor(double randomFactor) {
 			this.randomFactor = randomFactor;
 		}
+
 	}
 
 }

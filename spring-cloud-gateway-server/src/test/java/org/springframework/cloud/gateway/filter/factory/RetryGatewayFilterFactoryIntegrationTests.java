@@ -110,6 +110,18 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retryWithBackoffJitterTimeout() {
+		// @formatter:off
+		testClient.get()
+				.uri("/retry?key=retry-with-backoff-jitter-timeout&count=3")
+				.header(HttpHeaders.HOST, "www.retrywithbackoffjittertimeout.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().value("X-Retry-Count", CoreMatchers.equalTo("3"));
+		// @formatter:on
+	}
+
+	@Test
 	public void retryFilterGetJavaDsl() {
 		testClient.get()
 			.uri("/retry?key=getjava&count=2")
