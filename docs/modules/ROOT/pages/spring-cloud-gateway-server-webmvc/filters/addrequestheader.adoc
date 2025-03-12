@@ -30,8 +30,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route(GET("/red"), http("https://example.org"))
-                .before(addRequestHeader("X-Request-red", "blue"));
+        return route("addRequestHeader")
+                .route(GET("/red"), http("https://example.org"))
+                .before(addRequestHeader("X-Request-red", "blue"))
+                .build();
     }
 }
 ----
@@ -50,8 +52,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route(GET("/red/{segment}"), http("https://example.org"))
-                .before(addRequestHeader("X-Request-red", "blue-{segment}"));
+        return route("addRequestHeader")
+                .route(GET("/red/{segment}"), http("https://example.org"))
+                .before(addRequestHeader("X-Request-red", "blue-{segment}"))
+                .build();
     }
 }
 ----
