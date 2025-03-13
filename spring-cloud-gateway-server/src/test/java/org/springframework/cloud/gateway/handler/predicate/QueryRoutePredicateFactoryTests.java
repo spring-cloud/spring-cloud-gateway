@@ -43,6 +43,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+/**
+ * Test class for {@link QueryRoutePredicateFactory} for <code>regex</code> parameter.
+ *
+ * @see QueryRoutePredicateFactory
+ */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @ExtendWith(OutputCaptureExtension.class)

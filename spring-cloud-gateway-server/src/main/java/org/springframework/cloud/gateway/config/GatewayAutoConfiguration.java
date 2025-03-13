@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 
 import javax.net.ssl.TrustManagerFactory;
 
+import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -123,6 +124,7 @@ import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.ratelimit.Bucket4jRateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -208,6 +210,7 @@ public class GatewayAutoConfiguration {
 	 * @deprecated in favour of
 	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConverter}
 	 */
+	@Deprecated
 	@Bean
 	public org.springframework.cloud.gateway.support.KeyValueConverter deprecatedKeyValueConverter() {
 		return new org.springframework.cloud.gateway.support.KeyValueConverter();
@@ -734,6 +737,20 @@ public class GatewayAutoConfiguration {
 	@Bean
 	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
 		return new ConfigurableHintsRegistrationProcessor();
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(AsyncProxyManager.class)
+	protected static class Bucket4jConfiguration {
+
+		@Bean
+		@ConditionalOnBean(AsyncProxyManager.class)
+		@ConditionalOnEnabledFilter(RequestRateLimiterGatewayFilterFactory.class)
+		public Bucket4jRateLimiter bucket4jRateLimiter(AsyncProxyManager<String> proxyManager,
+				ConfigurationService configurationService) {
+			return new Bucket4jRateLimiter(proxyManager, configurationService);
+		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)

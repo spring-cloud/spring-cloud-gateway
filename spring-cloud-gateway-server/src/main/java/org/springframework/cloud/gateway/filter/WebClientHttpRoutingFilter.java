@@ -43,7 +43,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 
 /**
  * @author Spencer Gibb
+ * @deprecated for removal in 5.0
  */
+@Deprecated
 public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 
 	private final WebClient webClient;
