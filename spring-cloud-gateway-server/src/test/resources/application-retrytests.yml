@@ -29,22 +29,3 @@ spring:
             - name: Retry
               args:
                 methods: GET,POST
-        # =====================================
-        - id: retry_with_backoff_jitter_timeout_test
-          uri: ${test.uri}
-          predicates:
-            - Host=**.retrywithbackoffjittertimeout.org
-          filters:
-            - name: Retry
-              args:
-                retries: 3
-                statuses: INTERNAL_SERVER_ERROR
-                methods: GET
-                backoff:
-                  firstBackoff: 10ms
-                  maxBackoff: 50ms
-                  factor: 2
-                  basedOnPreviousValue: false
-                jitter:
-                  randomFactor: 0.5
-                timeout: 200ms

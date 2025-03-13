@@ -173,11 +173,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			}
 			JitterConfig jitter = retryConfig.getJitter();
 			if (jitter != null) {
-				statusCodeRepeat = statusCodeRepeat.jitter(getJitter(jitter));
+				exceptionRetry = exceptionRetry.jitter(getJitter(jitter));
 			}
 			Duration timeout = retryConfig.getTimeout();
 			if (timeout != null) {
-				statusCodeRepeat = statusCodeRepeat.timeout(timeout);
+				exceptionRetry = exceptionRetry.timeout(timeout);
 			}
 		}
 
@@ -354,6 +354,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		public RetryConfig setJitter(JitterConfig jitter) {
 			this.jitter = jitter;
+			return this;
+		}
+
+		public RetryConfig setJitter(double randomFactor) {
+			this.jitter = new JitterConfig(randomFactor);
 			return this;
 		}
 

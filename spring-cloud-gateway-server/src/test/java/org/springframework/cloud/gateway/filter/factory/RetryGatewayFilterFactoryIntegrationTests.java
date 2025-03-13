@@ -122,6 +122,17 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retryWithBackoffTimeout() {
+		// backoff > timeout
+		testClient.get()
+				.uri("/retry?key=retry-with-backoff-timeout&count=3")
+				.header(HttpHeaders.HOST, "www.retrywithbackofftimeout.org")
+				.exchange()
+				.expectStatus()
+				.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Test
 	public void retryFilterGetJavaDsl() {
 		testClient.get()
 			.uri("/retry?key=getjava&count=2")
@@ -374,6 +385,16 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.route("retry_with_backoff",
 						r -> r.host("**.retrywithbackoff.org").filters(f -> f.prefixPath("/httpbin").retry(config -> {
 							config.setRetries(2).setBackoff(Duration.ofMillis(100), null, 2, true);
+						})).uri(uri))
+				.route("retry_with_backoff_jitter_timeout_test",
+						r -> r.host("**.retrywithbackoffjittertimeout.org").filters(f -> f.prefixPath("/httpbin").retry(config -> {
+							config.setRetries(3).setBackoff(Duration.ofMillis(50), Duration.ofMillis(100), 2, true)
+									.setJitter(0.1).setTimeout(Duration.ofMillis(1000));
+						})).uri(uri))
+				.route("retry_with_backoff_timeout_test",
+						r -> r.host("**.retrywithbackofftimeout.org").filters(f -> f.prefixPath("/httpbin").retry(config -> {
+							config.setRetries(3).setBackoff(Duration.ofMillis(100), null, 2, true)
+									.setTimeout(Duration.ofMillis(100));
 						})).uri(uri))
 
 				.route("retry_with_loadbalancer",
