@@ -44,8 +44,7 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent) {
-			ContextRefreshedEvent refreshedEvent = (ContextRefreshedEvent) event;
+		if (event instanceof ContextRefreshedEvent refreshedEvent) {
 			boolean isManagementCtxt = WebServerApplicationContext
 				.hasServerNamespace(refreshedEvent.getApplicationContext(), "management");
 			boolean isLoadBalancerCtxt = refreshedEvent.getApplicationContext().getDisplayName() != null
@@ -58,13 +57,11 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 		else if (event instanceof RefreshScopeRefreshedEvent || event instanceof InstanceRegisteredEvent) {
 			reset();
 		}
-		else if (event instanceof ParentHeartbeatEvent) {
-			ParentHeartbeatEvent e = (ParentHeartbeatEvent) event;
-			resetIfNeeded(e.getValue());
+		else if (event instanceof ParentHeartbeatEvent parentHeartbeatEvent) {
+			resetIfNeeded(parentHeartbeatEvent.getValue());
 		}
-		else if (event instanceof HeartbeatEvent) {
-			HeartbeatEvent e = (HeartbeatEvent) event;
-			resetIfNeeded(e.getValue());
+		else if (event instanceof HeartbeatEvent heartbeatEvent) {
+			resetIfNeeded(heartbeatEvent.getValue());
 		}
 	}
 
