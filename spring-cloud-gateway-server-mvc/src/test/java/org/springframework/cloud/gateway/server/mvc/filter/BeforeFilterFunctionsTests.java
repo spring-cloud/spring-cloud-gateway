@@ -30,10 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author raccoonback
  */
 class BeforeFilterFunctionsTests {
+
 	@Test
 	void setPath() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/legacy/path")
-				.buildRequest(null);
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -45,7 +46,7 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void setEncodedPath() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/legacy/path")
-				.buildRequest(null);
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -57,8 +58,8 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void setPathWithParameters() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/legacy/path")
-				.queryParam("foo", "bar")
-				.buildRequest(null);
+			.queryParam("foo", "bar")
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -70,8 +71,8 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void setPathWithEncodedParameters() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/legacy/path")
-				.queryParam("foo[]", "bar[]")
-				.buildRequest(null);
+			.queryParam("foo[]", "bar[]")
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -159,7 +160,7 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void stripPrefixWithEncodedPath() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3/é")
-				.buildRequest(null);
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -171,8 +172,8 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void stripPrefixWithEncodedParameters() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3")
-				.queryParam("baz[]", "qux[]")
-				.buildRequest(null);
+			.queryParam("baz[]", "qux[]")
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
