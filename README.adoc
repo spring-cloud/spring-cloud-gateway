@@ -224,7 +224,7 @@ Spring Cloud Build brings along the  `basepom:duplicate-finder-maven-plugin`, th
 [[duplicate-finder-configuration]]
 === Duplicate Finder configuration
 
-Duplicate finder is *enabled by default* and will run in the `verify` phase of your Maven build, but it will only take effect in your project if you add the `duplicate-finder-maven-plugin` to the `build` section of the projecst's `pom.xml`.
+Duplicate finder is *enabled by default* and will run in the `verify` phase of your Maven build, but it will only take effect in your project if you add the `duplicate-finder-maven-plugin` to the `build` section of the project's `pom.xml`.
 
 .pom.xml
 [source,xml]

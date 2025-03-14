@@ -116,6 +116,14 @@ public abstract class MvcUtils {
 		}
 	}
 
+	public static ByteArrayInputStream getOrCacheBody(ServerRequest request) {
+		ByteArrayInputStream body = getAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR);
+		if (body != null) {
+			return body;
+		}
+		return cacheBody(request);
+	}
+
 	public static String expand(ServerRequest request, String template) {
 		Assert.notNull(request, "request may not be null");
 		Assert.notNull(template, "template may not be null");
