@@ -209,8 +209,8 @@ public class HttpClientProperties {
 		private boolean metrics = false;
 
 		/**
-		 * Configures the leasing strategy for the pool (fifo or lifo), defaults
-		 * to FIFO which is Netty's default.
+		 * Configures the leasing strategy for the pool (fifo or lifo), defaults to FIFO
+		 * which is Netty's default.
 		 */
 		private LeasingStrategy leasingStrategy = LeasingStrategy.FIFO;
 
@@ -332,8 +332,7 @@ public class HttpClientProperties {
 	public static class Proxy {
 
 		/**
-		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or
-		 * socks5).
+		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
 		 */
 		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
 
