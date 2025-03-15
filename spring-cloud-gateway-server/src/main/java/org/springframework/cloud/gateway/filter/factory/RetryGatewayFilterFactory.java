@@ -42,6 +42,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -135,7 +136,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			}
 		}
 
-
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
 			Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
@@ -196,6 +196,9 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					.append("statuses", retryConfig.getStatuses())
 					.append("methods", retryConfig.getMethods())
 					.append("exceptions", retryConfig.getExceptions())
+					.append("backoff", retryConfig.getBackoff())
+					.append("jitter", retryConfig.getJitter())
+					.append("timeout", retryConfig.getTimeout())
 					.toString();
 			}
 		};
@@ -490,6 +493,15 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			this.basedOnPreviousValue = basedOnPreviousValue;
 		}
 
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append("firstBackoff", firstBackoff)
+				.append("maxBackoff", maxBackoff)
+				.append("factor", factor)
+				.append("basedOnPreviousValue", basedOnPreviousValue)
+				.toString();
+		}
+
 	}
 
 	public static class JitterConfig {
@@ -514,6 +526,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		public void setRandomFactor(double randomFactor) {
 			this.randomFactor = randomFactor;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append("randomFactor", randomFactor).toString();
+
 		}
 
 	}
