@@ -35,7 +35,6 @@ import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
-import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -229,10 +228,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
-		if (routeId != null && getPublisher() != null) {
-			// send an event to enable caching
-			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
-		}
+		enableBodyCaching(routeId);
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
