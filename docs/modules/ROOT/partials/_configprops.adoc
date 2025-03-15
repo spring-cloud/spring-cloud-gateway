@@ -3,7 +3,7 @@
 
 |spring.cloud.gateway.default-filters |  | List of filter definitions that are applied to every route.
 |spring.cloud.gateway.discovery.locator.enabled | `+++false+++` | Flag that enables DiscoveryClient gateway integration.
-|spring.cloud.gateway.discovery.locator.filters |  | 
+|spring.cloud.gateway.discovery.locator.filters |  |
 |spring.cloud.gateway.discovery.locator.include-expression | `+++true+++` | SpEL expression that will evaluate whether to include a service in gateway integration or not, defaults to: true.
 |spring.cloud.gateway.discovery.locator.lower-case-service-id | `+++false+++` | Option to lower case serviceId in predicates and filters, defaults to false. Useful with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match /myservice/**
 |spring.cloud.gateway.discovery.locator.predicates |  | 
@@ -130,6 +130,8 @@
 |spring.cloud.gateway.mvc.routes-map |  | Map of Routes.
 |spring.cloud.gateway.mvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
 |spring.cloud.gateway.mvc.streaming-media-types |  | Mime-types that are streaming.
+|spring.cloud.gateway.mvc.file-buffer-enabled | true | Enables the temp file buffer.
+|spring.cloud.gateway.mvc.file-buffer-size-threshold | 1MB | The size threshold which a request will be written to disk.
 |spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
 |spring.cloud.gateway.mvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
