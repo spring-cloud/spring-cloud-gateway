@@ -140,7 +140,8 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.cloud.gateway.mvc.http-client.type=jdk" },
+@SpringBootTest(
+		properties = { "spring.cloud.gateway.mvc.http-client.type=jdk", "spring.cloud.gateway.function.enabled=false" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 @ExtendWith(OutputCaptureExtension.class)
