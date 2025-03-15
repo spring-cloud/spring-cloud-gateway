@@ -303,8 +303,7 @@ public class HttpClientProperties {
 	public static class Proxy {
 
 		/**
-		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or
-		 * socks5).
+		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
 		 */
 		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
 
