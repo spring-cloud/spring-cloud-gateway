@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -41,6 +42,13 @@ public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurab
 
 	protected ApplicationEventPublisher getPublisher() {
 		return this.publisher;
+	}
+
+	protected void enableBodyCaching(String routeId) {
+		if (routeId != null && getPublisher() != null) {
+			// send an event to enable caching
+			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
+		}
 	}
 
 	@Override
