@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +76,7 @@ public abstract class RetryFilterFunctions {
 			if (config.isCacheBody()) {
 				MvcUtils.getOrCacheBody(request);
 			}
+			reset(request);
 			ServerResponse serverResponse = next.handle(request);
 
 			if (isRetryableStatusCode(serverResponse.statusCode(), config)
@@ -84,6 +86,20 @@ public abstract class RetryFilterFunctions {
 			}
 			return serverResponse;
 		});
+	}
+
+	/**
+	 * reset attribute
+	 *
+	 * @param request
+	 * @throws IOException
+	 */
+	private static void reset(ServerRequest request) throws IOException {
+		InputStream inputStream = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+		if (inputStream != null) {
+			inputStream.close();
+			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, null);
+		}
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
