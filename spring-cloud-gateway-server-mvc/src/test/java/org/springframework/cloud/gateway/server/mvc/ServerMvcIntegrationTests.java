@@ -239,6 +239,7 @@ public class ServerMvcIntegrationTests {
 	public void stripPrefixWorks() {
 		restClient.get()
 			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefix.org")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -246,14 +247,13 @@ public class ServerMvcIntegrationTests {
 			.consumeWith(res -> {
 				Map<String, Object> map = res.getResponseBody();
 				Map<String, Object> headers = getMap(map, "headers");
-				assertThat(headers).containsKeys(
-						XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
-				assertThat(headers).containsEntry(
-						XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER, "/long/path/to");
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
 				assertThat(headers).containsEntry("X-Test", "stripPrefix");
 			});
 	}
@@ -272,15 +272,37 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> map = res.getResponseBody();
 				assertThat(map).containsEntry("data", "hello");
 				Map<String, Object> headers = getMap(map, "headers");
-				assertThat(headers).containsKeys(
-						XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
 						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
-				assertThat(headers).containsEntry(
-						XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER, "/long/path/to");
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
 				assertThat(headers).containsEntry("X-Test", "stripPrefixPost");
+			});
+	}
+
+	@Test
+	public void stripPrefixLbWorks() {
+		restClient.get()
+			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefixlb.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
+				assertThat(headers).containsEntry("X-Test", "stripPrefix");
 			});
 	}
 
@@ -1083,8 +1105,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testsetpath")
 					.route(POST("/mycustompath{extra}").and(host("**.setpathpost.org")), http())
-					.filter(new HttpbinUriResolver())
 					.filter(setPath("/{extra}"))
+					.filter(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}
@@ -1092,11 +1114,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
-			return route(GET("/long/path/to/get"), http())
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefix.org")), http())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
-					.filter(new HttpbinUriResolver(true))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
+					.filter(new HttpbinUriResolver())
+					.build();
 			// @formatter:on
 		}
 
@@ -1107,7 +1130,19 @@ public class ServerMvcIntegrationTests {
 					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
-					.filter(new HttpbinUriResolver(true))
+					.filter(new HttpbinUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixLb() {
+			// @formatter:off
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefixlb.org")), http())
+					.filter(stripPrefix(3))
+					.filter(addRequestHeader("X-Test", "stripPrefix"))
+					.filter(lb("httpbin"))
 					.build();
 			// @formatter:on
 		}
@@ -1442,8 +1477,8 @@ public class ServerMvcIntegrationTests {
 			return route("requestheadertorequesturi")
 					.route(cloudFoundryRouteService().and(host("**.requestheadertorequesturi.org")), http())
 					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
-					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.filter(setPath("/hello"))
+					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.build();
 			// @formatter:on
 		}
