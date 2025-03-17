@@ -125,7 +125,8 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 			assertThat(headers.get(ForwardedHeadersFilter.FORWARDED_HEADER)).asString()
 				.contains("proto=http")
 				.contains("host=\"localhost:")
-				.contains("for=\"127.0.0.1:");
+				.contains("for=\"127.0.0.1:")
+				.contains("by=");
 			assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_HOST_HEADER)).asString()
 				.isEqualTo("localhost:" + this.port);
 			assertThat(headers.get(XForwardedHeadersFilter.X_FORWARDED_PORT_HEADER)).asString()
