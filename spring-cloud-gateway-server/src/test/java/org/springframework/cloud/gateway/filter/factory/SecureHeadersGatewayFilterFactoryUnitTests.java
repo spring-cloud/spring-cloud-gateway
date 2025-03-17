@@ -16,6 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,18 +37,19 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.CONTENT_SECURITY_POLICY_HEADER;
 import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.Config;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.REFERRER_POLICY_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.STRICT_TRANSPORT_SECURITY_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_CONTENT_TYPE_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_DOWNLOAD_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_FRAME_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_XSS_PROTECTION_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.PERMISSIONS_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.REFERRER_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_FRAME_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_XSS_PROTECTION_HEADER;
 
 /**
- * @author Thirunavukkarasu Ravichandran
+ * @author Thirunavukkarasu Ravichandran, Jörg Richter
  */
 public class SecureHeadersGatewayFilterFactoryUnitTests {
 
@@ -75,7 +80,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = exchange.getResponse();
-		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
+		assertThat(response.getHeaders()).containsOnlyKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
 				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
 				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 	}
@@ -105,8 +110,8 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
 				new SecureHeadersProperties());
 		Config config = new Config();
-		config.setStrictTransportSecurity("max-age=65535");
-		config.setReferrerPolicy("referrer");
+		config.setStrictTransportSecurityHeaderValue("max-age=65535");
+		config.setReferrerPolicyHeaderValue("referrer");
 		filter = filterFactory.apply(config);
 
 		filter.filter(exchange, filterChain).block();
@@ -135,13 +140,19 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	@Test
 	public void doesNotDuplicateHeaders() {
 		String originalHeaderValue = "original-header-value";
+
+		SecureHeadersProperties secureHeadersProperties = new SecureHeadersProperties();
+		secureHeadersProperties.setDisable(Collections.emptyList());
+		secureHeadersProperties.setEnable(List.of(PERMISSIONS_POLICY_HEADER));
+
 		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
-				new SecureHeadersProperties());
+				secureHeadersProperties);
+
 		Config config = new Config();
 
 		String[] headers = { X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER,
 				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER,
-				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER };
+				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, PERMISSIONS_POLICY_HEADER };
 
 		for (String header : headers) {
 			filter = filterFactory.apply(config);
@@ -161,6 +172,93 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	public void toStringFormat() {
 		GatewayFilter filter = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties()).apply(new Config());
 		Assertions.assertThat(filter.toString()).contains("SecureHeaders");
+	}
+
+	@Test
+	public void doNotAddPermissionsPolicyWhenNotEnabled() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders()).doesNotContainKeys(PERMISSIONS_POLICY_HEADER);
+	}
+
+	@Test
+	public void addPermissionsPolicyWhenEnabled() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		properties.setEnable(List.of("permissions-policy"));
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+
+		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
+				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
+				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+
+		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER))
+			.containsExactly(SecureHeadersProperties.PERMISSIONS_POLICY_HEADER_OPT_IN_DEFAULT);
+	}
+
+	@Test
+	public void addPermissionsPolicyAndOverrideDefaults() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		properties.setEnable(List.of("permissions-policy"));
+		properties.setPermissionsPolicy("camera=*");
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER)).containsExactly("camera=*");
+	}
+
+	@Test
+	public void applyCompositionWithDisabledHeadersAndPermissionPolicy() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		properties.setDisable(asList("x-xss-protection", "strict-transport-security", "x-frame-options",
+				"x-content-type-options", "referrer-policy", "content-security-policy", "x-download-options"));
+		properties.setEnable(List.of("permissions-policy"));
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders()).containsOnlyKeys(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+				PERMISSIONS_POLICY_HEADER);
+	}
+
+	@Test
+	public void overrideDefaultInSecurityPropertiesWhenRouteConfigIsProvided() {
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties());
+
+		Config config = new Config();
+		config.setDisable(Set.of("strict-transport-security"));
+		config.setEnable(Set.of("permissions-policy"));
+		config.setPermissionsPolicy("camera=*");
+
+		filter = filterFactory.apply(config);
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = exchange.getResponse();
+		assertThat(response.getHeaders()).containsOnlyKeys(X_XSS_PROTECTION_HEADER, X_FRAME_OPTIONS_HEADER,
+				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER,
+				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+				PERMISSIONS_POLICY_HEADER);
+		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER)).containsExactly("camera=*");
 	}
 
 }
