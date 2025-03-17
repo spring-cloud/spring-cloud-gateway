@@ -16,9 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.FORWARDED_HEADER;
-
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -36,6 +33,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.FORWARDED_HEADER;
 
 /**
  * @author Spencer Gibb
@@ -224,8 +224,8 @@ public class ForwardedHeadersFilterTests {
 
 		forwardedHeadersFilter.addForwardedBy(forwarded, ipv6Address);
 
-		Assertions.assertThat(forwarded.getValues()).containsEntry("by",
-				"\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
+		Assertions.assertThat(forwarded.getValues())
+			.containsEntry("by", "\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
 
 	}
 
@@ -240,4 +240,5 @@ public class ForwardedHeadersFilterTests {
 
 		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
 	}
+
 }

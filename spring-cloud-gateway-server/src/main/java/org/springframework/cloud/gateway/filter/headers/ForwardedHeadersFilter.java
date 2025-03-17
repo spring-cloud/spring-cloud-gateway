@@ -103,6 +103,14 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return result;
 	}
 
+	public boolean isByEnabled() {
+		return byEnabled;
+	}
+
+	public void setByEnabled(boolean byEnabled) {
+		this.byEnabled = byEnabled;
+	}
+
 	@Override
 	public int getOrder() {
 		return 0;
@@ -139,7 +147,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String forValue;
 			if (remoteAddress.isUnresolved()) {
 				forValue = remoteAddress.getHostName();
-			} else {
+			}
+			else {
 				InetAddress address = remoteAddress.getAddress();
 				forValue = remoteAddress.getAddress().getHostAddress();
 				if (address instanceof Inet6Address) {
@@ -165,7 +174,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	private void addForwardedByHeader(Forwarded forwarded) {
 		try {
 			addForwardedBy(forwarded, InetAddress.getLocalHost());
-		} catch (UnknownHostException e) {
+		}
+		catch (UnknownHostException e) {
 			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
 		}
 	}
@@ -235,14 +245,6 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return builder.toString();
 		}
 
-	}
-
-	public boolean isByEnabled() {
-		return byEnabled;
-	}
-
-	public void setByEnabled(boolean byEnabled) {
-		this.byEnabled = byEnabled;
 	}
 
 }
