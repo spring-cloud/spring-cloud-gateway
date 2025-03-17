@@ -43,3 +43,4 @@ class RouteConfiguration {
 
 When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
 
+WARNING: If using the `lb()` filter, it needs to be after the `stripPrefix()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.
