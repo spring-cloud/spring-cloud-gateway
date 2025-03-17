@@ -317,10 +317,11 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.gateway.forwarded.enabled", matchIfMissing = true)
-	public ForwardedHeadersFilter forwardedHeadersFilter(Environment env) {
+	public ForwardedHeadersFilter forwardedHeadersFilter(Environment env, ServerProperties serverProperties) {
 		boolean forwardedByEnabled = env.getProperty("spring.cloud.gateway.forwarded.by.enabled", Boolean.class, false);
 		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
 		forwardedHeadersFilter.setForwardedByEnabled(forwardedByEnabled);
+		forwardedHeadersFilter.setServerPort(serverProperties.getPort());
 		return forwardedHeadersFilter;
 	}
 

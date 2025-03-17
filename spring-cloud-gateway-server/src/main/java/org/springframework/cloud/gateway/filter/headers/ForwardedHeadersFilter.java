@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -45,8 +44,7 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
-	@Value("${server.port}")
-	private int serverPort;
+	private Integer serverPort;
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -102,6 +100,10 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	public void setForwardedByEnabled(boolean forwardedByEnabled) {
 		this.forwardedByEnabled = forwardedByEnabled;
+	}
+
+	public void setServerPort(Integer serverPort) {
+		this.serverPort = serverPort;
 	}
 
 	@Override
@@ -179,7 +181,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			if (localAddress instanceof Inet6Address) {
 				byValue = "[" + byValue + "]";
 			}
-			if (serverPort > 0) {
+			if (serverPort != null && serverPort > 0) {
 				byValue = byValue + ":" + serverPort;
 			}
 			forwarded.put("by", byValue);
