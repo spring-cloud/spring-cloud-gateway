@@ -189,12 +189,14 @@ public abstract class BeforeFilterFunctions {
 		final UriTemplate uriTemplate = new UriTemplate(prefix);
 
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
 			String newPath = uri.getRawPath() + request.uri().getRawPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			MvcUtils.setRequestUrl(request, prefixedUri);
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
@@ -326,7 +328,7 @@ public abstract class BeforeFilterFunctions {
 		String normalizedReplacement = replacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
-			// TODO: original request url
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			String path = request.uri().getRawPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
@@ -334,8 +336,7 @@ public abstract class BeforeFilterFunctions {
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			// TODO: can this be restored at some point?
-			// MvcUtils.setRequestUrl(modified, modified.uri());
+			MvcUtils.setRequestUrl(request, rewrittenUri);
 			return modified;
 		};
 	}
@@ -351,14 +352,13 @@ public abstract class BeforeFilterFunctions {
 		UriTemplate uriTemplate = new UriTemplate(path);
 
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
-				.replacePath(uri.getRawPath())
-				.build(true)
-				.toUri();
-			return ServerRequest.from(request).uri(prefixedUri).build();
+			URI newUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(uri.getRawPath()).build(true).toUri();
+			MvcUtils.setRequestUrl(request, newUri);
+			return ServerRequest.from(request).uri(newUri).build();
 		};
 	}
 

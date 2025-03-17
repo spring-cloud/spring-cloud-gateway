@@ -256,13 +256,11 @@ public abstract class MvcUtils {
 		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void addOriginalRequestUrl(ServerRequest request, URI url) {
-		LinkedHashSet<URI> urls = getAttribute(request, GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
-		if (urls == null) {
-			urls = new LinkedHashSet<>();
-		}
+		LinkedHashSet<URI> urls = (LinkedHashSet<URI>) request.attributes()
+			.computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
 		urls.add(url);
-		putAttribute(request, GATEWAY_ORIGINAL_REQUEST_URL_ATTR, urls);
 	}
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {
