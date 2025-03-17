@@ -88,12 +88,6 @@ public abstract class RetryFilterFunctions {
 		});
 	}
 
-	/**
-	 * reset attribute
-	 *
-	 * @param request
-	 * @throws IOException
-	 */
 	private static void reset(ServerRequest request) throws IOException {
 		InputStream inputStream = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 		if (inputStream != null) {
