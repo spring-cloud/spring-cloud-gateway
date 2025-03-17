@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -178,12 +179,15 @@ public class RouterFunctionHolderFactory {
 		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
 		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
 		HandlerFunction<ServerResponse> handlerFunction = null;
+
+		// filters added by HandlerDiscoverer need to go last, so save them
+		List<HandlerFilterFunction<ServerResponse, ServerResponse>> handlerFilterFunctionFilters = new ArrayList<>();
 		if (response instanceof HandlerFunction<?>) {
 			handlerFunction = (HandlerFunction<ServerResponse>) response;
 		}
 		else if (response instanceof HandlerDiscoverer.Result result) {
 			handlerFunction = result.getHandlerFunction();
-			result.getFilters().forEach(builder::filter);
+			handlerFilterFunctionFilters.addAll(result.getFilters());
 		}
 		if (handlerFunction == null) {
 			throw new IllegalStateException(
@@ -220,6 +224,9 @@ public class RouterFunctionHolderFactory {
 			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
 		});
+
+		// HandlerDiscoverer filters need higher priority, so put them last
+		handlerFilterFunctionFilters.forEach(builder::filter);
 
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 

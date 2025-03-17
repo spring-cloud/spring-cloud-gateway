@@ -122,7 +122,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 				predicate.accept(new AbstractRequestPredicatesVisitor() {
 					@Override
 					public void path(String pattern) {
-						assertThat(pattern).isEqualTo("/anything/listRoute3");
+						assertThat(pattern).isEqualTo("/extra/anything/listRoute3");
 					}
 
 					@Override
@@ -181,7 +181,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@SuppressWarnings("unchecked")
 	public void lbRouteWorks() {
 		restClient.get()
-			.uri("/anything/listRoute3")
+			.uri("/extra/anything/listRoute3")
 			.header("MyHeaderName", "MyHeaderVal")
 			.exchange()
 			.expectStatus()

@@ -38,9 +38,12 @@ spring.cloud.gateway.mvc:
     - id: listRoute3
       uri: lb://httpbin
       predicates:
-        - Path=/anything/listRoute3
+        - Path=/extra/anything/listRoute3
         - Header=MyHeaderName,MyHeader.*
       filters:
+        - name: StripPrefix
+          args:
+            parts: 1
         - name: AddRequestHeader
           args:
             name: X-Test
