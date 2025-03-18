@@ -28,6 +28,8 @@ import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.DefaultOperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -52,8 +54,9 @@ public class NormalizedOperationMethod implements OperationMethod {
 	}
 
 	public boolean isConfigurable() {
-		Configurable annotation = delegate.getMethod().getAnnotation(Configurable.class);
-		return annotation != null && delegate.getParameters().getParameterCount() == 1;
+		MergedAnnotation<Configurable> configurable = MergedAnnotations.from(delegate.getMethod())
+			.get(Configurable.class);
+		return configurable.isPresent() && delegate.getParameters().getParameterCount() == 1;
 	}
 
 	@Override
@@ -72,8 +75,10 @@ public class NormalizedOperationMethod implements OperationMethod {
 
 	private Map<String, Object> normalizeArgs(Map<String, Object> operationArgs) {
 		if (hasGeneratedKey(operationArgs)) {
-			Shortcut shortcut = getMethod().getAnnotation(Shortcut.class);
-			if (shortcut != null) {
+			MergedAnnotation<Shortcut> shortcutMergedAnnotation = MergedAnnotations.from(delegate.getMethod())
+				.get(Shortcut.class);
+			if (shortcutMergedAnnotation.isPresent()) {
+				Shortcut shortcut = shortcutMergedAnnotation.synthesize();
 				String[] fieldOrder = getFieldOrder(shortcut);
 				return switch (shortcut.type()) {
 					case DEFAULT -> {

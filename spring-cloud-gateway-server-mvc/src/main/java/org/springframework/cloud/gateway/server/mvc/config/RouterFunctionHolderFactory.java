@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -161,13 +165,13 @@ public class RouterFunctionHolderFactory {
 		String scheme = routeProperties.getUri().getScheme();
 		Map<String, Object> handlerArgs = new HashMap<>();
 		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
-				scheme.toLowerCase(), handlerArgs);
+				scheme.toLowerCase(Locale.ROOT), handlerArgs);
 		if (handlerOperationMethod.isEmpty()) {
 			// single RouteProperties param
 			handlerArgs.clear();
 			String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
 			handlerArgs.put(routePropsKey, routeProperties);
-			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(), handlerArgs);
+			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(Locale.ROOT), handlerArgs);
 			if (handlerOperationMethod.isEmpty()) {
 				throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
 			}
@@ -175,12 +179,15 @@ public class RouterFunctionHolderFactory {
 		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
 		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
 		HandlerFunction<ServerResponse> handlerFunction = null;
+
+		// filters added by HandlerDiscoverer need to go last, so save them
+		List<HandlerFilterFunction<ServerResponse, ServerResponse>> handlerFilterFunctionFilters = new ArrayList<>();
 		if (response instanceof HandlerFunction<?>) {
 			handlerFunction = (HandlerFunction<ServerResponse>) response;
 		}
 		else if (response instanceof HandlerDiscoverer.Result result) {
 			handlerFunction = result.getHandlerFunction();
-			result.getFilters().forEach(builder::filter);
+			handlerFilterFunctionFilters.addAll(result.getFilters());
 		}
 		if (handlerFunction == null) {
 			throw new IllegalStateException(
@@ -218,6 +225,9 @@ public class RouterFunctionHolderFactory {
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
 		});
 
+		// HandlerDiscoverer filters need higher priority, so put them last
+		handlerFilterFunctionFilters.forEach(builder::filter);
+
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
 		return builder.build();
@@ -233,6 +243,11 @@ public class RouterFunctionHolderFactory {
 			if (handlerFilterFunction != null) {
 				operationHandler.accept(handlerFilterFunction);
 			}
+			if (log.isDebugEnabled()) {
+				log.debug(LogMessage.format("Yaml Properties matched Operations name: %s, args: %s, params: %s",
+						normalizedName, opMethod.getNormalizedArgs().toString(),
+						Arrays.toString(opMethod.getParameters().stream().toArray())));
+			}
 		}
 		else {
 			throw new IllegalArgumentException(String.format("Unable to find operation %s for %s with args %s",
@@ -244,6 +259,7 @@ public class RouterFunctionHolderFactory {
 			String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList())
 			.stream()
+			.sorted(Comparator.comparing(OperationMethod::isConfigurable))
 			.map(operationMethod -> new NormalizedOperationMethod(operationMethod, operationArgs))
 			.filter(opeMethod -> matchOperation(opeMethod, operationArgs))
 			.findFirst();
@@ -272,7 +288,7 @@ public class RouterFunctionHolderFactory {
 		Map<String, Object> args = new HashMap<>();
 		if (operationMethod.isConfigurable()) {
 			OperationParameter operationParameter = operationMethod.getParameters().get(0);
-			Object config = bindConfigurable(operationMethod, args, operationParameter);
+			Object config = bindConfigurable(operationMethod, operationArgs, operationParameter);
 			args.put(operationParameter.getName(), config);
 		}
 		else {

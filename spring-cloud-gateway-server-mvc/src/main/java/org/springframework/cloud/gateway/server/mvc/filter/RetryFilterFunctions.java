@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpMethod;
@@ -48,6 +49,7 @@ public abstract class RetryFilterFunctions {
 	private RetryFilterFunctions() {
 	}
 
+	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
 		return retry(config -> config.setRetries(retries));
 	}
@@ -58,7 +60,7 @@ public abstract class RetryFilterFunctions {
 		return retry(config);
 	}
 
-	@Shortcut
+	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
@@ -70,6 +72,9 @@ public abstract class RetryFilterFunctions {
 			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
 		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
 		return (request, next) -> retryTemplate.execute(context -> {
+			if (config.isCacheBody()) {
+				MvcUtils.getOrCacheBody(request);
+			}
 			ServerResponse serverResponse = next.handle(request);
 
 			if (isRetryableStatusCode(serverResponse.statusCode(), config)
@@ -119,6 +124,8 @@ public abstract class RetryFilterFunctions {
 				List.of(IOException.class, TimeoutException.class, RetryException.class));
 
 		private Set<HttpMethod> methods = new HashSet<>(List.of(HttpMethod.GET));
+
+		private boolean cacheBody = false;
 
 		// TODO: individual statuses
 		// TODO: backoff
@@ -172,6 +179,15 @@ public abstract class RetryFilterFunctions {
 
 		public RetryConfig addMethods(HttpMethod... methods) {
 			this.methods.addAll(Arrays.asList(methods));
+			return this;
+		}
+
+		public boolean isCacheBody() {
+			return cacheBody;
+		}
+
+		public RetryConfig setCacheBody(boolean cacheBody) {
+			this.cacheBody = cacheBody;
 			return this;
 		}
 

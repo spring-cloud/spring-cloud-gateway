@@ -169,7 +169,7 @@ public class HttpClientProperties {
 
 	public static class Pool {
 
-		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
+		/** Type of pool for HttpClient to use (elastic, fixed or disabled). */
 		private PoolType type = PoolType.ELASTIC;
 
 		/** The channel pool map name, defaults to proxy. */
@@ -302,7 +302,9 @@ public class HttpClientProperties {
 
 	public static class Proxy {
 
-		/** proxyType for proxy configuration of Netty HttpClient. */
+		/**
+		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
+		 */
 		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
 
 		/** Hostname for proxy configuration of Netty HttpClient. */

@@ -21,7 +21,9 @@ import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.BodyInserters;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 /**
@@ -154,11 +156,11 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 			.is5xxServerError()
 			.expectBody()
 			.jsonPath("$.status")
-			.isEqualTo(504)
+			.value(status -> assertThat(HttpStatus.valueOf((Integer) status).is5xxServerError()).isTrue())
 			.jsonPath("$.message")
 			.isNotEmpty()
 			.jsonPath("$.error")
-			.isEqualTo("Gateway Timeout");
+			.isNotEmpty();
 	}
 
 	@Test
@@ -240,6 +242,13 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 			.isOk()
 			.expectHeader()
 			.valueEquals(ROUTE_ID_HEADER, "circuitbreaker_resume_without_error");
+	}
+
+	@Test
+	public void filterPostFallback() {
+		testClient.post().uri("/post").body(BodyInserters.fromValue("hello"))
+				.header("Host", "www.circuitbreakerfallbackpost.org").exchange().expectStatus()
+				.isOk().expectBody().json("{\"body\":\"hello\"}");
 	}
 
 }

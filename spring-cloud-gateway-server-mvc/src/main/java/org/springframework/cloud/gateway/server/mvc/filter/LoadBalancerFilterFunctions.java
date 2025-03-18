@@ -63,6 +63,8 @@ public abstract class LoadBalancerFilterFunctions {
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> lb(String serviceId,
 			BiFunction<ServiceInstance, URI, URI> reconstructUriFunction) {
 		return (request, next) -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
+
 			LoadBalancerClientFactory clientFactory = getApplicationContext(request)
 				.getBean(LoadBalancerClientFactory.class);
 			Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator

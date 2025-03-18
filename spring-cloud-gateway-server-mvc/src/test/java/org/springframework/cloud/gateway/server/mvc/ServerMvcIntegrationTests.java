@@ -22,11 +22,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -39,8 +39,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -78,10 +76,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -116,7 +112,6 @@ import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreaker
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeadersIfNotPresent;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
@@ -125,7 +120,6 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
-import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.forward;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -241,6 +235,7 @@ public class ServerMvcIntegrationTests {
 	public void stripPrefixWorks() {
 		restClient.get()
 			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefix.org")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -248,6 +243,13 @@ public class ServerMvcIntegrationTests {
 			.consumeWith(res -> {
 				Map<String, Object> map = res.getResponseBody();
 				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
 				assertThat(headers).containsEntry("X-Test", "stripPrefix");
 			});
 	}
@@ -266,7 +268,37 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> map = res.getResponseBody();
 				assertThat(map).containsEntry("data", "hello");
 				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
 				assertThat(headers).containsEntry("X-Test", "stripPrefixPost");
+			});
+	}
+
+	@Test
+	public void stripPrefixLbWorks() {
+		restClient.get()
+			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefixlb.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
+				assertThat(headers).containsEntry("X-Test", "stripPrefix");
 			});
 	}
 
@@ -393,20 +425,6 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
-	public void retryWorks() {
-		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
-		// test for: java.lang.IllegalArgumentException: You have already selected another
-		// retry policy
-		restClient.get()
-			.uri("/retry?key=get2")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody(String.class)
-			.isEqualTo("3");
-	}
-
-	@Test
 	public void rateLimitWorks() {
 		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isOk();
 		restClient.get().uri("/anything/ratelimit").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
@@ -483,7 +501,7 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void rewritePathPostLocalWorks() {
 		restClient.post()
-			.uri("/baz/post")
+			.uri("/baz/localpost")
 			.bodyValue("hello")
 			.header("Host", "www.rewritepathpostlocal.org")
 			.exchange()
@@ -635,8 +653,21 @@ public class ServerMvcIntegrationTests {
 	private void assertMultipartData(Map responseBody) {
 		Map<String, Object> files = (Map<String, Object>) responseBody.get("files");
 		assertThat(files).containsKey("imgpart");
-		String file = (String) files.get("imgpart");
-		assertThat(file).startsWith("data:").contains(";base64,");
+		Object imgpart = files.get("imgpart");
+		if (imgpart instanceof List l) {
+			String file = (String) l.get(0);
+			assertThat(isPNG(file.getBytes()));
+		}
+		else {
+			String file = (String) imgpart;
+			assertThat(file).startsWith("data:").contains(";base64,");
+		}
+	}
+
+	private static boolean isPNG(byte[] bytes) {
+		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
+		return Arrays.equals(pngSignature, header);
 	}
 
 	@Test
@@ -991,11 +1022,6 @@ public class ServerMvcIntegrationTests {
 		}
 
 		@Bean
-		RetryController retryController() {
-			return new RetryController();
-		}
-
-		@Bean
 		EventController eventController() {
 			return new EventController();
 		}
@@ -1070,8 +1096,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testsetpath")
 					.route(POST("/mycustompath{extra}").and(host("**.setpathpost.org")), http())
-					.filter(new HttpbinUriResolver())
 					.filter(setPath("/{extra}"))
+					.filter(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}
@@ -1079,11 +1105,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
-			return route(GET("/long/path/to/get"), http())
-					.filter(new HttpbinUriResolver())
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefix.org")), http())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
+					.filter(new HttpbinUriResolver())
+					.build();
 			// @formatter:on
 		}
 
@@ -1092,9 +1119,21 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("teststripprefixpost")
 					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
-					.filter(new HttpbinUriResolver())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
+					.filter(new HttpbinUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixLb() {
+			// @formatter:off
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefixlb.org")), http())
+					.filter(stripPrefix(3))
+					.filter(addRequestHeader("X-Test", "stripPrefix"))
+					.filter(lb("httpbin"))
 					.build();
 			// @formatter:on
 		}
@@ -1176,19 +1215,6 @@ public class ServerMvcIntegrationTests {
 					//.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setFallbackUri("forward:/inCaseOfFailureUseThis").setStatusCodes("500", "NOT_FOUND")))
 					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
-			// @formatter:on
-		}
-
-		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
-			// @formatter:off
-			return route("testretry")
-					.route(path("/retry"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(retry(3))
-					//.filter(retry(config -> config.setRetries(3).setSeries(Set.of(HttpStatus.Series.SERVER_ERROR)).setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))))
-					.filter(prefixPath("/do"))
-					.build();
 			// @formatter:on
 		}
 
@@ -1278,8 +1304,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testform")
 					.POST("/post", host("**.testform.org"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(prefixPath("/test"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Test", "form"))
 					.build();
 			// @formatter:on
@@ -1443,8 +1468,8 @@ public class ServerMvcIntegrationTests {
 			return route("requestheadertorequesturi")
 					.route(cloudFoundryRouteService().and(host("**.requestheadertorequesturi.org")), http())
 					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
-					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.filter(setPath("/hello"))
+					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.build();
 			// @formatter:on
 		}
@@ -1533,12 +1558,12 @@ public class ServerMvcIntegrationTests {
 			return route("testmodifyrequestbodystring")
 					.POST("/post", host("**.modifyrequestbodystring.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase() + s.toUpperCase()))
+					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase(Locale.ROOT) + s.toUpperCase(Locale.ROOT)))
 					.build().and(
 				route("testmodifyrequestbodyobject")
 					.POST("/post", host("**.modifyrequestbodyobject.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
+					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase(Locale.ROOT))))
 					.build());
 			// @formatter:on
 		}
@@ -1672,37 +1697,6 @@ public class ServerMvcIntegrationTests {
 		@PostMapping(path = "/do/events/channel", produces = MediaType.APPLICATION_JSON_VALUE)
 		public ResponseEntity<Event> messageChannelEvents(@RequestBody Event e) {
 			return ResponseEntity.ok().header("X-Channel-Foo", e.foo()).body(e);
-		}
-
-	}
-
-	@RestController
-	protected static class RetryController {
-
-		Log log = LogFactory.getLog(getClass());
-
-		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
-
-		@GetMapping("/do/retry")
-		public ResponseEntity<String> retry(@RequestParam("key") String key,
-				@RequestParam(name = "count", defaultValue = "3") int count,
-				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
-			AtomicInteger num = getCount(key);
-			int i = num.incrementAndGet();
-			log.warn("Retry count: " + i);
-			String body = String.valueOf(i);
-			if (i < count) {
-				HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-				if (failStatus != null) {
-					httpStatus = HttpStatus.resolve(failStatus);
-				}
-				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
-			}
-			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
-		}
-
-		AtomicInteger getCount(String key) {
-			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
 
 	}

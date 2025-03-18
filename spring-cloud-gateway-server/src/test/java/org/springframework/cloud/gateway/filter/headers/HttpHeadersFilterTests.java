@@ -52,7 +52,7 @@ public class HttpHeadersFilterTests {
 	private HttpHeaders filter(HttpHeaders input, String keyToFilter) {
 		HttpHeaders filtered = new HttpHeaders();
 
-		input.entrySet()
+		input.headerSet()
 			.stream()
 			.filter(entry -> !entry.getKey().equals(keyToFilter))
 			.forEach(entry -> filtered.addAll(entry.getKey(), entry.getValue()));
