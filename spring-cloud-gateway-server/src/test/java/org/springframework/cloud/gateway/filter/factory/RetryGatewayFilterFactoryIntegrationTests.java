@@ -130,6 +130,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 			.exchange()
 			.expectStatus()
 			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+		assertThat(TestConfig.map.get("retry-with-backoff-timeout")).isNotNull().hasValue(2);
 	}
 
 	@Test
@@ -398,7 +399,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 					.filters(f -> f.prefixPath("/httpbin").retry(config -> {
 						config.setRetries(3)
 							.setBackoff(Duration.ofMillis(100), null, 2, true)
-							.setTimeout(Duration.ofMillis(100));
+							.setTimeout(Duration.ofMillis(200));
 					}))
 					.uri(uri))
 
