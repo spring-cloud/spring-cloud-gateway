@@ -246,9 +246,15 @@ public abstract class SpringCloudCircuitBreakerFilterFactoryTests extends BaseWe
 
 	@Test
 	public void filterPostFallback() {
-		testClient.post().uri("/post").body(BodyInserters.fromValue("hello"))
-				.header("Host", "www.circuitbreakerfallbackpost.org").exchange().expectStatus()
-				.isOk().expectBody().json("{\"body\":\"hello\"}");
+		testClient.post()
+			.uri("/post")
+			.body(BodyInserters.fromValue("hello"))
+			.header("Host", "www.circuitbreakerfallbackpost.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.json("{\"body\":\"hello\"}");
 	}
 
 }
