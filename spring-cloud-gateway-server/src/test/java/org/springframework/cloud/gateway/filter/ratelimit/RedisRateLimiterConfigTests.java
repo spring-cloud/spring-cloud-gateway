@@ -59,6 +59,14 @@ public class RedisRateLimiterConfigTests {
 	}
 
 	@Test
+	public void shouldThrowAnErrorWhenBurstCapacityExceedsMaxAllowed() {
+		long burstCapacity = Long.MAX_VALUE;
+
+		Assertions.assertThatThrownBy(() -> new RedisRateLimiter(10, burstCapacity))
+			.isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
 	public void redisRateConfiguredFromEnvironment() {
 		assertFilter("redis_rate_limiter_config_test", 10, 20, 1, false);
 	}
