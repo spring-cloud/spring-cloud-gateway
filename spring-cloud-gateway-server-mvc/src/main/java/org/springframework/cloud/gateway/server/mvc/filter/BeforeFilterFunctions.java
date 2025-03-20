@@ -332,7 +332,11 @@ public abstract class BeforeFilterFunctions {
 			String path = request.uri().getPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
-			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).encode().build().toUri();
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
+				.replacePath(newPath)
+				.encode()
+				.build()
+				.toUri();
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
