@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author raccoonback
+ * @author Jens Mallien
  */
 class BeforeFilterFunctionsTests {
 
@@ -181,6 +182,54 @@ class BeforeFilterFunctionsTests {
 
 		assertThat(result.param("baz[]")).isPresent().hasValue("qux[]");
 		assertThat(result.uri().toString()).hasToString("http://localhost/depth3?baz%5B%5D=qux%5B%5D");
+	}
+
+	@Test
+	void rewritePath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified");
+	}
+
+	@Test
+	void rewritePathWithSpace() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with spaces")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%20spaces");
+	}
+
+	@Test
+	void rewritePathWithEnDash() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes");
+	}
+
+	@Test
+	void rewritePathWithEnDashAndSpace() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes and spaces")
+				.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
 	}
 
 }

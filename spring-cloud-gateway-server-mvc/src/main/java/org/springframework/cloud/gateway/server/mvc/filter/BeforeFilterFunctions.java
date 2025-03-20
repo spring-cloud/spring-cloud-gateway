@@ -329,10 +329,10 @@ public abstract class BeforeFilterFunctions {
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
 			MvcUtils.addOriginalRequestUrl(request, request.uri());
-			String path = request.uri().getRawPath();
+			String path = request.uri().getPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
-			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).encode().build().toUri();
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
