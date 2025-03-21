@@ -66,6 +66,11 @@ public class GatewayMvcProperties {
 	 */
 	private int streamingBufferSize = 16384;
 
+	/**
+	 * List of filter definitions that are applied to every route.
+	 */
+	private List<FilterProperties> defaultFilters = new ArrayList<>();
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -102,6 +107,14 @@ public class GatewayMvcProperties {
 		this.streamingBufferSize = streamingBufferSize;
 	}
 
+	public List<FilterProperties> getDefaultFilters() {
+		return defaultFilters;
+	}
+
+	public void setDefaultFilters(List<FilterProperties> defaultFilters) {
+		this.defaultFilters = defaultFilters;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("httpClient", httpClient)
@@ -109,6 +122,7 @@ public class GatewayMvcProperties {
 			.append("routesMap", routesMap)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
+			.append("defaultFilters", defaultFilters)
 			.toString();
 	}
 

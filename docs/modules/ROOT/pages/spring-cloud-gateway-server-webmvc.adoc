@@ -2,4 +2,52 @@
 = Spring Cloud Gateway Server Web MVC
 :page-section-summary-toc: 1
 
-// TODO:
+== Default Filters
+
+Spring Cloud Gateway Server Web MVC now supports default filters configuration based and java config based. Default filters are applied to every route defined in the gateway.
+
+=== Configuration Based
+
+To configure default filters using application properties, add the following configuration to your `application.yml` file:
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      mvc:
+        default-filters:
+          - name: AddRequestHeader
+            args:
+              name: X-Request-Default
+              value: Default
+```
+
+=== Java Config Based
+
+To configure default filters using Java configuration, create a `GatewayMvcProperties` bean and set the default filters:
+
+```java
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.config.FilterProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Configuration
+public class GatewayConfig {
+
+    @Bean
+    public GatewayMvcProperties gatewayMvcProperties() {
+        GatewayMvcProperties properties = new GatewayMvcProperties();
+        FilterProperties filter = new FilterProperties();
+        filter.setName("AddRequestHeader");
+        filter.addArg("name", "X-Request-Default");
+        filter.addArg("value", "Default");
+        properties.setDefaultFilters(List.of(filter));
+        return properties;
+    }
+}
+```
+
+With this configuration, the `AddRequestHeader` filter will be applied to every route, adding the `X-Request-Default` header with the value `Default` to each request.

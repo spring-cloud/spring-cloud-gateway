@@ -199,6 +199,11 @@ public class GatewayServerMvcAutoConfiguration {
 		return new XForwardedRequestHeadersFilterProperties();
 	}
 
+	@Bean
+	public List<FilterProperties> defaultFilters(GatewayMvcProperties properties) {
+		return properties.getDefaultFilters();
+	}
+
 	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
 		static final boolean APACHE = ClassUtils.isPresent("org.apache.hc.client5.http.impl.classic.HttpClients", null);
