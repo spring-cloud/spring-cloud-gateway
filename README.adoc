@@ -23,6 +23,69 @@ image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph
 * Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Hystrix, etc...)
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
+* Default filters configuration based and java config based
+
+[[default-filters]]
+== Default Filters
+
+Spring Cloud Gateway Server Web MVC now supports default filters configuration based and java config based. Default filters are applied to every route defined in the gateway.
+
+=== Configuration Based
+
+To configure default filters using application properties, add the following configuration to your `application.yml` file:
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      mvc:
+        default-filters:
+          - name: AddRequestHeader
+            args:
+              name: X-Request-Default
+              value: Default
+          - name: RemoveRequestHeader
+            args:
+              name: X-Request-Id
+              order: 2
+```
+
+=== Java Config Based
+
+To configure default filters using Java configuration, create a `GatewayMvcProperties` bean and set the default filters:
+
+```java
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.config.FilterProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+@Configuration
+public class GatewayConfig {
+
+    @Bean
+    public GatewayMvcProperties gatewayMvcProperties() {
+        GatewayMvcProperties properties = new GatewayMvcProperties();
+        FilterProperties filter1 = new FilterProperties();
+        filter1.setName("AddRequestHeader");
+        filter1.addArg("name", "X-Request-Default");
+        filter1.addArg("value", "Default");
+        filter1.addArg("order", "1");
+
+        FilterProperties filter2 = new FilterProperties();
+        filter2.setName("RemoveRequestHeader");
+        filter2.addArg("name", "X-Request-Id");
+        filter2.addArg("order", "2");
+
+        properties.setDefaultFilters(List.of(filter1, filter2));
+        return properties;
+    }
+}
+```
+
+With this configuration, the `AddRequestHeader` filter will be applied first with an order value of 1, and the `RemoveRequestHeader` filter will be applied next with an order value of 2. By specifying the order value, you can control the order in which the default filters are applied to each request.
 
 [[building]]
 = Building

@@ -76,6 +76,11 @@ public class FilterProperties {
 		this.args.put(key, value);
 	}
 
+	public void addDefaultFilter(String name, Map<String, String> args) {
+		this.name = name;
+		this.args = args;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

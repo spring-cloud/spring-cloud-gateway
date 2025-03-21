@@ -20,6 +20,10 @@ spring:
             args:
               name: X-Request-Default
               value: Default
+          - name: RemoveRequestHeader
+            args:
+              name: X-Request-Id
+              order: 2
 ```
 
 === Java Config Based
@@ -40,14 +44,21 @@ public class GatewayConfig {
     @Bean
     public GatewayMvcProperties gatewayMvcProperties() {
         GatewayMvcProperties properties = new GatewayMvcProperties();
-        FilterProperties filter = new FilterProperties();
-        filter.setName("AddRequestHeader");
-        filter.addArg("name", "X-Request-Default");
-        filter.addArg("value", "Default");
-        properties.setDefaultFilters(List.of(filter));
+        FilterProperties filter1 = new FilterProperties();
+        filter1.setName("AddRequestHeader");
+        filter1.addArg("name", "X-Request-Default");
+        filter1.addArg("value", "Default");
+        filter1.addArg("order", "1");
+
+        FilterProperties filter2 = new FilterProperties();
+        filter2.setName("RemoveRequestHeader");
+        filter2.addArg("name", "X-Request-Id");
+        filter2.addArg("order", "2");
+
+        properties.setDefaultFilters(List.of(filter1, filter2));
         return properties;
     }
 }
 ```
 
-With this configuration, the `AddRequestHeader` filter will be applied to every route, adding the `X-Request-Default` header with the value `Default` to each request.
+With this configuration, the `AddRequestHeader` filter will be applied first with an order value of 1, and the `RemoveRequestHeader` filter will be applied next with an order value of 2. By specifying the order value, you can control the order in which the default filters are applied to each request.
