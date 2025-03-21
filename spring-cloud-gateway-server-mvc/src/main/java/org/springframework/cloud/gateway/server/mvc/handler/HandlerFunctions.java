@@ -22,12 +22,19 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.cloud.function.context.FunctionProperties;
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
+import org.springframework.cloud.function.context.config.RoutingFunction;
+import org.springframework.cloud.gateway.server.mvc.GatewayMvcClassPathWarningAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.stream.function.StreamOperations;
@@ -43,6 +50,8 @@ import static org.springframework.cloud.gateway.server.mvc.handler.FunctionHandl
 
 public abstract class HandlerFunctions {
 
+	private static final Log log = LogFactory.getLog(GatewayMvcClassPathWarningAutoConfiguration.class);
+
 	private HandlerFunctions() {
 
 	}
@@ -56,13 +65,44 @@ public abstract class HandlerFunctions {
 	public static HandlerFunction<ServerResponse> fn(String functionName) {
 		Assert.hasText(functionName, "'functionName' must not be empty");
 		return request -> {
-			String expandedFunctionName = MvcUtils.expand(request, functionName);
 			FunctionCatalog functionCatalog = MvcUtils.getApplicationContext(request).getBean(FunctionCatalog.class);
-			FunctionInvocationWrapper function = functionCatalog.lookup(expandedFunctionName,
-					request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			String expandedFunctionName = MvcUtils.expand(request, functionName);
+			FunctionInvocationWrapper function;
+			Object body = null;
+			if (expandedFunctionName.contains("/")) {
+				String[] functionBodySplit = expandedFunctionName.split("/");
+				function = functionCatalog.lookup(functionBodySplit[0],
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+				if (function != null && function.isSupplier()) {
+					log.warn("Supplier must not have any arguments. Supplier: '" + function.getFunctionDefinition()
+							+ "' has '" + functionBodySplit[1] + "' as an argument which is ignored.");
+				}
+				body = functionBodySplit[1];
+			}
+			else {
+				function = functionCatalog.lookup(expandedFunctionName,
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			}
+
+			/*
+			 * If function can not be found in the current runtime, we will default to
+			 * RoutingFunction which has additional logic to determine the function to
+			 * invoke.
+			 */
+			Map<String, String> additionalRequestHeaders = new HashMap<>();
+			if (function == null) {
+				additionalRequestHeaders.put(FunctionProperties.FUNCTION_DEFINITION, expandedFunctionName);
+
+				function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME,
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			}
+
 			if (function != null) {
-				Object body = function.isSupplier() ? null : request.body(function.getRawInputType());
-				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList());
+				if (body == null) {
+					body = function.isSupplier() ? null : request.body(function.getRawInputType());
+				}
+				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList(),
+						additionalRequestHeaders);
 			}
 			return ServerResponse.notFound().build();
 		};

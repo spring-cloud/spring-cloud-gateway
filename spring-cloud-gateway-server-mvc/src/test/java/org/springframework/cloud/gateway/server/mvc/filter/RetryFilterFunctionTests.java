@@ -56,8 +56,8 @@ import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFun
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
-@SuppressWarnings("unchecked")
-@SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.function.enabled=false" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class RetryFilterFunctionTests {
 
