@@ -184,8 +184,7 @@ class BeforeFilterFunctionsTests {
 
 	@Test
 	void rewritePath() {
-		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
-				.buildRequest(null);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get").buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -197,7 +196,7 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void rewritePathWithSpace() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with spaces")
-				.buildRequest(null);
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -209,7 +208,7 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void rewritePathWithEnDash() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes")
-				.buildRequest(null);
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -220,14 +219,16 @@ class BeforeFilterFunctionsTests {
 
 	@Test
 	void rewritePathWithEnDashAndSpace() {
-		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/path/with–en–dashes and spaces")
-				.buildRequest(null);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
+			.get("http://localhost/get/path/with–en–dashes and spaces")
+			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
 		ServerRequest modified = BeforeFilterFunctions.rewritePath("get", "modified").apply(request);
 
-		assertThat(modified.uri().getRawPath()).isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
+		assertThat(modified.uri().getRawPath())
+			.isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
 	}
 
 }
