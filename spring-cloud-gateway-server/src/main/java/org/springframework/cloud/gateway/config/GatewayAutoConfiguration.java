@@ -57,6 +57,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.ssl.SslBundles;
@@ -192,13 +193,14 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Mete Alpaslan Katırcıoğlu
  * @author Alberto C. Ríos
  * @author Olga Maciaszek-Sharma
+ * @author FuYiNan Guo
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
 @EnableConfigurationProperties
-@AutoConfigureBefore({ HttpHandlerAutoConfiguration.class, WebFluxAutoConfiguration.class })
-@AutoConfigureAfter({ GatewayReactiveLoadBalancerClientAutoConfiguration.class,
-		GatewayClassPathWarningAutoConfiguration.class })
+@AutoConfigureBefore({HttpHandlerAutoConfiguration.class, WebFluxAutoConfiguration.class})
+@AutoConfigureAfter({GatewayReactiveLoadBalancerClientAutoConfiguration.class,
+		GatewayClassPathWarningAutoConfiguration.class})
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
@@ -478,8 +480,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public PathRoutePredicateFactory pathRoutePredicateFactory() {
-		return new PathRoutePredicateFactory();
+	public PathRoutePredicateFactory pathRoutePredicateFactory(WebFluxProperties webFluxProperties) {
+		return new PathRoutePredicateFactory(webFluxProperties);
 	}
 
 	@Bean
@@ -633,7 +635,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
+	@ConditionalOnBean({RateLimiter.class, KeyResolver.class})
 	@ConditionalOnEnabledFilter
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter,
 			KeyResolver resolver) {
@@ -787,7 +789,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@ConditionalOnMissingBean({ HttpClient.class, HttpClientFactory.class })
+		@ConditionalOnMissingBean({HttpClient.class, HttpClientFactory.class})
 		public HttpClientFactory gatewayHttpClientFactory(HttpClientProperties properties,
 				ServerProperties serverProperties, List<HttpClientCustomizer> customizers,
 				HttpClientSslConfigurer sslConfigurer) {
@@ -890,7 +892,7 @@ public class GatewayAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
-	@ConditionalOnClass({ OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class })
+	@ConditionalOnClass({OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class})
 	@ConditionalOnEnabledFilter(TokenRelayGatewayFilterFactory.class)
 	protected static class TokenRelayConfiguration {
 
