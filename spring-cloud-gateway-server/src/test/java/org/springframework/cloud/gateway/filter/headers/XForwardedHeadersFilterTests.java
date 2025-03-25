@@ -44,7 +44,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 public class XForwardedHeadersFilterTests {
 
 	@Test
-	public void remoteAddressIsNull() throws Exception {
+	public void remoteAddressIsNull() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
 			.header(HttpHeaders.HOST, "myhost")
 			.build();

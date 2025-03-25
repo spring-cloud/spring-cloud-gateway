@@ -1,0 +1,216 @@
+[[requestratelimiter-gatewayfilter-factory]]
+= `RequestRateLimiter` `GatewayFilter` Factory
+
+The `RequestRateLimiter` `GatewayFilter` factory uses a `RateLimiter` implementation to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+
+This filter takes an optional `keyResolver` parameter and parameters specific to the rate limiter (described xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.adoc#key-resolver-section[later in this section]).
+
+`keyResolver` is a bean that implements the `KeyResolver` interface.
+In configuration, reference the bean by name using SpEL.
+`#{@myKeyResolver}` is a SpEL expression that references a bean named `myKeyResolver`.
+The following listing shows the `KeyResolver` interface:
+
+.KeyResolver.java
+[source,java]
+----
+public interface KeyResolver {
+	Mono<String> resolve(ServerWebExchange exchange);
+}
+----
+
+[[key-resolver-section]]
+The `KeyResolver` interface lets pluggable strategies derive the key for limiting requests.
+In future milestone releases, there will be some `KeyResolver` implementations.
+
+The default implementation of `KeyResolver` is the `PrincipalNameKeyResolver`, which retrieves the `Principal` from the `ServerWebExchange` and calls `Principal.getName()`.
+
+By default, if the `KeyResolver` does not find a key, requests are denied.
+You can adjust this behavior by setting the `spring.cloud.gateway.filter.request-rate-limiter.deny-empty-key` (`true` or `false`) and `spring.cloud.gateway.filter.request-rate-limiter.empty-key-status-code` properties.
+
+The following example configures a `KeyResolver` in Java:
+
+.Config.java
+[source,java]
+----
+@Bean
+KeyResolver userKeyResolver() {
+    return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("user"));
+}
+----
+
+[NOTE]
+=====
+The `RequestRateLimiter` is not configurable with the "shortcut" notation. The following example below is _invalid_:
+
+.application.properties
+[source,properties]
+----
+# INVALID SHORTCUT CONFIGURATION
+spring.cloud.gateway.routes[0].filters[0]=RequestRateLimiter=2, 2, #{@userkeyresolver}
+----
+
+Here is a valid yaml reference:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: limit
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            key-resolver: "#{@userkeyresolver}"
+----
+=====
+
+[[redis-ratelimiter]]
+== The Redis `RateLimiter`
+
+The Redis implementation is based on work done at https://stripe.com/blog/rate-limiters[Stripe].
+It requires the use of the `spring-boot-starter-data-redis-reactive` Spring Boot starter.
+
+The algorithm used is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
+
+The `redis-rate-limiter.replenishRate` property defines how many requests per second to allow (without any dropped requests).
+This is the rate at which the token bucket is filled.
+
+The `redis-rate-limiter.burstCapacity` property is the maximum number of requests a user is allowed in a single second (without any dropped requests).
+This is the number of tokens the token bucket can hold.
+Setting this value to zero blocks all requests.
+
+The `redis-rate-limiter.requestedTokens` property is how many tokens a request costs.
+This is the number of tokens taken from the bucket for each request and defaults to `1`.
+
+A steady rate is accomplished by setting the same value in `replenishRate` and `burstCapacity`.
+Temporary bursts can be allowed by setting `burstCapacity` higher than `replenishRate`.
+In this case, the rate limiter needs to be allowed some time between bursts (according to `replenishRate`), as two consecutive bursts results in dropped requests (`HTTP 429 - Too Many Requests`).
+The following listing configures a `redis-rate-limiter`:
+
+Rate limits below `1 request/s` are accomplished by setting `replenishRate` to the wanted number of requests, `requestedTokens` to the timespan in seconds, and `burstCapacity` to the product of `replenishRate` and `requestedTokens`.
+For example, setting `replenishRate=1`, `requestedTokens=60`, and `burstCapacity=60` results in a limit of `1 request/min`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1
+
+----
+
+This defines a request rate limit of 10 per user. A burst of 20 is allowed, but, in the next second, only 10 requests are available.
+The `KeyResolver` is a simple one that gets the `user` request parameter
+NOTE: This is not recommended for production
+
+[[bucket4j-ratelimiter]]
+== Bucket4j `RateLimiter`
+
+This implementation is based on the https://bucket4j.com/[Bucket4j] Java library.
+It requires the use of the `com.bucket4j:bucket4j_jdk17-core` dependency as well as one of the https://github.com/bucket4j/bucket4j?tab=readme-ov-file#bucket4j-distributed-features[distributed persistence options].
+
+In this example, we will use the Caffeine integration, which is a local cache. This can be added by including the `com.github.ben-manes.caffeine:caffeine` artifact in your dependency management. The `com.bucket4j:bucket4j_jdk17-caffeine` artifact will need to be imported as well.
+
+.pom.xml
+[source,xml]
+----
+<dependency>
+  <groupId>com.github.ben-manes.caffeine</groupId>
+  <artifactId>caffeine</artifactId>
+  <version>${caffeine.version}</version>
+</dependency>
+<dependency>
+  <groupId>com.bucket4j</groupId>
+  <artifactId>bucket4j_jdk17-caffeine</artifactId>
+  <version>${bucket4j.version}</version>
+</dependency>
+----
+
+First a bean of type `io.github.bucket4j.distributed.proxy.AsyncProxyMananger<String>` needs to be created.
+
+.Config.java
+[source,java]
+----
+@Bean
+AsyncProxyManager<String> caffeineProxyManager() {
+	Caffeine<String, RemoteBucketState> builder = (Caffeine) Caffeine.newBuilder().maximumSize(100);
+	return new CaffeineProxyManager<>(builder, Duration.ofMinutes(1)).asAsync();
+}
+----
+
+The `bucket4j-rate-limiter.capacity` property is the maximum number of requests a user is allowed in a single second (without any dropped requests).
+This is the number of tokens the token bucket can hold.
+Must be greater than zero.
+
+The `bucket4j-rate-limiter.refillPeriod` property defines the refill period. The bucket refills at a rate of `refillTokens` per `refillPeriod`. This is a required property and uses the https://docs.spring.io/spring-boot/reference/features/external-config.html#features.external-config.typesafe-configuration-properties.conversion.periods[Spring Boot Period format].
+
+The `bucket4j-rate-limiter.refillTokens` property defines how many tokens are added to the bucket in during `refillPeriod`.
+This defaults to `capacity` and must be greater than or equal to zero.
+
+The `bucket4j-rate-limiter.requestedTokens` property is how many tokens a request costs.
+This is the number of tokens taken from the bucket for each request and defaults to `1`. Must be greater than zero.
+
+The `bucket4j-rate-limiter.refillStyle` property defines how the bucket is refilled. The 3 options are `GREEDY` (default), `INTERVALLY` and `INTERVALLY_ALIGNED`.
+`GREEDY` tries to add the tokens to the bucket as soon as possible. `INTERVALLY`, in opposite to greedy, waits until the whole `refillPeriod` has elapsed before refilling tokens. `INTERVALLY_ALIGNED` is like `INTERVALLY`, but with a specified `timeOfFirstRefill`.
+
+The `bucket4j-rate-limiter.timeOfFirstRefill` property is an `Instant` only used when `refillStyle` is set to `INTERVALLY_ALIGNED`.
+
+The following example defines a request rate limit of 10 per user. A burst of 20 is allowed, but, in the next second, only 10 requests are available.
+NOTE: This is not recommended for production
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            bucket4j-rate-limiter.capacity: 20
+            bucket4j-rate-limiter.refillTokens: 10
+            bucket4j-rate-limiter.refillPeriod: 1s
+            bucket4j-rate-limiter.requestedTokens: 1
+
+----
+
+[[custom-ratelimiter]]
+== Custom `RateLimiter`
+
+You can also define a rate limiter as a bean that implements the `RateLimiter` interface.
+In configuration, you can reference the bean by name using SpEL.
+`#{@myRateLimiter}` is a SpEL expression that references a bean with named `myRateLimiter`.
+The following listing defines a rate limiter that uses the `KeyResolver` defined in the previous listing:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestratelimiter_route
+        uri: https://example.org
+        filters:
+        - name: RequestRateLimiter
+          args:
+            rate-limiter: "#{@myRateLimiter}"
+            key-resolver: "#{@userKeyResolver}"
+
+----
+

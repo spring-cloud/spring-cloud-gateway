@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.server.mvc;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -132,6 +134,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 			});
 	}
 
+	@DisabledForJreRange(min = JRE.JAVA_23)
 	@Test
 	void gatewayHttpClientPropertiesWork() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)

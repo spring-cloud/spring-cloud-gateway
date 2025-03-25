@@ -30,7 +30,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 
 /**
  * @author Spencer Gibb
+ * @deprecated for removal in 5.0
  */
+@Deprecated
 public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 
 	/**

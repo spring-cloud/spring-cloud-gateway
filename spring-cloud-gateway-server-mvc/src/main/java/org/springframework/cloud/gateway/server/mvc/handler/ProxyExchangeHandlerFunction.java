@@ -123,9 +123,9 @@ public class ProxyExchangeHandlerFunction
 	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original,
 			REQUEST_OR_RESPONSE requestOrResponse) {
 		HttpHeaders filtered = original;
-		for (var filter : filters) {
+		for (Object filter : filters) {
 			@SuppressWarnings("unchecked")
-			var typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
+			HttpHeadersFilter<REQUEST_OR_RESPONSE> typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
 			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;

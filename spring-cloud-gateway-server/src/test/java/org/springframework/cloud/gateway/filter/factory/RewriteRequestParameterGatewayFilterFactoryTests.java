@@ -71,9 +71,21 @@ class RewriteRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	void rewriteRequestParameterFilterWorksWithSpecialCharacters() {
+	void rewriteRequestParameterFilterWithSpecialCharactersInParameterValue() {
 		testRewriteRequestParameterFilter("campaign", "black friday~(1.A-B_C!)", "campaign=old&color=green",
 				Map.of("campaign", List.of("black friday~(1.A-B_C!)"), "color", List.of("green")));
+	}
+
+	@Test
+	void rewriteRequestParameterFilterWithSpecialCharactersInParameterName() {
+		testRewriteRequestParameterFilter("campaign[]", "red", "campaign%5B%5D=blue&color=green",
+				Map.of("campaign[]", List.of("red"), "color", List.of("green")));
+	}
+
+	@Test
+	void rewriteRequestParameterFilterKeepsOtherParamsEncoded() {
+		testRewriteRequestParameterFilter("color", "white", "campaign%5B%5D=blue&color=green",
+				Map.of("campaign[]", List.of("blue"), "color", List.of("white")));
 	}
 
 	private void testRewriteRequestParameterFilter(String name, String replacement, String query,

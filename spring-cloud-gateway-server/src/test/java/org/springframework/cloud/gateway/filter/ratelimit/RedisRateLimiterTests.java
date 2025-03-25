@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.RetryingTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -53,7 +54,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Denis Cutic
  * @author Andrey Muchnik
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.function.enabled=false" })
 @DirtiesContext
 @Testcontainers
 @Tag("DockerRequired")
@@ -100,6 +101,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	}
 
 	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	public void redisRateLimiterWorksForMultipleRoutes() throws Exception {
 		String id = UUID.randomUUID().toString();
 

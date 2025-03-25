@@ -1,0 +1,99 @@
+[[retry-gatewayfilter-factory]]
+= `Retry` `GatewayFilter` Factory
+
+The `Retry` `GatewayFilter` factory supports the following parameters:
+
+* `retries`: The number of retries that should be attempted.
+* `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
+* `methods`: The HTTP methods that should be retried, represented by using `org.springframework.http.HttpMethod`.
+* `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
+* `exceptions`: A list of thrown exceptions that should be retried.
+* `backoff`: The configured exponential backoff for the retries.
+Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
+If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
+If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
+* `jitter`: The configured random jitter for the retries.
+Generating a backoff between `[backoff - backoff*randomFactor, backoff + backoff*randomFactor]`
+* `timeout`:  The configured timeout for the retries.
+
+The following defaults are configured for `Retry` filter, if enabled:
+
+* `retries`: Three times
+* `series`: 5XX series
+* `methods`: GET method
+* `exceptions`: `IOException` and `TimeoutException`
+* `backoff`: disabled
+* `jitter`: disabled
+* `timeout`: unlimited
+
+The following listing configures a Retry `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_test
+        uri: http://localhost:8080/flakey
+        predicates:
+        - Host=*.retry.com
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: BAD_GATEWAY
+            methods: GET,POST
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+            jitter:
+              randomFactor: 0.5
+            timeout: 100ms
+----
+
+NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that, in case of an error, it does not do anything that could result in a response being sent to the client and committed.
+For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
+Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
+
+NOTE: When using the retry filter, it will retry all filters that come after it. Make sure the results of the filters following the retry filter are as expected when they are executed multiple times.
+
+WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is `org.springframework.core.io.buffer.DataBuffer`.
+
+A simplified "shortcut" notation can be added with a single `status` and `method`.
+
+The following two examples are equivalent:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_route
+        uri: https://example.org
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: INTERNAL_SERVER_ERROR
+            methods: GET
+            backoff:
+              firstBackoff: 10ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
+            jitter:
+              randomFactor: 0.5
+            timeout: 100ms
+
+      - id: retryshortcut_route
+        uri: https://example.org
+        filters:
+        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false,0.5,100ms
+----
+

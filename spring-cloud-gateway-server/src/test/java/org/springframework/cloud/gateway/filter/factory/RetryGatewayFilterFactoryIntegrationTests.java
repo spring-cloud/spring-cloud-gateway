@@ -110,6 +110,30 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void retryWithBackoffJitterTimeout() {
+		// @formatter:off
+		testClient.get()
+				.uri("/retry?key=retry-with-backoff-jitter-timeout&count=3")
+				.header(HttpHeaders.HOST, "www.retrywithbackoffjittertimeout.org")
+				.exchange()
+				.expectStatus().isOk()
+				.expectHeader().value("X-Retry-Count", CoreMatchers.equalTo("3"));
+		// @formatter:on
+	}
+
+	@Test
+	public void retryWithBackoffTimeout() {
+		// backoff > timeout
+		testClient.get()
+			.uri("/retry?key=retry-with-backoff-timeout&count=3")
+			.header(HttpHeaders.HOST, "www.retrywithbackofftimeout.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+		assertThat(TestConfig.map.get("retry-with-backoff-timeout")).isNotNull().hasValue(2);
+	}
+
+	@Test
 	public void retryFilterGetJavaDsl() {
 		testClient.get()
 			.uri("/retry?key=getjava&count=2")
@@ -363,6 +387,21 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 						r -> r.host("**.retrywithbackoff.org").filters(f -> f.prefixPath("/httpbin").retry(config -> {
 							config.setRetries(2).setBackoff(Duration.ofMillis(100), null, 2, true);
 						})).uri(uri))
+				.route("retry_with_backoff_jitter_timeout_test", r -> r.host("**.retrywithbackoffjittertimeout.org")
+					.filters(f -> f.prefixPath("/httpbin").retry(config -> {
+						config.setRetries(3)
+							.setBackoff(Duration.ofMillis(50), Duration.ofMillis(100), 2, true)
+							.setJitter(0.1)
+							.setTimeout(Duration.ofMillis(1000));
+					}))
+					.uri(uri))
+				.route("retry_with_backoff_timeout_test", r -> r.host("**.retrywithbackofftimeout.org")
+					.filters(f -> f.prefixPath("/httpbin").retry(config -> {
+						config.setRetries(3)
+							.setBackoff(Duration.ofMillis(100), null, 2, true)
+							.setTimeout(Duration.ofMillis(200));
+					}))
+					.uri(uri))
 
 				.route("retry_with_loadbalancer",
 						r -> r.host("**.retrywithloadbalancer.org")
