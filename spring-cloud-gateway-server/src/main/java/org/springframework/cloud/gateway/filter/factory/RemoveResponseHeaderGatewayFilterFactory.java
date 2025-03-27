@@ -47,12 +47,11 @@ public class RemoveResponseHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> {
-							if (!exchange.getResponse().isCommitted()) {
-								exchange.getResponse().getHeaders().remove(config.getName());
-							}
-						}));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (!exchange.getResponse().isCommitted()) {
+						exchange.getResponse().getHeaders().remove(config.getName());
+					}
+				}));
 			}
 
 			@Override
