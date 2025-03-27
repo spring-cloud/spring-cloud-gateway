@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.net.URI;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -27,7 +26,6 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
@@ -46,6 +44,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
@@ -120,11 +119,8 @@ public class StripPrefixStaticPortTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixStaticPortDsl(Environment env) {
 			// @formatter:off
 			return route("teststripprefixstaticportdsl")
-					.GET("/long/path/to/anything/staticportdsl", http())//env.getProperty("strip.prefix.static.uri")))
-					.filter((request, next) -> {
-						MvcUtils.setRequestUrl(request, URI.create(env.getProperty("strip.prefix.static.uri")));
-						return next.handle(request);
-					})
+					.GET("/long/path/to/anything/staticportdsl", http())
+					.filter(uri(env.getProperty("strip.prefix.static.uri")))
 					.filter(stripPrefix(3))
 					.build();
 			// @formatter:on

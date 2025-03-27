@@ -107,7 +107,7 @@ public abstract class HandlerFunctions {
 		public ServerResponse handle(ServerRequest serverRequest) {
 			if (uri != null) {
 				// TODO: log warning of deprecated usage
-				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				MvcUtils.setRequestUrl(serverRequest, uri);
 			}
 			return proxyExchangeHandlerFunction.updateAndGet(function -> {
 				if (function == null) {
