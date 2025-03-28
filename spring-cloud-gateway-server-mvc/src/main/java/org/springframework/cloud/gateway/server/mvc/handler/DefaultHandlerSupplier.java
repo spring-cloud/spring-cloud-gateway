@@ -35,6 +35,16 @@ class DefaultHandlerSupplier implements HandlerSupplier {
 		return Arrays.asList(getClass().getMethods());
 	}
 
+	public static HandlerDiscoverer.Result fn(RouteProperties routeProperties) {
+		// fn:fnName
+		return fn(routeProperties.getUri().getSchemeSpecificPart());
+	}
+
+	public static HandlerDiscoverer.Result fn(String functionName) {
+		return new HandlerDiscoverer.Result(HandlerFunctions.fn(functionName), Collections.emptyList(),
+				Collections.emptyList());
+	}
+
 	public static HandlerDiscoverer.Result forward(RouteProperties routeProperties) {
 		return forward(routeProperties.getId(), routeProperties.getUri());
 	}
@@ -66,6 +76,17 @@ class DefaultHandlerSupplier implements HandlerSupplier {
 
 	public static HandlerDiscoverer.Result no(String id, URI uri) {
 		return getResult(id, uri, HandlerFunctions.no());
+	}
+
+	// for properties
+	public static HandlerDiscoverer.Result stream(RouteProperties routeProperties) {
+		// stream:bindingName
+		return stream(routeProperties.getUri().getSchemeSpecificPart());
+	}
+
+	public static HandlerDiscoverer.Result stream(String bindingName) {
+		return new HandlerDiscoverer.Result(HandlerFunctions.stream(bindingName), Collections.emptyList(),
+				Collections.emptyList());
 	}
 
 	private static HandlerDiscoverer.Result getResult(String id, URI uri,
