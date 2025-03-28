@@ -47,6 +47,7 @@ The following is an example of configuring a route with rate limiting:
 .RouteConfiguration.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -56,12 +57,13 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRateLimited() {
-		return route("rate_limited_route")
-			.GET("/api/**", http("https://example.org"))
-				.filter(rateLimit(c -> c.setCapacity(100)
-					.setPeriod(Duration.ofMinutes(1))
-					.setKeyResolver(request -> request.servletRequest().getUserPrincipal().getName())))
-				.build();
+        return route("rate_limited_route")
+            .GET("/api/**", http())
+            .before(uri("https://example.org"))
+            .filter(rateLimit(c -> c.setCapacity(100)
+                    .setPeriod(Duration.ofMinutes(1))
+                    .setKeyResolver(request -> request.servletRequest().getUserPrincipal().getName())))
+            .build();
     }
 }
 ----

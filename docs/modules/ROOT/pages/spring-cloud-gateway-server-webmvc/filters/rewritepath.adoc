@@ -25,6 +25,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.rewritePath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -33,10 +34,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePath() {
-		return route("rewritepath_route")
-				.GET("/red/**", http("https://example.org"))
-					.before(rewritePath("/red/(?<segment>.*)", "/${segment}"))
-					.build();
+        return route("rewritepath_route")
+            .GET("/red/**", http())
+            .before(uri("https://example.org"))
+            .before(rewritePath("/red/(?<segment>.*)", "/${segment}"))
+            .build();
     }
 }
 ----

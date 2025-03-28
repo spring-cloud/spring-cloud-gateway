@@ -14,6 +14,8 @@ spring:
         routes:
         - id: dedupe_response_header_route
           uri: https://example.org
+          predicates:
+          - Path=/hello
           filters:
           - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 ----
@@ -21,10 +23,10 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
-
 
 @Configuration
 class RouteConfiguration {
@@ -32,7 +34,8 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsDedupeResponseHeader() {
         return route("dedupe_response_header_route")
-                .route(path("/hello"), http("https://example.org"))
+                .route(path("/hello"), http())
+                .before(uri("https://example.org"))
                 .after(dedupeResponseHeader("Access-Control-Allow-Credentials Access-Control-Allow-Origin"))
                 .build();
     }

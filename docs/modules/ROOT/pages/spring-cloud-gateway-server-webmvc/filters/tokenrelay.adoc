@@ -54,6 +54,7 @@ Spring Cloud Gateway Server MVC can forward the OAuth2 access token of the curre
 .RouteConfiguration.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.tokenRelay;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -62,11 +63,12 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-		return route("resource")
-			.GET("/resource", http("http://localhost:9000"))
-				.filter(tokenRelay())
-				.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsTokenRelay() {
+        return route("resource")
+            .GET("/resource", http())
+            .before(uri("https://localhost:9000"))
+            .filter(tokenRelay())
+            .build();
     }
 }
 ----

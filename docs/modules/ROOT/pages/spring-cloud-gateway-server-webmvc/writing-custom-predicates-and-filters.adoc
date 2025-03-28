@@ -48,6 +48,7 @@ To use our new `headerExists` `RequestPredicate`, we need to plug it in to an ap
 [source,java]
 ----
 import static SampleRequestPredicates.headerExists;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -56,9 +57,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> headerExistsRoute() {
-		return route("header_exists_route")
-				.route(headerExists("X-Green"), http("https://example.org"))
-					.build();
+        return route("header_exists_route")
+            .route(headerExists("X-Green"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -111,6 +113,7 @@ First, a new `ServerRequest` is created from the existing request. This allows u
 [source,java]
 ----
 import static SampleHandlerFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -120,9 +123,10 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> instrumentRoute() {
 		return route("instrument_route")
-				.GET("/**", http("https://example.org"))
-					.filter(instrument("X-Request-Id", "X-Response-Id"))
-					.build();
+                .GET("/**", http())
+				.filter(instrument("X-Request-Id", "X-Response-Id"))
+                .before(uri("https://example.org"))
+                .build();
     }
 }
 ----
@@ -160,6 +164,7 @@ A new `ServerRequest` is created from the existing request. This allows us to ad
 [source,java]
 ----
 import static SampleBeforeFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -168,10 +173,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> instrumentRoute() {
-		return route("instrument_route")
-				.GET("/**", http("https://example.org"))
-					.before(instrument("X-Request-Id"))
-					.build();
+        return route("instrument_route").GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(instrument("X-Request-Id"))
+            .build();
     }
 }
 ----
@@ -213,6 +218,7 @@ In this case we simply add the header to the response and return it.
 [source,java]
 ----
 import static SampleAfterFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -221,10 +227,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> instrumentRoute() {
-		return route("instrument_route")
-				.GET("/**", http("https://example.org"))
-					.after(instrument("X-Response-Id"))
-					.build();
+        return route("instrument_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .after(instrument("X-Response-Id"))
+            .build();
     }
 }
 ----

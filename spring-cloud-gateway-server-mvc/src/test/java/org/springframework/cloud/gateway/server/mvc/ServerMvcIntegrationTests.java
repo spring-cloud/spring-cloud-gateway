@@ -79,6 +79,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -110,6 +111,7 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderToRequestUri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
@@ -303,7 +305,7 @@ public class ServerMvcIntegrationTests {
 						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
 				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
 						"/long/path/to");
-				assertThat(headers).containsEntry("X-Test", "stripPrefix");
+				assertThat(headers).containsEntry("X-Test", "stripPrefixLb");
 			});
 	}
 
@@ -423,7 +425,8 @@ public class ServerMvcIntegrationTests {
 	public void circuitBreakerInvalidFallbackThrowsException() {
 		// @formatter:off
 		Assertions.assertThatThrownBy(() -> route("testcircuitbreakergatewayfallback")
-				.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+				.route(path("/anything/circuitbreakergatewayfallback"), http())
+				.before(uri("https://nonexistantdomain.com1234"))
 				.filter(circuitBreaker("mycb2", URI.create("http://example.com")))
 				.build()).isInstanceOf(IllegalArgumentException.class);
 		// @formatter:on
@@ -1027,6 +1030,11 @@ public class ServerMvcIntegrationTests {
 	protected static class TestConfiguration {
 
 		@Bean
+		StaticPortController staticPortController() {
+			return new StaticPortController();
+		}
+
+		@Bean
 		TestHandler testHandler() {
 			return new TestHandler();
 		}
@@ -1142,7 +1150,7 @@ public class ServerMvcIntegrationTests {
 			return route("teststripprefix")
 					.route(GET("/long/path/to/get").and(host("**.stripprefixlb.org")), http())
 					.filter(stripPrefix(3))
-					.filter(addRequestHeader("X-Test", "stripPrefix"))
+					.filter(addRequestHeader("X-Test", "stripPrefixLb"))
 					.filter(lb("httpbin"))
 					.build();
 			// @formatter:on
@@ -1195,7 +1203,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
 			// @formatter:off
 			return route("testcircuitbreakerfallback")
-					.route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.route(path("/anything/circuitbreakerfallback"), http())
+					.before(uri("https://nonexistantdomain.com1234"))
 					.filter(circuitBreaker("mycb1", "/hello"))
 					.build();
 			// @formatter:on
@@ -1205,7 +1214,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallbackToGatewayRoute() {
 			// @formatter:off
 			return route("testcircuitbreakergatewayfallback")
-					.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.route(path("/anything/circuitbreakergatewayfallback"), http())
+					.before(uri("https://nonexistantdomain.com1234"))
 					.filter(circuitBreaker("mycb2", URI.create("forward:/anything/gatewayfallback")))
 					.build()
 				.and(route("testgatewayfallback")
@@ -1693,6 +1703,16 @@ public class ServerMvcIntegrationTests {
 	}
 
 	protected record Event(String foo, String bar) {
+
+	}
+
+	@RestController
+	protected static class StaticPortController {
+
+		@GetMapping(path = "/anything/staticport", produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<?> messageEvents() {
+			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+		}
 
 	}
 

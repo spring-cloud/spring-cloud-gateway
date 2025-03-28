@@ -14,6 +14,8 @@ spring:
         routes:
         - id: setrequestheader_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - SetRequestHeader=X-Request-Red, Blue
 ----
@@ -22,6 +24,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -30,10 +33,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHeader() {
-		return route("add_request_parameter_route")
-				.GET("/**", http("https://example.org"))
-					.before(setRequestHostHeader("X-Request-Red", "Blue"))
-					.build();
+        return route("setrequestheader_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(setRequestHostHeader("X-Request-Red", "Blue"))
+            .build();
     }
 }
 ----
@@ -64,19 +68,21 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
 
 @Configuration
 class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHeader() {
-		return route("add_request_parameter_route")
-				.route(host("{segment}.myhost.org"), http("https://example.org"))
-					.before(setRequestHostHeader("X-Request-Red", "Blue-{segment}"))
-					.build();
+        return route("setrequestheader_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .before(setRequestHostHeader("X-Request-Red", "Blue-{segment}"))
+            .build();
     }
 }
 ----

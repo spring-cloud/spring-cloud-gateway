@@ -40,7 +40,7 @@ public class LoadBalancerHandlerSupplier implements HandlerSupplier {
 
 	public static HandlerDiscoverer.Result lb(URI uri) {
 		// TODO: how to do something other than http
-		return new HandlerDiscoverer.Result(HandlerFunctions.http(),
+		return new HandlerDiscoverer.Result(HandlerFunctions.http(), Collections.emptyList(),
 				Collections.singletonList(LoadBalancerFilterFunctions.lb(uri.getHost())));
 	}
 

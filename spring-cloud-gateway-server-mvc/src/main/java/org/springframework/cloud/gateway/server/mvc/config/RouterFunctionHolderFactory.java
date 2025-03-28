@@ -39,7 +39,6 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
-import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
@@ -150,15 +149,6 @@ public class RouterFunctionHolderFactory {
 
 		RouterFunctions.Builder builder = route(routeId);
 
-		// MVC.fn users won't need this anonymous filter as url will be set directly.
-		// Put this function first, so if a filter from a handler changes the url
-		// it is after this one.
-		builder.filter((request, next) -> {
-			MvcUtils.setRequestUrl(request, routeProperties.getUri());
-			return next.handle(request);
-		});
-		builder.before(BeforeFilterFunctions.routeId(routeId));
-
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
 		// TODO: cache?
 		// translate handlerFunction
@@ -181,13 +171,15 @@ public class RouterFunctionHolderFactory {
 		HandlerFunction<ServerResponse> handlerFunction = null;
 
 		// filters added by HandlerDiscoverer need to go last, so save them
-		List<HandlerFilterFunction<ServerResponse, ServerResponse>> handlerFilterFunctionFilters = new ArrayList<>();
+		List<HandlerFilterFunction<ServerResponse, ServerResponse>> lowerPrecedenceFilters = new ArrayList<>();
+		List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters = new ArrayList<>();
 		if (response instanceof HandlerFunction<?>) {
 			handlerFunction = (HandlerFunction<ServerResponse>) response;
 		}
 		else if (response instanceof HandlerDiscoverer.Result result) {
 			handlerFunction = result.getHandlerFunction();
-			handlerFilterFunctionFilters.addAll(result.getFilters());
+			lowerPrecedenceFilters.addAll(result.getLowerPrecedenceFilters());
+			higherPrecedenceFilters.addAll(result.getHigherPrecedenceFilters());
 		}
 		if (handlerFunction == null) {
 			throw new IllegalStateException(
@@ -218,6 +210,9 @@ public class RouterFunctionHolderFactory {
 		builder.route(predicate.get(), handlerFunction);
 		predicate.set(null);
 
+		// HandlerDiscoverer filters needing lower priority, so put them first
+		lowerPrecedenceFilters.forEach(builder::filter);
+
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
 		routeProperties.getFilters().forEach(filterProperties -> {
@@ -226,7 +221,7 @@ public class RouterFunctionHolderFactory {
 		});
 
 		// HandlerDiscoverer filters need higher priority, so put them last
-		handlerFilterFunctionFilters.forEach(builder::filter);
+		higherPrecedenceFilters.forEach(builder::filter);
 
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
