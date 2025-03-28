@@ -157,6 +157,18 @@ class BeforeFilterFunctionsTests {
 	}
 
 	@Test
+	void stripPrefixWithPort() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost:77/depth1/depth2/depth3")
+			.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripPrefix(2).apply(request);
+
+		assertThat(result.uri().toString()).hasToString("http://localhost:77/depth3");
+	}
+
+	@Test
 	void stripPrefixWithEncodedPath() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3/é")
 			.buildRequest(null);

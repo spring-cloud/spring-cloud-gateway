@@ -196,7 +196,6 @@ public abstract class BeforeFilterFunctions {
 			String newPath = uri.getRawPath() + request.uri().getRawPath();
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-			MvcUtils.setRequestUrl(request, prefixedUri);
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
@@ -340,7 +339,6 @@ public abstract class BeforeFilterFunctions {
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			MvcUtils.setRequestUrl(request, rewrittenUri);
 			return modified;
 		};
 	}
@@ -361,7 +359,6 @@ public abstract class BeforeFilterFunctions {
 			URI uri = uriTemplate.expand(uriVariables);
 
 			URI newUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(uri.getRawPath()).build(true).toUri();
-			MvcUtils.setRequestUrl(request, newUri);
 			return ServerRequest.from(request).uri(newUri).build();
 		};
 	}
@@ -419,9 +416,19 @@ public abstract class BeforeFilterFunctions {
 				.replacePath(newPath.toString())
 				.build(true)
 				.toUri();
-			MvcUtils.setRequestUrl(request, prefixedUri);
 
 			return ServerRequest.from(request).uri(prefixedUri).build();
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> uri(String uri) {
+		return uri(URI.create(uri));
+	}
+
+	public static Function<ServerRequest, ServerRequest> uri(URI uri) {
+		return request -> {
+			MvcUtils.setRequestUrl(request, uri);
+			return request;
 		};
 	}
 

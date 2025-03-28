@@ -14,7 +14,7 @@ spring:
         - id: ingredients
           uri: lb://ingredients
           predicates:
-          - Path=//ingredients/**
+          - Path=/ingredients/**
           filters:
           - name: CircuitBreaker
             args:
@@ -33,8 +33,9 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -50,7 +51,8 @@ class RouteConfiguration {
                 .filter(circuitBreaker("fetchIngredients", URI.create("forward:/fallback")))
                 .build()
             .and(route("ingredients-fallback")
-                .route(path("/fallback"), http("http://localhost:9994"))
+                .route(path("/fallback"), http())
+                .before(uri("http://localhost:9994"))
                 .before(fallbackHeaders())
                 .build());
     }

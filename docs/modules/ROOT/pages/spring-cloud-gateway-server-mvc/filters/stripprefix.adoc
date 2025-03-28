@@ -13,8 +13,8 @@ spring:
     gateway:
       mvc:
         routes:
-        - id: nameRoot
-          uri: https://nameservice
+        - id: strip_prefix_route
+          uri: https://example.org
           predicates:
           - Path=/name/**
           filters:
@@ -25,6 +25,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -33,14 +34,15 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
-		return route("nameRoot")
-				.GET("/name/**", http("https://example.org"))
-					.before(stripPrefix(2))
-					.build();
+        return route("strip_prefix_route")
+            .GET("/name/**", http())
+            .before(uri("https://example.org"))
+            .before(stripPrefix(2))
+            .build();
     }
 }
 ----
 
-When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
+When a request is made through the gateway to `/name/blue/red`, the full request url looks like `https://example.org/red`.
 
 WARNING: If using the `lb()` filter, it needs to be after the `stripPrefix()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

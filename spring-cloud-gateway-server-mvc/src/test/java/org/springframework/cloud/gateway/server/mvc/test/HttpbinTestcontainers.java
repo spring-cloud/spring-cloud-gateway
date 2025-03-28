@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.server.mvc.test;
 
 import java.util.HashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -34,8 +32,6 @@ public class HttpbinTestcontainers implements ApplicationContextInitializer<Conf
 	// https://github.com/mccutchen/go-httpbin
 	// https://hub.docker.com/r/mccutchen/go-httpbin
 	private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("mccutchen/go-httpbin");
-
-	static final Logger logger = LoggerFactory.getLogger(HttpbinTestcontainers.class);
 
 	/**
 	 * Default httpbin port.
@@ -59,7 +55,6 @@ public class HttpbinTestcontainers implements ApplicationContextInitializer<Conf
 		MutablePropertySources sources = context.getEnvironment().getPropertySources();
 
 		if (!sources.contains("httpbinTestcontainer")) {
-			boolean running = container.isRunning();
 			Integer mappedPort = container.getMappedPort(DEFAULT_PORT);
 			HashMap<String, Object> map = new HashMap<>();
 			map.put("httpbin.port", String.valueOf(mappedPort));

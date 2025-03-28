@@ -27,6 +27,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -35,10 +36,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
-		return route("add_request_parameter_route")
-				.GET("/red/{segment}", http("https://example.org"))
-					.before(setPath("/{segment"))
-					.build();
+        return route("setpath_route")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(setPath("/{segment"))
+            .build();
     }
 }
 ----

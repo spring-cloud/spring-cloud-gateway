@@ -36,7 +36,7 @@ spring:
     gateway:
       mvc:
         routes:
-        - id: retry_test
+        - id: retry_route
           uri: http://localhost:8080/flakey
           predicates:
           - Host=*.retry.com
@@ -53,6 +53,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
@@ -63,12 +64,16 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-		return route("add_request_parameter_route")
-			.route(host("*.retry.com"), http("https://example.org"))
-				.filter(retry(config -> config.setRetries(3).setSeries(Set.of(HttpStatus.Series.SERVER_ERROR)).setMethods(Set.of(HttpMethod.GET, HttpMethod.POST)).setCacheBody(true)))
-				.filter(adaptCachedBody())
-			.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
+        return route("retry_route")
+            .route(host("*.retry.com"), http())
+            .before(uri("http://localhost:8080/flakey"))
+            .filter(retry(config -> config.setRetries(3)
+                    .setSeries(Set.of(HttpStatus.Series.SERVER_ERROR))
+                    .setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))
+                    .setCacheBody(true)))
+            .filter(adaptCachedBody())
+            .build();
     }
 }
 ----
@@ -77,11 +82,11 @@ NOTE: When using the retry filter with a `forward:` prefixed URL, the target end
 For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
 Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
 
-// WARNING: When using the retry filter with any HTTP method with a body, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`. The type of the object is `org.springframework.core.io.buffer.DataBuffer`.
+WARNING: When using the retry filter with any HTTP method with a body and `cacheBody=true`, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `MvcUtils.CACHED_REQUEST_BODY_ATT`. The type of the object is `ByteArrayInputStream`.
 
 A simplified "shortcut" notation can be added with a single `status` and `method`.
 
-The following two examples are equivalent:
+The following two example routes are equivalent:
 
 .application.yml
 [source,yaml]
