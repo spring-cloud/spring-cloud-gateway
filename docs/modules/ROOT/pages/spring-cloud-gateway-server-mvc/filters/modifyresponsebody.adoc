@@ -5,20 +5,29 @@ You can use the `ModifyResponseBody` filter to modify the response body before i
 
 NOTE: This filter can be configured only by using the Java DSL.
 
-The following listing shows how to modify a response body  filter:
+The following listing shows how to modify a response body filter:
 
+.GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.modifyResponseBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
 @Bean
 public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBodySimple() {
 	return route("modify_response_body")
 			.GET("/anything/modifyresponsebody", http())
-			.before(new HttpbinUriResolver())
+            .before(uri("https://example.org"))
 			.after(modifyResponseBody(String.class, String.class, null,
 					(request, response, s) -> s.replace("fooval", "FOOVAL")))
 			.build();
 }
 ----
+
+The sample above does not change the content type or do anything dynamic. Below, the sample changes the content type and dynamically modifies the content.
+
 .GatewaySampleApplication.java
 [source,java]
 ----
