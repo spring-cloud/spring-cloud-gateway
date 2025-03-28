@@ -26,6 +26,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -33,11 +34,12 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-		return route("add_request_parameter_route")
-				.GET("/anything/addrequestparam", http("https://example.org"))
-					.before(addRequestParameter("red", "blue"))
-					.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteRequestParameter() {
+        return route("rewriterequestparameter_route")
+            .GET("products", http())
+            .before(uri("https://example.org"))
+            .before(addRequestParameter("red", "blue"))
+            .build();
     }
 }
 ----

@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
@@ -60,14 +60,17 @@ public abstract class HandlerFunctions {
 
 	// TODO: current discovery only goes by method name
 	// so last one wins, so put parameterless last
+	@Deprecated
 	public static HandlerFunction<ServerResponse> http(String uri) {
 		return http(URI.create(uri));
 	}
 
+	@Deprecated
 	public static HandlerFunction<ServerResponse> http(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}
 
+	@Deprecated
 	public static HandlerFunction<ServerResponse> https(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}
@@ -86,6 +89,7 @@ public abstract class HandlerFunctions {
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
+		@Deprecated
 		private final URI uri;
 
 		private AtomicReference<ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
@@ -94,6 +98,7 @@ public abstract class HandlerFunctions {
 			this.uri = null;
 		}
 
+		@Deprecated
 		LookupProxyExchangeHandlerFunction(URI uri) {
 			this.uri = uri;
 		}
@@ -101,12 +106,15 @@ public abstract class HandlerFunctions {
 		@Override
 		public ServerResponse handle(ServerRequest serverRequest) {
 			if (uri != null) {
-				// TODO: in 2 places now, here and
-				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				// TODO: log warning of deprecated usage
+				MvcUtils.setRequestUrl(serverRequest, uri);
 			}
-			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
-			return proxyExchangeHandlerFunction.get().handle(serverRequest);
+			return proxyExchangeHandlerFunction.updateAndGet(function -> {
+				if (function == null) {
+					return lookup(serverRequest);
+				}
+				return function;
+			}).handle(serverRequest);
 		}
 
 		private static ProxyExchangeHandlerFunction lookup(ServerRequest request) {
@@ -124,12 +132,13 @@ public abstract class HandlerFunctions {
 
 	}
 
+	@Deprecated
 	public static class HandlerSupplier
 			implements org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier {
 
 		@Override
 		public Collection<Method> get() {
-			return Arrays.asList(HandlerFunctions.class.getMethods());
+			return Collections.emptyList();
 		}
 
 	}

@@ -16,6 +16,8 @@ spring:
         routes:
         - id: removerequestheader_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - RemoveRequestHeader=X-Request-Foo
 ----
@@ -23,6 +25,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -31,11 +34,12 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsremoveRequestHeader() {
-		return route("removerequestheader_route")
-				.GET("/**", http("https://example.org"))
-					.before(removeRequestHeader("X-Request-Foo"))
-					.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestHeader() {
+        return route("removerequestheader_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(removeRequestHeader("X-Request-Foo"))
+            .build();
     }
 }
 ----

@@ -23,6 +23,7 @@ public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBodySi
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.modifyResponseBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
@@ -32,11 +33,13 @@ import org.springframework.http.MediaType;
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-		return route("rewrite_request_obj")
-                .route(host("*.rewriterequestobj.org"), http("https://example.org"))
-					.before(modifyResponseBody(String.class, String.class, MediaType.APPLICATION_JSON_VALUE, (request, response, s) -> s.toUpperCase()))
-					.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBody() {
+        return route("modify_response_bodu")
+            .route(host("*.modifyresponsebodu.org"), http())
+            .before(uri("https://example.org"))
+            .after(modifyResponseBody(String.class, String.class, MediaType.APPLICATION_JSON_VALUE,
+                    (request, s) -> s.toUpperCase()))
+            .build();
     }
 
 }

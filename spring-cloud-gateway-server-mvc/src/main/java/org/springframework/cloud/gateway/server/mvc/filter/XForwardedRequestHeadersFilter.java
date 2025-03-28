@@ -400,7 +400,7 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 
 			LinkedHashSet<URI> originalUris = MvcUtils.getAttribute(request,
 					MvcUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
-			URI requestUri = MvcUtils.getAttribute(request, MvcUtils.GATEWAY_REQUEST_URL_ATTR);
+			URI requestUri = request.uri();
 
 			if (originalUris != null && requestUri != null) {
 

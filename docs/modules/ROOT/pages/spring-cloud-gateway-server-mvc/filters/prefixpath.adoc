@@ -15,6 +15,8 @@ spring:
         routes:
         - id: prefixpath_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - PrefixPath=/mypath
 ----
@@ -22,6 +24,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -31,10 +34,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsPrefixPath() {
-		return route("prefixpath_route")
-				.GET("/**", http("https://example.org"))
-					.before(prefixPath("/mypath"))
-					.build();
+        return route("prefixpath_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(prefixPath("/mypath"))
+            .build();
     }
 }
 ----

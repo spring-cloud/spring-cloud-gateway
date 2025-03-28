@@ -16,6 +16,8 @@ spring:
         routes:
         - id: removerequestparameter_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - RemoveRequestParameter=red
 ----
@@ -23,7 +25,8 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -31,11 +34,12 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-		return route("removerequestparameter_route")
-				.GET("/**", http("https://example.org"))
-					.before(removeRequestParameter("red"))
-					.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestParameter() {
+        return route("removerequestparameter_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(removeRequestParameter("red"))
+            .build();
     }
 }
 ----
