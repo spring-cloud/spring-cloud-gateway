@@ -272,7 +272,12 @@ public abstract class GatewayRequestPredicates {
 
 		@Override
 		public void accept(RequestPredicates.Visitor visitor) {
-			visitor.header(name, pattern.pattern());
+			if (pattern != null) {
+				visitor.header(name, pattern.pattern());
+			}
+			else {
+				visitor.header(name, "");
+			}
 		}
 
 		@Override
