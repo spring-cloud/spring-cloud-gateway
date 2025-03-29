@@ -58,12 +58,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 				if (cookies == null) {
 					return false;
 				}
-				for (HttpCookie cookie : cookies) {
-					if (cookie.getValue().matches(config.regexp)) {
-						return true;
-					}
-				}
-				return false;
+				return cookies.stream().anyMatch(cookie -> cookie.getValue().matches(config.regexp));
 			}
 
 			@Override
