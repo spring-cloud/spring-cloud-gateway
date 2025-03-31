@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +33,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
@@ -89,10 +89,10 @@ public abstract class RetryFilterFunctions {
 	}
 
 	private static void reset(ServerRequest request) throws IOException {
-		InputStream inputStream = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
-		if (inputStream != null) {
-			inputStream.close();
-			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, null);
+		ClientHttpResponse clientHttpResponse = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR);
+		if (clientHttpResponse != null) {
+			clientHttpResponse.close();
+			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR, null);
 		}
 	}
 
