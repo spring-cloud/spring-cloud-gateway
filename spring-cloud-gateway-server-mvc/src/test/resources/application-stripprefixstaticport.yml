@@ -1,0 +1,12 @@
+strip.prefix.static.uri: http://${httpbin.host}:${httpbin.port}
+spring.cloud.gateway.mvc:
+  routes:
+    - id: strip_prefix_static_port_config
+      uri: ${strip.prefix.static.uri}
+      predicates:
+        - Path=/long/path/to/anything/staticport
+      filters:
+        - StripPrefix=3
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE

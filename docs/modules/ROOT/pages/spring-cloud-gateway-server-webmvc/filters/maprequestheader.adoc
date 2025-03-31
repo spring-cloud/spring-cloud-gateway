@@ -17,6 +17,8 @@ spring:
         routes:
         - id: map_request_header_route
           uri: https://example.org
+          predicates:
+          - Path=/mypath
           filters:
           - MapRequestHeader=Blue, X-Request-Red
 ----
@@ -24,7 +26,8 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -34,7 +37,8 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsMapRequestHeader() {
         return route("map_request_header_route")
-				.GET("/mypath", http("https://example.org"))
+				.GET("/mypath", http())
+                .before(uri("https://example.org"))
 				.before(mapRequestHeader("Blue", "X-Request-Red"))
 				.build();
     }

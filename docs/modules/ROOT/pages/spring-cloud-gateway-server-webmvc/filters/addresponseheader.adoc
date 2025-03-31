@@ -14,6 +14,8 @@ spring:
         routes:
         - id: add_response_header_route
           uri: https://example.org
+          predicates:
+          - Path=/anything/addresheader
           filters:
           - AddResponseHeader=X-Response-Red, Blue
 ----
@@ -21,6 +23,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -30,9 +33,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRespHeader() {
-        return route("addresponseheader")
-                .GET("/anything/addresheader", http("https://example.org"))
-                .after(addResponseHeader("X-Response-Red", "Blue"))
+        return route("add_response_header_route")
+            .GET("/anything/addresheader", http())
+            .before(uri("https://example.org"))
+            .after(addResponseHeader("X-Response-Red", "Blue"))
             .build();
     }
 }
@@ -47,6 +51,7 @@ The following example configures an `AddResponseHeader` filter that uses a varia
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -57,10 +62,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRespHeader() {
-		return route("add_response_header_route")
-				.route(host("{segment}.myhost.org"), http("https://example.org"))
-				.after(addResponseHeader("foo", "bar-{segment}"))
-				.build();
+        return route("add_response_header_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .after(addResponseHeader("foo", "bar-{segment}"))
+            .build();
     }
 }
 ----

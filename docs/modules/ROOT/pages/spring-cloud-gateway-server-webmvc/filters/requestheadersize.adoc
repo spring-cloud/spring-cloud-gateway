@@ -16,6 +16,8 @@ spring:
         routes:
         - id: requestheadersize_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - RequestHeaderSize=1000B
 ----
@@ -23,6 +25,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -32,10 +35,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestHeaderSize() {
-		return route("requestheadersize_route")
-				.GET("/**", http("https://example.org"))
-					.before(requestHeaderSize("1000B"))
-					.build();
+        return route("requestheadersize_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(requestHeaderSize("1000B"))
+            .build();
     }
 }
 ----

@@ -31,6 +31,7 @@ spring:
 [source,java]
 ----
 import java.time.ZonedDateTime;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.after;
@@ -40,9 +41,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAfter() {
-		return route("after_route")
-			.route(after(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]")), http("https://example.org"))
-			.build();
+        return route("after_route")
+            .route(after(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]")), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -74,6 +76,7 @@ spring:
 [source,java]
 ----
 import java.time.ZonedDateTime;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.before;
@@ -83,9 +86,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsBefore() {
-		return route("before_route")
-			.route(before(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]")), http("https://example.org"))
-			.build();
+        return route("before_route")
+            .route(before(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]")), http()
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -119,6 +123,7 @@ spring:
 [source,java]
 ----
 import java.time.ZonedDateTime;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.between;
@@ -128,9 +133,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsBetween() {
-		return route("between_route")
-			.route(between(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]"), ZonedDateTime.parse("2017-01-21T17:42:47.789-07:00[America/Denver]")), http("https://example.org"))
-			.build();
+        return route("between_route")
+            .route(between(ZonedDateTime.parse("2017-01-20T17:42:47.789-07:00[America/Denver]"),
+                ZonedDateTime.parse("2017-01-21T17:42:47.789-07:00[America/Denver]")), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -162,18 +169,20 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.between;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.cookie;
 
 @Configuration
 class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsCookie() {
-		return route("cookie_route")
-			.route(cookie("chocolate", "ch.p"), http("https://example.org"))
-			.build();
+        return route("cookie_route")
+            .route(cookie("chocolate", "ch.p"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -204,6 +213,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.header;
@@ -212,10 +222,11 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsCookie() {
-		return route("cookie_route")
-			.route(header("X-Request-Id", "\\d+"), http("https://example.org"))
-			.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsHeader() {
+        return route("header_route")
+            .route(header("X-Request-Id", "\\d+"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -247,6 +258,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
@@ -256,9 +268,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsHost() {
-		return route("host_route")
-			.route(host("**.somehost.org", "**.anotherhost.org"), http("https://example.org"))
-			.build();
+        return route("host_route")
+            .route(host("**.somehost.org", "**.anotherhost.org"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -296,6 +309,7 @@ spring:
 [source,java]
 ----
 import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.method;
@@ -305,9 +319,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsMethod() {
-		return route("method_route")
-			.route(method(HttpMethod.GET, HttpMethod.POST), http("https://example.org"))
-			.build();
+        return route("method_route")
+            .route(method(HttpMethod.GET, HttpMethod.POST), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -319,19 +334,19 @@ This route matches if the request method was a `GET` or a `POST`.
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.methods;
 
 @Configuration
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsMethod() {
-		return route("method_route")
-			.GET("/mypath", http("https://example.org"))
-			.build();
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsMethodAndPath() {
+        return route("method_and_path_route")
+            .GET("/mypath", http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -363,19 +378,20 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.method;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.path;
 
 @Configuration
 class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsPath() {
-		return route("path_route")
-			.route(path("/red/{segment}", "/blue/{segment}"), http("https://example.org"))
-			.build();
+        return route("path_route")
+            .route(path("/red/{segment}", "/blue/{segment}"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -421,7 +437,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
@@ -431,9 +447,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
-		return route("query_route")
-			.route(query("green"), http("https://example.org"))
-			.build();
+        return route("query_route")
+            .route(query("green"), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -457,7 +474,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.query;
@@ -467,9 +484,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsQuery() {
-		return route("query_route")
-			.route(query("red", "gree."), http("https://example.org"))
-			.build();
+        return route("query_route")
+            .route(query("red", "gree."), http())
+            .before(uri("https://example.org"))
+            .build();
     }
 }
 ----
@@ -585,22 +603,25 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import org.springframework.http.HttpMethod;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.method;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.path;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.weight;
 
 @Configuration
 class RouteConfiguration {
 
 	@Bean
 	public RouterFunction<ServerResponse> gatewayRouterFunctionsWeights() {
-		return route("weight_high")
-				.route(weight("group1", 8).and(path("/**")), http("https://weighthigh.org"))
-				.build().and(
-			route("weight_low")
-				.route(weight("group1", 2).and(path("/**")), http("https://weightlow.org"))
-				.build());
+        return route("weight_high")
+                .route(weight("group1", 8).and(path("/**")), http())
+                .before(uri("https://weighthigh.org"))
+                .build().and(
+            route("weight_low")
+                .route(weight("group1", 2).and(path("/**")), http())
+                .before(uri("https://weightlow.org"))
+                .build());
 	}
 }
 ----

@@ -63,6 +63,7 @@
 |spring.cloud.gateway.filter.set-response-header.enabled | `+++true+++` | Enables the set-response-header filter.
 |spring.cloud.gateway.filter.set-status.enabled | `+++true+++` | Enables the set-status filter.
 |spring.cloud.gateway.filter.strip-prefix.enabled | `+++true+++` | Enables the strip-prefix filter.
+|spring.cloud.gateway.forwarded.by.enabled | `+++false+++` | Enables the Forwarded: by header part.
 |spring.cloud.gateway.forwarded.enabled | `+++true+++` | Enables the ForwardedHeadersFilter.
 |spring.cloud.gateway.global-filter.adapt-cached-body.enabled | `+++true+++` | Enables the adapt-cached-body global filter.
 |spring.cloud.gateway.global-filter.forward-path.enabled | `+++true+++` | Enables the forward-path global filter.

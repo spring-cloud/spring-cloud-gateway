@@ -54,7 +54,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Denis Cutic
  * @author Andrey Muchnik
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.function.enabled=false" })
 @DirtiesContext
 @Testcontainers
 @Tag("DockerRequired")
