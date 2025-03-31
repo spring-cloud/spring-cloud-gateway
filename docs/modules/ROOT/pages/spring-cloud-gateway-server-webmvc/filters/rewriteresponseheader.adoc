@@ -16,14 +16,17 @@ spring:
         routes:
         - id: rewriteresponseheader_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
-          - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
+          - RewriteResponseHeader=X-Response-Red, password=[^&]+, password=***
 ----
 
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -33,8 +36,9 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteResponseHeader() {
         return route("rewriteresponseheader_route")
-                .GET("/**", http("https://example.org"))
-                .after(rewriteResponseHeader("X-Request-Red", "password=[^&]+", "password=***"))
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .after(rewriteResponseHeader("X-Request-Red", "password=[^&]+", "password=***"))
             .build();
     }
 }

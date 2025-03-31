@@ -29,6 +29,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
@@ -57,14 +58,19 @@ public class RemoveRequestParameterGatewayFilterFactory
 				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
 				queryParams.remove(config.getName());
 
-				URI newUri = UriComponentsBuilder.fromUri(request.getURI())
-					.replaceQueryParams(unmodifiableMultiValueMap(queryParams))
-					.build()
-					.toUri();
+				try {
+					MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+					URI newUri = UriComponentsBuilder.fromUri(request.getURI())
+						.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+						.build(true)
+						.toUri();
 
-				ServerHttpRequest updatedRequest = exchange.getRequest().mutate().uri(newUri).build();
-
-				return chain.filter(exchange.mutate().request(updatedRequest).build());
+					ServerHttpRequest updatedRequest = exchange.getRequest().mutate().uri(newUri).build();
+					return chain.filter(exchange.mutate().request(updatedRequest).build());
+				}
+				catch (IllegalArgumentException ex) {
+					throw new IllegalStateException("Invalid URI query: \"" + queryParams + "\"");
+				}
 			}
 
 			@Override

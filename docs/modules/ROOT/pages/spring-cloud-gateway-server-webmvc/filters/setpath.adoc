@@ -27,6 +27,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -35,13 +36,15 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
-		return route("add_request_parameter_route")
-				.GET("/red/{segment}", http("https://example.org"))
-					.before(setPath("/{segment"))
-					.build();
+        return route("setpath_route")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(setPath("/{segment"))
+            .build();
     }
 }
 ----
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request.
 
+WARNING: If using the `lb()` filter, it needs to be after the `setPath()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

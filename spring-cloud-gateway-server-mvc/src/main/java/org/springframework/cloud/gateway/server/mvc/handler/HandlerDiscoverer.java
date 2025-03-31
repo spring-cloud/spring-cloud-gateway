@@ -37,20 +37,39 @@ public class HandlerDiscoverer extends AbstractGatewayDiscoverer {
 
 		private final HandlerFunction<ServerResponse> handlerFunction;
 
-		private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters;
+		private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> lowerPrecedenceFilters;
 
+		private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters;
+
+		@Deprecated
 		public Result(HandlerFunction<ServerResponse> handlerFunction,
 				List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters) {
+			this(handlerFunction, Collections.emptyList(), filters);
+		}
+
+		public Result(HandlerFunction<ServerResponse> handlerFunction,
+				List<HandlerFilterFunction<ServerResponse, ServerResponse>> lowerPrecedenceFilters,
+				List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters) {
 			this.handlerFunction = handlerFunction;
-			this.filters = Objects.requireNonNullElse(filters, Collections.emptyList());
+			this.lowerPrecedenceFilters = Objects.requireNonNullElse(lowerPrecedenceFilters, Collections.emptyList());
+			this.higherPrecedenceFilters = Objects.requireNonNullElse(higherPrecedenceFilters, Collections.emptyList());
 		}
 
 		public HandlerFunction<ServerResponse> getHandlerFunction() {
 			return handlerFunction;
 		}
 
+		@Deprecated
 		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getFilters() {
-			return filters;
+			return getHigherPrecedenceFilters();
+		}
+
+		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getLowerPrecedenceFilters() {
+			return lowerPrecedenceFilters;
+		}
+
+		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getHigherPrecedenceFilters() {
+			return higherPrecedenceFilters;
 		}
 
 	}

@@ -15,14 +15,17 @@ spring:
     gateway:
       mvc:
         routes:
-        - id: circuitbreaker_route
+        - id: circuitbreakernofallback
           uri: https://example.org
+          predicates:
+          - Path=/anything/circuitbreakernofallback
           filters:
           - CircuitBreaker=myCircuitBreaker
 ----
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -33,9 +36,10 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerNoFallback() {
         return route("circuitbreakernofallback")
-                .route(path("/anything/circuitbreakernofallback"), http("https://example.org"))
-                .filter(circuitBreaker("mycb3"))
-                .build();
+            .route(path("/anything/circuitbreakernofallback"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker"))
+            .build();
     }
 }
 ----
@@ -74,6 +78,7 @@ The following listing does the same thing in Java:
 [source,java]
 ----
 import java.net.URI;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -84,9 +89,10 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
         return route("circuitbreaker_route")
-                .route(path("/consumingServiceEndpoint"), http("https://example.org"))
-                .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis")))
-                .build();
+            .route(path("/consumingServiceEndpoint"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis")))
+            .build();
     }
 }
 ----
@@ -102,6 +108,7 @@ In the example below the call `consumingServiceEndpoint/users/1` will be redirec
 [source,java]
 ----
 import java.net.URI;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -112,9 +119,10 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
         return route("circuitbreaker_route")
-                .route(path("/consumingServiceEndpoint/{*segments}"), http("https://example.org"))
-                .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis/{segments}")))
-                .build();
+            .route(path("/consumingServiceEndpoint/{*segments}"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis/{segments}")))
+            .build();
     }
 }
 ----
@@ -126,6 +134,7 @@ However, you can also reroute the request to a controller or handler in an exter
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
@@ -142,7 +151,8 @@ class RouteConfiguration {
                 .filter(circuitBreaker("fetchIngredients", URI.create("forward:/fallback")))
                 .build()
             .and(route("ingredients-fallback")
-                .route(path("/fallback"), http("http://localhost:9994"))
+                .route(path("/fallback"), http())
+                .before(uri("https://localhost:9994"))
                 .build());
     }
 }

@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
@@ -199,6 +200,45 @@ public class ForwardedHeadersFilterTests {
 				assertThat(forwarded.getValues()).hasSize(expected.get(j).size()).containsAllEntriesOf(expected.get(j));
 			}
 		}
+	}
+
+	@Test
+	public void forwardedByForIpv4AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(true);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
+
+	}
+
+	@Test
+	public void forwardedByForIpv6AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv6Address = InetAddress.getByName("abc4:babf:955f:1724:11bc:0153:275c:d36e");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(true);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv6Address);
+
+		Assertions.assertThat(forwarded.getValues())
+			.containsEntry("by", "\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
+
+	}
+
+	@Test
+	public void forwardedByIsNotAddedIfFeatureIsDisabled() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(false);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
 	}
 
 }

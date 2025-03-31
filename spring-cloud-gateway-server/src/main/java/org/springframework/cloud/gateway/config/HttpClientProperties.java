@@ -169,7 +169,7 @@ public class HttpClientProperties {
 
 	public static class Pool {
 
-		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
+		/** Type of pool for HttpClient to use (elastic, fixed or disabled). */
 		private PoolType type = PoolType.ELASTIC;
 
 		/** The channel pool map name, defaults to proxy. */
@@ -209,8 +209,8 @@ public class HttpClientProperties {
 		private boolean metrics = false;
 
 		/**
-		 * Configures the leasing strategy for the pool, defaults to FIFO which is Netty's
-		 * default.
+		 * Configures the leasing strategy for the pool (fifo or lifo), defaults to FIFO
+		 * which is Netty's default.
 		 */
 		private LeasingStrategy leasingStrategy = LeasingStrategy.FIFO;
 
@@ -331,7 +331,9 @@ public class HttpClientProperties {
 
 	public static class Proxy {
 
-		/** proxyType for proxy configuration of Netty HttpClient. */
+		/**
+		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
+		 */
 		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
 
 		/** Hostname for proxy configuration of Netty HttpClient. */

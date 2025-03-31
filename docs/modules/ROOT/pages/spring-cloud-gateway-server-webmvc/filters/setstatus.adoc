@@ -16,10 +16,14 @@ spring:
         routes:
         - id: setstatusstring_route
           uri: https://example.org
+          predicates:
+          - Path=/path1
           filters:
           - SetStatus=UNAUTHORIZED
         - id: setstatusint_route
           uri: https://example.org
+          predicates:
+          - Path=/path2
           filters:
           - SetStatus=401
 ----
@@ -28,6 +32,7 @@ spring:
 [source,java]
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -37,13 +42,15 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatus() {
         return route("setstatus_route")
-                .GET("/path1", http("https://example.org"))
+                .GET("/path1", http())
+                .before(uri("https://example.org"))
                 // setStatus("UNAUTHORIZED") works as well
                 .after(setStatus(HttpStatus.UNAUTHORIZED))
             .build().and(route("setstatusint_route")
-                .GET("/path2", http("https://example.org"))
+                .before(uri("https://example.org"))
+                .GET("/path2", http())
                 .after(setStatus("401"))
-            .build());
+                .build());
     }
 }
 ----

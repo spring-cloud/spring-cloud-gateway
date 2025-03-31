@@ -19,15 +19,21 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.function.context.FunctionCatalog;
+import org.springframework.cloud.function.context.FunctionProperties;
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
+import org.springframework.cloud.function.context.config.RoutingFunction;
+import org.springframework.cloud.gateway.server.mvc.GatewayMvcClassPathWarningAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.stream.function.StreamOperations;
@@ -43,35 +49,56 @@ import static org.springframework.cloud.gateway.server.mvc.handler.FunctionHandl
 
 public abstract class HandlerFunctions {
 
+	private static final Log log = LogFactory.getLog(GatewayMvcClassPathWarningAutoConfiguration.class);
+
 	private HandlerFunctions() {
 
-	}
-
-	// for properties
-	public static HandlerFunction<ServerResponse> fn(RouteProperties routeProperties) {
-		// fn:fnName
-		return fn(routeProperties.getUri().getSchemeSpecificPart());
 	}
 
 	public static HandlerFunction<ServerResponse> fn(String functionName) {
 		Assert.hasText(functionName, "'functionName' must not be empty");
 		return request -> {
-			String expandedFunctionName = MvcUtils.expand(request, functionName);
 			FunctionCatalog functionCatalog = MvcUtils.getApplicationContext(request).getBean(FunctionCatalog.class);
-			FunctionInvocationWrapper function = functionCatalog.lookup(expandedFunctionName,
-					request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			String expandedFunctionName = MvcUtils.expand(request, functionName);
+			FunctionInvocationWrapper function;
+			Object body = null;
+			if (expandedFunctionName.contains("/")) {
+				String[] functionBodySplit = expandedFunctionName.split("/");
+				function = functionCatalog.lookup(functionBodySplit[0],
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+				if (function != null && function.isSupplier()) {
+					log.warn("Supplier must not have any arguments. Supplier: '" + function.getFunctionDefinition()
+							+ "' has '" + functionBodySplit[1] + "' as an argument which is ignored.");
+				}
+				body = functionBodySplit[1];
+			}
+			else {
+				function = functionCatalog.lookup(expandedFunctionName,
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			}
+
+			/*
+			 * If function can not be found in the current runtime, we will default to
+			 * RoutingFunction which has additional logic to determine the function to
+			 * invoke.
+			 */
+			Map<String, String> additionalRequestHeaders = new HashMap<>();
+			if (function == null) {
+				additionalRequestHeaders.put(FunctionProperties.FUNCTION_DEFINITION, expandedFunctionName);
+
+				function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME,
+						request.headers().accept().stream().map(MimeType::toString).toArray(String[]::new));
+			}
+
 			if (function != null) {
-				Object body = function.isSupplier() ? null : request.body(function.getRawInputType());
-				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList());
+				if (body == null) {
+					body = function.isSupplier() ? null : request.body(function.getRawInputType());
+				}
+				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList(),
+						additionalRequestHeaders);
 			}
 			return ServerResponse.notFound().build();
 		};
-	}
-
-	// for properties
-	public static HandlerFunction<ServerResponse> stream(RouteProperties routeProperties) {
-		// stream:bindingName
-		return stream(routeProperties.getUri().getSchemeSpecificPart());
 	}
 
 	public static HandlerFunction<ServerResponse> stream(String bindingName) {
@@ -115,14 +142,17 @@ public abstract class HandlerFunctions {
 
 	// TODO: current discovery only goes by method name
 	// so last one wins, so put parameterless last
+	@Deprecated
 	public static HandlerFunction<ServerResponse> http(String uri) {
 		return http(URI.create(uri));
 	}
 
+	@Deprecated
 	public static HandlerFunction<ServerResponse> http(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}
 
+	@Deprecated
 	public static HandlerFunction<ServerResponse> https(URI uri) {
 		return new LookupProxyExchangeHandlerFunction(uri);
 	}
@@ -141,6 +171,7 @@ public abstract class HandlerFunctions {
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
+		@Deprecated
 		private final URI uri;
 
 		private AtomicReference<ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
@@ -149,6 +180,7 @@ public abstract class HandlerFunctions {
 			this.uri = null;
 		}
 
+		@Deprecated
 		LookupProxyExchangeHandlerFunction(URI uri) {
 			this.uri = uri;
 		}
@@ -156,12 +188,15 @@ public abstract class HandlerFunctions {
 		@Override
 		public ServerResponse handle(ServerRequest serverRequest) {
 			if (uri != null) {
-				// TODO: in 2 places now, here and
-				// GatewayMvcPropertiesBeanDefinitionRegistrar
-				MvcUtils.putAttribute(serverRequest, MvcUtils.GATEWAY_REQUEST_URL_ATTR, uri);
+				// TODO: log warning of deprecated usage
+				MvcUtils.setRequestUrl(serverRequest, uri);
 			}
-			this.proxyExchangeHandlerFunction.compareAndSet(null, lookup(serverRequest));
-			return proxyExchangeHandlerFunction.get().handle(serverRequest);
+			return proxyExchangeHandlerFunction.updateAndGet(function -> {
+				if (function == null) {
+					return lookup(serverRequest);
+				}
+				return function;
+			}).handle(serverRequest);
 		}
 
 		private static ProxyExchangeHandlerFunction lookup(ServerRequest request) {
@@ -179,12 +214,13 @@ public abstract class HandlerFunctions {
 
 	}
 
+	@Deprecated
 	public static class HandlerSupplier
 			implements org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier {
 
 		@Override
 		public Collection<Method> get() {
-			return Arrays.asList(HandlerFunctions.class.getMethods());
+			return Collections.emptyList();
 		}
 
 	}

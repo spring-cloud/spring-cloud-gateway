@@ -16,6 +16,8 @@ spring:
         routes:
         - id: preserve_host_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - PreserveHostHeader
 ----
@@ -23,6 +25,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.preserveHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -32,10 +35,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsPreserveHostHeader() {
-		return route("preserve_host_route")
-				.GET("/**", http("https://example.org"))
-					.before(preserveHostHeader())
-					.build();
+        return route("preserve_host_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(preserveHostHeader())
+            .build();
     }
 }
 ----
