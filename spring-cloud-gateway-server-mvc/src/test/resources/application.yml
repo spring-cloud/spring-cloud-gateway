@@ -7,3 +7,6 @@ logging:
 spring:
   mvc:
     log-request-details: true
+  http:
+    client:
+      factory: REACTOR
