@@ -39,6 +39,7 @@ public abstract class TokenRelayFilterFunctions {
 		return tokenRelay(null);
 	}
 
+	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay(String defaultClientRegistrationId) {
 		return (request, next) -> {
 			Authentication principal = (Authentication) request.servletRequest().getUserPrincipal();
