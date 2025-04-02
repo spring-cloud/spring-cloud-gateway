@@ -6,25 +6,27 @@ forwards the incoming token to outgoing resource requests. The
 consumer can be a pure Client (like an SSO application) or a Resource
 Server.
 
-////
-TODO: support TokenRelay clientRegistrationId
 Spring Cloud Gateway Server MVC can forward OAuth2 access tokens downstream to the services
 it is proxying using the `TokenRelay` filter.
 
 The `TokenRelay` filter takes one optional parameter, `clientRegistrationId`.
 The following example configures a `TokenRelay` filter:
 
-.App.java
+.RouteConfiguration.java
 [source,java]
 ----
 
-@Bean
-public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-    return builder.routes()
-            .route("resource", r -> r.path("/resource")
-                    .filters(f -> f.tokenRelay("myregistrationid"))
-                    .uri("http://localhost:9000"))
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsTokenRelay() {
+        return route("resource")
+            .GET("/resource", http())
+            .before(uri("https://localhost:9000"))
+            .filter(tokenRelay("myregistrationid"))
             .build();
+    }
 }
 ----
 
@@ -46,19 +48,13 @@ spring:
 ----
 
 The example above specifies a `clientRegistrationId`, which can be used to obtain and forward an OAuth2 access token for any available `ClientRegistration`.
-////
 
 Spring Cloud Gateway Server MVC can forward the OAuth2 access token of the currently authenticated user `oauth2Login()` is used to authenticate the user.
-//To add this functionality to the gateway, you can omit the `clientRegistrationId` parameter like this:
+To add this functionality to the gateway, you can omit the `clientRegistrationId` parameter like this:
 
 .RouteConfiguration.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
-import static org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.tokenRelay;
-import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
-import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-
 @Configuration
 class RouteConfiguration {
 
@@ -100,9 +96,9 @@ To enable this for Spring Cloud Gateway Server MVC add the following dependencie
 - `org.springframework.boot:spring-boot-starter-oauth2-client`
 
 How does it work?
-// The filter extracts an OAuth2 access token from the currently authenticated user for the provided `clientRegistrationId`.
-// If no `clientRegistrationId` is provided,
-The currently authenticated user's own access token (obtained during login) is used and the extracted access token is placed in a request header for the downstream requests.
+The filter extracts an OAuth2 access token from the currently authenticated user for the provided `clientRegistrationId`.
+If no `clientRegistrationId` is provided,
+the currently authenticated user's own access token (obtained during login) is used and the extracted access token is placed in a request header for the downstream requests.
 
 //For a full working sample see https://github.com/spring-cloud-samples/sample-gateway-oauth2login[this project].
 
