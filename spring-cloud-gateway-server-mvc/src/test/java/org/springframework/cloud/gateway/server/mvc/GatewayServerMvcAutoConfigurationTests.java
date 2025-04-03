@@ -33,7 +33,7 @@ import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfigu
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
-import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.ReactorClientHttpRequestFactoryBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -47,6 +47,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHead
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.boot.autoconfigure.http.client.HttpClientProperties.Factory.REACTOR;
 
 public class GatewayServerMvcAutoConfigurationTests {
 
@@ -151,7 +152,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 		assertThat(properties.getConnectTimeout()).hasSeconds(1);
 		assertThat(properties.getReadTimeout()).hasSeconds(2);
 		assertThat(properties.getSsl().getBundle()).isEqualTo("mybundle");
-		assertThat(properties.getFactory()).isNull();
+		assertThat(properties.getFactory()).isEqualTo(REACTOR);
 		assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
 		assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
 		assertThat(settings.sslBundle()).isNotNull();
@@ -187,10 +188,10 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void settingHttpClientFactoryWorks() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
+			.properties("spring.main.web-application-type=none")
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
-		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+		assertThat(builder).isInstanceOf(ReactorClientHttpRequestFactoryBuilder.class);
 	}
 
 	@SpringBootConfiguration
