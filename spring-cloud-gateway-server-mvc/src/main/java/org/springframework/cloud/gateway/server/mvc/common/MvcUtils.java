@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,6 +72,11 @@ public abstract class MvcUtils {
 	 * Gateway route ID attribute name.
 	 */
 	public static final String GATEWAY_ATTRIBUTES_ATTR = qualify("gatewayAttributes");
+
+	/**
+	 * Gateway original request URL attribute name.
+	 */
+	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
 
 	/**
 	 * Gateway request URL attribute name.
@@ -248,6 +254,13 @@ public abstract class MvcUtils {
 	public static void setRequestUrl(ServerRequest request, URI url) {
 		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void addOriginalRequestUrl(ServerRequest request, URI url) {
+		LinkedHashSet<URI> urls = (LinkedHashSet<URI>) request.attributes()
+			.computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
+		urls.add(url);
 	}
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {

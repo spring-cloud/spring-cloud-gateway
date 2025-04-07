@@ -26,6 +26,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -35,10 +36,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHostHeader() {
-		return route("set_request_host_header_route")
-				.GET("/headers", http("http://localhost:8080"))
-					.before(setRequestHostHeader("example.org"))
-					.build();
+        return route("set_request_host_header_route")
+            .GET("/headers", http())
+            .before(uri("http://localhost:8080"))
+            .before(setRequestHostHeader("example.org"))
+            .build();
     }
 }
 ----

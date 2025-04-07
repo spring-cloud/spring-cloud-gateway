@@ -14,6 +14,8 @@ spring:
         routes:
         - id: add_request_header_route
           uri: https://example.org
+          predicates:
+          - Path=/red
           filters:
           - AddRequestHeader=X-Request-red, blue
 ----
@@ -21,6 +23,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -30,10 +33,10 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route("addRequestHeader")
-                .route(GET("/red"), http("https://example.org"))
-                .before(addRequestHeader("X-Request-red", "blue"))
-                .build();
+        return route("add_request_header_route")
+            .GET("/red", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeader("X-Request-red", "blue"));
     }
 }
 ----
@@ -47,15 +50,20 @@ The following example configures an `AddRequestHeader` filter that uses a variab
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
 @Configuration
 class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route("addRequestHeader")
-                .route(GET("/red/{segment}"), http("https://example.org"))
-                .before(addRequestHeader("X-Request-red", "blue-{segment}"))
-                .build();
+        return route("add_request_header_route")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeader("X-Request-red", "blue-{segment}"));
     }
 }
 ----

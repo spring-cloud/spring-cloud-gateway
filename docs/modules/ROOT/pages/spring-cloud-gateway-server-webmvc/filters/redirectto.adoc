@@ -18,6 +18,8 @@ spring:
         routes:
         - id: redirectto_route
           uri: https://example.org
+          predicates:
+          - Path=/**
           filters:
           - RedirectTo=302, https://acme.org
 ----
@@ -25,6 +27,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -34,10 +37,11 @@ class RouteConfiguration {
 
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectTo() {
-		return route("redirectto_route")
-				.GET("/**", http("https://example.org"))
-					.filter(redirectTo(302, URI.create("acme.org")))
-					.build();
+        return route("redirectto_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .filter(redirectTo(302, URI.create("acme.org")))
+            .build();
     }
 }
 ----

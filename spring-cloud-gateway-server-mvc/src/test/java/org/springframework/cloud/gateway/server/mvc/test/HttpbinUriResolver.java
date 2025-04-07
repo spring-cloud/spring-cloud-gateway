@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.function.Function;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -36,7 +38,15 @@ public class HttpbinUriResolver
 		String host = context.getEnvironment().getProperty("httpbin.host");
 		Assert.hasText(host, "httpbin.host is not set, did you initialize HttpbinTestcontainers?");
 		Assert.notNull(port, "httpbin.port is not set, did you initialize HttpbinTestcontainers?");
-		return URI.create(String.format("http://%s:%d", host, port));
+		URI original = request.uri();
+		try {
+			return new URI("http", original.getUserInfo(), host, port, original.getPath(), original.getQuery(),
+					original.getFragment());
+		}
+		catch (URISyntaxException e) {
+			throw new UndeclaredThrowableException(e);
+		}
+
 	}
 
 	@Override

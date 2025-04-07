@@ -30,17 +30,18 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 import reactor.retry.Backoff;
+import reactor.retry.Jitter;
 import reactor.retry.Repeat;
 import reactor.retry.RepeatContext;
 import reactor.retry.Retry;
 import reactor.retry.RetryContext;
 
-import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.support.TimeoutException;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -70,7 +71,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList("retries", "statuses", "methods", "backoff.firstBackoff", "backoff.maxBackoff",
-				"backoff.factor", "backoff.basedOnPreviousValue");
+				"backoff.factor", "backoff.basedOnPreviousValue", "jitter.randomFactor", "timeout");
 	}
 
 	@Override
@@ -124,9 +125,15 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (backoff != null) {
 				statusCodeRepeat = statusCodeRepeat.backoff(getBackoff(backoff));
 			}
+			JitterConfig jitter = retryConfig.getJitter();
+			if (jitter != null) {
+				statusCodeRepeat = statusCodeRepeat.jitter(getJitter(jitter));
+			}
+			Duration timeout = retryConfig.getTimeout();
+			if (timeout != null) {
+				statusCodeRepeat = statusCodeRepeat.timeout(timeout);
+			}
 		}
-
-		// TODO: support timeout, backoff, jitter, etc... in Builder
 
 		Retry<ServerWebExchange> exceptionRetry = null;
 		if (!retryConfig.getExceptions().isEmpty()) {
@@ -163,6 +170,14 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (backoff != null) {
 				exceptionRetry = exceptionRetry.backoff(getBackoff(backoff));
 			}
+			JitterConfig jitter = retryConfig.getJitter();
+			if (jitter != null) {
+				exceptionRetry = exceptionRetry.jitter(getJitter(jitter));
+			}
+			Duration timeout = retryConfig.getTimeout();
+			if (timeout != null) {
+				exceptionRetry = exceptionRetry.timeout(timeout);
+			}
 		}
 
 		GatewayFilter gatewayFilter = apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
@@ -180,6 +195,9 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 					.append("statuses", retryConfig.getStatuses())
 					.append("methods", retryConfig.getMethods())
 					.append("exceptions", retryConfig.getExceptions())
+					.append("backoff", retryConfig.getBackoff())
+					.append("jitter", retryConfig.getJitter())
+					.append("timeout", retryConfig.getTimeout())
 					.toString();
 			}
 		};
@@ -202,6 +220,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	private Backoff getBackoff(BackoffConfig backoff) {
 		return Backoff.exponential(backoff.firstBackoff, backoff.maxBackoff, backoff.factor,
 				backoff.basedOnPreviousValue);
+	}
+
+	private Jitter getJitter(JitterConfig jitter) {
+		return Jitter.random(jitter.randomFactor);
 	}
 
 	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
@@ -229,10 +251,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
-		if (routeId != null && getPublisher() != null) {
-			// send an event to enable caching
-			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
-		}
+		enableBodyCaching(routeId);
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
 
@@ -295,6 +314,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private BackoffConfig backoff;
 
+		private JitterConfig jitter;
+
+		private Duration timeout;
+
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
 		}
@@ -307,6 +330,35 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (this.backoff != null) {
 				this.backoff.validate();
 			}
+			if (this.jitter != null) {
+				this.jitter.validate();
+			}
+			if (this.timeout != null) {
+				Assert.isTrue(!timeout.isNegative(), "timeout should be >= 0");
+			}
+		}
+
+		public Duration getTimeout() {
+			return timeout;
+		}
+
+		public RetryConfig setTimeout(Duration timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		public JitterConfig getJitter() {
+			return jitter;
+		}
+
+		public RetryConfig setJitter(JitterConfig jitter) {
+			this.jitter = jitter;
+			return this;
+		}
+
+		public RetryConfig setJitter(double randomFactor) {
+			this.jitter = new JitterConfig(randomFactor);
+			return this;
 		}
 
 		public BackoffConfig getBackoff() {
@@ -435,6 +487,47 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		public void setBasedOnPreviousValue(boolean basedOnPreviousValue) {
 			this.basedOnPreviousValue = basedOnPreviousValue;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append("firstBackoff", firstBackoff)
+				.append("maxBackoff", maxBackoff)
+				.append("factor", factor)
+				.append("basedOnPreviousValue", basedOnPreviousValue)
+				.toString();
+		}
+
+	}
+
+	public static class JitterConfig {
+
+		private double randomFactor = 0.5;
+
+		public void validate() {
+			Assert.isTrue(randomFactor >= 0 && randomFactor <= 1,
+					"random factor must be between 0 and 1 (default 0.5)");
+		}
+
+		public JitterConfig() {
+		}
+
+		public JitterConfig(double randomFactor) {
+			this.randomFactor = randomFactor;
+		}
+
+		public double getRandomFactor() {
+			return randomFactor;
+		}
+
+		public void setRandomFactor(double randomFactor) {
+			this.randomFactor = randomFactor;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append("randomFactor", randomFactor).toString();
+
 		}
 
 	}

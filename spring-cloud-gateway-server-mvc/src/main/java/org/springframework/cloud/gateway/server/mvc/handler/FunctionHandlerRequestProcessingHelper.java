@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -50,9 +51,16 @@ final class FunctionHandlerRequestProcessingHelper {
 
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static ServerResponse processRequest(ServerRequest request, FunctionInvocationWrapper function, Object argument,
 			boolean eventStream, List<String> ignoredHeaders, List<String> requestOnlyHeaders) {
+		return processRequest(request, function, argument, eventStream, ignoredHeaders, requestOnlyHeaders, null);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	static ServerResponse processRequest(ServerRequest request, FunctionInvocationWrapper function, Object argument,
+			boolean eventStream, List<String> ignoredHeaders, List<String> requestOnlyHeaders,
+			Map<String, String> additionalHeaders) {
+
 		if (argument == null) {
 			argument = "";
 		}
@@ -70,42 +78,29 @@ final class FunctionHandlerRequestProcessingHelper {
 			builder = builder.setHeader(FunctionHandlerHeaderUtils.HTTP_REQUEST_PARAM,
 					request.params().toSingleValueMap());
 		}
+
+		if (!CollectionUtils.isEmpty(additionalHeaders)) {
+			builder.copyHeaders(additionalHeaders);
+		}
 		inputMessage = builder.copyHeaders(headers.toSingleValueMap()).build();
 
 		if (function.isRoutingFunction()) {
 			function.setSkipOutputConversion(true);
 		}
 
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sending request to " + function + " with argument: " + inputMessage);
+		}
 		Object result = function.apply(inputMessage);
 		if (function.isConsumer()) {
-			/*
-			 * if (result instanceof Publisher) { Mono.from((Publisher)
-			 * result).subscribe(); }
-			 */
 			return HttpMethod.DELETE.equals(request.method()) ? ServerResponse.ok().build()
 					: ServerResponse.accepted()
 						.headers(h -> h.addAll(sanitize(headers, ignoredHeaders, requestOnlyHeaders)))
 						.build();
-			// Mono.empty() :
-			// Mono.just(ResponseEntity.accepted().headers(FunctionHandlerHeaderUtils.sanitize(headers,
-			// ignoredHeaders, requestOnlyHeaders)).build());
 		}
 
 		BodyBuilder responseOkBuilder = ServerResponse.ok()
 			.headers(h -> h.addAll(sanitize(headers, ignoredHeaders, requestOnlyHeaders)));
-
-		// FIXME: Mono/Flux
-		/*
-		 * Publisher pResult; if (result instanceof Publisher) { pResult = (Publisher)
-		 * result; if (eventStream) { return Flux.from(pResult); }
-		 *
-		 * if (pResult instanceof Flux) { pResult = ((Flux) pResult).onErrorContinue((e,
-		 * v) -> { logger.error("Failed to process value: " + v, (Throwable) e);
-		 * }).collectList(); } pResult = Mono.from(pResult); } else { pResult =
-		 * Mono.just(result); }
-		 */
-
-		// return Mono.from(pResult).map(v -> {
 		if (result instanceof Iterable i) {
 			List aggregatedResult = (List) StreamSupport.stream(i.spliterator(), false).map(m -> {
 				return m instanceof Message ? processMessage(responseOkBuilder, (Message<?>) m, ignoredHeaders) : m;
@@ -118,7 +113,6 @@ final class FunctionHandlerRequestProcessingHelper {
 		else {
 			return responseOkBuilder.body(result);
 		}
-		// });
 	}
 
 	private static Object processMessage(BodyBuilder responseOkBuilder, Message<?> message,

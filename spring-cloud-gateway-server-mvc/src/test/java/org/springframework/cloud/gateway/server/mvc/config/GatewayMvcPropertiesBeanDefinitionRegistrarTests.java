@@ -53,7 +53,8 @@ import org.springframework.web.servlet.function.ServerRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
+		properties = { "spring.cloud.gateway.function.enabled=false" })
 @ActiveProfiles("propertiesbeandefinitionregistrartests")
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
@@ -122,7 +123,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 				predicate.accept(new AbstractRequestPredicatesVisitor() {
 					@Override
 					public void path(String pattern) {
-						assertThat(pattern).isEqualTo("/anything/listRoute3");
+						assertThat(pattern).isEqualTo("/extra/anything/listRoute3");
 					}
 
 					@Override
@@ -181,7 +182,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@SuppressWarnings("unchecked")
 	public void lbRouteWorks() {
 		restClient.get()
-			.uri("/anything/listRoute3")
+			.uri("/extra/anything/listRoute3")
 			.header("MyHeaderName", "MyHeaderVal")
 			.exchange()
 			.expectStatus()
