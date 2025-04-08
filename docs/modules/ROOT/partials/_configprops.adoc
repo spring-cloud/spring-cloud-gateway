@@ -49,10 +49,14 @@
 |spring.cloud.gateway.filter.save-session.enabled | `+++true+++` | Enables the save-session filter.
 |spring.cloud.gateway.filter.secure-headers.content-security-policy | `+++default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'+++` | 
 |spring.cloud.gateway.filter.secure-headers.content-type-options | `+++nosniff+++` | 
+|spring.cloud.gateway.filter.secure-headers.default-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.disable |  | 
+|spring.cloud.gateway.filter.secure-headers.disabled-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.download-options | `+++noopen+++` | 
 |spring.cloud.gateway.filter.secure-headers.enabled | `+++true+++` | Enables the secure-headers filter.
+|spring.cloud.gateway.filter.secure-headers.enabled-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.frame-options | `+++DENY+++` | 
+|spring.cloud.gateway.filter.secure-headers.permissions-policy | `+++accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()+++` | 
 |spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | `+++none+++` | 
 |spring.cloud.gateway.filter.secure-headers.referrer-policy | `+++no-referrer+++` | 
 |spring.cloud.gateway.filter.secure-headers.strict-transport-security | `+++max-age=631138519+++` | 

@@ -242,7 +242,8 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	@Test
 	public void overrideDefaultInSecurityPropertiesWhenRouteConfigIsProvided() {
 
-		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(new SecureHeadersProperties());
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties());
 
 		Config config = new Config();
 		config.setDisable(Set.of("strict-transport-security"));
@@ -256,8 +257,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		ServerHttpResponse response = exchange.getResponse();
 		assertThat(response.getHeaders()).containsOnlyKeys(X_XSS_PROTECTION_HEADER, X_FRAME_OPTIONS_HEADER,
 				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER,
-				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-				PERMISSIONS_POLICY_HEADER);
+				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, PERMISSIONS_POLICY_HEADER);
 		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER)).containsExactly("camera=*");
 	}
 

@@ -49,10 +49,10 @@ import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	/**
-	* This test ensures that the response includes a set of default security headers,
-	* which are defined in {@link SecureHeadersProperties}. It also confirms that the
-	* opt-in "Permissions-Policy" header is not included in the response.
-	*/
+	 * This test ensures that the response includes a set of default security headers,
+	 * which are defined in {@link SecureHeadersProperties}. It also confirms that the
+	 * opt-in "Permissions-Policy" header is not included in the response.
+	 */
 	@Test
 	public void secureHeadersFilterWorks() {
 		Mono<ClientResponse> result = webClient.get()

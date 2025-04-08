@@ -126,11 +126,10 @@ public class SecureHeadersProperties {
 			+ "navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), "
 			+ "screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()";
 
-
 	/**
-	 * Default constructor for {@link SecureHeadersProperties}.
-	 * Initializes the `defaultHeaders` set with a predefined list of security headers.
-	 * The headers are transformed to lowercase for case-insensitive comparison.
+	 * Default constructor for {@link SecureHeadersProperties}. Initializes the
+	 * `defaultHeaders` set with a predefined list of security headers. The headers are
+	 * transformed to lowercase for case-insensitive comparison.
 	 **/
 	public SecureHeadersProperties() {
 
@@ -249,8 +248,8 @@ public class SecureHeadersProperties {
 	}
 
 	/**
-	 * Binds the list of default/opt-out header names to disable, transforms them into a lowercase set.
-	 * This is to ensure case-insensitive comparison.
+	 * Binds the list of default/opt-out header names to disable, transforms them into a
+	 * lowercase set. This is to ensure case-insensitive comparison.
 	 * @param disable - list of default/opt-out header names to disable
 	 */
 	public void setDisable(List<String> disable) {
@@ -267,8 +266,8 @@ public class SecureHeadersProperties {
 	}
 
 	/**
-	 * Binds the list of default/opt-out header names to enable, transforms them into a lowercase set.
-	 * This is to ensure case-insensitive comparison.
+	 * Binds the list of default/opt-out header names to enable, transforms them into a
+	 * lowercase set. This is to ensure case-insensitive comparison.
 	 * @param enable - list of default/opt-out header enable
 	 */
 	public void setEnable(List<String> enable) {

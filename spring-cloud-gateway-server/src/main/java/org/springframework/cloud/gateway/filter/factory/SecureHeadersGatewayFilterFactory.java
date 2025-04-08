@@ -83,7 +83,6 @@ public class SecureHeadersGatewayFilterFactory
 	 */
 	public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
 
-
 	private final SecureHeadersProperties properties;
 
 	public SecureHeadersGatewayFilterFactory(SecureHeadersProperties properties) {
@@ -106,8 +105,9 @@ public class SecureHeadersGatewayFilterFactory
 				Set<String> headersToAddToResponse = assembleHeaders(originalConfig, properties);
 
 				Config config = originalConfig.withDefaults(properties);
-				return chain.filter(exchange).then(Mono.fromRunnable(() ->
-						applySecurityHeaders(responseHeaders, headersToAddToResponse, config)));
+				return chain.filter(exchange)
+					.then(Mono
+						.fromRunnable(() -> applySecurityHeaders(responseHeaders, headersToAddToResponse, config)));
 			}
 
 			@Override
@@ -120,36 +120,32 @@ public class SecureHeadersGatewayFilterFactory
 	/**
 	 * Applies security headers to the response using the given filter configuration.
 	 * @param responseHeaders - the http headers of the response
-	 * @param headersToAddToResponse - the security headers that are to be added to the response
+	 * @param headersToAddToResponse - the security headers that are to be added to the
+	 * response
 	 * @param config - the security filter configuration
 	 */
 	private void applySecurityHeaders(HttpHeaders responseHeaders, Set<String> headersToAddToResponse, Config config) {
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.X_XSS_PROTECTION_HEADER, config.getXssProtectionHeaderValue());
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.X_XSS_PROTECTION_HEADER,
+				config.getXssProtectionHeaderValue());
 
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
 				SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER,
 				config.getStrictTransportSecurityHeaderValue());
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.X_FRAME_OPTIONS_HEADER,
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.X_FRAME_OPTIONS_HEADER,
 				config.getFrameOptionsHeaderValue());
 
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER,
-				config.getContentTypeOptionsHeaderValue());
+				SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptionsHeaderValue());
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.REFERRER_POLICY_HEADER,
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.REFERRER_POLICY_HEADER,
 				config.getReferrerPolicyHeaderValue());
 
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER,
-				config.getContentSecurityPolicyHeaderValue());
+				SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicyHeaderValue());
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER,
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER,
 				config.getDownloadOptionsHeaderValue());
 
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
@@ -164,15 +160,14 @@ public class SecureHeadersGatewayFilterFactory
 			}
 		}
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.PERMISSIONS_POLICY_HEADER,
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.PERMISSIONS_POLICY_HEADER,
 				permissionPolicyHeaderValue);
 	}
 
 	/**
-	 * Assembles the set of security headers that are to be applied to the response
-	 * - When route specific arguments are set, route specific headers are applied.
-	 * - When no route specific arguments are set, global default headers are applied.
+	 * Assembles the set of security headers that are to be applied to the response - When
+	 * route specific arguments are set, route specific headers are applied. - When no
+	 * route specific arguments are set, global default headers are applied.
 	 * @param config - the global / route configuration supplied
 	 * @param properties - default security headers configuration provided
 	 * @return set of security headers that are to be added to the response
@@ -190,8 +185,8 @@ public class SecureHeadersGatewayFilterFactory
 		return headersToAddToResponse;
 	}
 
-
-	private void addHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd, String headerName, String headerValue) {
+	private void addHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd, String headerName,
+			String headerValue) {
 		if (headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
 			headers.addIfAbsent(headerName, headerValue);
 		}
@@ -362,7 +357,9 @@ public class SecureHeadersGatewayFilterFactory
 		void setEnable(Set<String> enable) {
 			if (enable != null) {
 				this.routeFilterConfigProvided = true;
-				this.routeEnabledHeaders = enable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+				this.routeEnabledHeaders = enable.stream()
+					.map(String::toLowerCase)
+					.collect(Collectors.toUnmodifiableSet());
 			}
 		}
 
@@ -379,7 +376,9 @@ public class SecureHeadersGatewayFilterFactory
 		void setDisable(Set<String> disable) {
 			if (disable != null) {
 				this.routeFilterConfigProvided = true;
-				this.routeDisabledHeaders = disable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+				this.routeDisabledHeaders = disable.stream()
+					.map(String::toLowerCase)
+					.collect(Collectors.toUnmodifiableSet());
 			}
 		}
 
