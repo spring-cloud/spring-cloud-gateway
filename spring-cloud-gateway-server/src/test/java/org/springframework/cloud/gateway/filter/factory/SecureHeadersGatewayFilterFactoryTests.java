@@ -34,19 +34,25 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.CONTENT_SECURITY_POLICY_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.REFERRER_POLICY_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.STRICT_TRANSPORT_SECURITY_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_CONTENT_TYPE_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_DOWNLOAD_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_FRAME_OPTIONS_HEADER;
-import static org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilterFactory.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.PERMISSIONS_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.REFERRER_POLICY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_FRAME_OPTIONS_HEADER;
+import static org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
 import static org.springframework.cloud.gateway.test.TestUtils.assertStatus;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 
+	/**
+	* This test ensures that the response includes a set of default security headers,
+	* which are defined in {@link SecureHeadersProperties}. It also confirms that the
+	* opt-in "Permissions-Policy" header is not included in the response.
+	*/
 	@Test
 	public void secureHeadersFilterWorks() {
 		Mono<ClientResponse> result = webClient.get()
@@ -59,7 +65,6 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 		StepVerifier.create(result).consumeNextWith(response -> {
 			assertStatus(response, HttpStatus.OK);
 			HttpHeaders httpHeaders = response.headers().asHttpHeaders();
-			// assertThat(httpHeaders.getFirst(X_XSS_PROTECTION_HEADER)).isEqualTo(defaults.getXssProtectionHeader());
 			assertThat(httpHeaders.getFirst(STRICT_TRANSPORT_SECURITY_HEADER))
 				.isEqualTo(defaults.getStrictTransportSecurity());
 			assertThat(httpHeaders.getFirst(X_FRAME_OPTIONS_HEADER)).isEqualTo(defaults.getFrameOptions());
@@ -70,6 +75,7 @@ public class SecureHeadersGatewayFilterFactoryTests extends BaseWebClientTests {
 			assertThat(httpHeaders.getFirst(X_DOWNLOAD_OPTIONS_HEADER)).isEqualTo(defaults.getDownloadOptions());
 			assertThat(httpHeaders.getFirst(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER))
 				.isEqualTo(defaults.getPermittedCrossDomainPolicies());
+			assertThat(httpHeaders.getOrEmpty(PERMISSIONS_POLICY_HEADER)).isEmpty();
 		}).expectComplete().verify(DURATION);
 	}
 

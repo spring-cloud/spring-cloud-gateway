@@ -16,8 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import reactor.core.publisher.Mono;
 
@@ -29,9 +31,14 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * https://blog.appcanary.com/2017/http-security-headers.html.
+ * GatewayFilterFactory to provide a route filter that applies security headers to the
+ * HTTP response. External configuration {@link SecureHeadersProperties} provides
+ * opinionated defaults. Following the recommendations made in <a href=
+ * "https://blog.appcanary.com/2017/http-security-headers.html">Http-Security-Headers</a>.
+ * When opt-out headers are not disabled or explicitly configured, sensible defaults are
+ * applied. Additionally, opt-in headers, such as Permissions-Policy, may be applied.
  *
- * @author Spencer Gibb, Thirunavukkarasu Ravichandran
+ * @author Spencer Gibb, Thirunavukkarasu Ravichandran, Jörg Richter
  */
 public class SecureHeadersGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<SecureHeadersGatewayFilterFactory.Config> {
@@ -39,42 +46,43 @@ public class SecureHeadersGatewayFilterFactory
 	/**
 	 * Xss-Protection header name.
 	 */
-	public static final String X_XSS_PROTECTION_HEADER = "X-Xss-Protection";
+	public static final String X_XSS_PROTECTION_HEADER = SecureHeadersProperties.X_XSS_PROTECTION_HEADER;
 
 	/**
 	 * Strict transport security header name.
 	 */
-	public static final String STRICT_TRANSPORT_SECURITY_HEADER = "Strict-Transport-Security";
+	public static final String STRICT_TRANSPORT_SECURITY_HEADER = SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER;
 
 	/**
 	 * Frame options header name.
 	 */
-	public static final String X_FRAME_OPTIONS_HEADER = "X-Frame-Options";
+	public static final String X_FRAME_OPTIONS_HEADER = SecureHeadersProperties.X_FRAME_OPTIONS_HEADER;
 
 	/**
 	 * Content-Type Options header name.
 	 */
-	public static final String X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options";
+	public static final String X_CONTENT_TYPE_OPTIONS_HEADER = SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER;
 
 	/**
 	 * Referrer Policy header name.
 	 */
-	public static final String REFERRER_POLICY_HEADER = "Referrer-Policy";
+	public static final String REFERRER_POLICY_HEADER = SecureHeadersProperties.REFERRER_POLICY_HEADER;
 
 	/**
 	 * Content-Security Policy header name.
 	 */
-	public static final String CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy";
+	public static final String CONTENT_SECURITY_POLICY_HEADER = SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER;
 
 	/**
 	 * Download Options header name.
 	 */
-	public static final String X_DOWNLOAD_OPTIONS_HEADER = "X-Download-Options";
+	public static final String X_DOWNLOAD_OPTIONS_HEADER = SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER;
 
 	/**
 	 * Permitted Cross-Domain Policies header name.
 	 */
-	public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies";
+	public static final String X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER;
+
 
 	private final SecureHeadersProperties properties;
 
@@ -83,50 +91,23 @@ public class SecureHeadersGatewayFilterFactory
 		this.properties = properties;
 	}
 
+	/**
+	 * Returns a GatewayFilter that applies security headers to the HTTP response.
+	 * @param originalConfig the original security configuration
+	 * @return a GatewayFilter instance that applies security headers to the HTTP response
+	 */
 	@Override
 	public GatewayFilter apply(Config originalConfig) {
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				HttpHeaders headers = exchange.getResponse().getHeaders();
 
-				List<String> disabled = properties.getDisable();
+				HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
+				Set<String> headersToAddToResponse = assembleHeaders(originalConfig, properties);
+
 				Config config = originalConfig.withDefaults(properties);
-
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-					if (isEnabled(disabled, X_XSS_PROTECTION_HEADER)) {
-						headers.addIfAbsent(X_XSS_PROTECTION_HEADER, config.getXssProtectionHeader());
-					}
-
-					if (isEnabled(disabled, STRICT_TRANSPORT_SECURITY_HEADER)) {
-						headers.addIfAbsent(STRICT_TRANSPORT_SECURITY_HEADER, config.getStrictTransportSecurity());
-					}
-
-					if (isEnabled(disabled, X_FRAME_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_FRAME_OPTIONS_HEADER, config.getFrameOptions());
-					}
-
-					if (isEnabled(disabled, X_CONTENT_TYPE_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_CONTENT_TYPE_OPTIONS_HEADER, config.getContentTypeOptions());
-					}
-
-					if (isEnabled(disabled, REFERRER_POLICY_HEADER)) {
-						headers.addIfAbsent(REFERRER_POLICY_HEADER, config.getReferrerPolicy());
-					}
-
-					if (isEnabled(disabled, CONTENT_SECURITY_POLICY_HEADER)) {
-						headers.addIfAbsent(CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicy());
-					}
-
-					if (isEnabled(disabled, X_DOWNLOAD_OPTIONS_HEADER)) {
-						headers.addIfAbsent(X_DOWNLOAD_OPTIONS_HEADER, config.getDownloadOptions());
-					}
-
-					if (isEnabled(disabled, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)) {
-						headers.addIfAbsent(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
-								config.getPermittedCrossDomainPolicies());
-					}
-				}));
+				return chain.filter(exchange).then(Mono.fromRunnable(() ->
+						applySecurityHeaders(responseHeaders, headersToAddToResponse, config)));
 			}
 
 			@Override
@@ -136,135 +117,299 @@ public class SecureHeadersGatewayFilterFactory
 		};
 	}
 
-	private boolean isEnabled(List<String> disabledHeaders, String header) {
-		return !disabledHeaders.contains(header.toLowerCase(Locale.ROOT));
+	/**
+	 * Applies security headers to the response using the given filter configuration.
+	 * @param responseHeaders - the http headers of the response
+	 * @param headersToAddToResponse - the security headers that are to be added to the response
+	 * @param config - the security filter configuration
+	 */
+	private void applySecurityHeaders(HttpHeaders responseHeaders, Set<String> headersToAddToResponse, Config config) {
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.X_XSS_PROTECTION_HEADER, config.getXssProtectionHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.STRICT_TRANSPORT_SECURITY_HEADER,
+				config.getStrictTransportSecurityHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.X_FRAME_OPTIONS_HEADER,
+				config.getFrameOptionsHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.X_CONTENT_TYPE_OPTIONS_HEADER,
+				config.getContentTypeOptionsHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.REFERRER_POLICY_HEADER,
+				config.getReferrerPolicyHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER,
+				config.getContentSecurityPolicyHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER,
+				config.getDownloadOptionsHeaderValue());
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+				config.getPermittedCrossDomainPoliciesHeaderValue());
+
+		String permissionPolicyHeaderValue = config.getPermissionPolicyHeaderValue();
+		if (config.isRouteFilterConfigProvided()) {
+			String routePermissionPolicyHeaderValue = config.getRoutePermissionsPolicyHeaderValue();
+			if (routePermissionPolicyHeaderValue != null) {
+				permissionPolicyHeaderValue = routePermissionPolicyHeaderValue;
+			}
+		}
+
+		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				SecureHeadersProperties.PERMISSIONS_POLICY_HEADER,
+				permissionPolicyHeaderValue);
 	}
 
+	/**
+	 * Assembles the set of security headers that are to be applied to the response
+	 * - When route specific arguments are set, route specific headers are applied.
+	 * - When no route specific arguments are set, global default headers are applied.
+	 * @param config - the global / route configuration supplied
+	 * @param properties - default security headers configuration provided
+	 * @return set of security headers that are to be added to the response
+	 */
+	private Set<String> assembleHeaders(Config config, SecureHeadersProperties properties) {
+		Set<String> headersToAddToResponse = new HashSet<>(properties.getDefaultHeaders());
+		if (config.isRouteFilterConfigProvided()) {
+			headersToAddToResponse.addAll(config.getRouteEnabledHeaders());
+			headersToAddToResponse.removeAll(config.getRouteDisabledHeaders());
+		}
+		else {
+			headersToAddToResponse.addAll(properties.getEnabledHeaders());
+			headersToAddToResponse.removeAll(properties.getDisabledHeaders());
+		}
+		return headersToAddToResponse;
+	}
+
+
+	private void addHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd, String headerName, String headerValue) {
+		if (headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
+			headers.addIfAbsent(headerName, headerValue);
+		}
+	}
+
+	/**
+	 * POJO for {@link SecureHeadersGatewayFilterFactory} filter configuration.
+	 */
 	public static class Config {
 
-		private String xssProtectionHeader;
+		private Set<String> routeEnabledHeaders = new HashSet<>();
 
-		private String strictTransportSecurity;
+		private Set<String> routeDisabledHeaders = new HashSet<>();
 
-		private String frameOptions;
+		private String routePermissionsPolicyHeaderValue;
 
-		private String contentTypeOptions;
+		private boolean routeFilterConfigProvided;
 
-		private String referrerPolicy;
+		private String xssProtectionHeaderValue;
 
-		private String contentSecurityPolicy;
+		private String strictTransportSecurityHeaderValue;
 
-		private String downloadOptions;
+		private String frameOptionsHeaderValue;
 
-		private String permittedCrossDomainPolicies;
+		private String contentTypeOptionsHeaderValue;
+
+		private String referrerPolicyHeaderValue;
+
+		private String contentSecurityPolicyHeaderValue;
+
+		private String downloadOptionsHeaderValue;
+
+		private String permittedCrossDomainPoliciesHeaderValue;
+
+		private String permissionPolicyHeaderValue;
 
 		public Config withDefaults(SecureHeadersProperties properties) {
 			Config config = new Config();
-			config.setXssProtectionHeader(xssProtectionHeader);
-			config.setStrictTransportSecurity(strictTransportSecurity);
-			config.setFrameOptions(frameOptions);
-			config.setContentTypeOptions(contentTypeOptions);
-			config.setReferrerPolicy(referrerPolicy);
-			config.setContentSecurityPolicy(contentSecurityPolicy);
-			config.setDownloadOptions(downloadOptions);
-			config.setPermittedCrossDomainPolicies(permittedCrossDomainPolicies);
 
-			if (config.xssProtectionHeader == null) {
-				config.xssProtectionHeader = properties.getXssProtectionHeader();
+			config.setEnable(routeEnabledHeaders);
+			config.setDisable(routeDisabledHeaders);
+			config.setPermissionsPolicy(routePermissionsPolicyHeaderValue);
+
+			config.setXssProtectionHeaderValue(xssProtectionHeaderValue);
+			config.setStrictTransportSecurityHeaderValue(strictTransportSecurityHeaderValue);
+			config.setFrameOptionsHeaderValue(frameOptionsHeaderValue);
+			config.setContentTypeOptionsHeaderValue(contentTypeOptionsHeaderValue);
+			config.setReferrerPolicyHeaderValue(referrerPolicyHeaderValue);
+			config.setContentSecurityPolicyHeaderValue(contentSecurityPolicyHeaderValue);
+			config.setDownloadOptionsHeaderValue(downloadOptionsHeaderValue);
+			config.setPermittedCrossDomainPoliciesHeaderValue(permittedCrossDomainPoliciesHeaderValue);
+			config.setPermissionPolicyHeaderValue(permissionPolicyHeaderValue);
+
+			if (config.xssProtectionHeaderValue == null) {
+				config.xssProtectionHeaderValue = properties.getXssProtectionHeader();
 			}
 
-			if (config.strictTransportSecurity == null) {
-				config.strictTransportSecurity = properties.getStrictTransportSecurity();
+			if (config.strictTransportSecurityHeaderValue == null) {
+				config.strictTransportSecurityHeaderValue = properties.getStrictTransportSecurity();
 			}
 
-			if (config.frameOptions == null) {
-				config.frameOptions = properties.getFrameOptions();
+			if (config.frameOptionsHeaderValue == null) {
+				config.frameOptionsHeaderValue = properties.getFrameOptions();
 			}
 
-			if (config.contentTypeOptions == null) {
-				config.contentTypeOptions = properties.getContentTypeOptions();
+			if (config.contentTypeOptionsHeaderValue == null) {
+				config.contentTypeOptionsHeaderValue = properties.getContentTypeOptions();
 			}
 
-			if (config.referrerPolicy == null) {
-				config.referrerPolicy = properties.getReferrerPolicy();
+			if (config.referrerPolicyHeaderValue == null) {
+				config.referrerPolicyHeaderValue = properties.getReferrerPolicy();
 			}
 
-			if (config.contentSecurityPolicy == null) {
-				config.contentSecurityPolicy = properties.getContentSecurityPolicy();
+			if (config.contentSecurityPolicyHeaderValue == null) {
+				config.contentSecurityPolicyHeaderValue = properties.getContentSecurityPolicy();
 			}
 
-			if (config.downloadOptions == null) {
-				config.downloadOptions = properties.getDownloadOptions();
+			if (config.downloadOptionsHeaderValue == null) {
+				config.downloadOptionsHeaderValue = properties.getDownloadOptions();
 			}
 
-			if (config.permittedCrossDomainPolicies == null) {
-				config.permittedCrossDomainPolicies = properties.getPermittedCrossDomainPolicies();
+			if (config.permittedCrossDomainPoliciesHeaderValue == null) {
+				config.permittedCrossDomainPoliciesHeaderValue = properties.getPermittedCrossDomainPolicies();
 			}
+
+			if (config.permissionPolicyHeaderValue == null) {
+				config.permissionPolicyHeaderValue = properties.getPermissionsPolicy();
+			}
+
 			return config;
 		}
 
-		public String getXssProtectionHeader() {
-			return xssProtectionHeader;
+		public String getXssProtectionHeaderValue() {
+			return xssProtectionHeaderValue;
 		}
 
-		public void setXssProtectionHeader(String xssProtectionHeader) {
-			this.xssProtectionHeader = xssProtectionHeader;
+		public void setXssProtectionHeaderValue(String xssProtectionHeaderHeaderValue) {
+			this.xssProtectionHeaderValue = xssProtectionHeaderHeaderValue;
 		}
 
-		public String getStrictTransportSecurity() {
-			return strictTransportSecurity;
+		public String getStrictTransportSecurityHeaderValue() {
+			return strictTransportSecurityHeaderValue;
 		}
 
-		public void setStrictTransportSecurity(String strictTransportSecurity) {
-			this.strictTransportSecurity = strictTransportSecurity;
+		public void setStrictTransportSecurityHeaderValue(String strictTransportSecurityHeaderValue) {
+			this.strictTransportSecurityHeaderValue = strictTransportSecurityHeaderValue;
 		}
 
-		public String getFrameOptions() {
-			return frameOptions;
+		public String getFrameOptionsHeaderValue() {
+			return frameOptionsHeaderValue;
 		}
 
-		public void setFrameOptions(String frameOptions) {
-			this.frameOptions = frameOptions;
+		public void setFrameOptionsHeaderValue(String frameOptionsHeaderValue) {
+			this.frameOptionsHeaderValue = frameOptionsHeaderValue;
 		}
 
-		public String getContentTypeOptions() {
-			return contentTypeOptions;
+		public String getContentTypeOptionsHeaderValue() {
+			return contentTypeOptionsHeaderValue;
 		}
 
-		public void setContentTypeOptions(String contentTypeOptions) {
-			this.contentTypeOptions = contentTypeOptions;
+		public void setContentTypeOptionsHeaderValue(String contentTypeOptionsHeaderValue) {
+			this.contentTypeOptionsHeaderValue = contentTypeOptionsHeaderValue;
 		}
 
-		public String getReferrerPolicy() {
-			return referrerPolicy;
+		public String getReferrerPolicyHeaderValue() {
+			return referrerPolicyHeaderValue;
 		}
 
-		public void setReferrerPolicy(String referrerPolicy) {
-			this.referrerPolicy = referrerPolicy;
+		public void setReferrerPolicyHeaderValue(String referrerPolicyHeaderValue) {
+			this.referrerPolicyHeaderValue = referrerPolicyHeaderValue;
 		}
 
-		public String getContentSecurityPolicy() {
-			return contentSecurityPolicy;
+		public String getContentSecurityPolicyHeaderValue() {
+			return contentSecurityPolicyHeaderValue;
 		}
 
-		public void setContentSecurityPolicy(String contentSecurityPolicy) {
-			this.contentSecurityPolicy = contentSecurityPolicy;
+		public void setContentSecurityPolicyHeaderValue(String contentSecurityPolicyHeaderValue) {
+			this.contentSecurityPolicyHeaderValue = contentSecurityPolicyHeaderValue;
 		}
 
-		public String getDownloadOptions() {
-			return downloadOptions;
+		public String getDownloadOptionsHeaderValue() {
+			return downloadOptionsHeaderValue;
 		}
 
-		public void setDownloadOptions(String downloadOptions) {
-			this.downloadOptions = downloadOptions;
+		public void setDownloadOptionsHeaderValue(String downloadOptionHeaderValue) {
+			this.downloadOptionsHeaderValue = downloadOptionsHeaderValue;
 		}
 
-		public String getPermittedCrossDomainPolicies() {
-			return permittedCrossDomainPolicies;
+		public String getPermittedCrossDomainPoliciesHeaderValue() {
+			return permittedCrossDomainPoliciesHeaderValue;
 		}
 
-		public void setPermittedCrossDomainPolicies(String permittedCrossDomainPolicies) {
-			this.permittedCrossDomainPolicies = permittedCrossDomainPolicies;
+		public void setPermittedCrossDomainPoliciesHeaderValue(String permittedCrossDomainPoliciesHeaderValue) {
+			this.permittedCrossDomainPoliciesHeaderValue = permittedCrossDomainPoliciesHeaderValue;
+		}
+
+		public String getPermissionPolicyHeaderValue() {
+			return permissionPolicyHeaderValue;
+		}
+
+		public void setPermissionPolicyHeaderValue(String permissionPolicyHeaderValue) {
+			this.permissionPolicyHeaderValue = permissionPolicyHeaderValue;
+		}
+
+		/**
+		 * bind the route specific/opt-in header names to enable, in lower case.
+		 */
+		void setEnable(Set<String> enable) {
+			if (enable != null) {
+				this.routeFilterConfigProvided = true;
+				this.routeEnabledHeaders = enable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+			}
+		}
+
+		/**
+		 * @return the route specific/opt-in header names to enable, in lower case.
+		 */
+		Set<String> getRouteEnabledHeaders() {
+			return routeEnabledHeaders;
+		}
+
+		/**
+		 * bind the route specific/opt-out header names to disable, in lower case.
+		 */
+		void setDisable(Set<String> disable) {
+			if (disable != null) {
+				this.routeFilterConfigProvided = true;
+				this.routeDisabledHeaders = disable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+			}
+		}
+
+		/**
+		 * @return the route specific/opt-out header names to disable, in lower case
+		 */
+		Set<String> getRouteDisabledHeaders() {
+			return routeDisabledHeaders;
+		}
+
+		/**
+		 * @return the route specific/opt-out permission policies.
+		 */
+		String getRoutePermissionsPolicyHeaderValue() {
+			return routePermissionsPolicyHeaderValue;
+		}
+
+		/**
+		 * bind the route specific/opt-out permissions policy.
+		 */
+		void setPermissionsPolicy(String permissionsPolicy) {
+			this.routeFilterConfigProvided = true;
+			this.routePermissionsPolicyHeaderValue = permissionsPolicy;
+		}
+
+		/**
+		 * @return flag whether route specific arguments were bound.
+		 */
+		boolean isRouteFilterConfigProvided() {
+			return routeFilterConfigProvided;
 		}
 
 	}
