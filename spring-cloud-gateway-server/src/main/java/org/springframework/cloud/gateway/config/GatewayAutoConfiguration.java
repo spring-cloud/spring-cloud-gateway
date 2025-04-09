@@ -83,6 +83,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayF
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -549,6 +550,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public AddResponseHeaderGatewayFilterFactory addResponseHeaderGatewayFilterFactory() {
 		return new AddResponseHeaderGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public AddResponseHeadersIfNotPresentGatewayFilterFactory addResponseHeadersIfNotPresentGatewayFilterFactory() {
+		return new AddResponseHeadersIfNotPresentGatewayFilterFactory();
 	}
 
 	@Bean

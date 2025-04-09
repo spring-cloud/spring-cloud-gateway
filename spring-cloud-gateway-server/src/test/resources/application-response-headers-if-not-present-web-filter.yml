@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: add_response_headers_if_not_present_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/headers
+            - Host=**.addresponseheadersifnotpresenttest.org
+          filters:
+            - AddResponseHeadersIfNotPresent=X-Response-Example:ValueA
+        - id: add_multiple_response_headers_if_not_present_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/headers
+            - Host=**.addmultipleresponseheadersifnotpresenttest.org
+          filters:
+            - AddResponseHeadersIfNotPresent=X-Response-Example:ValueA,X-Response-Second-Example:ValueC
