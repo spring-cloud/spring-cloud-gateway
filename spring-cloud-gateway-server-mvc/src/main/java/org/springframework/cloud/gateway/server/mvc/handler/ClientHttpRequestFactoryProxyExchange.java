@@ -56,6 +56,7 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 			InputStream body = clientHttpResponse.getBody();
 			// put the body input stream in a request attribute so filters can read it.
 			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
+			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientHttpResponse);
 			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
 				.build((req, httpServletResponse) -> {
 					try (clientHttpResponse) {
