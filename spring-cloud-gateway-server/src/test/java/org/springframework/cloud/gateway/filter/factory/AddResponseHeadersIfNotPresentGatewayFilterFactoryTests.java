@@ -16,8 +16,11 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import com.google.common.collect.Maps;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,9 +35,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -72,7 +72,7 @@ public class AddResponseHeadersIfNotPresentGatewayFilterFactoryTests extends Bas
 		testClient.patch()
 			.uri("/headers")
 			.header("Host", "www.addresponseheadersifnotpresenttest.org")
-			.bodyValue(Maps.newHashMap())
+			.bodyValue(new HashMap<>())
 			.exchange()
 			.expectHeader()
 			.valueEquals(TEST_HEADER_KEY1, TEST_HEADER_VALUE_A);
@@ -102,7 +102,7 @@ public class AddResponseHeadersIfNotPresentGatewayFilterFactoryTests extends Bas
 		testClient.patch()
 			.uri("/headers")
 			.header("Host", "www.addmultipleresponseheadersifnotpresenttest.org")
-			.bodyValue(Maps.newHashMap())
+			.bodyValue(new HashMap<>())
 			.exchange()
 			.expectHeader()
 			.valueEquals(TEST_HEADER_KEY1, TEST_HEADER_VALUE_A)
@@ -132,7 +132,7 @@ public class AddResponseHeadersIfNotPresentGatewayFilterFactoryTests extends Bas
 		testClient.patch()
 			.uri("/headers")
 			.header("Host", "www.addresponseheadersifnotpresentjavadsl.org")
-			.bodyValue(Maps.newHashMap())
+			.bodyValue(new HashMap<>())
 			.exchange()
 			.expectHeader()
 			.valueEquals("X-Response-Java-Example", "Value-www");
@@ -143,7 +143,7 @@ public class AddResponseHeadersIfNotPresentGatewayFilterFactoryTests extends Bas
 		testClient.patch()
 			.uri("/headers")
 			.header("Host", "www.addmultipleresponseheadersifnotpresentjavadsl.org")
-			.bodyValue(Maps.newHashMap())
+			.bodyValue(new HashMap<>())
 			.exchange()
 			.expectHeader()
 			.valueEquals("X-Response-Java-Example", "Value-www", "ValueX", "ValueY", "ValueZ");
