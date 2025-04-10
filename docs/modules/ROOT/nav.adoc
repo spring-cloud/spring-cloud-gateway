@@ -13,6 +13,7 @@
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/addrequestheadersifnotpresent-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/addrequestparameter-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/addresponseheader-factory.adoc[]
+*** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/addresponseheadersifnotpresent-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/circuitbreaker-filter-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/cacherequestbody-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/deduperesponseheader-factory.adoc[]

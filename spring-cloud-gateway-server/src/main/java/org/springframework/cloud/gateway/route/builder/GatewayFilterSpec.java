@@ -44,6 +44,7 @@ import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPr
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory.KeyValue;
 import org.springframework.cloud.gateway.filter.factory.AddRequestParameterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.AddResponseHeadersIfNotPresentGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.CacheRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Strategy;
@@ -223,6 +224,22 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
 			.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * Adds a header to the response returned to the Gateway from the route.
+	 * @param headers the header name(s) and value(s) as
+	 * 'name-1:value-1,name-2:value-2,...'
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec addResponseHeadersIfNotPresent(String... headers) {
+		return filter(getBean(AddResponseHeadersIfNotPresentGatewayFilterFactory.class).apply(c -> {
+			org.springframework.cloud.gateway.support.config.KeyValue[] values = Arrays.stream(headers)
+				.map(header -> header.split(":"))
+				.map(parts -> new org.springframework.cloud.gateway.support.config.KeyValue(parts[0], parts[1]))
+				.toArray(size -> new org.springframework.cloud.gateway.support.config.KeyValue[size]);
+			c.setKeyValues(values);
+		}));
 	}
 
 	/**
