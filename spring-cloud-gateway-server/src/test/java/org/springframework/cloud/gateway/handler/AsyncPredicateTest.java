@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Predicate;
 
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
@@ -110,12 +110,12 @@ public class AsyncPredicateTest {
 
 		@DisplayName("predicate must have been tested")
 		public void assertTested() {
-			Assertions.assertTrue(tested);
+			Assertions.assertThat(tested).isTrue();
 		}
 
 		@DisplayName("predicate must not have been tested")
 		public void assertUntested() {
-			Assertions.assertFalse(tested);
+			Assertions.assertThat(tested).isFalse();
 		}
 
 	}

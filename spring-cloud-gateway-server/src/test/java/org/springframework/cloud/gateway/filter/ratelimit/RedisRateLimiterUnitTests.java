@@ -17,8 +17,8 @@
 package org.springframework.cloud.gateway.filter.ratelimit;
 
 import io.lettuce.core.RedisException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,7 +78,8 @@ public class RedisRateLimiterUnitTests {
 
 	@Test
 	public void shouldThrowWhenNotInitialized() {
-		Assertions.assertThrows(IllegalStateException.class, () -> redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID));
+		Assertions.catchThrowableOfType(IllegalStateException.class,
+				() -> redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID));
 	}
 
 	@Test
