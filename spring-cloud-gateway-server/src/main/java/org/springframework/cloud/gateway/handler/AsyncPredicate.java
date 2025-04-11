@@ -77,8 +77,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public void accept(Visitor visitor) {
-			if (delegate instanceof GatewayPredicate) {
-				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+			if (delegate instanceof GatewayPredicate gatewayPredicate) {
 				gatewayPredicate.accept(visitor);
 			}
 		}

@@ -47,8 +47,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 	static GatewayPredicate wrapIfNeeded(Predicate<? super ServerWebExchange> other) {
 		GatewayPredicate right;
 
-		if (other instanceof GatewayPredicate) {
-			right = (GatewayPredicate) other;
+		if (other instanceof GatewayPredicate gatewayPredicate) {
+			right = gatewayPredicate;
 		}
 		else {
 			right = new GatewayPredicateWrapper(other);
@@ -72,8 +72,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 
 		@Override
 		public void accept(Visitor visitor) {
-			if (delegate instanceof GatewayPredicate) {
-				GatewayPredicate gatewayPredicate = (GatewayPredicate) delegate;
+			if (delegate instanceof GatewayPredicate gatewayPredicate) {
 				gatewayPredicate.accept(visitor);
 			}
 		}
