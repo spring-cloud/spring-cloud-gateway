@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import jakarta.validation.constraints.Max;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.context.properties.bind.BindException;
@@ -30,6 +29,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ConfigurationServiceTests {
 
@@ -37,7 +37,7 @@ public class ConfigurationServiceTests {
 	public void validationOnCreateWorks() {
 		Map<String, Object> map = Collections.singletonMap("config.value", 11);
 
-		Assertions.assertThrows(BindException.class, () -> ConfigurationService
+		assertThatExceptionOfType(BindException.class).isThrownBy(() -> ConfigurationService
 			.bindOrCreate(Bindable.of(ValidatedConfig.class), map, "config", getValidator(), null));
 	}
 
@@ -57,7 +57,7 @@ public class ConfigurationServiceTests {
 
 		ValidatedConfig config = new ValidatedConfig();
 
-		Assertions.assertThrows(BindException.class, () -> ConfigurationService
+		assertThatExceptionOfType(BindException.class).isThrownBy(() -> ConfigurationService
 			.bindOrCreate(Bindable.ofInstance(config), map, "config", getValidator(), null));
 
 	}

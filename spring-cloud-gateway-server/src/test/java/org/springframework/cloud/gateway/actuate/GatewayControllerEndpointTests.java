@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.assertj.core.util.Maps;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,7 +199,7 @@ public class GatewayControllerEndpointTests {
 			.expectBody(ResponseEntity.class)
 			.consumeWith(result -> {
 				HttpStatusCode httpStatus = result.getStatus();
-				Assertions.assertEquals(HttpStatus.OK, httpStatus);
+				assertThat(HttpStatus.OK).isEqualTo(httpStatus);
 			});
 	}
 
