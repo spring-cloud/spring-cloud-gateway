@@ -12,8 +12,10 @@ spring:
     gateway:
       mvc:
         routes:
-        - id: add_request_headers_route
+        - id: add_request_headers_route_inp
           uri: https://example.org
+          predicates:
+          - Path=/red
           filters:
           - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
 ----
@@ -21,6 +23,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeadersIfNotPresent;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -29,9 +32,11 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route(GET("/red"), http("https://example.org"))
-                .before(addRequestHeadersIfNotPresent("X-Request-Color-1:blue","X-Request-Color-2:green"));
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeaderInp() {
+        return route("add_request_headers_route_inp")
+            .GET("/red", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeadersIfNotPresent("X-Request-Color-1:blue","X-Request-Color-2:green"));
     }
 }
 ----
@@ -49,13 +54,20 @@ The following example configures an `AddRequestHeadersIfNotPresent` filter that 
 .GatewaySampleApplication.java
 [source,java]
 ----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeadersIfNotPresent;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
 @Configuration
 class RouteConfiguration {
 
     @Bean
-    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
-        return route(GET("/red/{segment}"), http("https://example.org"))
-                .before(addRequestHeadersIfNotPresent("X-Request-red", "blue-{segment}"));
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeaderInp() {
+        return route("add_request_header_route_inp")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeadersIfNotPresent("X-Request-red", "blue-{segment}"));
     }
 }
 ----
@@ -66,7 +78,7 @@ spring:
   cloud:
     gateway:
       routes:
-      - id: add_request_header_route
+      - id: add_request_header_route_inp
         uri: https://example.org
         predicates:
         - Path=/red/{segment}

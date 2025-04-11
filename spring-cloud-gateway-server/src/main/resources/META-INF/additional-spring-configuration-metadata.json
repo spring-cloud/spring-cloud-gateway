@@ -390,6 +390,12 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.forwarded.by.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the Forwarded: by header part.",
+      "defaultValue": "false"
+    },
+    {
       "name": "spring.cloud.gateway.httpserver.wiretap",
       "type": "java.lang.Boolean",
       "description": "Enables wiretap debugging for Netty HttpServer.",

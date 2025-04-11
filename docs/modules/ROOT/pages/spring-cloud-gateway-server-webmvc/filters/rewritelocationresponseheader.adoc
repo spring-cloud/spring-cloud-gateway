@@ -15,6 +15,8 @@ spring:
         routes:
         - id: rewritelocationresponseheader_route
           uri: http://example.org
+          predicates:
+          - Path=/**
           filters:
           - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
 ----
@@ -22,7 +24,8 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.RewriteLocationResponseHeaderFilterFunctions.StripVersion;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -33,9 +36,11 @@ class RouteConfiguration {
     @Bean
     public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteLocationResponseHeader() {
         return route("rewritelocationresponseheader_route")
-				.GET("/**", http("https://example.org"))
-					.after(rewriteLocationResponseHeader(config -> config.setLocationHeaderName("Location").setStripVersion(StripVersion.AS_IN_REQUEST)))
-					.build();
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .after(rewriteLocationResponseHeader(config -> config.setLocationHeaderName("Location")
+                    .setStripVersion(StripVersion.AS_IN_REQUEST)))
+            .build();
     }
 }
 ----

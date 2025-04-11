@@ -49,10 +49,14 @@
 |spring.cloud.gateway.filter.save-session.enabled | `+++true+++` | Enables the save-session filter.
 |spring.cloud.gateway.filter.secure-headers.content-security-policy | `+++default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline'+++` | 
 |spring.cloud.gateway.filter.secure-headers.content-type-options | `+++nosniff+++` | 
+|spring.cloud.gateway.filter.secure-headers.default-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.disable |  | 
+|spring.cloud.gateway.filter.secure-headers.disabled-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.download-options | `+++noopen+++` | 
 |spring.cloud.gateway.filter.secure-headers.enabled | `+++true+++` | Enables the secure-headers filter.
+|spring.cloud.gateway.filter.secure-headers.enabled-headers |  | 
 |spring.cloud.gateway.filter.secure-headers.frame-options | `+++DENY+++` | 
+|spring.cloud.gateway.filter.secure-headers.permissions-policy | `+++accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()+++` | 
 |spring.cloud.gateway.filter.secure-headers.permitted-cross-domain-policies | `+++none+++` | 
 |spring.cloud.gateway.filter.secure-headers.referrer-policy | `+++no-referrer+++` | 
 |spring.cloud.gateway.filter.secure-headers.strict-transport-security | `+++max-age=631138519+++` | 
@@ -63,6 +67,7 @@
 |spring.cloud.gateway.filter.set-response-header.enabled | `+++true+++` | Enables the set-response-header filter.
 |spring.cloud.gateway.filter.set-status.enabled | `+++true+++` | Enables the set-status filter.
 |spring.cloud.gateway.filter.strip-prefix.enabled | `+++true+++` | Enables the strip-prefix filter.
+|spring.cloud.gateway.forwarded.by.enabled | `+++false+++` | Enables the Forwarded: by header part.
 |spring.cloud.gateway.forwarded.enabled | `+++true+++` | Enables the ForwardedHeadersFilter.
 |spring.cloud.gateway.global-filter.adapt-cached-body.enabled | `+++true+++` | Enables the adapt-cached-body global filter.
 |spring.cloud.gateway.global-filter.forward-path.enabled | `+++true+++` | Enables the forward-path global filter.
@@ -84,18 +89,18 @@
 |spring.cloud.gateway.httpclient.max-initial-line-length |  | The max initial line length.
 |spring.cloud.gateway.httpclient.pool.acquire-timeout |  | Only for type FIXED, the maximum time in millis to wait for acquiring.
 |spring.cloud.gateway.httpclient.pool.eviction-interval | `+++0+++` | Perform regular eviction checks in the background at a specified interval. Disabled by default ({@link Duration#ZERO})
-|spring.cloud.gateway.httpclient.pool.leasing-strategy | `+++fifo+++` | Configures the leasing strategy for the pool, defaults to FIFO which is Netty's default.
+|spring.cloud.gateway.httpclient.pool.leasing-strategy | `+++fifo+++` | Configures the leasing strategy for the pool (fifo or lifo), defaults to FIFO which is Netty's default.
 |spring.cloud.gateway.httpclient.pool.max-connections |  | Only for type FIXED, the maximum number of connections before starting pending acquisition on existing ones.
 |spring.cloud.gateway.httpclient.pool.max-idle-time |  | Time in millis after which the channel will be closed. If NULL, there is no max idle time.
 |spring.cloud.gateway.httpclient.pool.max-life-time |  | Duration after which the channel will be closed. If NULL, there is no max life time.
 |spring.cloud.gateway.httpclient.pool.metrics | `+++false+++` | Enables channel pools metrics to be collected and registered in Micrometer. Disabled by default.
 |spring.cloud.gateway.httpclient.pool.name | `+++proxy+++` | The channel pool map name, defaults to proxy.
-|spring.cloud.gateway.httpclient.pool.type | `+++elastic+++` | Type of pool for HttpClient to use, defaults to ELASTIC.
+|spring.cloud.gateway.httpclient.pool.type | `+++elastic+++` | Type of pool for HttpClient to use (elastic, fixed or disabled).
 |spring.cloud.gateway.httpclient.proxy.host |  | Hostname for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.non-proxy-hosts-pattern |  | Regular expression (Java) for a configured list of hosts. that should be reached directly, bypassing the proxy
 |spring.cloud.gateway.httpclient.proxy.password |  | Password for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.proxy.port |  | Port for proxy configuration of Netty HttpClient.
-|spring.cloud.gateway.httpclient.proxy.type | `+++http+++` | proxyType for proxy configuration of Netty HttpClient.
+|spring.cloud.gateway.httpclient.proxy.type | `+++http+++` | proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
 |spring.cloud.gateway.httpclient.proxy.username |  | Username for proxy configuration of Netty HttpClient.
 |spring.cloud.gateway.httpclient.response-timeout |  | The response timeout.
 |spring.cloud.gateway.httpclient.ssl.close-notify-flush-timeout | `+++3000ms+++` | SSL close_notify flush timeout. Default to 3000 ms.

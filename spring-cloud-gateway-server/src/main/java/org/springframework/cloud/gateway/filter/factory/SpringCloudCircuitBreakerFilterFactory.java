@@ -89,6 +89,9 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
+		if (config.getFallbackUri() != null) {
+			enableBodyCaching(config.getRouteId());
+		}
 		ReactiveCircuitBreaker cb = reactiveCircuitBreakerFactory.create(config.getId());
 		Set<HttpStatus> statuses = config.getStatusCodes()
 			.stream()

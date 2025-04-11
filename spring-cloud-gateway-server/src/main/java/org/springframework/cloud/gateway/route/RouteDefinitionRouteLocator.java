@@ -161,8 +161,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 			// some filters require routeId
 			// TODO: is there a better place to apply this?
-			if (configuration instanceof HasRouteId) {
-				HasRouteId hasRouteId = (HasRouteId) configuration;
+			if (configuration instanceof HasRouteId hasRouteId) {
 				hasRouteId.setRouteId(id);
 			}
 

@@ -228,6 +228,15 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.setStatus(statusCode));
 	}
 
+	static HandlerFilterFunction<ServerResponse, ServerResponse> uri(String uri) {
+		return ofRequestProcessor(BeforeFilterFunctions.uri(uri));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> uri(URI uri) {
+		return ofRequestProcessor(BeforeFilterFunctions.uri(uri));
+	}
+
 	class FilterSupplier extends SimpleFilterSupplier {
 
 		public FilterSupplier() {
