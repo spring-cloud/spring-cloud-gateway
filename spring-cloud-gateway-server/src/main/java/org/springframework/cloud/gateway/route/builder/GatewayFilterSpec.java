@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.ParameterizedTypeReference;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -85,6 +84,7 @@ import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
