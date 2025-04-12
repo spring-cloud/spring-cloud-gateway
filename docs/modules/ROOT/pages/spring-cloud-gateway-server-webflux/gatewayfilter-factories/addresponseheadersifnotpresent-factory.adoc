@@ -1,0 +1,44 @@
+[[addresponseheadersifnotpresent-gatewayfilter-factory]]
+= `AddResponseHeadersIfNotPresent` `GatewayFilter` Factory
+
+The `AddResponseHeadersIfNotPresent` `GatewayFilter` factory takes a collection of `name` and `value` pairs separated by colon.
+The following example configures an `AddResponseHeadersIfNotPresent` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_response_headers_if_not_present_route
+        uri: https://example.org
+        filters:
+        - AddResponseHeadersIfNotPresent=X-Response-Color-1:blue,X-Response-Color-2:green
+----
+
+
+This listing adds 2 headers `X-Response-Color-1:blue` and `X-Response-Color-2:green` to the downstream response's headers for all matching requests.
+This is similar to how `AddResponseHeader` works, but unlike `AddResponseHeader` it will do it only if the header is not already there.
+Otherwise, the original value in the response is return.
+
+Additionally, to set a multi-valued header, use the header name multiple times like `AddResponseHeadersIfNotPresent=X-Response-Color-1:blue,X-Response-Color-1:green`.
+
+`AddResponseHeadersIfNotPresent` also supports URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddResponseHeadersIfNotPresent` `GatewayFilter` that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_response_headers_if_not_present_route
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment}
+        filters:
+        - AddResponseHeadersIfNotPresent=X-Response-Red:Blue-{segment}
+----
