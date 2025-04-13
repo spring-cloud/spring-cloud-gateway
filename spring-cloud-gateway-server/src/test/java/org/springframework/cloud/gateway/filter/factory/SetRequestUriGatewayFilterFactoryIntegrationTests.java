@@ -16,10 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.net.URI;
-import java.util.Optional;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -33,7 +29,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -47,35 +42,15 @@ public class SetRequestUriGatewayFilterFactoryIntegrationTests extends BaseWebCl
 	int port;
 
 	@Test
-	public void changeUriWorkWithProperties() {
-		testClient.get()
-			.uri("/")
-			.header("Host", "www.changeuri.org")
-			.header("X-CF-Forwarded-Url", "http://localhost:" + port + "/actuator/health")
-			.exchange()
-			.expectBody(JsonNode.class)
-			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
-	}
+	public void setUriWorkWithProperties() {
+		testClient.get().uri("/").header("Host", "testservice.setrequesturi.org").exchange().expectStatus().isOk();
 
-	@Test
-	public void changeUriWorkWithDsl() {
 		testClient.get()
-			.uri("/")
-			.header("Host", "www.changeuri.org")
-			.header("X-Next-Url", "http://localhost:" + port + "/actuator/health")
+			.uri("/service/testservice")
+			.header("Host", "setrequesturi.org")
 			.exchange()
-			.expectBody(JsonNode.class)
-			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
-	}
-
-	@Test
-	public void changeUriWorkWithCustomLogic() {
-		testClient.get()
-			.uri(b -> b.path("/").queryParam("url", "http://localhost:" + port + "/actuator/health").build())
-			.header("Host", "www.changeuri.org")
-			.exchange()
-			.expectBody(JsonNode.class)
-			.consumeWith(r -> assertThat(r.getResponseBody().has("status")).isTrue());
+			.expectStatus()
+			.isOk();
 	}
 
 	@EnableAutoConfiguration
@@ -86,17 +61,16 @@ public class SetRequestUriGatewayFilterFactoryIntegrationTests extends BaseWebCl
 		@Bean
 		public RouteLocator routeLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-				.route(r -> r.host("**.changeuri.org")
-					.and()
-					.header("X-Next-Url")
-					.filters(f -> f.setRequestUri("X-Next-Url"))
-					.uri("https://example.com"))
-				.route(r -> r.host("**.changeuri.org")
-					.and()
-					.query("url")
-					.filters(f -> f.changeRequestUri(
-							e -> Optional.of(URI.create(e.getRequest().getQueryParams().getFirst("url")))))
-					.uri("https://example.com"))
+				.route("map_subdomain_to_service_name",
+						r -> r.host("{serviceName}.setrequesturi.org")
+							.filters(f -> f.prefixPath("/httpbin").setRequestUri("lb://{serviceName}"))
+							.uri("no://op"))
+				.route("map_path_to_service_name",
+						r -> r.host("setrequesturi.org")
+							.and()
+							.path("/service/{serviceName}")
+							.filters(f -> f.rewritePath("/.*", "/").setRequestUri("lb://{serviceName}"))
+							.uri("no://op"))
 				.build();
 		}
 

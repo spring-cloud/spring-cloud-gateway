@@ -873,11 +873,11 @@ public class GatewayFilterSpec extends UriSpec {
 	/**
 	 * A filter which changes the URI the request will be routed to by the Gateway by
 	 * pulling it from a header on the request.
-	 * @param headerName the header name containing the URI
+	 * @param uri the URI
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec setRequestUri(String headerName) {
-		return filter(getBean(SetRequestUriGatewayFilterFactory.class).apply(c -> c.setName(headerName)));
+	public GatewayFilterSpec setRequestUri(String uri) {
+		return filter(getBean(SetRequestUriGatewayFilterFactory.class).apply(c -> c.setTemplate(uri)));
 	}
 
 	/**

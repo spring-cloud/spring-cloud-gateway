@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -28,21 +28,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getUriTemplateVariables;
 
 /**
- * This filter changes the request uri by a request header.
+ * This filter changes the request uri.
  *
  * @author Stepan Mikhailiuk
  */
 public class SetRequestUriGatewayFilterFactory
-		extends AbstractChangeRequestUriGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
+		extends AbstractChangeRequestUriGatewayFilterFactory<SetRequestUriGatewayFilterFactory.Config> {
 
-	private final Logger log = LoggerFactory.getLogger(SetRequestUriGatewayFilterFactory.class);
+	private static final Logger log = LoggerFactory.getLogger(SetRequestUriGatewayFilterFactory.class);
 
 	public SetRequestUriGatewayFilterFactory() {
-		super(NameConfig.class);
+		super(Config.class);
 	}
 
 	@Override
@@ -51,33 +53,60 @@ public class SetRequestUriGatewayFilterFactory
 	}
 
 	@Override
-	public GatewayFilter apply(NameConfig config) {
+	public GatewayFilter apply(Config config) {
 		// AbstractChangeRequestUriGatewayFilterFactory.apply() returns
 		// OrderedGatewayFilter
 		OrderedGatewayFilter gatewayFilter = (OrderedGatewayFilter) super.apply(config);
 		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
 			public String toString() {
-				return filterToStringCreator(SetRequestUriGatewayFilterFactory.this).append("name", config.getName())
+				return filterToStringCreator(SetRequestUriGatewayFilterFactory.this)
+					.append("template", config.getTemplate())
 					.toString();
 			}
 		};
 	}
 
+	String getUri(ServerWebExchange exchange, Config config) {
+		String template = config.getTemplate();
+
+		if (template.indexOf('{') == -1) {
+			return template;
+		}
+
+		Map<String, String> variables = getUriTemplateVariables(exchange);
+		return UriComponentsBuilder.fromUriString(template).build().expand(variables).toUriString();
+	}
+
 	@Override
-	protected Optional<URI> determineRequestUri(ServerWebExchange exchange, NameConfig config) {
-		String requestUrl = config.getName();
-		return Optional.ofNullable(requestUrl).map(url -> {
-			try {
-				URI uri = URI.create(url);
-				uri.toURL(); // validate url
-				return uri;
+	protected Optional<URI> determineRequestUri(ServerWebExchange exchange, Config config) {
+		try {
+			String url = getUri(exchange, config);
+			URI uri = URI.create(url);
+			if (!uri.isAbsolute()) {
+				throw new IllegalArgumentException("URI is not absolute");
 			}
-			catch (IllegalArgumentException | MalformedURLException e) {
-				log.info("Request url is invalid : url={}, error={}", requestUrl, e.getMessage());
-				return null;
-			}
-		});
+			return Optional.of(uri);
+		}
+		catch (IllegalArgumentException e) {
+
+			log.info("Request url is invalid : url={}, error={}", config.getTemplate(), e.getMessage());
+			return Optional.ofNullable(null);
+		}
+	}
+
+	public static class Config {
+
+		private String template;
+
+		public String getTemplate() {
+			return template;
+		}
+
+		public void setTemplate(String template) {
+			this.template = template;
+		}
+
 	}
 
 }

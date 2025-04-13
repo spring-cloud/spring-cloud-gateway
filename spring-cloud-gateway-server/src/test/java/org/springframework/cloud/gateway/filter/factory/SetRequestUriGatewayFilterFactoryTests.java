@@ -24,7 +24,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -42,7 +41,7 @@ public class SetRequestUriGatewayFilterFactoryTests {
 	@Test
 	public void filterChangeRequestUri() {
 		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
-		GatewayFilter filter = factory.apply(c -> c.setName("https://example.com"));
+		GatewayFilter filter = factory.apply(c -> c.setTemplate("https://example.com"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
@@ -59,7 +58,7 @@ public class SetRequestUriGatewayFilterFactoryTests {
 	@Test
 	public void filterDoesNotChangeRequestUriIfUriIsInvalid() throws Exception {
 		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
-		GatewayFilter filter = factory.apply(c -> c.setName("invalid_uri"));
+		GatewayFilter filter = factory.apply(c -> c.setTemplate("invalid_uri"));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost"));
@@ -75,10 +74,10 @@ public class SetRequestUriGatewayFilterFactoryTests {
 
 	@Test
 	public void toStringFormat() {
-		NameConfig config = new NameConfig();
-		config.setName("myname");
+		SetRequestUriGatewayFilterFactory.Config config = new SetRequestUriGatewayFilterFactory.Config();
+		config.setTemplate("http://localhost:8080");
 		GatewayFilter filter = new SetRequestUriGatewayFilterFactory().apply(config);
-		assertThat(filter.toString()).contains("myname");
+		assertThat(filter.toString()).contains("http://localhost:8080");
 	}
 
 }
