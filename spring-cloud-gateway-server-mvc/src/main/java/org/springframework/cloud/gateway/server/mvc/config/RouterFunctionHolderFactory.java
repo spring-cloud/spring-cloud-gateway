@@ -43,6 +43,7 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
@@ -58,6 +59,7 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -109,14 +111,18 @@ public class RouterFunctionHolderFactory {
 
 	private final BeanFactory beanFactory;
 
+	private final FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer;
+
 	@Deprecated
 	public RouterFunctionHolderFactory(Environment env) {
-		this(env, null);
+		this(env, null, null);
 	}
 
-	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory) {
+	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory,
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer) {
 		this.env = env;
 		this.beanFactory = beanFactory;
+		this.filterBeanFactoryDiscoverer = filterBeanFactoryDiscoverer;
 	}
 
 	/**
@@ -247,7 +253,9 @@ public class RouterFunctionHolderFactory {
 		lowerPrecedenceFilters.forEach(builder::filter);
 
 		// translate filters
-		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
+		MultiValueMap<String, OperationMethod> filterOperations = new LinkedMultiValueMap<>();
+		filterOperations.addAll(filterBeanFactoryDiscoverer.getOperations());
+		filterOperations.addAll(filterDiscoverer.getOperations());
 		routeProperties.getFilters().forEach(filterProperties -> {
 			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);

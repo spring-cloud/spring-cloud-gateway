@@ -37,6 +37,7 @@ import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
@@ -86,8 +87,9 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory) {
-		return new RouterFunctionHolderFactory(env, beanFactory);
+	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory,
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer) {
+		return new RouterFunctionHolderFactory(env, beanFactory, filterBeanFactoryDiscoverer);
 	}
 
 	@Bean

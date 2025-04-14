@@ -35,6 +35,7 @@ import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
@@ -44,6 +45,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResp
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,7 +111,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void filterEnabledPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.gateway.mvc.form-filter.enabled=false",
@@ -161,7 +164,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void bootHttpClientPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
 			.withPropertyValues("spring.http.client.connect-timeout=1s", "spring.http.client.read-timeout=2s",
