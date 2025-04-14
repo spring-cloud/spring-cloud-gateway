@@ -22,10 +22,6 @@ org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
   org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.FilterSupplier,\
   org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.FilterSupplier
 
-org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\
-  org.springframework.cloud.gateway.server.mvc.handler.DefaultHandlerSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerHandlerSupplier
-
 org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
   org.springframework.cloud.gateway.server.mvc.predicate.MvcPredicateSupplier,\
   org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.PredicateSupplier

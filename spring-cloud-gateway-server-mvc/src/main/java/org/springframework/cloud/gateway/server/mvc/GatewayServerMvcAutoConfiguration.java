@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -35,6 +36,7 @@ import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeH
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
@@ -47,6 +49,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNorma
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
@@ -70,7 +73,7 @@ import org.springframework.web.client.RestClient;
  * @author Jürgen Wißkirchen
  */
 @AutoConfiguration(after = { HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-		RestClientAutoConfiguration.class })
+		RestClientAutoConfiguration.class, FilterAutoConfiguration.class, HandlerFunctionAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 @ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
@@ -83,8 +86,8 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env) {
-		return new RouterFunctionHolderFactory(env);
+	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory) {
+		return new RouterFunctionHolderFactory(env, beanFactory);
 	}
 
 	@Bean
