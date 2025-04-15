@@ -193,9 +193,10 @@ public abstract class BeforeFilterFunctions {
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
-			String newPath = uri.getRawPath() + request.uri().getRawPath();
+			String newPath = uri.getPath() + request.uri().getPath();
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
+					.replacePath(newPath).encode().build().toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}
