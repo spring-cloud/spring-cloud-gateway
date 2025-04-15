@@ -36,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.bind.handler.IgnoreTopLevelConverterNotFoundBindHandler;
@@ -57,6 +58,7 @@ import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMeth
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
@@ -116,6 +118,8 @@ public class RouterFunctionHolderFactory {
 
 	private final PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer;
 
+	private final ConversionService conversionService;
+
 	@Deprecated
 	public RouterFunctionHolderFactory(Environment env) {
 		this(env, null, null, null);
@@ -128,6 +132,17 @@ public class RouterFunctionHolderFactory {
 		this.beanFactory = beanFactory;
 		this.filterBeanFactoryDiscoverer = filterBeanFactoryDiscoverer;
 		this.predicateBeanFactoryDiscoverer = predicateBeanFactoryDiscoverer;
+		if (beanFactory instanceof ConfigurableBeanFactory configurableBeanFactory) {
+			if (configurableBeanFactory.getConversionService() != null) {
+				this.conversionService = configurableBeanFactory.getConversionService();
+			}
+			else {
+				this.conversionService = DefaultConversionService.getSharedInstance();
+			}
+		}
+		else {
+			this.conversionService = DefaultConversionService.getSharedInstance();
+		}
 	}
 
 	/**
@@ -347,7 +362,7 @@ public class RouterFunctionHolderFactory {
 		return operationInvoker.invoke(context);
 	}
 
-	private static Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
+	private Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
 			OperationParameter operationParameter) {
 		Class<?> configurableType = operationParameter.getType();
 		Configurable configurable = operationMethod.getMethod().getAnnotation(Configurable.class);
@@ -357,8 +372,8 @@ public class RouterFunctionHolderFactory {
 		Bindable<?> bindable = Bindable.of(configurableType);
 		List<ConfigurationPropertySource> propertySources = Collections
 			.singletonList(new MapConfigurationPropertySource(args));
-		// TODO: potentially deal with conversion service
-		Binder binder = new Binder(propertySources, null, DefaultConversionService.getSharedInstance());
+
+		Binder binder = new Binder(propertySources, null, conversionService);
 		Object config = binder.bindOrCreate("", bindable, new IgnoreTopLevelConverterNotFoundBindHandler());
 		return config;
 	}
