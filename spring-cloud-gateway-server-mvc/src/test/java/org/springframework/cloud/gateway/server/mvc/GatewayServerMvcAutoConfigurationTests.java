@@ -46,6 +46,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNorma
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,7 +112,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void filterEnabledPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
 					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
@@ -164,7 +165,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void bootHttpClientPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
 					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))

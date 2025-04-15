@@ -55,6 +55,7 @@ import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.convert.ConversionServiceParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
@@ -113,16 +114,20 @@ public class RouterFunctionHolderFactory {
 
 	private final FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer;
 
+	private final PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer;
+
 	@Deprecated
 	public RouterFunctionHolderFactory(Environment env) {
-		this(env, null, null);
+		this(env, null, null, null);
 	}
 
 	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory,
-			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer) {
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
 		this.env = env;
 		this.beanFactory = beanFactory;
 		this.filterBeanFactoryDiscoverer = filterBeanFactoryDiscoverer;
+		this.predicateBeanFactoryDiscoverer = predicateBeanFactoryDiscoverer;
 	}
 
 	/**
@@ -226,7 +231,11 @@ public class RouterFunctionHolderFactory {
 		}
 
 		// translate predicates
-		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
+		MultiValueMap<String, OperationMethod> predicateOperations = new LinkedMultiValueMap<>();
+		if (predicateBeanFactoryDiscoverer != null) {
+			predicateOperations.addAll(predicateBeanFactoryDiscoverer.getOperations());
+		}
+		predicateOperations.addAll(predicateDiscoverer.getOperations());
 		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
 
 		routeProperties.getPredicates().forEach(predicateProperties -> {
@@ -254,7 +263,9 @@ public class RouterFunctionHolderFactory {
 
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = new LinkedMultiValueMap<>();
-		filterOperations.addAll(filterBeanFactoryDiscoverer.getOperations());
+		if (filterBeanFactoryDiscoverer != null) {
+			filterOperations.addAll(filterBeanFactoryDiscoverer.getOperations());
+		}
 		filterOperations.addAll(filterDiscoverer.getOperations());
 		routeProperties.getFilters().forEach(filterProperties -> {
 			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());

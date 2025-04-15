@@ -54,6 +54,8 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -74,7 +76,8 @@ import org.springframework.web.client.RestClient;
  * @author Jürgen Wißkirchen
  */
 @AutoConfiguration(after = { HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-		RestClientAutoConfiguration.class, FilterAutoConfiguration.class, HandlerFunctionAutoConfiguration.class })
+		RestClientAutoConfiguration.class, FilterAutoConfiguration.class, HandlerFunctionAutoConfiguration.class,
+		PredicateAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 @ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
@@ -88,8 +91,10 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory,
-			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer) {
-		return new RouterFunctionHolderFactory(env, beanFactory, filterBeanFactoryDiscoverer);
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
+		return new RouterFunctionHolderFactory(env, beanFactory, filterBeanFactoryDiscoverer,
+				predicateBeanFactoryDiscoverer);
 	}
 
 	@Bean
