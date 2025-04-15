@@ -49,6 +49,55 @@ class SimpleGateway {
 [[gateway-handlerfunctions]]
 == Gateway MVC Handler Functions
 
-Various `RouterFunctions.Builder` methods require a `HandlerFunction<ServerResponse>`. To create a route that is proxied by the MVC Gateway, `HandlerFunction` implementations are supplied in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`. The most basic is the `http()` `HandlerFunction`. The function looks for a `URI` in the `org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_REQUEST_URL_ATTR` request attribute. This allows for dynamic targets such as load balancing to set the `URI`.
+
+Various `RouterFunctions.Builder` methods require a `HandlerFunction<ServerResponse>`. To create a route that is proxied by the MVC Gateway, `HandlerFunction` implementations are supplied in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`. 
+
+=== HTTP Handler Function
+The most basic handler function is `http()` `HandlerFunction`. If a `URI` is supplied as a parameter, that is the `URI` used as the downstream target for sending the HTTP requests (as seen in the example above). If no parameter is passed, the function looks for a `URI` in the `org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_REQUEST_URL_ATTR` request attribute. This allows for dynamic targets such as load balancing to set the `URI`.
+
 
 WARNING: As of version 4.1.7, `HandlerFunctions.http(String)` and `HandlerFunctions.http(URI)` are now deprecated. Please use `HandlerFunctions.http()` in combination with the `BeforeFilterFunctions.uri()` filter instead. This fixes inconsistencies in dealing with the route url request attribute.
+
+=== Spring Cloud Function Handler Function
+This feature provides support for transparently routing to Java functions when using https://spring.io/projects/spring-cloud-function[Spring Cloud Function] framework.
+Gateway routing configuration will be provided as soon as you provide Spring Cloud Function dependency. 
+
+[source,xml]
+----
+<dependency>
+	<groupId>org.springframework.cloud</groupId>
+	<artifactId>spring-cloud-function-context</artifactId>
+</dependency>
+----
+
+Once Spring Cloud Function dependency is provided the name of the Java function bean becomes the path you can use to route to functions.
+
+For example, assume the following application:
+
+[source,java]
+----
+@SpringBootApplication
+public class DemoFunctionGatewayApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(DemoFunctionGatewayApplication.class, args);
+	}
+
+	
+	@Bean
+	public Function<String, String> uppercase() {
+		return v -> v.toUpperCase();
+	}
+	
+	@Bean
+	public Function<String, String> concat() {
+		return v -> v + v;
+	}
+}
+----
+You can now invoke `concat` or `uppercase` as GET or POST request
+For example, for simple GET you can invoke `http://localhost:8080/uppercase/hello` where `/hello` becomes a payload and you will get _HELLO_ in response.
+You can also use POST `curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat`
+
+Additionally you can now benefit from function composition. For example `curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat,uppercase` 
+will result in _HELLOHELLO_ response.
