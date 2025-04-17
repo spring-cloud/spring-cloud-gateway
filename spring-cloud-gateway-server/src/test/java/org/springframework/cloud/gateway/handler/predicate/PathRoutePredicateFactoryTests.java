@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.Config;
@@ -133,14 +134,14 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
-		Predicate predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
 	}
 
 	@Test
 	public void toStringFormatMatchTrailingSlashTrue() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("true");
 	}
 
