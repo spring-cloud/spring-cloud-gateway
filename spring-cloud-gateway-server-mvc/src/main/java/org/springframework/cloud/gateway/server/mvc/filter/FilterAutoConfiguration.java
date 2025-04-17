@@ -71,7 +71,7 @@ public class FilterAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(LoadBalancerClient.class)
-	static class LoadBalancerHandlerConfiguration {
+	public static class LoadBalancerHandlerConfiguration {
 
 		@Bean
 		public Function<RouteProperties, HandlerFunctionDefinition> lbHandlerFunctionDefinition() {

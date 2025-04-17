@@ -29,6 +29,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions
 import org.springframework.cloud.gateway.server.mvc.filter.BodyFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions;
@@ -47,10 +48,10 @@ public class GatewayMvcAotRuntimeHintsRegistrar implements RuntimeHintsRegistrar
 
 	// TODO: fix AOT HINTS
 	private static final Set<Class<?>> FUNCTION_PROVIDERS = Set.of(HandlerFunctions.class,
-			/* LoadBalancerHandlerSupplier.class, */ FilterFunctions.class, BeforeFilterFunctions.class,
-			AfterFilterFunctions.class, TokenRelayFilterFunctions.class, BodyFilterFunctions.class,
-			CircuitBreakerFilterFunctions.class, GatewayRouterFunctions.class, LoadBalancerFilterFunctions.class,
-			GatewayRequestPredicates.class, Bucket4jFilterFunctions.class);
+			FilterAutoConfiguration.LoadBalancerHandlerConfiguration.class, FilterFunctions.class,
+			BeforeFilterFunctions.class, AfterFilterFunctions.class, TokenRelayFilterFunctions.class,
+			BodyFilterFunctions.class, CircuitBreakerFilterFunctions.class, GatewayRouterFunctions.class,
+			LoadBalancerFilterFunctions.class, GatewayRequestPredicates.class, Bucket4jFilterFunctions.class);
 
 	private static final Set<Class<?>> PROPERTIES = Set.of(FilterProperties.class, PredicateProperties.class,
 			RouteProperties.class);
