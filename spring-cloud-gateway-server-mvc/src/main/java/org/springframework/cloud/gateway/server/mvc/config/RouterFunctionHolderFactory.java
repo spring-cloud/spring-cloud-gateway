@@ -28,10 +28,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.bind.handler.IgnoreTopLevelConverterNotFoundBindHandler;
@@ -39,8 +44,10 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyS
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationArgumentResolver;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
@@ -49,10 +56,13 @@ import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.convert.ConversionServiceParameterValueMapper;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -102,8 +112,37 @@ public class RouterFunctionHolderFactory {
 
 	private final ParameterValueMapper parameterValueMapper = new ConversionServiceParameterValueMapper();
 
+	private final BeanFactory beanFactory;
+
+	private final FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer;
+
+	private final PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer;
+
+	private final ConversionService conversionService;
+
+	@Deprecated
 	public RouterFunctionHolderFactory(Environment env) {
+		this(env, null, null, null);
+	}
+
+	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory,
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
 		this.env = env;
+		this.beanFactory = beanFactory;
+		this.filterBeanFactoryDiscoverer = filterBeanFactoryDiscoverer;
+		this.predicateBeanFactoryDiscoverer = predicateBeanFactoryDiscoverer;
+		if (beanFactory instanceof ConfigurableBeanFactory configurableBeanFactory) {
+			if (configurableBeanFactory.getConversionService() != null) {
+				this.conversionService = configurableBeanFactory.getConversionService();
+			}
+			else {
+				this.conversionService = DefaultConversionService.getSharedInstance();
+			}
+		}
+		else {
+			this.conversionService = DefaultConversionService.getSharedInstance();
+		}
 	}
 
 	/**
@@ -153,41 +192,65 @@ public class RouterFunctionHolderFactory {
 		// TODO: cache?
 		// translate handlerFunction
 		String scheme = routeProperties.getUri().getScheme();
-		Map<String, Object> handlerArgs = new HashMap<>();
-		Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
-				scheme.toLowerCase(Locale.ROOT), handlerArgs);
-		if (handlerOperationMethod.isEmpty()) {
-			// single RouteProperties param
-			handlerArgs.clear();
-			String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
-			handlerArgs.put(routePropsKey, routeProperties);
-			handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(Locale.ROOT), handlerArgs);
-			if (handlerOperationMethod.isEmpty()) {
-				throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
-			}
-		}
-		NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
-		Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
-		HandlerFunction<ServerResponse> handlerFunction = null;
 
 		// filters added by HandlerDiscoverer need to go last, so save them
+		HandlerFunction<ServerResponse> handlerFunction = null;
 		List<HandlerFilterFunction<ServerResponse, ServerResponse>> lowerPrecedenceFilters = new ArrayList<>();
 		List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters = new ArrayList<>();
-		if (response instanceof HandlerFunction<?>) {
-			handlerFunction = (HandlerFunction<ServerResponse>) response;
+
+		if (beanFactory != null) {
+			try {
+				// TODO: configurable bean name?
+				String name = scheme + "HandlerFunctionDefinition";
+				Function factory = beanFactory.getBean(name, Function.class);
+				HandlerFunctionDefinition definition = (HandlerFunctionDefinition) factory.apply(routeProperties);
+				handlerFunction = definition.handlerFunction();
+				lowerPrecedenceFilters.addAll(definition.lowerPrecedenceFilters());
+				higherPrecedenceFilters.addAll(definition.higherPrecedenceFilters());
+			}
+			catch (NoSuchBeanDefinitionException | BeanNotOfRequiredTypeException | ClassCastException e) {
+				log.trace(LogMessage.format("Unable to locate bean of HandlerFunction for scheme %s", scheme), e);
+			}
 		}
-		else if (response instanceof HandlerDiscoverer.Result result) {
-			handlerFunction = result.getHandlerFunction();
-			lowerPrecedenceFilters.addAll(result.getLowerPrecedenceFilters());
-			higherPrecedenceFilters.addAll(result.getHigherPrecedenceFilters());
-		}
+
 		if (handlerFunction == null) {
-			throw new IllegalStateException(
-					"Unable to find HandlerFunction for scheme: " + scheme + " and response " + response);
+			Map<String, Object> handlerArgs = new HashMap<>();
+			Optional<NormalizedOperationMethod> handlerOperationMethod = findOperation(handlerOperations,
+					scheme.toLowerCase(Locale.ROOT), handlerArgs);
+			if (handlerOperationMethod.isEmpty()) {
+				// single RouteProperties param
+				handlerArgs.clear();
+				String routePropsKey = StringUtils.uncapitalize(RouteProperties.class.getSimpleName());
+				handlerArgs.put(routePropsKey, routeProperties);
+				handlerOperationMethod = findOperation(handlerOperations, scheme.toLowerCase(Locale.ROOT), handlerArgs);
+				if (handlerOperationMethod.isEmpty()) {
+					throw new IllegalStateException("Unable to find HandlerFunction for scheme: " + scheme);
+				}
+			}
+
+			NormalizedOperationMethod normalizedOpMethod = handlerOperationMethod.get();
+			Object response = invokeOperation(normalizedOpMethod, normalizedOpMethod.getNormalizedArgs());
+
+			if (response instanceof HandlerFunction<?>) {
+				handlerFunction = (HandlerFunction<ServerResponse>) response;
+			}
+			else if (response instanceof HandlerDiscoverer.Result result) {
+				handlerFunction = result.getHandlerFunction();
+				lowerPrecedenceFilters.addAll(result.getLowerPrecedenceFilters());
+				higherPrecedenceFilters.addAll(result.getHigherPrecedenceFilters());
+			}
+			if (handlerFunction == null) {
+				throw new IllegalStateException(
+						"Unable to find HandlerFunction for scheme: " + scheme + " and response " + response);
+			}
 		}
 
 		// translate predicates
-		MultiValueMap<String, OperationMethod> predicateOperations = predicateDiscoverer.getOperations();
+		MultiValueMap<String, OperationMethod> predicateOperations = new LinkedMultiValueMap<>();
+		if (predicateBeanFactoryDiscoverer != null) {
+			predicateOperations.addAll(predicateBeanFactoryDiscoverer.getOperations());
+		}
+		predicateOperations.addAll(predicateDiscoverer.getOperations());
 		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
 
 		routeProperties.getPredicates().forEach(predicateProperties -> {
@@ -214,7 +277,11 @@ public class RouterFunctionHolderFactory {
 		lowerPrecedenceFilters.forEach(builder::filter);
 
 		// translate filters
-		MultiValueMap<String, OperationMethod> filterOperations = filterDiscoverer.getOperations();
+		MultiValueMap<String, OperationMethod> filterOperations = new LinkedMultiValueMap<>();
+		if (filterBeanFactoryDiscoverer != null) {
+			filterOperations.addAll(filterBeanFactoryDiscoverer.getOperations());
+		}
+		filterOperations.addAll(filterDiscoverer.getOperations());
 		routeProperties.getFilters().forEach(filterProperties -> {
 			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
@@ -295,7 +362,7 @@ public class RouterFunctionHolderFactory {
 		return operationInvoker.invoke(context);
 	}
 
-	private static Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
+	private Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
 			OperationParameter operationParameter) {
 		Class<?> configurableType = operationParameter.getType();
 		Configurable configurable = operationMethod.getMethod().getAnnotation(Configurable.class);
@@ -305,8 +372,8 @@ public class RouterFunctionHolderFactory {
 		Bindable<?> bindable = Bindable.of(configurableType);
 		List<ConfigurationPropertySource> propertySources = Collections
 			.singletonList(new MapConfigurationPropertySource(args));
-		// TODO: potentially deal with conversion service
-		Binder binder = new Binder(propertySources, null, DefaultConversionService.getSharedInstance());
+
+		Binder binder = new Binder(propertySources, null, conversionService);
 		Object config = binder.bindOrCreate("", bindable, new IgnoreTopLevelConverterNotFoundBindHandler());
 		return config;
 	}
