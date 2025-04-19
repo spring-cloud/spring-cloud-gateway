@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import reactor.core.publisher.Mono;
 
@@ -34,6 +33,7 @@ import org.springframework.http.MediaType;
 
 /**
  * @author Marta Medio
+ * @author raccoonback
  */
 public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 		AbstractGatewayFilterFactory<RemoveJsonAttributesResponseBodyGatewayFilterFactory.FieldListConfiguration> {
@@ -72,14 +72,14 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 		RewriteFunction<String, String> rewriteFunction = (exchange, body) -> {
 			if (MediaType.APPLICATION_JSON.isCompatibleWith(exchange.getResponse().getHeaders().getContentType())) {
 				try {
-					JsonNode jsonBodyContent = mapper.readValue(body, JsonNode.class);
+					JsonNode jsonNode = mapper.readValue(body, JsonNode.class);
 
-					removeJsonAttribute(jsonBodyContent, config.getFieldList(), config.isDeleteRecursively());
+					removeJsonAttributes(jsonNode, config.getFieldList(), config.isDeleteRecursively());
 
-					body = mapper.writeValueAsString(jsonBodyContent);
+					body = mapper.writeValueAsString(jsonNode);
 				}
 				catch (JsonProcessingException e) {
-					throw new RuntimeException(e);
+					return Mono.error(new IllegalStateException("Failed to process JSON of response body.", e));
 				}
 			}
 			return Mono.just(body);
@@ -93,22 +93,12 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 
 	private ObjectMapper mapper = new ObjectMapper();
 
-	private void removeJsonAttribute(JsonNode jsonBodyContent, List<String> fieldsToRemove, boolean deleteRecursively) {
-		if (deleteRecursively) {
-			for (JsonNode jsonNode : jsonBodyContent) {
-				if (jsonNode instanceof ObjectNode) {
-					((ObjectNode) jsonNode).remove(fieldsToRemove);
-					removeJsonAttribute(jsonNode, fieldsToRemove, true);
-				}
-				if (jsonNode instanceof ArrayNode) {
-					for (JsonNode node : jsonNode) {
-						removeJsonAttribute(node, fieldsToRemove, true);
-					}
-				}
-			}
+	private void removeJsonAttributes(JsonNode jsonNode, List<String> fieldNames, boolean deleteRecursively) {
+		if (jsonNode instanceof ObjectNode objectNode) {
+			objectNode.remove(fieldNames);
 		}
-		if (jsonBodyContent instanceof ObjectNode) {
-			((ObjectNode) jsonBodyContent).remove(fieldsToRemove);
+		if (deleteRecursively) {
+			jsonNode.forEach(childNode -> removeJsonAttributes(childNode, fieldNames, true));
 		}
 	}
 
