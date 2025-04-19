@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -30,8 +31,12 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -42,10 +47,10 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends BaseWebClientTests {
+class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
-	public void removeJsonAttributeRootWorks() {
+	void removeJsonAttributeRootWorks() {
 		testClient.post()
 			.uri("/post")
 			.header("Host", "www.removejsonattributes.org")
@@ -70,8 +75,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 	}
 
 	@Test
-	public void removeJsonAttributeRecursivelyWorks() {
-
+	void removeJsonAttributeRecursivelyWorks() {
 		testClient.post()
 			.uri("/post")
 			.header("Host", "www.removejsonattributesrecursively.org")
@@ -93,8 +97,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 	}
 
 	@Test
-	public void removeJsonAttributeNoMatchesWorks() {
-
+	void removeJsonAttributeNoMatchesWorks() {
 		testClient.post()
 			.uri("/post")
 			.header("Host", "www.removejsonattributesnomatches.org")
@@ -110,6 +113,21 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 				Map<String, Object> headers = getMap(response, "headers");
 				assertThat(headers).isNotNull();
 				assertThat(headers).containsEntry(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			});
+	}
+
+	@Test
+	void raisedWhenRemoveJsonAttributes() {
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.raisederrorwhenremovejsonattributes.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.exchange()
+			.expectStatus()
+			.is5xxServerError()
+			.expectBody(String.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isEqualTo("Failed to process JSON of response body.");
 			});
 	}
 
@@ -142,7 +160,25 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactoryTests extends B
 							.host("{sub}.removejsonattributesnomatches.org")
 							.filters(f -> f.removeJsonAttributes("test"))
 							.uri(uri))
+				.route("raised_error_when_remove_json_attributes",
+						r -> r.path("/post")
+							.and()
+							.host("{sub}.raisederrorwhenremovejsonattributes.org")
+							.filters(f -> f.removeJsonAttributes("test")
+								.modifyResponseBody(String.class, String.class,
+										(exchange, response) -> Mono.just("{\"invalid_json\": test")))
+							.uri(uri))
 				.build();
+		}
+
+		@ControllerAdvice
+		public class GlobalExceptionHandler {
+
+			@ExceptionHandler(IllegalStateException.class)
+			public ResponseEntity<String> handleIllegalException(IllegalStateException ex) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+			}
+
 		}
 
 	}
