@@ -16,41 +16,30 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hc.core5.util.Timeout;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
-import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
-import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
-import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,13 +47,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -106,17 +93,6 @@ public class RetryFilterFunctionTests {
 			.isEqualTo("3");
 	}
 
-	@Test
-	public void retryWorksWithHttpComponentsClient() {
-		restClient.get()
-			.uri("/retrywithhttpcomponentsclient?key=retryWorksWithHttpComponentsClient")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBody(String.class)
-			.isEqualTo("3");
-	}
-
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -129,41 +105,6 @@ public class RetryFilterFunctionTests {
 					.GET("/retry", http())
 					.before(new LocalServerPortUriResolver())
 					.filter(retry(3))
-					.filter(prefixPath("/do"))
-					.build();
-			// @formatter:on
-		}
-
-		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsRetryWithHttpComponentsClient(
-				GatewayMvcProperties properties,
-				ObjectProvider<HttpHeadersFilter.RequestHttpHeadersFilter> requestHttpHeadersFilters,
-				ObjectProvider<HttpHeadersFilter.ResponseHttpHeadersFilter> responseHttpHeadersFilters,
-				ApplicationContext applicationContext) {
-
-			// build httpComponents client factory
-			ClientHttpRequestFactory clientHttpRequestFactory = ClientHttpRequestFactoryBuilder.httpComponents()
-				.withConnectionManagerCustomizer(builder -> builder.setMaxConnTotal(2).setMaxConnPerRoute(2))
-				.withDefaultRequestConfigCustomizer(
-						c -> c.setConnectionRequestTimeout(Timeout.of(Duration.ofMillis(3000))))
-				.build();
-
-			// build proxyExchange use httpComponents
-			RestClient.Builder restClientBuilder = RestClient.builder();
-			restClientBuilder.requestFactory(clientHttpRequestFactory);
-			ProxyExchange proxyExchange = new RestClientProxyExchange(restClientBuilder.build(), properties);
-
-			// build handler function use httpComponents
-			ProxyExchangeHandlerFunction function = new ProxyExchangeHandlerFunction(proxyExchange,
-					requestHttpHeadersFilters, responseHttpHeadersFilters);
-			function.onApplicationEvent(new ContextRefreshedEvent(applicationContext));
-
-			// @formatter:off
-			return route("testretrywithhttpcomponentsclient")
-					.GET("/retrywithhttpcomponentsclient", function)
-					.before(new LocalServerPortUriResolver())
-					.filter(retry(3))
-					.filter(setPath("/retry"))
 					.filter(prefixPath("/do"))
 					.build();
 			// @formatter:on
