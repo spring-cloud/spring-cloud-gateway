@@ -240,12 +240,11 @@ The above route will add a `X-Response-Id` header to the response. Note the use 
 
 == How To Register Custom Predicates and Filters for Configuration
 
-To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it in `META-INF/spring.factories`.
+To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it a bean in the application context.
 
 === Registering Custom Predicates
 
 To register custom predicates you need to implement `PredicateSupplier`. The `PredicateDiscoverer` looks for static methods that return `RequestPredicates` to register.
-
 
 SampleFilterSupplier.java
 [source,java]
@@ -254,7 +253,6 @@ package com.example;
 
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier;
 
-@Configuration
 class SamplePredicateSupplier implements PredicateSupplier {
 
 	@Override
@@ -265,7 +263,24 @@ class SamplePredicateSupplier implements PredicateSupplier {
 }
 ----
 
-You then need to add the class in `META-INF/spring.factories`.
+To register the `PredicateSupplier` for use in config files, you then need to add the class as a bean as in the example below:
+
+.PredicateConfiguration.java
+[source,java]
+----
+package com.example;
+
+@Configuration
+class PredicateConfiguration {
+
+    @Bean
+    public SamplePredicateSupplier samplePredicateSupplier() {
+        return new SamplePredicateSupplier();
+    }
+}
+----
+
+The requirement to add the class to `META-INF/spring.factories` is deprecated and will be removed in the next major release.
 
 .META-INF/spring.factories
 [source]
@@ -285,7 +300,6 @@ package com.example;
 
 import org.springframework.cloud.gateway.server.mvc.filter.SimpleFilterSupplier;
 
-@Configuration
 class SampleFilterSupplier extends SimpleFilterSupplier {
 
     public SampleFilterSupplier() {
@@ -294,7 +308,24 @@ class SampleFilterSupplier extends SimpleFilterSupplier {
 }
 ----
 
-You then need to add the class in `META-INF/spring.factories`.
+To register the `FilterSupplier` for use in config files, you then need to add the class as a bean as in the example below:
+
+.FilterConfiguration.java
+[source,java]
+----
+package com.example;
+
+@Configuration
+class FilterConfiguration {
+
+    @Bean
+    public SampleFilterSupplier sampleFilterSupplier() {
+        return new SampleFilterSupplier();
+    }
+}
+----
+
+The requirement to add the class to `META-INF/spring.factories` is deprecated and will be removed in the next major release.
 
 .META-INF/spring.factories
 [source]
