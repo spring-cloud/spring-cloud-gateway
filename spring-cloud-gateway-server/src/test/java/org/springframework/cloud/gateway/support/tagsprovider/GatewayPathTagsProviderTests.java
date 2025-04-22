@@ -22,6 +22,7 @@ import java.util.List;
 import io.micrometer.core.instrument.Tags;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
@@ -56,7 +57,7 @@ public class GatewayPathTagsProviderTests {
 		Route route = Route.async()
 			.id("git")
 			.uri(ROUTE_URI)
-			.predicate(new PathRoutePredicateFactory().apply(pathConfig)
+			.predicate(new PathRoutePredicateFactory(new WebFluxProperties()).apply(pathConfig)
 				.and(new HostRoutePredicateFactory().apply(hostConfig)))
 			.build();
 
@@ -81,8 +82,8 @@ public class GatewayPathTagsProviderTests {
 		Route route = Route.async()
 			.id("git")
 			.uri(ROUTE_URI)
-			.predicate(new PathRoutePredicateFactory().apply(pathConfig)
-				.or(new PathRoutePredicateFactory().apply(pathConfig2)))
+			.predicate(new PathRoutePredicateFactory(new WebFluxProperties()).apply(pathConfig)
+				.or(new PathRoutePredicateFactory(new WebFluxProperties()).apply(pathConfig2)))
 			.build();
 
 		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());

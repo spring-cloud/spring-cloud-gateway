@@ -30,6 +30,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -54,7 +55,7 @@ public class PathRoutePredicatePathContainerAttrBenchMarkTests {
 			PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config()
 				.setPatterns(Collections.singletonList(PATH_PATTERN_PREFIX + i))
 				.setMatchTrailingSlash(true);
-			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
 			predicates.add(predicate);
 		}
 	}
