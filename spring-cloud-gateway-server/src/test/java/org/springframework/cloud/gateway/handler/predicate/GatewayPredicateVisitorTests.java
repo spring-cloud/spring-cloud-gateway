@@ -91,13 +91,13 @@ public class GatewayPredicateVisitorTests {
 
 		PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory(webFluxProperties);
 		PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config()
-				.setPatterns(List.of("/temp/**"))
-				.setMatchTrailingSlash(true);
+			.setPatterns(List.of("/temp/**"))
+			.setMatchTrailingSlash(true);
 
 		Predicate<ServerWebExchange> predicate = pathRoutePredicateFactory.apply(config);
 
-		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://127.0.0.1:8080/gw/api/v1/temp/test")
-				.build());
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://127.0.0.1:8080/gw/api/v1/temp/test").build());
 
 		assertThat(predicate.test(exchange)).isEqualTo(true);
 	}
@@ -109,13 +109,13 @@ public class GatewayPredicateVisitorTests {
 
 		PathRoutePredicateFactory pathRoutePredicateFactory = new PathRoutePredicateFactory(webFluxProperties);
 		PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config()
-				.setPatterns(List.of("/temp/**"))
-				.setMatchTrailingSlash(true);
+			.setPatterns(List.of("/temp/**"))
+			.setMatchTrailingSlash(true);
 
 		Predicate<ServerWebExchange> predicate = pathRoutePredicateFactory.apply(config);
 
-		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://127.0.0.1:8080/gw/api/v1/temp/test")
-				.build());
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://127.0.0.1:8080/gw/api/v1/temp/test").build());
 
 		assertThat(predicate.test(exchange)).isEqualTo(true);
 
@@ -139,4 +139,5 @@ public class GatewayPredicateVisitorTests {
 		LinkedHashSet<URI> uris = webExchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 		assertThat(uris).contains(exchange.getRequest().getURI());
 	}
+
 }

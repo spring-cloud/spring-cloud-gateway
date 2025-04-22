@@ -55,7 +55,8 @@ public class PathRoutePredicatePathContainerAttrBenchMarkTests {
 			PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config()
 				.setPatterns(Collections.singletonList(PATH_PATTERN_PREFIX + i))
 				.setMatchTrailingSlash(true);
-			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
+			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties())
+				.apply(config);
 			predicates.add(predicate);
 		}
 	}

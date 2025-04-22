@@ -203,8 +203,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		}
 
 		return predicates.stream()
-				.map(nextPredicate -> lookup(routeDefinition, nextPredicate))
-				.reduce(AsyncPredicate.from(exchange -> true), AsyncPredicate::and);
+			.map(nextPredicate -> lookup(routeDefinition, nextPredicate))
+			.reduce(AsyncPredicate.from(exchange -> true), AsyncPredicate::and);
 	}
 
 	@SuppressWarnings("unchecked")
