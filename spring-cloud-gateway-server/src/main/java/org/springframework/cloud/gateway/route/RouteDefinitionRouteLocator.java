@@ -201,14 +201,10 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 			// this is a very rare case, but possible, just match all
 			return AsyncPredicate.from(exchange -> true);
 		}
-		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
-		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			AsyncPredicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
-			predicate = predicate.and(found);
-		}
-
-		return predicate;
+		return predicates.stream()
+				.map(nextPredicate -> lookup(routeDefinition, nextPredicate))
+				.reduce(AsyncPredicate.from(exchange -> true), AsyncPredicate::and);
 	}
 
 	@SuppressWarnings("unchecked")
