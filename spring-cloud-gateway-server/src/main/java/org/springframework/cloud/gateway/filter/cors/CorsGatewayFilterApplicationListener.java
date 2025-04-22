@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -34,14 +34,14 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
 
 /**
- * This class updates Cors configuration each time a {@link RefreshRoutesEvent} is
+ * This class updates Cors configuration each time a {@link RefreshRoutesResultEvent} is
  * consumed. The {@link Route}'s predicates are inspected for a
  * {@link PathRoutePredicateFactory} and the first pattern is used.
  *
  * @author Fredrich Ombico
  * @author Abel Salgado Romero
  */
-public class CorsGatewayFilterApplicationListener implements ApplicationListener<RefreshRoutesEvent> {
+public class CorsGatewayFilterApplicationListener implements ApplicationListener<RefreshRoutesResultEvent> {
 
 	private final GlobalCorsProperties globalCorsProperties;
 
@@ -61,7 +61,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	}
 
 	@Override
-	public void onApplicationEvent(RefreshRoutesEvent event) {
+	public void onApplicationEvent(RefreshRoutesResultEvent event) {
 		routeLocator.getRoutes().collectList().subscribe(routes -> {
 			// pre-populate with pre-existing global cors configurations to combine with.
 			var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
