@@ -113,7 +113,8 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 		this.context.publishEvent(new EnvironmentChangeEvent(this.context,
 				Collections.singleton("spring.cloud.gateway.httpclient.connect-timeout")));
 		Route route = routeLocator.getRoutes()
-				.filter(r -> r.getId().equals("refreshable_configuration_test")).blockLast();
+			.filter(r -> r.getId().equals("refreshable_configuration_test"))
+			.blockLast();
 		assertThat(route).isNotNull();
 		HttpClient httpClient = nettyRoutingFilter.getHttpClient(route, null);
 		HttpClientConfig configuration = httpClient.configuration();
