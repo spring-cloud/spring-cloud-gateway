@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.validation.constraints.Min;
 import org.apache.commons.logging.Log;
@@ -49,6 +50,7 @@ import org.springframework.validation.annotation.Validated;
  * @author Ronny Bräunlich
  * @author Denis Cutic
  * @author Andrey Muchnik
+ * @author Fangzhou Liu
  */
 @ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
@@ -101,6 +103,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	private boolean includeHeaders = true;
 
 	/**
+	 * A Round-Robin like index to select a virtual shard.
+	 */
+	private final AtomicInteger shardIndex = new AtomicInteger(0);
+
+	/**
 	 * The name of the header that returns number of remaining requests during the current
 	 * second.
 	 */
@@ -146,12 +153,18 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
-	static List<String> getKeys(String id, String routeId) {
+	static List<String> getKeys(String id, String routeId, String shardId) {
 		// use `{}` around keys to use Redis Key hash tags
 		// this allows for using redis cluster
 
 		// Make a unique key per user and route.
-		String prefix = "request_rate_limiter.{" + routeId + "." + id + "}.";
+		String prefix;
+		if (shardId != null) {
+			prefix = "request_rate_limiter.{" + routeId + "." + id + "." + shardId + "}.";
+		}
+		else {
+			prefix = "request_rate_limiter.{" + routeId + "." + id + "}.";
+		}
 
 		// You need two Redis keys for Token Bucket.
 		String tokenKey = prefix + "tokens";
@@ -237,16 +250,16 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		Config routeConfig = loadConfiguration(routeId);
 
 		// How many requests per second do you want a user to be allowed to do?
-		int replenishRate = routeConfig.getReplenishRate();
+		int replenishRate = getShardedReplenishRate(routeConfig);
 
 		// How much bursting do you want to allow?
-		int burstCapacity = routeConfig.getBurstCapacity();
+		int burstCapacity = getShardedBurstCapacity(routeConfig);
 
 		// How many tokens are requested per request?
 		int requestedTokens = routeConfig.getRequestedTokens();
 
 		try {
-			List<String> keys = getKeys(id, routeId);
+			List<String> keys = getKeys(id, routeId, getShard(routeConfig.getShards()));
 
 			// The arguments to the LUA script. time() returns unixtime in seconds.
 			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "", "", requestedTokens + "");
@@ -306,6 +319,30 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return headers;
 	}
 
+	String getShard(int shards) {
+		if (shards > 0) {
+			// Ignore signature bit of shardIndex to make sure always positive value.
+			return String.valueOf((shardIndex.getAndIncrement() & Integer.MAX_VALUE) % shards);
+		}
+		return null;
+	}
+
+	int getShardedReplenishRate(Config config) {
+		int replenishRate = config.getReplenishRate();
+		if (config.getShards() > 0) {
+			replenishRate = replenishRate / config.getShards();
+		}
+		return replenishRate;
+	}
+
+	int getShardedBurstCapacity(Config config) {
+		int burstCapacity = config.getBurstCapacity();
+		if (config.getShards() > 0) {
+			burstCapacity = burstCapacity / config.getShards();
+		}
+		return burstCapacity;
+	}
+
 	@Validated
 	public static class Config {
 
@@ -317,6 +354,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 		@Min(1)
 		private int requestedTokens = 1;
+
+		@Min(0)
+		private int shards = 0;
 
 		public int getReplenishRate() {
 			return replenishRate;
@@ -347,11 +387,21 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			return this;
 		}
 
+		public int getShards() {
+			return shards;
+		}
+
+		public Config setShards(int shards) {
+			this.shards = shards;
+			return this;
+		}
+
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("replenishRate", replenishRate)
 				.append("burstCapacity", burstCapacity)
 				.append("requestedTokens", requestedTokens)
+				.append("shards", shards)
 				.toString();
 
 		}

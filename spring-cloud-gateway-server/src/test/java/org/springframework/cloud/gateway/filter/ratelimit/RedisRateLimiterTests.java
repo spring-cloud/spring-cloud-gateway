@@ -53,6 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Ronny Bräunlich
  * @author Denis Cutic
  * @author Andrey Muchnik
+ * @author Fangzhou Liu
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "spring.cloud.gateway.function.enabled=false" })
 @DirtiesContext
@@ -165,8 +166,8 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void keysUseRedisKeyHashTags() {
-		assertThat(RedisRateLimiter.getKeys("1", "routeId")).containsExactly("request_rate_limiter.{routeId.1}.tokens",
-				"request_rate_limiter.{routeId.1}.timestamp");
+		assertThat(RedisRateLimiter.getKeys("1", "routeId", null))
+			.containsExactly("request_rate_limiter.{routeId.1}.tokens", "request_rate_limiter.{routeId.1}.timestamp");
 	}
 
 	@Test
