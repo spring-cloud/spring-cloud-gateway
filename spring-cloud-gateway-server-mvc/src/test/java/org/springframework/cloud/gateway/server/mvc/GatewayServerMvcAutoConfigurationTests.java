@@ -190,9 +190,18 @@ public class GatewayServerMvcAutoConfigurationTests {
 	}
 
 	@Test
-	void settingHttpClientFactoryWorks() {
+	void settingHttpClientFactoryOldPropertyWorks() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
 			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
+			.run();
+		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
+		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+	}
+
+	@Test
+	void settingHttpClientFactoryWorks() {
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
+			.properties("spring.main.web-application-type=none", "spring.http.client.settings.factory=simple")
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
