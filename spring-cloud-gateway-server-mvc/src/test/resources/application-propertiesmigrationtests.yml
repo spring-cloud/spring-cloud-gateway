@@ -1,0 +1,32 @@
+spring.cloud.gateway.mvc:
+  form-filter.enabled: false
+  forwarded-request-headers-filter.enabled: false
+  remove-content-length-request-headers-filter.enabled: false
+  remove-hop-by-hop-request-headers-filter.enabled: false
+  remove-hop-by-hop-response-headers-filter.enabled: false
+  remove-http2-status-response-headers-filter.enabled: false
+  transfer-encoding-normalization-request-headers-filter.enabled: false
+  weight-calculator-filter.enabled: false
+  x-forwarded-request-headers-filter.enabled: false
+  routes:
+    - id: listRoute1
+      uri: https://examplel1.com
+      predicates:
+        - name: Method
+          args:
+            # TODO: implement aliases?
+            methods: GET
+        - name: Path
+          args:
+            pattern: /anything/listRoute1
+      filters:
+        - HttpbinUriResolver=
+        - AddRequestHeader=X-Test,listRoute1
+  routes-map:
+    route1:
+      uri: https://example1.com
+      predicates:
+        - Path=/anything/example1
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE

@@ -36,7 +36,7 @@ public class GatewayMvcProperties {
 	/**
 	 * Properties prefix.
 	 */
-	public static final String PREFIX = "spring.cloud.gateway.mvc";
+	public static final String PREFIX = "spring.cloud.gateway.server.webmvc";
 
 	/**
 	 * List of Routes.

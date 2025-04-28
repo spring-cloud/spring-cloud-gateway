@@ -1,46 +1,370 @@
 {
   "properties": [
     {
-      "name": "spring.cloud.gateway.mvc.form-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.form-filter.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the form-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the forwarded-request-headers-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the remove-content-length-request-headers-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the forwarded-request-headers-filter.",
+      "description": "Enables the remove-hop-by-hop-request-headers-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.remove-hop-by-hop-response-headers-filter.enabled",
       "type": "java.lang.Boolean",
-      "description": "Enables the forwarded-request-headers-filter.",
+      "description": "Enables the remove-hop-by-hop-response-headers-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.remove-http2-status-response-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-http2-status-response-headers-filter.",
+      "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the transfer-encoding-normalization-request-headers-filter.",
       "defaultValue": "true"
     },
     {
-      "name": "spring.cloud.gateway.mvc.weight-calculator-filter.enabled",
+      "name": "spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the weight-calculator-filter.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.form-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the form-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.form-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the forwarded-request-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-content-length-request-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-hop-by-hop-request-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-hop-by-hop-response-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.remove-hop-by-hop-response-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.remove-http2-status-response-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the remove-http2-status-response-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.remove-http2-status-response-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.routes",
+      "type": "java.util.List<org.springframework.cloud.gateway.server.mvc.config.RouteProperties>",
+      "description": "List of Routes.",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.routes",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.routes-map",
+      "type": "java.util.LinkedHashMap<java.lang.String,org.springframework.cloud.gateway.server.mvc.config.RouteProperties>",
+      "description": "Map of Routes.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.routes-map",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.streaming-buffer-size",
+      "type": "java.lang.Integer",
+      "description": "Buffer size for streaming media mime-types.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties",
+      "defaultValue": 16384,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.streaming-buffer-size",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.streaming-media-types",
+      "type": "java.util.List<org.springframework.http.MediaType>",
+      "description": "Mime-types that are streaming.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.streaming-media-types",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the transfer-encoding-normalization-request-headers-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.weight-calculator-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the weight-calculator-filter.",
+      "defaultValue": "true",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled",
+      "type": "java.lang.Boolean",
+      "description": "If the XForwardedHeadersFilter is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.for-append",
+      "type": "java.lang.Boolean",
+      "description": "If appending X-Forwarded-For as a list is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-append",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.for-enabled",
+      "type": "java.lang.Boolean",
+      "description": "If X-Forwarded-For is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.host-append",
+      "type": "java.lang.Boolean",
+      "description": "If appending X-Forwarded-Host as a list is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-append",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.host-enabled",
+      "type": "java.lang.Boolean",
+      "description": "If X-Forwarded-Host is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.order",
+      "type": "java.lang.Integer",
+      "description": "The order of the XForwardedHeadersFilter.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": 0,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.order",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.port-append",
+      "type": "java.lang.Boolean",
+      "description": "If appending X-Forwarded-Port as a list is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-append",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.port-enabled",
+      "type": "java.lang.Boolean",
+      "description": "If X-Forwarded-Port is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.prefix-append",
+      "type": "java.lang.Boolean",
+      "description": "If appending X-Forwarded-Prefix as a list is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-append",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.prefix-enabled",
+      "type": "java.lang.Boolean",
+      "description": "If X-Forwarded-Prefix is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.proto-append",
+      "type": "java.lang.Boolean",
+      "description": "If appending X-Forwarded-Proto as a list is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-append",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.proto-enabled",
+      "type": "java.lang.Boolean",
+      "description": "If X-Forwarded-Proto is enabled.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-enabled",
+        "since": "4.3.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.http-client.connect-timeout",
+      "type": "java.time.Duration",
+      "description": "The HttpClient connect timeout.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties$HttpClient",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.http.client.connect-timeout",
+        "since": "4.2.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.http-client.read-timeout",
+      "type": "java.time.Duration",
+      "description": "The HttpClient read timeout.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties$HttpClient",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.http.client.read-timeout",
+        "since": "4.2.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.http-client.ssl-bundle",
+      "type": "java.lang.String",
+      "description": "The name of the SSL bundle to use.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties$HttpClient",
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.http.client.ssl.bundle",
+        "since": "4.2.0"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.http-client.type",
+      "type": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties$HttpClientType",
+      "description": "The HttpClient type. Defaults to JDK.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties$HttpClient",
+      "defaultValue": "jdk",
+      "deprecated": true,
+      "deprecation": {}
     }
   ]
 }
