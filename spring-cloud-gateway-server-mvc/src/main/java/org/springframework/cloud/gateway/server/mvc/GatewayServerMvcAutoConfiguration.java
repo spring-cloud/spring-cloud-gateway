@@ -24,12 +24,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.http.client.AbstractHttpRequestFactoryProperties.Factory;
 import org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration;
-import org.springframework.boot.autoconfigure.http.client.HttpClientProperties.Factory;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings.Redirects;
+import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
@@ -219,14 +219,15 @@ public class GatewayServerMvcAutoConfiguration {
 
 		@Override
 		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-			Redirects redirects = environment.getProperty("spring.http.client.redirects", Redirects.class);
+			HttpRedirects redirects = environment.getProperty("spring.http.client.settings.redirects",
+					HttpRedirects.class);
 			if (redirects == null) {
 				// the user hasn't set anything, change the default
 				environment.getPropertySources()
 					.addFirst(new MapPropertySource("gatewayHttpClientProperties",
-							Map.of("spring.http.client.redirects", Redirects.DONT_FOLLOW)));
+							Map.of("spring.http.client.settings.redirects", HttpRedirects.DONT_FOLLOW)));
 			}
-			Factory factory = environment.getProperty("spring.http.client.factory", Factory.class);
+			Factory factory = environment.getProperty("spring.http.client.settings.factory", Factory.class);
 			boolean setJdkHttpClientProperties = false;
 
 			if (factory == null && !HIGHER_PRIORITY) {
