@@ -65,8 +65,8 @@ public class GatewayMvcPropertiesMigrationTests {
 
 	@Test
 	public void deprecatedRoutePropertiesWork() {
-		assertThat(properties.getRoutes()).hasSize(1);
-		assertThat(properties.getRoutesMap()).hasSize(1);
+		assertThat(properties.getRoutes()).hasSize(2);
+		assertThat(properties.getRoutesMap()).hasSize(2);
 	}
 
 	private void assertBeanDoesNotExist(Class<?> type) {

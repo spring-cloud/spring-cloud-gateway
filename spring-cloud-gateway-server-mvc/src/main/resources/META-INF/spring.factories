@@ -21,4 +21,4 @@ org.springframework.boot.env.EnvironmentPostProcessor=\
 
 # Application Listeners
 org.springframework.context.ApplicationListener=\
-  org.springframework.cloud.gateway.server.mvc.config.PropertiesMigrationListener
+  org.springframework.cloud.gateway.server.mvc.config.GatewayServerWebMvcPropertiesMigrationListener

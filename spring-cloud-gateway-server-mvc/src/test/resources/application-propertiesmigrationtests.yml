@@ -14,7 +14,6 @@ spring.cloud.gateway.mvc:
       predicates:
         - name: Method
           args:
-            # TODO: implement aliases?
             methods: GET
         - name: Path
           args:
@@ -22,11 +21,27 @@ spring.cloud.gateway.mvc:
       filters:
         - HttpbinUriResolver=
         - AddRequestHeader=X-Test,listRoute1
-  routes-map:
+    - id: listRoute2
+      uri: https://examplel2.com
+      predicates:
+        - name: Method
+          args:
+            methods: GET
+        - name: Path
+          args:
+            pattern: /anything/listRoute2
+      filters:
+        - HttpbinUriResolver=
+        - AddRequestHeader=X-Test,listRoute2
+  routesMap:
     route1:
       uri: https://example1.com
       predicates:
         - Path=/anything/example1
+    route2:
+      uri: https://example2.com
+      predicates:
+        - Path=/anything/example2
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE
