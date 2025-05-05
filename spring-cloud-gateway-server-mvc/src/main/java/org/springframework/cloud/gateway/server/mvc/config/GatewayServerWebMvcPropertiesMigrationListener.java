@@ -45,14 +45,23 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 
 class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListener<SpringApplicationEvent> {
+
 	private static final Log logger = LogFactory.getLog(GatewayServerWebMvcPropertiesMigrationListener.class);
+
 	private static final String PROPERTIES_MIGRATOR_CLASS = "org.springframework.boot.context.properties.migrator.PropertiesMigrationListener";
+
 	private static final String DEPRECATED_ROOT = "spring.cloud.gateway.mvc";
+
 	private static final String DEPRECATED_ROUTES_LIST_KEY = DEPRECATED_ROOT + ".routes";
+
 	private static final String DEPRECATED_ROUTES_MAP_KEY = DEPRECATED_ROOT + ".routes-map";
+
 	private static final String DEPRECATED_ROUTESMAP_KEY = DEPRECATED_ROOT + ".routesMap";
+
 	private static final String GATEWAY_PROPERTY_SOURCE_PREFIX = "migrategatewaymvc";
+
 	private static final String NEW_ROUTES_LIST_KEY = GatewayMvcProperties.PREFIX + ".routes";
+
 	private static final String NEW_ROUTES_MAP_KEY = GatewayMvcProperties.PREFIX + ".routes-map";
 
 	private final List<Migration> routesMigrations = new ArrayList<>();
@@ -76,14 +85,17 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 		ConfigurableEnvironment env = event.getApplicationContext().getEnvironment();
 
 		ConfigurationPropertySources.get(env).forEach(propertySource -> {
-			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-", DEPRECATED_ROUTES_LIST_KEY, NEW_ROUTES_LIST_KEY));
-			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-map-", DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
-			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routesMap-", DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
+			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-",
+					DEPRECATED_ROUTES_LIST_KEY, NEW_ROUTES_LIST_KEY));
+			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-map-",
+					DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
+			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routesMap-",
+					DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
 		});
 	}
-	
+
 	private List<Migration> migrate(ConfigurableEnvironment env, ConfigurationPropertySource propertySource,
-													String propertySourcePrefix, String deprecatedKey, String newKeyPrefix) {
+			String propertySourcePrefix, String deprecatedKey, String newKeyPrefix) {
 		List<Migration> migrations = new ArrayList<>();
 
 		if (propertySource instanceof IterableConfigurationPropertySource iterableSource) {
@@ -99,22 +111,29 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 				String originalPropertySourceName;
 				if (propertySource.getUnderlyingSource() instanceof PropertySource<?> underlyingSource) {
 					originalPropertySourceName = underlyingSource.getName();
-				} else {
+				}
+				else {
 					originalPropertySourceName = propertySource.getUnderlyingSource().toString();
 				}
 				String newPropertySourceName = propertySourcePrefix + originalPropertySourceName;
 				Map<String, OriginTrackedValue> content = new LinkedHashMap<>();
 				// migrate to new keys
 				for (ConfigurationPropertyName originalPropertyName : matchingConfigProps) {
-					ConfigurationPropertyName suffix = originalPropertyName.subName(routesParentName.getNumberOfElements());
+					ConfigurationPropertyName suffix = originalPropertyName
+						.subName(routesParentName.getNumberOfElements());
 					ConfigurationPropertyName newProperty = ConfigurationPropertyName.of(newKeyPrefix).append(suffix);
-					ConfigurationProperty configurationProperty = propertySource.getConfigurationProperty(originalPropertyName);
+					ConfigurationProperty configurationProperty = propertySource
+						.getConfigurationProperty(originalPropertyName);
 					Object value = configurationProperty.getValue();
-					OriginTrackedValue originTrackedValue = OriginTrackedValue.of(value, configurationProperty.getOrigin());
+					OriginTrackedValue originTrackedValue = OriginTrackedValue.of(value,
+							configurationProperty.getOrigin());
 					content.put(newProperty.toString(), originTrackedValue);
-					migrations.add(new Migration(originalPropertySourceName, originalPropertyName, configurationProperty, newProperty));
+					migrations.add(new Migration(originalPropertySourceName, originalPropertyName,
+							configurationProperty, newProperty));
 				}
-				env.getPropertySources().addBefore(originalPropertySourceName, new OriginTrackedMapPropertySource(newPropertySourceName, content));
+				env.getPropertySources()
+					.addBefore(originalPropertySourceName,
+							new OriginTrackedMapPropertySource(newPropertySourceName, content));
 			}
 		}
 		return migrations;
@@ -128,11 +147,11 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 
 			StringBuilder report = new StringBuilder();
 			report.append(String
-					.format("%nThe use of configuration keys that have been renamed was found in the environment:%n%n"));
+				.format("%nThe use of configuration keys that have been renamed was found in the environment:%n%n"));
 
 			content.forEach((name, properties) -> {
 				report.append(String.format("Property source '%s':%n", name));
-				//properties.sort(PropertyMigration.COMPARATOR);
+				// properties.sort(PropertyMigration.COMPARATOR);
 				properties.forEach((property) -> {
 					ConfigurationPropertyName originalPropertyName = property.originalPropertyName();
 					report.append(String.format("\tKey: %s%n", originalPropertyName));
@@ -155,7 +174,7 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 	}
 
 	private record Migration(String originalPropertySourceName, ConfigurationPropertyName originalPropertyName,
-							 ConfigurationProperty originalProperty, ConfigurationPropertyName newProperty) {
+			ConfigurationProperty originalProperty, ConfigurationPropertyName newProperty) {
 
 		private Integer determineLineNumber() {
 			Origin origin = originalProperty.getOrigin();
@@ -170,4 +189,5 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 			return null;
 		}
 	}
+
 }
