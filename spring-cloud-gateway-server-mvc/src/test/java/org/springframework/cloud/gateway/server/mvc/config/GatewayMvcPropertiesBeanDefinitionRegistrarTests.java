@@ -199,14 +199,13 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	void refreshWorks(ConfigurableApplicationContext context) {
 		Map<String, RouterFunction> routerFunctions = getRouterFunctions(context);
 		assertThat(routerFunctions).hasSize(6);
-		TestPropertyValues
-			.of("spring.cloud.gateway.server.webmvc.routesMap.route3.uri=https://example3.com",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.predicates[0].name=Path",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[0].Name=HttpbinUriResolver",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].Name=AddRequestHeader",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].args.name=X-Test",
-					"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].args.values=mapRoute3")
+		TestPropertyValues.of("spring.cloud.gateway.server.webmvc.routesMap.route3.uri=https://example3.com",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.predicates[0].name=Path",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.predicates[0].args.pattern=/anything/mapRoute3",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[0].Name=HttpbinUriResolver",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].Name=AddRequestHeader",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].args.name=X-Test",
+				"spring.cloud.gateway.server.webmvc.routesMap.route3.filters[1].args.values=mapRoute3")
 			.applyTo(context);
 		ContextRefresher contextRefresher = context.getBean(ContextRefresher.class);
 		contextRefresher.refresh();
