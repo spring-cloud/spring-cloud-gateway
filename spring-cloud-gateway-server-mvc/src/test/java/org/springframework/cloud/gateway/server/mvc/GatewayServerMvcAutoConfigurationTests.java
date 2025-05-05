@@ -116,15 +116,15 @@ public class GatewayServerMvcAutoConfigurationTests {
 					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-			.withPropertyValues("spring.cloud.gateway.mvc.form-filter.enabled=false",
-					"spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-http2-status-response-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.weight-calculator-filter.enabled=false",
-					"spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled=false")
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.form-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-hop-by-hop-response-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-http2-status-response-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false")
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(FormFilter.class);
 				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class);
