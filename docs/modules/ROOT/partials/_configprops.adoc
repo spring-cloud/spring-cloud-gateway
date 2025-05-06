@@ -129,8 +129,9 @@
 |spring.cloud.gateway.mvc.http-client.ssl-bundle |  | The name of the SSL bundle to use.
 |spring.cloud.gateway.mvc.http-client.type | `+++jdk+++` | The HttpClient type. Defaults to JDK.
 |spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled | `+++true+++` | Enables the remove-content-length-request-headers-filter.
-|spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
-|spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
+|spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the remove-hop-by-hop-request-headers-filter.
+|spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the remove-hop-by-hop-response-headers-filter.
+|spring.cloud.gateway.mvc.remove-http2-status-response-headers-filter.enabled | `+++true+++` | Enables the remove-http2-status-response-headers-filter.
 |spring.cloud.gateway.mvc.routes |  | List of Routes.
 |spring.cloud.gateway.mvc.routes-map |  | Map of Routes.
 |spring.cloud.gateway.mvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
@@ -176,6 +177,34 @@
 |spring.cloud.gateway.route-filter-cache-enabled | `+++false+++` | Enables the route filter cache, defaults to false.
 |spring.cloud.gateway.route-refresh-listener.enabled | `+++true+++` | If RouteRefreshListener should be turned on.
 |spring.cloud.gateway.routes |  | List of Routes.
+|spring.cloud.gateway.server.webmvc.form-filter.enabled | `+++true+++` | Enables the form-filter.
+|spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
+|spring.cloud.gateway.server.webmvc.http-client.connect-timeout |  | The HttpClient connect timeout.
+|spring.cloud.gateway.server.webmvc.http-client.read-timeout |  | The HttpClient read timeout.
+|spring.cloud.gateway.server.webmvc.http-client.ssl-bundle |  | The name of the SSL bundle to use.
+|spring.cloud.gateway.server.webmvc.http-client.type | `+++jdk+++` | The HttpClient type. Defaults to JDK.
+|spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled | `+++true+++` | Enables the remove-content-length-request-headers-filter.
+|spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the remove-hop-by-hop-request-headers-filter.
+|spring.cloud.gateway.server.webmvc.remove-hop-by-hop-response-headers-filter.enabled | `+++true+++` | Enables the remove-hop-by-hop-response-headers-filter.
+|spring.cloud.gateway.server.webmvc.remove-http2-status-response-headers-filter.enabled | `+++true+++` | Enables the remove-http2-status-response-headers-filter.
+|spring.cloud.gateway.server.webmvc.routes |  | List of Routes.
+|spring.cloud.gateway.server.webmvc.routes-map |  | Map of Routes.
+|spring.cloud.gateway.server.webmvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
+|spring.cloud.gateway.server.webmvc.streaming-media-types |  | Mime-types that are streaming.
+|spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
+|spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-enabled | `+++true+++` | If X-Forwarded-For is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-append | `+++true+++` | If appending X-Forwarded-Host as a list is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-enabled | `+++true+++` | If X-Forwarded-Host is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.order | `+++0+++` | The order of the XForwardedHeadersFilter.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-append | `+++true+++` | If appending X-Forwarded-Port as a list is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-enabled | `+++true+++` | If X-Forwarded-Port is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-append | `+++true+++` | If appending X-Forwarded-Prefix as a list is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-enabled | `+++true+++` | If X-Forwarded-Prefix is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-append | `+++true+++` | If appending X-Forwarded-Proto as a list is enabled.
+|spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-enabled | `+++true+++` | If X-Forwarded-Proto is enabled.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 
 |spring.cloud.gateway.x-forwarded.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
