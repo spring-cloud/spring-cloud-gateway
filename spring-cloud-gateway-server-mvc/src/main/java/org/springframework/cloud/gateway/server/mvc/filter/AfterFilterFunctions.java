@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
@@ -34,7 +39,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+/**
+ * @author raccoonback
+ */
 public abstract class AfterFilterFunctions {
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private AfterFilterFunctions() {
 	}
@@ -158,6 +171,38 @@ public abstract class AfterFilterFunctions {
 			}
 			return response;
 		};
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> removeJsonAttributesResponseBody(
+			List<String> fieldList, boolean deleteRecursively) {
+		List<String> immutableFieldList = List.copyOf(fieldList);
+
+		return modifyResponseBody(String.class, String.class, APPLICATION_JSON_VALUE, (request, response, body) -> {
+			String responseBody = body;
+			if (APPLICATION_JSON.isCompatibleWith(response.headers().getContentType())) {
+				try {
+					JsonNode jsonBodyContent = OBJECT_MAPPER.readValue(responseBody, JsonNode.class);
+
+					removeJsonAttributes(jsonBodyContent, immutableFieldList, deleteRecursively);
+
+					responseBody = OBJECT_MAPPER.writeValueAsString(jsonBodyContent);
+				}
+				catch (JsonProcessingException exception) {
+					throw new IllegalStateException("Failed to process JSON of response body.", exception);
+				}
+			}
+
+			return responseBody;
+		});
+	}
+
+	private static void removeJsonAttributes(JsonNode jsonNode, List<String> fieldNames, boolean deleteRecursively) {
+		if (jsonNode instanceof ObjectNode objectNode) {
+			objectNode.remove(fieldNames);
+		}
+		if (deleteRecursively) {
+			jsonNode.forEach(childNode -> removeJsonAttributes(childNode, fieldNames, true));
+		}
 	}
 
 	public enum DedupeStrategy {
