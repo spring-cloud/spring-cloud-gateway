@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,11 @@ import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
+/**
+ * @author raccoonback
+ */
 public class ProxyExchangeHandlerFunction
 		implements HandlerFunction<ServerResponse>, ApplicationListener<ContextRefreshedEvent> {
 
@@ -84,14 +88,14 @@ public class ProxyExchangeHandlerFunction
 	@Override
 	public ServerResponse handle(ServerRequest serverRequest) {
 		URI uri = uriResolver.apply(serverRequest);
-		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
+		MultiValueMap<String, String> params = ensureEncodedQueryParameters(serverRequest);
 		// @formatter:off
 		URI url = UriComponentsBuilder.fromUri(serverRequest.uri())
 				.scheme(uri.getScheme())
 				.host(uri.getHost())
 				.port(uri.getPort())
-				.replaceQueryParams(serverRequest.params())
-				.build(encoded)
+				.replaceQueryParams(params)
+				.build(true)
 				.toUri();
 		// @formatter:on
 
@@ -129,6 +133,15 @@ public class ProxyExchangeHandlerFunction
 			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;
+	}
+
+	private static MultiValueMap<String, String> ensureEncodedQueryParameters(ServerRequest serverRequest) {
+		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
+		MultiValueMap<String, String> params = serverRequest.params();
+		if (!encoded) {
+			params = UriUtils.encodeQueryParams(serverRequest.params());
+		}
+		return params;
 	}
 
 	private static boolean containsEncodedQuery(URI uri, MultiValueMap<String, String> params) {
