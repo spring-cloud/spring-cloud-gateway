@@ -106,17 +106,17 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		String id = UUID.randomUUID().toString();
 
 		int shard = 3;
-		int replenishRate = 10*shard;
+		int replenishRate = 10 * shard;
 		int burstCapacity = 2 * replenishRate;
 		int requestedTokens = 1;
 
 		String routeId = "myroute";
 		rateLimiter.getConfig()
-				.put(routeId,
-						new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-								.setReplenishRate(replenishRate)
-								.setRequestedTokens(requestedTokens)
-								.setShards(shard));
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens)
+						.setShards(shard));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
@@ -186,8 +186,8 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void keysUseRedisKeyHashTags() {
-		assertThat(RedisRateLimiter.getKeys("1", "routeId", null)).containsExactly("request_rate_limiter.{routeId.1}.tokens",
-				"request_rate_limiter.{routeId.1}.timestamp");
+		assertThat(RedisRateLimiter.getKeys("1", "routeId", null))
+			.containsExactly("request_rate_limiter.{routeId.1}.tokens", "request_rate_limiter.{routeId.1}.timestamp");
 	}
 
 	@Test
@@ -203,7 +203,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		for (int i = 0; i < 100; i++) {
 			String shard = rateLimiter.getShard(shards);
 			assertThat(shard).isNotNull();
-			assertThat(shard).isEqualTo(String.valueOf(i%shards));
+			assertThat(shard).isEqualTo(String.valueOf(i % shards));
 		}
 	}
 
