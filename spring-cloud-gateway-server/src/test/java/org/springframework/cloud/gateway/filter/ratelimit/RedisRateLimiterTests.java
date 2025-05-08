@@ -193,7 +193,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	@Test
 	public void keysUseRedisKeyHashTagsWithShard() {
 		assertThat(RedisRateLimiter.getKeys("1", "routeId", "13")).containsExactly(
-				"request_rate_limiter.{1.routeId.13}.tokens", "request_rate_limiter.{1.routeId.13}.timestamp");
+				"request_rate_limiter.{routeId.1.13}.tokens", "request_rate_limiter.{routeId.1.13}.timestamp");
 	}
 
 	@Test
