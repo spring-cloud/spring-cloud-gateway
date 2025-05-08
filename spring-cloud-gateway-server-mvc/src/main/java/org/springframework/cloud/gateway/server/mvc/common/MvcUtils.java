@@ -64,6 +64,11 @@ public abstract class MvcUtils {
 	public static final String CLIENT_RESPONSE_INPUT_STREAM_ATTR = qualify("cachedClientResponseBody");
 
 	/**
+	 * Client response key.
+	 */
+	public static final String CLIENT_RESPONSE_ATTR = qualify("cachedClientResponse");
+
+	/**
 	 * CircuitBreaker execution exception attribute name.
 	 */
 	public static final String CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR = qualify("circuitBreakerExecutionException");

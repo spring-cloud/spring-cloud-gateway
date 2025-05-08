@@ -24,6 +24,7 @@
 		<module>grpc</module>
 		<module>http2</module>
 		<module>mvc-failure-analyzer</module>
+		<module>httpclient</module>
 	</modules>
 
 	<build>

@@ -33,6 +33,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
@@ -75,6 +76,7 @@ public abstract class RetryFilterFunctions {
 			if (config.isCacheBody()) {
 				MvcUtils.getOrCacheBody(request);
 			}
+			reset(request);
 			ServerResponse serverResponse = next.handle(request);
 
 			if (isRetryableStatusCode(serverResponse.statusCode(), config)
@@ -84,6 +86,14 @@ public abstract class RetryFilterFunctions {
 			}
 			return serverResponse;
 		});
+	}
+
+	private static void reset(ServerRequest request) throws IOException {
+		ClientHttpResponse clientHttpResponse = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR);
+		if (clientHttpResponse != null) {
+			clientHttpResponse.close();
+			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR, null);
+		}
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
