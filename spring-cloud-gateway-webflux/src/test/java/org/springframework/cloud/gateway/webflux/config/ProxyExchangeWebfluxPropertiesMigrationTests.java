@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ProxyExchangeWebfluxPropertiesMigrationTests {
 
 	@Autowired
-	ProxyProperties properties;
+	ProxyExchangeWebfluxProperties properties;
 
 	@Test
 	public void deprecatedRoutePropertiesWork() {
