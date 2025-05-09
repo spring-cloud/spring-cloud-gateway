@@ -7,7 +7,7 @@ test:
 
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       filter:
       default-filters:
       #- PrefixPath=/httpbin

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 public class GatewayClassPathWarningAutoConfiguration {
 
 	private static final Log log = LogFactory.getLog(GatewayClassPathWarningAutoConfiguration.class);

@@ -109,9 +109,9 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 		ConfigurableEnvironment environment = (ConfigurableEnvironment) this.context.getEnvironment();
 		HashMap<String, Object> map = new HashMap<>();
 		environment.getPropertySources().addFirst(new MapPropertySource("mock", map));
-		map.put("spring.cloud.gateway.httpclient.connect-timeout", "1000");
+		map.put("spring.cloud.gateway.server.webflux.httpclient.connect-timeout", "1000");
 		this.context.publishEvent(new EnvironmentChangeEvent(this.context,
-				Collections.singleton("spring.cloud.gateway.httpclient.connect-timeout")));
+				Collections.singleton("spring.cloud.gateway.server.webflux.httpclient.connect-timeout")));
 		Route route = routeLocator.getRoutes()
 			.filter(r -> r.getId().equals("refreshable_configuration_test"))
 			.blockLast();
@@ -120,9 +120,9 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 		HttpClientConfig configuration = httpClient.configuration();
 		assertThat(configuration.options().get(ChannelOption.CONNECT_TIMEOUT_MILLIS)).isEqualTo(1000);
 
-		map.put("spring.cloud.gateway.httpclient.connect-timeout", "5000");
+		map.put("spring.cloud.gateway.server.webflux.httpclient.connect-timeout", "5000");
 		this.context.publishEvent(new EnvironmentChangeEvent(this.context,
-				Collections.singleton("spring.cloud.gateway.httpclient.connect-timeout")));
+				Collections.singleton("spring.cloud.gateway.server.webflux.httpclient.connect-timeout")));
 		httpClient = nettyRoutingFilter.getHttpClient(route, null);
 		configuration = httpClient.configuration();
 		assertThat(configuration.options().get(ChannelOption.CONNECT_TIMEOUT_MILLIS)).isEqualTo(5000);

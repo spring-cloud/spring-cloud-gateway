@@ -34,7 +34,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = "spring.cloud.gateway.restrictive-property-accessor.enabled=false")
+@SpringBootTest(properties = "spring.cloud.gateway.server.webflux.restrictive-property-accessor.enabled=false")
 public class ShortcutConfigurableNonRestrictiveTests {
 
 	@Autowired

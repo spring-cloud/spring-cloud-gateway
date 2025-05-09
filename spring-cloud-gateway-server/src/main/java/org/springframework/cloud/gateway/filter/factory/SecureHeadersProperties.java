@@ -27,7 +27,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author Spencer Gibb, Thirunavukkarasu Ravichandran, Jörg Richter
  */
-@ConfigurationProperties("spring.cloud.gateway.filter.secure-headers")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.secure-headers")
 public class SecureHeadersProperties {
 
 	/**

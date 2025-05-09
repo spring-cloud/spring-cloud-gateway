@@ -1,6 +1,6 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
       - uri: forward:/docs.html
         id: static_docs_route

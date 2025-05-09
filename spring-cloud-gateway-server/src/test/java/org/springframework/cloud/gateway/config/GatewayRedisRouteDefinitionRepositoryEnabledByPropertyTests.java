@@ -33,7 +33,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = GatewayRedisAutoConfigurationTests.Config.class,
-		properties = "spring.cloud.gateway.redis-route-definition-repository.enabled=true")
+		properties = GatewayProperties.PREFIX + ".redis-route-definition-repository.enabled=true")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Testcontainers
 @Tag("DockerRequired")

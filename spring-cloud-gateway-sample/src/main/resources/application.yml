@@ -9,7 +9,7 @@ spring:
   jmx:
     enabled: false
   cloud:
-    gateway:
+    gateway.server.webflux:
       default-filters:
       - PrefixPath=/httpbin
       - AddResponseHeader=X-Response-Default-Foo, Default-Bar

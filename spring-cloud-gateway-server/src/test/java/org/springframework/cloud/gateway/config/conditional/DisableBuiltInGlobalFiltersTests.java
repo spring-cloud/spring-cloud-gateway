@@ -56,8 +56,8 @@ public class DisableBuiltInGlobalFiltersTests {
 
 	@Nested
 	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false" })
+			properties = { "spring.cloud.gateway.server.webflux.global-filter.remove-cached-body.enabled=false",
+					"spring.cloud.gateway.server.webflux.global-filter.route-to-request-url.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public class DisableSpecificsFiltersByProperty {
 
@@ -74,21 +74,21 @@ public class DisableBuiltInGlobalFiltersTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = Config.class,
-			properties = { "spring.cloud.gateway.global-filter.adapt-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.remove-cached-body.enabled=false",
-					"spring.cloud.gateway.global-filter.route-to-request-url.enabled=false",
-					"spring.cloud.gateway.global-filter.forward-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.forward-path.enabled=false",
-					"spring.cloud.gateway.global-filter.websocket-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.netty-write-response.enabled=false",
-					"spring.cloud.gateway.global-filter.netty-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.reactive-load-balancer-client.enabled=false",
-					"spring.cloud.gateway.global-filter.load-balancer-client.enabled=false",
-					"spring.cloud.gateway.global-filter.load-balancer-service-instance-cookie.enabled=false",
-					"spring.cloud.gateway.global-filter.function-routing.enabled=false",
-					"spring.cloud.gateway.global-filter.stream-routing.enabled=false",
-					"spring.cloud.gateway.metrics.enabled=false" })
+	@SpringBootTest(classes = Config.class, properties = {
+			"spring.cloud.gateway.server.webflux.global-filter.adapt-cached-body.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.remove-cached-body.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.route-to-request-url.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.forward-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.forward-path.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.websocket-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.netty-write-response.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.netty-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.reactive-load-balancer-client.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.load-balancer-client.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.load-balancer-service-instance-cookie.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.function-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.stream-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public class DisableAllGlobalFiltersByProperty {
 

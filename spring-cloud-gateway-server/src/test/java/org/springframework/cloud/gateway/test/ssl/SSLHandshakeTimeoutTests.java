@@ -29,7 +29,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 // this test works because it assumes TLS hand shake cannot be done in 1ms. It takes
 // closer to 80ms
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms" })
+		properties = { "spring.cloud.gateway.server.webflux.httpclient.ssl.handshake-timeout=1ms" })
 @DirtiesContext
 @ActiveProfiles("ssl")
 public class SSLHandshakeTimeoutTests extends SingleCertSSLTests {

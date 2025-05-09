@@ -38,7 +38,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureAfter(ContextFunctionCatalogAutoConfiguration.class)
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class, GatewayAutoConfiguration.class })
 @ConditionalOnClass({ FunctionCatalog.class, DispatcherHandler.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.function.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".function.enabled", matchIfMissing = true)
 class GatewayFunctionAutoConfiguration {
 
 	@Bean

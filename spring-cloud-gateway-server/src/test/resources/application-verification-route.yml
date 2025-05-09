@@ -1,7 +1,7 @@
 server.port: 0
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
         - uri: https://example.com
           predicates:

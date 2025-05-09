@@ -1,6 +1,6 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       default-filters:
         - PrefixPath=/httpbin
       routes:

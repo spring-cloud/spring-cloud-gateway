@@ -108,17 +108,19 @@ public class LocalResponseCacheAutoConfiguration {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(value = "spring.cloud.gateway.enabled", havingValue = "true", matchIfMissing = true)
+		@ConditionalOnProperty(value = GatewayProperties.PREFIX + ".enabled", havingValue = "true",
+				matchIfMissing = true)
 		static class OnGatewayPropertyEnabled {
 
 		}
 
-		@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true")
+		@ConditionalOnProperty(value = GatewayProperties.PREFIX + ".filter.local-response-cache.enabled",
+				havingValue = "true")
 		static class OnLocalResponseCachePropertyEnabled {
 
 		}
 
-		@ConditionalOnProperty(name = "spring.cloud.gateway.global-filter.local-response-cache.enabled",
+		@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".global-filter.local-response-cache.enabled",
 				havingValue = "true", matchIfMissing = true)
 		static class OnGlobalLocalResponseCachePropertyEnabled {
 
