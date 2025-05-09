@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.http.HttpHeaders;
 
@@ -33,15 +32,18 @@ import org.springframework.http.HttpHeaders;
  * @author Dave Syer
  * @author Tim Ysewyn
  * @author Joris Kuipers
- * @author Spencer Gibb
- * @deprecated {@link ProxyExchangeWebMvcProperties}
+ *
  */
-@Deprecated
-@ConfigurationProperties("spring.cloud.gateway.proxy")
-public class ProxyProperties {
+@ConfigurationProperties(ProxyExchangeWebMvcProperties.PREFIX)
+public class ProxyExchangeWebMvcProperties {
 
 	/**
-	 * Contains headers that are considered case-sensitive by default.
+	 * Properties prefix.
+	 */
+	public static final String PREFIX = "spring.cloud.gateway.proxy-exchange.webmvc";
+
+	/**
+	 * Contains headers that are considered sensitive by default.
 	 */
 	public static Set<String> DEFAULT_SENSITIVE = Set.of("cookie", "authorization");
 
@@ -71,7 +73,6 @@ public class ProxyProperties {
 	 */
 	private Set<String> skipped = DEFAULT_SKIPPED;
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebMvcProperties.PREFIX + ".headers", since = "4.3.0")
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
@@ -80,8 +81,6 @@ public class ProxyProperties {
 		this.headers = headers;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebMvcProperties.PREFIX + ".auto-forward",
-			since = "4.3.0")
 	public Set<String> getAutoForward() {
 		return autoForward;
 	}
@@ -90,7 +89,6 @@ public class ProxyProperties {
 		this.autoForward = autoForward;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebMvcProperties.PREFIX + ".sensitive", since = "4.3.0")
 	public Set<String> getSensitive() {
 		return sensitive;
 	}
@@ -99,7 +97,6 @@ public class ProxyProperties {
 		this.sensitive = sensitive;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebMvcProperties.PREFIX + ".skipped", since = "4.3.0")
 	public Set<String> getSkipped() {
 		return skipped;
 	}
