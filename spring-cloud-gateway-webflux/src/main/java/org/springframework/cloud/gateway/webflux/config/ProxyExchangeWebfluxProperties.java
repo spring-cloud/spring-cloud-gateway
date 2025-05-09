@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.http.HttpHeaders;
 
@@ -33,12 +32,16 @@ import org.springframework.http.HttpHeaders;
  * @author Dave Syer
  * @author Tim Ysewyn
  * @author Joris Kuipers
- * @deprecated {@link ProxyExchangeWebfluxProperties}
+ * @author Spencer Gibb
  *
  */
-@Deprecated
-@ConfigurationProperties("spring.cloud.gateway.proxy")
-public class ProxyProperties {
+@ConfigurationProperties(ProxyExchangeWebfluxProperties.PREFIX)
+public class ProxyExchangeWebfluxProperties {
+
+	/**
+	 * Properties prefix.
+	 */
+	public static final String PREFIX = "spring.cloud.gateway.proxy-exchange.webflux";
 
 	/**
 	 * Contains headers that are considered case-sensitive by default.
@@ -71,7 +74,6 @@ public class ProxyProperties {
 	 */
 	private Set<String> skipped = DEFAULT_SKIPPED;
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".headers", since = "4.3.0")
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
@@ -80,8 +82,6 @@ public class ProxyProperties {
 		this.headers = headers;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".auto-forward",
-			since = "4.3.0")
 	public Set<String> getAutoForward() {
 		return autoForward;
 	}
@@ -90,8 +90,6 @@ public class ProxyProperties {
 		this.autoForward = autoForward;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".sensitive",
-			since = "4.3.0")
 	public Set<String> getSensitive() {
 		return sensitive;
 	}
@@ -100,7 +98,6 @@ public class ProxyProperties {
 		this.sensitive = sensitive;
 	}
 
-	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".skipped", since = "4.3.0")
 	public Set<String> getSkipped() {
 		return skipped;
 	}
