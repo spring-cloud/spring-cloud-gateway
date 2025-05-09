@@ -9,5 +9,5 @@ server:
 
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       enabled: false

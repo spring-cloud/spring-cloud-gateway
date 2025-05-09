@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
@@ -50,7 +51,7 @@ import org.springframework.validation.annotation.Validated;
  * @author Denis Cutic
  * @author Andrey Muchnik
  */
-@ConfigurationProperties("spring.cloud.gateway.redis-rate-limiter")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
 
 	/**

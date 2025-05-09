@@ -24,7 +24,7 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.core.style.ToStringCreator;
 
-@ConfigurationProperties("spring.cloud.gateway.discovery.locator")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.discovery.locator")
 public class DiscoveryLocatorProperties {
 
 	/** Flag that enables DiscoveryClient gateway integration. */

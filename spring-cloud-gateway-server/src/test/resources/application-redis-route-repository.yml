@@ -1,5 +1,5 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       redis-route-definition-repository:
         enabled: true

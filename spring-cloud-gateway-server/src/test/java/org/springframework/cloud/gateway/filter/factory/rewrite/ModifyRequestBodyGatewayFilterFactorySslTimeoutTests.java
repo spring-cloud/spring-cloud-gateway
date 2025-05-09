@@ -60,7 +60,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author fangfeikun
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.ssl.handshake-timeout=1ms",
+		properties = { "spring.cloud.gateway.server.webflux.httpclient.ssl.handshake-timeout=1ms",
 				"spring.main.allow-bean-definition-overriding=true" })
 @DirtiesContext
 @ActiveProfiles("single-cert-ssl")

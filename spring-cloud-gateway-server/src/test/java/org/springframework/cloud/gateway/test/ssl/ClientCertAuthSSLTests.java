@@ -44,13 +44,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @ActiveProfiles("client-auth-ssl")
 public class ClientCertAuthSSLTests extends SingleCertSSLTests {
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-store}")
+	@Value("${spring.cloud.gateway.server.webflux.httpclient.ssl.key-store}")
 	private String keyStore;
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-store-password}")
+	@Value("${spring.cloud.gateway.server.webflux.httpclient.ssl.key-store-password}")
 	private String keyStorePassword;
 
-	@Value("${spring.cloud.gateway.httpclient.ssl.key-password}")
+	@Value("${spring.cloud.gateway.server.webflux.httpclient.ssl.key-password}")
 	private String keyPassword;
 
 	@BeforeEach

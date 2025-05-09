@@ -1,6 +1,6 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
       - id: map_request_header_test_singleresponse
         uri: ${test.uri}

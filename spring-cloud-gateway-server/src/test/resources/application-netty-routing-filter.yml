@@ -14,7 +14,7 @@ spring:
       - logging
 
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
         # =====================================
         - id: per_route_connect_timeout

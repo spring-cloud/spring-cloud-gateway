@@ -40,7 +40,8 @@ import org.springframework.validation.annotation.Validated;
  * @author Marta Medio
  * @author Ignacio Lozano
  */
-@ConditionalOnProperty(value = "spring.cloud.gateway.filter.local-response-cache.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "spring.cloud.gateway.server.webflux.filter.local-response-cache.enabled",
+		havingValue = "true")
 public class LocalResponseCacheGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration> {
 

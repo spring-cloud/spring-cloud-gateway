@@ -7,7 +7,7 @@ spring:
     import: classpath:application-logging.yml
 
   cloud:
-    gateway:
+    gateway.server.webflux:
       globalcors:
         cors-configurations:
           '[/**]':
