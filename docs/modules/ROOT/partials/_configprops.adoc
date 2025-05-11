@@ -166,7 +166,6 @@
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.proto-append | `+++true+++` | If appending X-Forwarded-Proto as a list is enabled.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.proto-enabled | `+++true+++` | If X-Forwarded-Proto is enabled.
 |spring.cloud.gateway.observability.enabled | `+++true+++` | If Micrometer Observability support should be turned on.
-|spring.cloud.gateway.oldval |  | oldval doc.
 |spring.cloud.gateway.predicate.after.enabled | `+++true+++` | Enables the after predicate.
 |spring.cloud.gateway.predicate.before.enabled | `+++true+++` | Enables the before predicate.
 |spring.cloud.gateway.predicate.between.enabled | `+++true+++` | Enables the between predicate.
