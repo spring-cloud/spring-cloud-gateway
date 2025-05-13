@@ -59,7 +59,7 @@ public class ProxyExchangeHandlerFunction
 			ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFilters) {
 		this(proxyExchange, requestHttpHeadersFilters, responseHttpHeadersFilters,
 				request -> (URI) request.attribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR)
-						.orElseThrow(() -> new IllegalStateException("No routeUri resolved")));
+					.orElseThrow(() -> new IllegalStateException("No routeUri resolved")));
 	}
 
 	public ProxyExchangeHandlerFunction(ProxyExchange proxyExchange,
@@ -99,7 +99,7 @@ public class ProxyExchangeHandlerFunction
 				serverRequest.headers().asHttpHeaders(), serverRequest);
 
 		boolean preserveHost = (boolean) serverRequest.attributes()
-				.getOrDefault(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, false);
+			.getOrDefault(MvcUtils.PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		if (preserveHost) {
 			filteredRequestHeaders.set(HttpHeaders.HOST, serverRequest.headers().firstHeader(HttpHeaders.HOST));
 		}
@@ -123,9 +123,9 @@ public class ProxyExchangeHandlerFunction
 	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original,
 			REQUEST_OR_RESPONSE requestOrResponse) {
 		HttpHeaders filtered = original;
-		for (var filter : filters) {
+		for (Object filter : filters) {
 			@SuppressWarnings("unchecked")
-			var typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
+			HttpHeadersFilter<REQUEST_OR_RESPONSE> typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);
 			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;

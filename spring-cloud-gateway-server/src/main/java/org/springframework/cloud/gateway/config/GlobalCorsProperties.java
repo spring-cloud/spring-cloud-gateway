@@ -27,7 +27,7 @@ import org.springframework.web.cors.CorsConfiguration;
  * Configuration properties for global configuration of cors. See
  * {@link RoutePredicateHandlerMapping}
  */
-@ConfigurationProperties("spring.cloud.gateway.globalcors")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".globalcors")
 public class GlobalCorsProperties {
 
 	private final Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();

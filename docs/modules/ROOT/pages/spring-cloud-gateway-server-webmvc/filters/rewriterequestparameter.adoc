@@ -1,0 +1,47 @@
+= `RewriteRequestParameter` Filter
+
+The `RewriteRequestParameter` filter takes a `name` parameter and a `replacement` parameter.
+It will rewrite the value of the request parameter of the given `name`.
+If multiple request parameters with the same `name` are set, they will be replaced with a single value.
+If no request parameter is found, no changes will be made.
+The following listing configures a `RewriteRequestParameter` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: rewriterequestparameter_route
+          uri: https://example.org
+          predicates:
+          - Path=/products
+          filters:
+          - RewriteRequestParameter=campaign,fall2023
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteRequestParameter() {
+        return route("rewriterequestparameter_route")
+            .GET("products", http())
+            .before(uri("https://example.org"))
+            .before(addRequestParameter("red", "blue"))
+            .build();
+    }
+}
+----
+
+For a request to `/products?campaign=old`, this sets the request parameter to `campaign=fall2023`.

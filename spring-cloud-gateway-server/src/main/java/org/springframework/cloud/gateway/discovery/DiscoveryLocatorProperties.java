@@ -24,7 +24,7 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.core.style.ToStringCreator;
 
-@ConfigurationProperties("spring.cloud.gateway.discovery.locator")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.discovery.locator")
 public class DiscoveryLocatorProperties {
 
 	/** Flag that enables DiscoveryClient gateway integration. */
@@ -116,10 +116,14 @@ public class DiscoveryLocatorProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("enabled", enabled).append("routeIdPrefix", routeIdPrefix)
-				.append("includeExpression", includeExpression).append("urlExpression", urlExpression)
-				.append("lowerCaseServiceId", lowerCaseServiceId).append("predicates", predicates)
-				.append("filters", filters).toString();
+		return new ToStringCreator(this).append("enabled", enabled)
+			.append("routeIdPrefix", routeIdPrefix)
+			.append("includeExpression", includeExpression)
+			.append("urlExpression", urlExpression)
+			.append("lowerCaseServiceId", lowerCaseServiceId)
+			.append("predicates", predicates)
+			.append("filters", filters)
+			.toString();
 	}
 
 }

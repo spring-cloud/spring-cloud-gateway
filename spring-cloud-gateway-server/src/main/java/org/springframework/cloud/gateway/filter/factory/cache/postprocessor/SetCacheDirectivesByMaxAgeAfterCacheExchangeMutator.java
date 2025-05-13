@@ -33,8 +33,10 @@ public class SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator implements Afte
 	@Override
 	public void accept(ServerWebExchange exchange, CachedResponse cachedResponse) {
 		Optional<Integer> maxAge = Optional.ofNullable(exchange.getResponse().getHeaders().getCacheControl())
-				.map(MAX_AGE_PATTERN::matcher).filter(Matcher::find).map(matcher -> matcher.group(1))
-				.map(Integer::parseInt);
+			.map(MAX_AGE_PATTERN::matcher)
+			.filter(Matcher::find)
+			.map(matcher -> matcher.group(1))
+			.map(Integer::parseInt);
 
 		if (maxAge.isPresent()) {
 			if (maxAge.get() > 0) {
@@ -66,7 +68,8 @@ public class SetCacheDirectivesByMaxAgeAfterCacheExchangeMutator implements Afte
 		List<String> cacheControlValues = Arrays.asList(cacheControl.split("\\s*,\\s*"));
 
 		String newCacheControl = cacheControlValues.stream()
-				.filter(s -> !s.matches("must-revalidate|no-cache|no-store")).collect(Collectors.joining(","));
+			.filter(s -> !s.matches("must-revalidate|no-cache|no-store"))
+			.collect(Collectors.joining(","));
 		exchange.getResponse().getHeaders().setCacheControl(newCacheControl);
 	}
 

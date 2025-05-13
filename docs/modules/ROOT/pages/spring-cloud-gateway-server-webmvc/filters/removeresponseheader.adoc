@@ -1,0 +1,51 @@
+[[removeresponseheader-filter]]
+= `RemoveResponseHeader` Filter
+
+The `RemoveResponseHeader` filter takes a `name` parameter.
+It is the name of the header to be removed.
+The following listing configures a `RemoveResponseHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: removeresponseheader_route
+          uri: https://example.org
+          predicates:
+          - Path=/anything/removeresponseheader
+          filters:
+          - RemoveResponseHeader=X-Response-Foo
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveResponseHeader() {
+        return route("removeresponseheader_route")
+            .GET("/anything/removeresponseheader", http())
+            .before(uri("https://example.org"))
+            .after(removeResponseHeader("X-Response-Foo"))
+            .build();
+    }
+}
+----
+
+This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.
+
+To remove any kind of sensitive header, you should configure this filter for any routes for which you may want to do so.
+In addition, you can configure this filter once by using `spring.cloud.gateway.default-filters` and have it applied to all routes.
+
+

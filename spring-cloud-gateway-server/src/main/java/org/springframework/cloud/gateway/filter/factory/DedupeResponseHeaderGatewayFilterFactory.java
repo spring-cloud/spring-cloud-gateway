@@ -93,13 +93,14 @@ public class DedupeResponseHeaderGatewayFilterFactory
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return chain.filter(exchange)
-						.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
+					.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this)
-						.append(config.getName(), config.getStrategy()).toString();
+					.append(config.getName(), config.getStrategy())
+					.toString();
 			}
 		};
 	}

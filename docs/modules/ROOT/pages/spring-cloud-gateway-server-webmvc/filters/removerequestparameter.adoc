@@ -1,0 +1,49 @@
+[[removerequestparameter-filter]]
+= `RemoveRequestParameter` Filter
+:page-section-summary-toc: 1
+
+The `RemoveRequestParameter` filter takes a `name` parameter.
+It is the name of the query parameter to be removed.
+The following example configures a `RemoveRequestParameter` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: removerequestparameter_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - RemoveRequestParameter=red
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestParameter() {
+        return route("removerequestparameter_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(removeRequestParameter("red"))
+            .build();
+    }
+}
+----
+
+This will remove the `red` parameter before it is sent downstream.
+
+

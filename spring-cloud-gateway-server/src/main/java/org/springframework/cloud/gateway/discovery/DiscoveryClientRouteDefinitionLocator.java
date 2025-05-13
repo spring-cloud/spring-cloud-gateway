@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.discovery;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -61,7 +62,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			DiscoveryLocatorProperties properties) {
 		this(discoveryClient.getClass().getSimpleName(), properties);
 		serviceInstances = discoveryClient.getServices()
-				.flatMap(service -> discoveryClient.getInstances(service).collectList());
+			.flatMap(service -> discoveryClient.getInstances(service).collectList());
 	}
 
 	private DiscoveryClientRouteDefinitionLocator(String discoveryClientName, DiscoveryLocatorProperties properties) {
@@ -96,36 +97,39 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 			};
 		}
 
-		return serviceInstances.filter(instances -> !instances.isEmpty()).flatMap(Flux::fromIterable)
-				.filter(includePredicate).collectMap(ServiceInstance::getServiceId)
-				// remove duplicates
-				.flatMapMany(map -> Flux.fromIterable(map.values())).map(instance -> {
-					RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
+		return serviceInstances.filter(instances -> !instances.isEmpty())
+			.flatMap(Flux::fromIterable)
+			.filter(includePredicate)
+			.collectMap(ServiceInstance::getServiceId)
+			// remove duplicates
+			.flatMapMany(map -> Flux.fromIterable(map.values()))
+			.map(instance -> {
+				RouteDefinition routeDefinition = buildRouteDefinition(urlExpr, instance);
 
-					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
+				final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
 
-					for (PredicateDefinition original : this.properties.getPredicates()) {
-						PredicateDefinition predicate = new PredicateDefinition();
-						predicate.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
-							predicate.addArg(entry.getKey(), value);
-						}
-						routeDefinition.getPredicates().add(predicate);
+				for (PredicateDefinition original : this.properties.getPredicates()) {
+					PredicateDefinition predicate = new PredicateDefinition();
+					predicate.setName(original.getName());
+					for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+						String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
+						predicate.addArg(entry.getKey(), value);
 					}
+					routeDefinition.getPredicates().add(predicate);
+				}
 
-					for (FilterDefinition original : this.properties.getFilters()) {
-						FilterDefinition filter = new FilterDefinition();
-						filter.setName(original.getName());
-						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
-							String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
-							filter.addArg(entry.getKey(), value);
-						}
-						routeDefinition.getFilters().add(filter);
+				for (FilterDefinition original : this.properties.getFilters()) {
+					FilterDefinition filter = new FilterDefinition();
+					filter.setName(original.getName());
+					for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
+						String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
+						filter.addArg(entry.getKey(), value);
 					}
+					routeDefinition.getFilters().add(filter);
+				}
 
-					return routeDefinition;
-				});
+				return routeDefinition;
+			});
 	}
 
 	protected RouteDefinition buildRouteDefinition(Expression urlExpr, ServiceInstance serviceInstance) {
@@ -167,7 +171,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		@Override
 		public String getServiceId() {
 			if (properties.isLowerCaseServiceId()) {
-				return delegate.getServiceId().toLowerCase();
+				return delegate.getServiceId().toLowerCase(Locale.ROOT);
 			}
 			return delegate.getServiceId();
 		}

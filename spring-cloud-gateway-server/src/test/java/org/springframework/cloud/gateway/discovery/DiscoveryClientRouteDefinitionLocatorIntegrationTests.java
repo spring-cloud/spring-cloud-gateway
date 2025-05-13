@@ -38,8 +38,8 @@ import org.springframework.context.annotation.Bean;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorIntegrationTests.Config.class,
-		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=test__" })
+		properties = { "spring.cloud.gateway.server.webflux.discovery.locator.enabled=true",
+				"spring.cloud.gateway.server.webflux.discovery.locator.route-id-prefix=test__" })
 public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
 	@Autowired
@@ -53,8 +53,10 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
 	@Test
 	public void newServiceAddsRoute() throws Exception {
-		List<Route> routes = routeLocator.getRoutes().filter(route -> route.getId().startsWith("test__")).collectList()
-				.block();
+		List<Route> routes = routeLocator.getRoutes()
+			.filter(route -> route.getId().startsWith("test__"))
+			.collectList()
+			.block();
 		assertThat(routes).hasSize(1);
 
 		discoveryClient.multiple();

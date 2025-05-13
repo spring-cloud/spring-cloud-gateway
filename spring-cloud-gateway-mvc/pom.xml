@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>4.1.5-SNAPSHOT</version>
+		<version>4.3.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -39,6 +39,11 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.14</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-properties-migrator</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

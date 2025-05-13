@@ -90,10 +90,11 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				else {
 					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
 							(serverHttpRequest) -> ServerRequest
-									.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
-									.bodyToMono(inClass).doOnNext(objectValue -> exchange.getAttributes()
-											.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-									.map(objectValue -> config.getPredicate().test(objectValue)));
+								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
+								.bodyToMono(inClass)
+								.doOnNext(objectValue -> exchange.getAttributes()
+									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
+								.map(objectValue -> config.getPredicate().test(objectValue)));
 				}
 			}
 

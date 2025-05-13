@@ -34,7 +34,7 @@ public class PropertiesRouteDefinitionLocator implements RouteDefinitionLocator 
 
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-		return Flux.fromIterable(this.properties.getRoutes());
+		return Flux.fromIterable(this.properties.getRoutes()).filter(RouteDefinition::isEnabled);
 	}
 
 }

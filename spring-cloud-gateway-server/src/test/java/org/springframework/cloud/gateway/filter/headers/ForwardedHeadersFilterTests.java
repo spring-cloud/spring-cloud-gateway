@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
@@ -55,8 +56,9 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void forwardedHeaderDoesNotExist() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.header(HttpHeaders.HOST, "myhost").build();
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
@@ -69,15 +71,17 @@ public class ForwardedHeadersFilterTests {
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("host", "myhost").containsEntry("proto", "http")
-				.containsEntry("for", "\"10.0.0.1:80\"");
+		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
+			.containsEntry("proto", "http")
+			.containsEntry("for", "\"10.0.0.1:80\"");
 	}
 
 	@Test
 	public void forwardedHeaderExists() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.header(FORWARDED_HEADER, "for=12.34.56.78;host=example.com;proto=https; for=23.45.67.89").build();
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(FORWARDED_HEADER, "for=12.34.56.78;host=example.com;proto=https; for=23.45.67.89")
+			.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
@@ -91,17 +95,18 @@ public class ForwardedHeadersFilterTests {
 		Forwarded addedForwardedHeader = forwardeds.get(0);
 		Forwarded existingForwardedHeader = forwardeds.get(1);
 
-		assertThat(existingForwardedHeader.getValues()).containsEntry("proto", "http").containsEntry("for",
-				"\"10.0.0.1:80\"");
+		assertThat(existingForwardedHeader.getValues()).containsEntry("proto", "http")
+			.containsEntry("for", "\"10.0.0.1:80\"");
 
-		assertThat(addedForwardedHeader.getValues()).containsEntry("proto", "https").containsEntry("for",
-				"23.45.67.89");
+		assertThat(addedForwardedHeader.getValues()).containsEntry("proto", "https")
+			.containsEntry("for", "23.45.67.89");
 	}
 
 	@Test
 	public void noHostHeader() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80)).build();
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
@@ -120,8 +125,9 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void correctIPv6RemoteAddressMapping() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("2001:db8:cafe:0:0:0:0:17"), 80))
-				.header(HttpHeaders.HOST, "myhost").build();
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("2001:db8:cafe:0:0:0:0:17"), 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
@@ -140,7 +146,8 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void unresolvedRemoteAddressFallsBackToHostName() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-				.remoteAddress(InetSocketAddress.createUnresolved("unresolvable-hostname", 80)).build();
+			.remoteAddress(InetSocketAddress.createUnresolved("unresolvable-hostname", 80))
+			.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter();
 
@@ -153,8 +160,8 @@ public class ForwardedHeadersFilterTests {
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("proto", "http").containsEntry("for",
-				"\"unresolvable-hostname:80\"");
+		assertThat(forwarded.getValues()).containsEntry("proto", "http")
+			.containsEntry("for", "\"unresolvable-hostname:80\"");
 	}
 
 	@Test
@@ -193,6 +200,45 @@ public class ForwardedHeadersFilterTests {
 				assertThat(forwarded.getValues()).hasSize(expected.get(j).size()).containsAllEntriesOf(expected.get(j));
 			}
 		}
+	}
+
+	@Test
+	public void forwardedByForIpv4AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(true);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
+
+	}
+
+	@Test
+	public void forwardedByForIpv6AddressIsAdded() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv6Address = InetAddress.getByName("abc4:babf:955f:1724:11bc:0153:275c:d36e");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(true);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv6Address);
+
+		Assertions.assertThat(forwarded.getValues())
+			.containsEntry("by", "\"[abc4:babf:955f:1724:11bc:153:275c:d36e]\"");
+
+	}
+
+	@Test
+	public void forwardedByIsNotAddedIfFeatureIsDisabled() throws UnknownHostException {
+		Forwarded forwarded = new Forwarded();
+		InetAddress ipv4Address = InetAddress.getByName("216.103.69.111");
+		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
+		forwardedHeadersFilter.setForwardedByEnabled(false);
+
+		forwardedHeadersFilter.addForwardedBy(forwarded, ipv4Address);
+
+		Assertions.assertThat(forwarded.getValues()).containsEntry("by", "216.103.69.111");
 	}
 
 }

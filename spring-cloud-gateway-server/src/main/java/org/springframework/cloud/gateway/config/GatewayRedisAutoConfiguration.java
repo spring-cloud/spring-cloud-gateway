@@ -50,7 +50,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.redis.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".redis.enabled", matchIfMissing = true)
 class GatewayRedisAutoConfiguration {
 
 	@Bean
@@ -72,7 +72,7 @@ class GatewayRedisAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = "spring.cloud.gateway.redis-route-definition-repository.enabled",
+	@ConditionalOnProperty(value = GatewayProperties.PREFIX + ".redis-route-definition-repository.enabled",
 			havingValue = "true")
 	@ConditionalOnClass(ReactiveRedisTemplate.class)
 	public RedisRouteDefinitionRepository redisRouteDefinitionRepository(
@@ -87,7 +87,7 @@ class GatewayRedisAutoConfiguration {
 		Jackson2JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson2JsonRedisSerializer<>(
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
-				.newSerializationContext(keySerializer);
+			.newSerializationContext(keySerializer);
 		RedisSerializationContext<String, RouteDefinition> context = builder.value(valueSerializer).build();
 
 		return new ReactiveRedisTemplate<>(factory, context);

@@ -1,0 +1,58 @@
+[[loadbalancer-filter]]
+= LoadBalancer Filter
+
+The LoadBalancer Filter takes a `serviceId` parameter. The `LoadBalancerClient` uses this to choose an instance for routing. The LoadBalancer filter needs to be explicitly used in the Java DSL. When using the LoadBalancer Filter, use the empty `http()` method in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`.
+
+.RouteConfiguration.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeader() {
+		return route("api_route")
+				.GET("/api/**", http())
+					.filter(lb("apiservice"))
+					.build();
+    }
+}
+----
+
+== Using The LoadBalancer Filter In Configuration
+
+The LoadBalancer Filter may be used in configuration by using a URI with the `lb` scheme (such as `lb://myservice`), it uses the Spring Cloud `LoadBalancerClient` to resolve the name (`myservice` in this example) to an actual host and port and replaces the URI in the same attribute.
+//The unmodified original URL is appended to the list in the `ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR` attribute.
+The following listing configures a LoadBalancer Filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: api_route
+          uri: lb://apiservice
+          predicates:
+          - Path=/api/**
+----
+
+WARNING: If using the `lb()` filter, it needs to be after any filter that manipulates the path such as `setPath()` or `stripPrefix()`, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.
+
+NOTE: By default, when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` is returned.
+// TODO: implement use404
+// You can configure the gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+
+NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancerClient` overrides
+the scheme specified in the request made to the Gateway.
+For example, if the request comes into the Gateway over `HTTPS` but the `ServiceInstance` indicates it is not secure, the downstream request is made over `HTTP`.
+The opposite situation can also apply.
+//However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
+
+TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].

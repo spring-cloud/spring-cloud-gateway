@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 
 import io.lettuce.core.RedisException;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.data.MapEntry.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -67,7 +67,7 @@ public class RedisRateLimiterUnitTests {
 	public void setUp() {
 		when(applicationContext.getBean(ReactiveStringRedisTemplate.class)).thenReturn(redisTemplate);
 		when(applicationContext.getBeanNamesForType(ConfigurationService.class))
-				.thenReturn(CONFIGURATION_SERVICE_BEANS);
+			.thenReturn(CONFIGURATION_SERVICE_BEANS);
 		redisRateLimiter = new RedisRateLimiter(DEFAULT_REPLENISH_RATE, DEFAULT_BURST_CAPACITY);
 	}
 
@@ -78,7 +78,8 @@ public class RedisRateLimiterUnitTests {
 
 	@Test
 	public void shouldThrowWhenNotInitialized() {
-		Assertions.assertThrows(IllegalStateException.class, () -> redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID));
+		assertThatExceptionOfType(IllegalStateException.class)
+			.isThrownBy(() -> redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID));
 	}
 
 	@Test

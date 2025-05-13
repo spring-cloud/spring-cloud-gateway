@@ -98,7 +98,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	@Override
 	public Flux<Route> getRoutesByMetadata(Map<String, Object> metadata) {
 		return getRoutes(this.routeDefinitionLocator.getRouteDefinitions()
-				.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
+			.filter(routeDef -> RouteLocator.matchMetadata(routeDef.getMetadata(), metadata)));
 	}
 
 	@Override
@@ -161,8 +161,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 			// some filters require routeId
 			// TODO: is there a better place to apply this?
-			if (configuration instanceof HasRouteId) {
-				HasRouteId hasRouteId = (HasRouteId) configuration;
+			if (configuration instanceof HasRouteId hasRouteId) {
 				hasRouteId.setRouteId(id);
 			}
 
@@ -202,14 +201,10 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 			// this is a very rare case, but possible, just match all
 			return AsyncPredicate.from(exchange -> true);
 		}
-		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
-		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
-			AsyncPredicate<ServerWebExchange> found = lookup(routeDefinition, andPredicate);
-			predicate = predicate.and(found);
-		}
-
-		return predicate;
+		return predicates.stream()
+			.map(nextPredicate -> lookup(routeDefinition, nextPredicate))
+			.reduce(AsyncPredicate.from(exchange -> true), AsyncPredicate::and);
 	}
 
 	@SuppressWarnings("unchecked")

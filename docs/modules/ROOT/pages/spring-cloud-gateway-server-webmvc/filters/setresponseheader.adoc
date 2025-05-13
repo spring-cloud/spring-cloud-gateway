@@ -1,0 +1,89 @@
+[[setresponseheader-filter]]
+= `SetResponseHeader` Filter
+
+The `SetResponseHeader` filter takes `name` and `value` parameters.
+The following listing configures a `SetResponseHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: setresponseheader_route
+          uri: https://example.org
+          predicates:
+          - Path=/anything/setresponseheader
+          filters:
+          - SetResponseHeader=X-Response-Red, Blue
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetResponseHeader() {
+        return route("setresponseheader_route")
+            .GET("/anything/setresponseheader", http())
+            .before(uri("https://example.org"))
+            .after(setResponseHeader("X-Response-Red", "Blue"))
+            .build();
+    }
+}
+----
+
+This GatewayFilter replaces (rather than adding) all headers with the given name.
+So, if the downstream server responded with `X-Response-Red:1234`, it will be replaced with `X-Response-Red:Blue`, which is what the gateway client would receive.
+
+`SetResponseHeader` is aware of URI variables used to match a path or host.
+URI variables may be used in the value and will be expanded at runtime.
+The following example configures an `SetResponseHeader` filter that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setresponseheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetResponseHeader=foo, bar-{segment}
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetResponseHeader() {
+        return route("setresponseheader_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .after(setResponseHeader("foo", "bar-{segment}"))
+            .build();
+    }
+}
+----
+

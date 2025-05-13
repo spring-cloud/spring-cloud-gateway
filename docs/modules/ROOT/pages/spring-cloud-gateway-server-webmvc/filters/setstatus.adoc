@@ -1,0 +1,75 @@
+[[setstatus-filter]]
+= `SetStatus` Filter
+
+The `SetStatus` filter takes a single parameter, `status`.
+It must be a valid Spring `HttpStatus`.
+It may be the integer value `404` or the string representation of the enumeration: `NOT_FOUND`.
+The following listing configures a `SetStatus` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: setstatusstring_route
+          uri: https://example.org
+          predicates:
+          - Path=/path1
+          filters:
+          - SetStatus=UNAUTHORIZED
+        - id: setstatusint_route
+          uri: https://example.org
+          predicates:
+          - Path=/path2
+          filters:
+          - SetStatus=401
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setStatus;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetStatus() {
+        return route("setstatus_route")
+                .GET("/path1", http())
+                .before(uri("https://example.org"))
+                // setStatus("UNAUTHORIZED") works as well
+                .after(setStatus(HttpStatus.UNAUTHORIZED))
+            .build().and(route("setstatusint_route")
+                .before(uri("https://example.org"))
+                .GET("/path2", http())
+                .after(setStatus("401"))
+                .build());
+    }
+}
+----
+
+In either case, the HTTP status of the response is set to 401.
+
+////
+TODO: support original status header
+You can configure the `SetStatus` filter to return the original HTTP status code from the proxied request in a header in the response.
+The header is added to the response if configured with the following property:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      set-status:
+        original-status-header-name: original-http-status
+----
+////
+

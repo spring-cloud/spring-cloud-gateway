@@ -1,0 +1,49 @@
+[[rewriteresponseheader-filter]]
+= `RewriteResponseHeader` Filter
+:page-section-summary-toc: 1
+
+The `RewriteResponseHeader` filter takes `name`, `regexp`, and `replacement` parameters.
+It uses Java regular expressions for a flexible way to rewrite the response header value.
+The following example configures a `RewriteResponseHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: rewriteresponseheader_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - RewriteResponseHeader=X-Response-Red, password=[^&]+, password=***
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteResponseHeader() {
+        return route("rewriteresponseheader_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .after(rewriteResponseHeader("X-Request-Red", "password=[^&]+", "password=***"))
+            .build();
+    }
+}
+----
+
+For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` after making the downstream request.
+You must use `$\` to mean `$` because of the YAML specification in `application.yml`.
+

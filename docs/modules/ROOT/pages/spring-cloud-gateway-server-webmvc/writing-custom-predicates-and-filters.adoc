@@ -1,0 +1,337 @@
+[[writing-custom-predicates-and-filters]]
+= Writing Custom Predicates and Filters
+
+Spring Cloud Gateway Server MVC uses the https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html[Spring WebMvc.fn] API (https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/package-summary.html[javadoc]) as the basis for the API Gateway functionality.
+
+Spring Cloud Gateway Server MVC is extensible using these APIs. Users might commonly expect to write custom implementations of https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicate.html[`RequestPredicate`] and https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html[`HandlerFilterFunction`] and two variations of `HandlerFilterFunction`, one for "before" filters and another for "after" filters.
+
+== Fundamentals
+
+The most basic interfaces that are a part of the Spring WebMvc.fn API are https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html#webmvc-fn-request[`ServerRequest`] (https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/ServerRequest.html[javadoc]) and https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html#webmvc-fn-response[ServerResponse] (https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/ServerResponse.html[javadoc]). These provide access to all parts of the HTTP request and response.
+
+NOTE: The Spring WebMvc.fn docs https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html#webmvc-fn-handler-functions[declare] that "`ServerRequest` and `ServerResponse` are immutable interfaces. In some cases, Spring Cloud Gateway Server MVC has to provide alternate implementations so that some things can be mutable to satisfy the proxy requirements of an API gateway.
+
+== Implementing a RequestPredicate
+
+The Spring WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html[RouterFunctions.Builder] expects a https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html#webmvc-fn-predicates[`RequestPredicate`] (https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicate.html[javadoc]) to match a given https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html#webmvc-fn-routes[Route]. `RequestPredicate` is a functional interface and can therefor be implemented with lambdas. The method signature to implement is:
+
+[source]
+----
+boolean test(ServerRequest request)
+----
+
+=== Example RequestPredicate Implementation
+
+For this example, we will show the implementation of a predicate to test that a particular HTTP headers is part of the HTTP request.
+
+The `RequestPredicate` implementations in Spring WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicates.html[`RequestPredicates`] and in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/predicate/GatewayRequestPredicates.java[GatewayRequestPredicates] are all implemented as `static` methods. We will do the same here.
+
+.SampleRequestPredicates.java
+[source,java]
+----
+import org.springframework.web.servlet.function.RequestPredicate;
+
+class SampleRequestPredicates {
+    public static RequestPredicate headerExists(String header) {
+		return request -> request.headers().asHttpHeaders().containsKey(header);
+    }
+}
+----
+
+The implementation is a simple lambda that transforms the https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/ServerRequest.Headers.html[ServerRequest.Headers] object to the richer API of https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/HttpHeaders.html[HttpHeaders]. This allows the predicate to test for the presence of the named `header`.
+
+=== How To Use A Custom RequestPredicate
+
+To use our new `headerExists` `RequestPredicate`, we need to plug it in to an appropriate method on the `RouterFunctions.Builder` such as https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html#route(org.springframework.web.servlet.function.RequestPredicate,org.springframework.web.servlet.function.HandlerFunction)[route()]. Of course, the lambda in the `headerExists` method could be written inline in the example below.
+
+.RouteConfiguration.java
+[source,java]
+----
+import static SampleRequestPredicates.headerExists;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> headerExistsRoute() {
+        return route("header_exists_route")
+            .route(headerExists("X-Green"), http())
+            .before(uri("https://example.org"))
+            .build();
+    }
+}
+----
+
+The above route will be matched when an HTTP request has a header named `X-Green`.
+
+== Writing Custom HandlerFilterFunction Implementations
+
+The `RouterFunctions.Builder` has three options to add filters: https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html#filter(org.springframework.web.servlet.function.HandlerFilterFunction)[filter], https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html#before(java.util.function.Function)[before], and https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html#after(java.util.function.BiFunction)[after]. The `before` and `after` methods are specializations of the general `filter` method.
+
+=== Implementing a HandlerFilterFunction
+
+The `filter` method takes a https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html[HandlerFilterFunction] as a parameter. `HandlerFilterFunction<T extends ServerResponse, R extends ServerResponse>` is a functional interface and can therefor be implemented with lambdas. The method signature to implement is:
+
+[source]
+----
+R filter(ServerRequest request, HandlerFunction<T> next)
+----
+
+This allows access to the `ServerRequest` and after calling `next.handle(request)` access to the `ServerResponse` is available.
+
+==== Example HandlerFilterFunction Implementation
+
+This example will show adding a header to both the request and response.
+
+.SampleHandlerFilterFunctions.java
+[source,java]
+----
+import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+
+class SampleHandlerFilterFunctions {
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> instrument(String requestHeader, String responseHeader) {
+		return (request, next) -> {
+			ServerRequest modified = ServerRequest.from(request).header(requestHeader, generateId()).build();
+			ServerResponse response = next.handle(modified);
+			response.headers().add(responseHeader, generateId());
+			return response;
+		};
+	}
+}
+----
+
+First, a new `ServerRequest` is created from the existing request. This allows us to add the header using the `header()` method. Then we call `next.handle()` passing in the modified `ServerRequest`. Then using the returned `ServerResponse` we add the header to the response.
+
+==== How To Use Custom HandlerFilterFunction Implementations
+
+.RouteConfiguration.java
+[source,java]
+----
+import static SampleHandlerFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> instrumentRoute() {
+		return route("instrument_route")
+                .GET("/**", http())
+				.filter(instrument("X-Request-Id", "X-Response-Id"))
+                .before(uri("https://example.org"))
+                .build();
+    }
+}
+----
+
+The above route will add a `X-Request-Id` header to the request and a `X-Response-Id` header to the response.
+
+=== Writing Custom Before Filter Implementations
+
+The `before` method takes a `Function<ServerRequest, ServerRequest>` as a parameter. This allows for creating a new `ServerRequest` with updated data to be returned from the function.
+
+NOTE: Before functions may be adapted to `HandlerFilterFunction` instances via https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html#ofRequestProcessor(java.util.function.Function)[HandlerFilterFunction.ofRequestProcessor()].
+
+==== Example Before Filter Implementation
+
+In this example we will add a header with a generated value to the request.
+
+.SampleBeforeFilterFunctions.java
+[source,java]
+----
+import java.util.function.Function;
+import org.springframework.web.servlet.function.ServerRequest;
+
+class SampleBeforeFilterFunctions {
+	public static Function<ServerRequest, ServerRequest> instrument(String header) {
+		return request -> ServerRequest.from(request).header(header, generateId()).build();
+	}
+}
+----
+
+A new `ServerRequest` is created from the existing request. This allows us to add the header using the `header()` method. This implementation is simpler than the `HandlerFilterFunction` because we only deal with the `ServerRequest`.
+
+==== How To Use Custom Before Filter Implementations
+
+.RouteConfiguration.java
+[source,java]
+----
+import static SampleBeforeFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> instrumentRoute() {
+        return route("instrument_route").GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(instrument("X-Request-Id"))
+            .build();
+    }
+}
+----
+
+The above route will add a `X-Request-Id` header to the request. Note the use of the `before()` method, rather than `filter()`.
+
+=== Writing Custom After Filter Implementations
+
+The `after` method takes a `BiFunction<ServerRequest,ServerResponse,ServerResponse>`. This allows access to both the `ServerRequest` and the `ServerResponse` and the ability to return a new `ServerResponse` with updated information.
+
+NOTE: After functions may be adapted to `HandlerFilterFunction` instances via https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFilterFunction.html#ofResponseProcessor(java.util.function.BiFunction)[HandlerFilterFunction.ofResponseProcessor()].
+
+==== Example After Filter Implementation
+
+In this example we will add a header with a generated value to the response.
+
+.SampleAfterFilterFunctions.java
+[source,java]
+----
+import java.util.function.BiFunction;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
+
+class SampleAfterFilterFunctions {
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> instrument(String header) {
+		return (request, response) -> {
+			response.headers().add(header, generateId());
+			return response;
+		};
+	}
+}
+----
+
+In this case we simply add the header to the response and return it.
+
+==== How To Use Custom After Filter Implementations
+
+.RouteConfiguration.java
+[source,java]
+----
+import static SampleAfterFilterFunctions.instrument;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> instrumentRoute() {
+        return route("instrument_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .after(instrument("X-Response-Id"))
+            .build();
+    }
+}
+----
+
+The above route will add a `X-Response-Id` header to the response. Note the use of the `after()` method, rather than `filter()`.
+
+== How To Register Custom Predicates and Filters for Configuration
+
+To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it a bean in the application context.
+
+=== Registering Custom Predicates
+
+To register custom predicates you need to implement `PredicateSupplier`. The `PredicateDiscoverer` looks for static methods that return `RequestPredicates` to register.
+
+SampleFilterSupplier.java
+[source,java]
+----
+package com.example;
+
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier;
+
+class SamplePredicateSupplier implements PredicateSupplier {
+
+	@Override
+	public Collection<Method> get() {
+		return Arrays.asList(SampleRequestPredicates.class.getMethods());
+	}
+
+}
+----
+
+To register the `PredicateSupplier` for use in config files, you then need to add the class as a bean as in the example below:
+
+.PredicateConfiguration.java
+[source,java]
+----
+package com.example;
+
+@Configuration
+class PredicateConfiguration {
+
+    @Bean
+    public SamplePredicateSupplier samplePredicateSupplier() {
+        return new SamplePredicateSupplier();
+    }
+}
+----
+
+The requirement to add the class to `META-INF/spring.factories` is deprecated and will be removed in the next major release.
+
+.META-INF/spring.factories
+[source]
+----
+org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
+  com.example.SamplePredicateSupplier
+----
+
+=== Registering Custom Filters
+
+The `SimpleFilterSupplier` allows for easily registering custom filters. The `FilterDiscoverer` looks for static methods that return `HandlerFilterFunction` to register. If you need more flexibility than `SimpleFilterSupplier` you can implement `FilterSupplier` directly.
+
+.SampleFilterSupplier.java
+[source,java]
+----
+package com.example;
+
+import org.springframework.cloud.gateway.server.mvc.filter.SimpleFilterSupplier;
+
+class SampleFilterSupplier extends SimpleFilterSupplier {
+
+    public SampleFilterSupplier() {
+		super(SampleAfterFilterFunctions.class);
+	}
+}
+----
+
+To register the `FilterSupplier` for use in config files, you then need to add the class as a bean as in the example below:
+
+.FilterConfiguration.java
+[source,java]
+----
+package com.example;
+
+@Configuration
+class FilterConfiguration {
+
+    @Bean
+    public SampleFilterSupplier sampleFilterSupplier() {
+        return new SampleFilterSupplier();
+    }
+}
+----
+
+The requirement to add the class to `META-INF/spring.factories` is deprecated and will be removed in the next major release.
+
+.META-INF/spring.factories
+[source]
+----
+org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
+  com.example.SampleFilterSupplier
+----
+
+// TODO: advanced topics such as attributes, beans and more

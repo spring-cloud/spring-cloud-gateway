@@ -88,7 +88,7 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.metrics.enabled=false")
+	@SpringBootTest(classes = Config.class, properties = GatewayProperties.PREFIX + ".metrics.enabled=false")
 	public class DisabledByProperty {
 
 		@Autowired(required = false)
@@ -110,7 +110,7 @@ public class GatewayMetricsAutoConfigurationTests {
 	}
 
 	@Nested
-	@SpringBootTest(classes = Config.class, properties = "spring.cloud.gateway.observability.enabled=false")
+	@SpringBootTest(classes = Config.class, properties = GatewayProperties.PREFIX + ".observability.enabled=false")
 	public class ObservabilityDisabledByProperty {
 
 		@Autowired
@@ -119,14 +119,14 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Test
 		public void observabilityBeansMissing() {
 			assertThat(beanFactory.getBeanProvider(ObservedRequestHttpHeadersFilter.class).getIfAvailable(() -> null))
-					.isNull();
+				.isNull();
 			assertThat(beanFactory.getBeanProvider(ObservedResponseHttpHeadersFilter.class).getIfAvailable(() -> null))
-					.isNull();
+				.isNull();
 			assertThat(
 					beanFactory.getBeanProvider(ObservationClosingWebExceptionHandler.class).getIfAvailable(() -> null))
-							.isNull();
+				.isNull();
 			assertThat(beanFactory.getBeanProvider(GatewayPropagatingSenderTracingObservationHandler.class)
-					.getIfAvailable(() -> null)).isNull();
+				.getIfAvailable(() -> null)).isNull();
 		}
 
 	}

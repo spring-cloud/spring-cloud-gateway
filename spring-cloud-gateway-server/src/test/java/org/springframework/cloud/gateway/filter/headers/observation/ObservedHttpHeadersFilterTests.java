@@ -58,52 +58,60 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 
 			// We assume that there has already been a trace
 			MockServerHttpRequest.BaseBuilder<?> builder = MockServerHttpRequest
-					.get("http://localhost:8080/{foo}", "get").header("X-A", "aValue");
+				.get("http://localhost:8080/{foo}", "get")
+				.header("X-A", "aValue");
 			TraceContext context = bb.getTracer().currentTraceContext().context();
 			bb.getPropagator().inject(context, builder, (b, k, v) -> b.header(k, v));
 			MockServerHttpRequest request = builder.build();
 			MockServerWebExchange exchange = MockServerWebExchange.from(request);
 			ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("foo", "get"));
-			Route route = Route.async().id("foo").uri("http://localhost:8080/").order(1)
-					.predicate(serverWebExchange -> true).build();
+			Route route = Route.async()
+				.id("foo")
+				.uri("http://localhost:8080/")
+				.order(1)
+				.predicate(serverWebExchange -> true)
+				.build();
 			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 			// Parent observation
 			Context ctx = Context
-					.of(Map.of(ObservationThreadLocalAccessor.KEY, getObservationRegistry().getCurrentObservation()));
+				.of(Map.of(ObservationThreadLocalAccessor.KEY, getObservationRegistry().getCurrentObservation()));
 			exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR, ctx);
 			exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(200));
 
 			// when
 			HttpHeaders headers = new ObservedRequestHttpHeadersFilter(getObservationRegistry())
-					.filter(request.getHeaders(), exchange);
+				.filter(request.getHeaders(), exchange);
 			headers = new ObservedResponseHttpHeadersFilter().filter(headers, exchange);
 
 			// then
 			assertThat((String) exchange.getAttribute(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED))
-					.isNotNull();
+				.isNotNull();
 			assertThat(headers).containsEntry("X-A", Collections.singletonList("aValue"))
-					.containsEntry("X-B3-Sampled", Collections.singletonList("1"))
-					.containsEntry("X-B3-TraceId", Collections.singletonList(context.traceId()))
-					.doesNotContainEntry("X-B3-SpanId", Collections.singletonList(context.spanId()))
-					.containsKey("X-B3-SpanId");
-			SpansAssert.then(bb.getFinishedSpans()).hasASpanWithName("HTTP GET",
-					spanAssert -> spanAssert.hasTag("http.method", "GET").hasTag("http.status_code", "200")
+				.containsEntry("X-B3-Sampled", Collections.singletonList("1"))
+				.containsEntry("X-B3-TraceId", Collections.singletonList(context.traceId()))
+				.doesNotContainEntry("X-B3-SpanId", Collections.singletonList(context.spanId()))
+				.containsKey("X-B3-SpanId");
+			SpansAssert.then(bb.getFinishedSpans())
+				.hasASpanWithName("HTTP GET",
+						spanAssert -> spanAssert.hasTag("http.method", "GET")
+							.hasTag("http.status_code", "200")
 							.hasTag("http.uri", "http://localhost:8080/get")
 							.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
 							.hasTag("spring.cloud.gateway.route.id", "foo"));
-			MeterRegistryAssert.then(meterRegistry).hasTimerWithNameAndTags("http.client.requests",
-					Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET",
-							"http.status_code", "200", "spring.cloud.gateway.route.uri", "http://localhost:8080/"))
-					.hasMeterWithNameAndTags("http.client.requests.active", Tags.of("spring.cloud.gateway.route.id",
-							"foo", "http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
+			MeterRegistryAssert.then(meterRegistry)
+				.hasTimerWithNameAndTags("http.client.requests",
+						Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET",
+								"http.status_code", "200", "spring.cloud.gateway.route.uri", "http://localhost:8080/"))
+				.hasMeterWithNameAndTags("http.client.requests.active", Tags.of("spring.cloud.gateway.route.id", "foo",
+						"http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
 		};
 	}
 
 	@Override
 	public BiConsumer<BuildingBlocks, Deque<ObservationHandler<? extends Observation.Context>>> customizeObservationHandlers() {
 		return (bb, observationHandlers) -> observationHandlers
-				.addFirst(new GatewayPropagatingSenderTracingObservationHandler(bb.getTracer(), bb.getPropagator(),
-						Collections.emptyList()));
+			.addFirst(new GatewayPropagatingSenderTracingObservationHandler(bb.getTracer(), bb.getPropagator(),
+					Collections.emptyList()));
 	}
 
 }

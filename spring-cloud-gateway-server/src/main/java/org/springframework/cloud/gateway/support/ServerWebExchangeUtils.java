@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -40,6 +41,7 @@ import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBuffer;
+import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -267,7 +269,7 @@ public final class ServerWebExchangeUtils {
 		}
 		catch (NumberFormatException e) {
 			// try the enum string
-			httpStatus = HttpStatus.valueOf(statusString.toUpperCase());
+			httpStatus = HttpStatus.valueOf(statusString.toUpperCase(Locale.ROOT));
 		}
 		return httpStatus;
 	}
@@ -299,7 +301,7 @@ public final class ServerWebExchangeUtils {
 	public static void putUriTemplateVariables(ServerWebExchange exchange, Map<String, String> uriVariables) {
 		if (exchange.getAttributes().containsKey(URI_TEMPLATE_VARIABLES_ATTRIBUTE)) {
 			Map<String, Object> existingVariables = (Map<String, Object>) exchange.getAttributes()
-					.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 			HashMap<String, Object> newVariables = new HashMap<>();
 			newVariables.putAll(existingVariables);
 			newVariables.putAll(uriVariables);
@@ -372,9 +374,32 @@ public final class ServerWebExchangeUtils {
 		ServerHttpResponse response = exchange.getResponse();
 		DataBufferFactory factory = response.bufferFactory();
 		// Join all the DataBuffers so we have a single DataBuffer for the body
-		return DataBufferUtils.join(exchange.getRequest().getBody()).defaultIfEmpty(factory.wrap(EMPTY_BYTES))
-				.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
-				.switchIfEmpty(Mono.just(exchange.getRequest())).flatMap(function);
+		return DataBufferUtils.join(exchange.getRequest().getBody())
+			.defaultIfEmpty(factory.wrap(EMPTY_BYTES))
+			.map(dataBuffer -> decorate(exchange, dataBuffer, cacheDecoratedRequest))
+			.switchIfEmpty(Mono.just(exchange.getRequest()))
+			.flatMap(function);
+	}
+
+	/**
+	 * clear the request body in a ServerWebExchange attribute. The attribute is
+	 * {@link #CACHED_REQUEST_BODY_ATTR}.
+	 * @param exchange the available ServerWebExchange.
+	 */
+	public static void clearCachedRequestBody(ServerWebExchange exchange) {
+		Object attribute = exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
+		if (attribute != null && attribute instanceof PooledDataBuffer) {
+			PooledDataBuffer dataBuffer = (PooledDataBuffer) attribute;
+			if (dataBuffer.isAllocated()) {
+				if (log.isTraceEnabled()) {
+					log.trace("releasing cached body in exchange attribute");
+				}
+				// ensure proper release
+				while (!dataBuffer.release()) {
+					// release() counts down until zero, will never be infinite loop
+				}
+			}
+		}
 	}
 
 	private static ServerHttpRequest decorate(ServerWebExchange exchange, DataBuffer dataBuffer,

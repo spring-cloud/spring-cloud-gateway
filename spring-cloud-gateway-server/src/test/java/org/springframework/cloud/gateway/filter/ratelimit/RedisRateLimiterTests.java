@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.RetryingTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -51,8 +52,10 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  * @author Ronny Bräunlich
  * @author Denis Cutic
+ * @author Andrey Muchnik
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = { "spring.cloud.gateway.server.webflux.function.enabled=false" })
 @DirtiesContext
 @Testcontainers
 @Tag("DockerRequired")
@@ -89,10 +92,39 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 1;
 
 		String routeId = "myroute";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
+	}
+
+	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
+	public void redisRateLimiterWorksForMultipleRoutes() throws Exception {
+		String id = UUID.randomUUID().toString();
+
+		int replenishRate = 10;
+		int burstCapacity = 2 * replenishRate;
+		int requestedTokens = 1;
+
+		String firstRouteId = "myroute";
+		String secondRouteId = "myroute2";
+		var config = rateLimiter.getConfig();
+		config.put(firstRouteId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+					.setReplenishRate(replenishRate)
+					.setRequestedTokens(requestedTokens));
+
+		config.put(secondRouteId,
+				new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+					.setReplenishRate(replenishRate)
+					.setRequestedTokens(requestedTokens));
+
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, firstRouteId);
+		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, secondRouteId);
 	}
 
 	@Test
@@ -104,8 +136,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 3;
 
 		String routeId = "low_rate_route";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
@@ -119,8 +154,11 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		int requestedTokens = 1;
 
 		String routeId = "zero_burst_capacity_route";
-		rateLimiter.getConfig().put(routeId, new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
-				.setReplenishRate(replenishRate).setRequestedTokens(requestedTokens));
+		rateLimiter.getConfig()
+			.put(routeId,
+					new RedisRateLimiter.Config().setBurstCapacity(burstCapacity)
+						.setReplenishRate(replenishRate)
+						.setRequestedTokens(requestedTokens));
 
 		Response response = rateLimiter.isAllowed(routeId, id).block();
 		assertThat(response.isAllowed()).isFalse();
@@ -128,8 +166,8 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 
 	@Test
 	public void keysUseRedisKeyHashTags() {
-		assertThat(RedisRateLimiter.getKeys("1")).containsExactly("request_rate_limiter.{1}.tokens",
-				"request_rate_limiter.{1}.timestamp");
+		assertThat(RedisRateLimiter.getKeys("1", "routeId")).containsExactly("request_rate_limiter.{routeId.1}.tokens",
+				"request_rate_limiter.{routeId.1}.timestamp");
 	}
 
 	@Test

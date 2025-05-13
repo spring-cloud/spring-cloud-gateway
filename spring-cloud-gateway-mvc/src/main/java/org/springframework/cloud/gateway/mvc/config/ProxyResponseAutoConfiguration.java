@@ -17,12 +17,19 @@
 package org.springframework.cloud.gateway.mvc.config;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -30,6 +37,8 @@ import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.web.client.DefaultResponseErrorHandler;
@@ -48,7 +57,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
-@EnableConfigurationProperties(ProxyProperties.class)
+@EnableConfigurationProperties({ ProxyExchangeWebMvcProperties.class, ProxyProperties.class })
 public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
@@ -57,7 +66,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean
 	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
-			ProxyProperties proxy) {
+			ProxyExchangeWebMvcProperties properties) {
 		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
 		RestTemplate template = builder.build();
 		template.setErrorHandler(new NoOpResponseErrorHandler());
@@ -68,9 +77,16 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 			}
 		});
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
-		resolver.setHeaders(proxy.convertHeaders());
-		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
-		resolver.setSensitive(proxy.getSensitive()); // can be null
+		resolver.setHeaders(properties.convertHeaders());
+		resolver.setAutoForwardedHeaders(properties.getAutoForward());
+		Set<String> excludedHeaderNames = new HashSet<>();
+		if (properties.getSensitive() != null) {
+			excludedHeaderNames.addAll(properties.getSensitive());
+		}
+		if (properties.getSkipped() != null) {
+			excludedHeaderNames.addAll(properties.getSkipped());
+		}
+		resolver.setExcluded(excludedHeaderNames);
 		return resolver;
 	}
 
@@ -83,6 +99,31 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 		@Override
 		public void handleError(ClientHttpResponse response) throws IOException {
+		}
+
+		@Override
+		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
+		}
+
+		@Override
+		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method)
+				throws IOException {
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("org.springframework.cloud.gateway.proxyexchange.webmvc.Marker")
+	protected static class NewModuleConfiguration {
+
+		private static final Log log = LogFactory.getLog(ProxyResponseAutoConfiguration.class);
+
+		private static final String BORDER = "\n\n**********************************************************\n\n";
+
+		public NewModuleConfiguration() {
+			log.warn(BORDER + "The artifact spring-cloud-gateway-mvc is deprecated. "
+					+ "It will be removed in the next major release. "
+					+ "Please add spring-cloud-gateway-proxyexchange-webmvc dependency." + BORDER);
 		}
 
 	}

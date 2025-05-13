@@ -1,0 +1,58 @@
+[[requestsize-filter]]
+= `RequestSize` Filter
+
+When the request size is greater than the permissible limit, the `RequestSize` filter can restrict a request from reaching the downstream service.
+The filter takes a `maxSize` parameter.
+The `maxSize` is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
+It is the permissible size limit of the request defined in bytes.
+The following listing configures a `RequestSize` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: request_size_route
+          uri: http://localhost:8080
+          predicates:
+          - Path=/upload
+          filters:
+          - name: RequestSize
+            args:
+              maxSize: 5000000
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestSize() {
+        return route("request_size_route")
+            .GET("/upload", http())
+            .before(uri("http://localhost:8080"))
+            .before(requestSize("5000000"))
+            .build();
+    }
+}
+----
+
+The `RequestSize` filter sets the response status as `413 Payload Too Large` with an additional header `errorMessage` when the request is rejected due to size. The following example shows such an `errorMessage`:
+
+[source]
+----
+errorMessage : Request size is larger than permissible limit. Request size is 6.0 MB where permissible limit is 5.0 MB
+----
+
+NOTE: The default request size is set to five MB if not provided as a filter argument in the route definition.
+

@@ -30,7 +30,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 
 /**
  * @author Spencer Gibb
+ * @deprecated for removal in 5.0
  */
+@Deprecated
 public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 
 	/**
@@ -58,8 +60,8 @@ public class WebClientWriteResponseFilter implements GlobalFilter, Ordered {
 			ServerHttpResponse response = exchange.getResponse();
 
 			return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()))
-					// .log("webClient response")
-					.doOnCancel(() -> cleanup(exchange));
+				// .log("webClient response")
+				.doOnCancel(() -> cleanup(exchange));
 		}));
 	}
 

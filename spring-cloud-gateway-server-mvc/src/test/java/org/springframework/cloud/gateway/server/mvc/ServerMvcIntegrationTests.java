@@ -22,11 +22,11 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -39,16 +39,17 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -81,7 +82,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
@@ -111,12 +111,12 @@ import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFu
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderToRequestUri;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestSize;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.routeId;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestHeadersIfNotPresent;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.addRequestParameter;
-import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.rewritePath;
@@ -125,7 +125,6 @@ import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunction
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setRequestHostHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.stripPrefix;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
-import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.forward;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -143,9 +142,10 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.cloud.gateway.mvc.http-client.type=jdk" },
+@SpringBootTest(properties = { "spring.http.client.factory=jdk", "spring.cloud.gateway.function.enabled=false" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
+@ExtendWith(OutputCaptureExtension.class)
 public class ServerMvcIntegrationTests {
 
 	static {
@@ -178,150 +178,257 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void addRequestParameterWorks() {
-		restClient.get().uri("/anything/addrequestparam").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> args = getMap(map, "args");
-					assertThat(args).containsEntry("param1", "param1val");
-				});
+		restClient.get()
+			.uri("/anything/addrequestparam")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> args = getMap(map, "args");
+				assertThat(args).containsEntry("param1", "param1val");
+			});
 	}
 
 	@Test
 	public void removeHopByHopRequestHeadersFilterWorks() {
-		restClient.get().uri("/anything/removehopbyhoprequestheaders").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).doesNotContainKeys("x-application-context");
-				});
+		restClient.get()
+			.uri("/anything/removehopbyhoprequestheaders")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).doesNotContainKeys("x-application-context");
+			});
 	}
 
 	@Test
 	public void setPathWorks() {
-		restClient.get().uri("/mycustompathextra1").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> args = getMap(map, "args");
-					assertThat(args).containsEntry("param1", "param1valextra1");
-				});
+		restClient.get()
+			.uri("/mycustompathextra1")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> args = getMap(map, "args");
+				assertThat(args).containsEntry("param1", "param1valextra1");
+			});
 	}
 
 	@Test
 	public void setPathPostWorks() {
-		restClient.post().uri("/mycustompathpost").bodyValue("hello").header("Host", "www.setpathpost.org").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).containsEntry("data", "hello");
-				});
+		restClient.post()
+			.uri("/mycustompathpost")
+			.bodyValue("hello")
+			.header("Host", "www.setpathpost.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				assertThat(map).containsEntry("data", "hello");
+			});
 	}
 
 	@Test
 	public void stripPrefixWorks() {
-		restClient.get().uri("/long/path/to/get").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Test", "stripPrefix");
-				});
+		restClient.get()
+			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefix.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
+				assertThat(headers).containsEntry("X-Test", "stripPrefix");
+			});
 	}
 
 	@Test
 	public void stripPrefixPostWorks() {
-		restClient.post().uri("/long/path/to/post").bodyValue("hello").header("Host", "www.stripprefixpost.org")
-				.exchange().expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).containsEntry("data", "hello");
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Test", "stripPrefixPost");
-				});
+		restClient.post()
+			.uri("/long/path/to/post")
+			.bodyValue("hello")
+			.header("Host", "www.stripprefixpost.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				assertThat(map).containsEntry("data", "hello");
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
+				assertThat(headers).containsEntry("X-Test", "stripPrefixPost");
+			});
+	}
+
+	@Test
+	public void stripPrefixLbWorks() {
+		restClient.get()
+			.uri("/long/path/to/get")
+			.header("Host", "www.stripprefixlb.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER);
+				assertThat(headers).containsEntry(XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER,
+						"/long/path/to");
+				assertThat(headers).containsEntry("X-Test", "stripPrefixLb");
+			});
 	}
 
 	@Test
 	public void setStatusGatewayRouterFunctionWorks() {
-		restClient.get().uri("/status/201").exchange().expectStatus().isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
-				.expectHeader().valueEquals("x-status", "201"); // .expectBody(String.class).isEqualTo("Failed
-																// with 201");
+		restClient.get()
+			.uri("/status/201")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
+			.expectHeader()
+			.valueEquals("x-status", "201"); // .expectBody(String.class).isEqualTo("Failed
+												// with 201");
 	}
 
 	@Test
 	public void addResponseHeaderWorks() {
-		restClient.get().uri("/anything/addresheader").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).doesNotContainKey("x-bar");
-					assertThat(res.getResponseHeaders()).containsEntry("x-bar", Collections.singletonList("val1"));
-				});
+		restClient.get()
+			.uri("/anything/addresheader")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).doesNotContainKey("x-bar");
+				assertThat(res.getResponseHeaders()).containsEntry("x-bar", Collections.singletonList("val1"));
+			});
 	}
 
 	@Test
 	public void postWorks() {
-		restClient.post().uri("/post").bodyValue("Post Value").header("test", "post").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).isNotEmpty().containsEntry("data", "Post Value");
-				});
+		restClient.post()
+			.uri("/post")
+			.bodyValue("Post Value")
+			.header("test", "post")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				assertThat(map).isNotEmpty().containsEntry("data", "Post Value");
+			});
 	}
 
 	@Test
 	public void loadbalancerWorks() {
-		restClient.get().uri("/anything/loadbalancer").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Test", "loadbalancer");
-				});
+		restClient.get()
+			.uri("/anything/loadbalancer")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("X-Test", "loadbalancer");
+			});
 	}
 
 	@Test
 	public void hostPredicateWorks() {
 		String host = "www1.myjavadslhost.com";
-		restClient.get().uri("/anything/hostpredicate").header("Host", host).exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-SubDomain", "www1").expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("Host", host);
-				});
+		restClient.get()
+			.uri("/anything/hostpredicate")
+			.header("Host", host)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-SubDomain", "www1")
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("Host", host);
+			});
 	}
 
 	@Test
 	public void circuitBreakerFallbackWorks() {
-		restClient.get().uri("/anything/circuitbreakerfallback").exchange().expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("Hello");
+		restClient.get()
+			.uri("/anything/circuitbreakerfallback")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("Hello");
 	}
 
 	@Test
 	public void circuitBreakerGatewayFallbackWorks() {
-		restClient.get().uri("/anything/circuitbreakergatewayfallback").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsKeys(CB_EXECUTION_EXCEPTION_TYPE, CB_EXECUTION_EXCEPTION_MESSAGE);
-				});
+		restClient.get()
+			.uri("/anything/circuitbreakergatewayfallback")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsKeys(CB_EXECUTION_EXCEPTION_TYPE, CB_EXECUTION_EXCEPTION_MESSAGE);
+			});
 	}
 
 	@Test
 	public void circuitBreakerNoFallbackWorks() {
-		restClient.get().uri("/anything/circuitbreakernofallback").exchange().expectStatus()
-				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+		restClient.get()
+			.uri("/anything/circuitbreakernofallback")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 	}
 
 	@Test
 	public void circuitBreakerInvalidFallbackThrowsException() {
 		// @formatter:off
 		Assertions.assertThatThrownBy(() -> route("testcircuitbreakergatewayfallback")
-				.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+				.route(path("/anything/circuitbreakergatewayfallback"), http())
+				.before(uri("https://nonexistantdomain.com1234"))
 				.filter(circuitBreaker("mycb2", URI.create("http://example.com")))
 				.build()).isInstanceOf(IllegalArgumentException.class);
 		// @formatter:on
-	}
-
-	@Test
-	public void retryWorks() {
-		restClient.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
-		// test for: java.lang.IllegalArgumentException: You have already selected another
-		// retry policy
-		restClient.get().uri("/retry?key=get2").exchange().expectStatus().isOk().expectBody(String.class)
-				.isEqualTo("3");
 	}
 
 	@Test
@@ -333,97 +440,152 @@ public class ServerMvcIntegrationTests {
 	@Test
 	public void headerRegexWorks() {
 		restClient.get().uri("/headerregex").exchange().expectStatus().isNotFound();
-		restClient.get().uri("/headerregex").header("X-MyHeader", "foo").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Myheader", "foo");
-				});
+		restClient.get()
+			.uri("/headerregex")
+			.header("X-MyHeader", "foo")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("X-Myheader", "foo");
+			});
 	}
 
 	@Test
 	public void cookieRegexWorks() {
 		restClient.get().uri("/cookieregex").exchange().expectStatus().isNotFound();
-		restClient.get().uri("/cookieregex").cookie("mycookie", "foo").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("Cookie", "mycookie=foo");
-				});
+		restClient.get()
+			.uri("/cookieregex")
+			.cookie("mycookie", "foo")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("Cookie", "mycookie=foo");
+			});
 	}
 
 	@Test
 	public void rewritePathWorks() {
-		restClient.get().uri("/foo/get").header("Host", "www.rewritepath.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Test", "rewritepath");
-				});
+		restClient.get()
+			.uri("/foo/get")
+			.header("Host", "www.rewritepath.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("X-Test", "rewritepath");
+			});
 	}
 
 	@Test
 	public void rewritePathPostWorks() {
-		restClient.post().uri("/baz/post").bodyValue("hello").header("Host", "www.rewritepathpost.org").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).containsEntry("data", "hello");
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("X-Test", "rewritepathpost");
-				});
+		restClient.post()
+			.uri("/baz/post")
+			.bodyValue("hello")
+			.header("Host", "www.rewritepathpost.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				assertThat(map).containsEntry("data", "hello");
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("X-Test", "rewritepathpost");
+			});
 	}
 
 	@Test
 	public void rewritePathPostLocalWorks() {
-		restClient.post().uri("/baz/post").bodyValue("hello").header("Host", "www.rewritepathpostlocal.org").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					assertThat(map).containsEntry("data", "hello");
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsEntry("x-test", "rewritepathpostlocal");
-				});
+		restClient.post()
+			.uri("/baz/localpost")
+			.bodyValue("hello")
+			.header("Host", "www.rewritepathpostlocal.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				assertThat(map).containsEntry("data", "hello");
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsEntry("x-test", "rewritepathpostlocal");
+			});
 	}
 
 	@Test
 	public void forwardedHeadersWork() {
-		restClient.get().uri("/headers").header("test", "forwarded").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).containsKeys(ForwardedRequestHeadersFilter.FORWARDED_HEADER,
-							XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER,
-							XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
-							XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
-							XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER);
-					assertThat(headers.get(ForwardedRequestHeadersFilter.FORWARDED_HEADER)).asString()
-							.contains("proto=http").contains("host=\"localhost:").contains("for=\"127.0.0.1:");
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER)).asString()
-							.isEqualTo("localhost:" + this.port);
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER)).asString()
-							.isEqualTo(String.valueOf(this.port));
-					assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER).toString())
-							.asString().isEqualTo("http");
-				});
+		restClient.get()
+			.uri("/headers")
+			.header("test", "forwarded")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).containsKeys(ForwardedRequestHeadersFilter.FORWARDED_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER,
+						XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER);
+				assertThat(headers.get(ForwardedRequestHeadersFilter.FORWARDED_HEADER)).asString()
+					.contains("proto=http")
+					.contains("host=\"localhost:")
+					.contains("for=\"127.0.0.1:");
+				assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER)).asString()
+					.isEqualTo("localhost:" + this.port);
+				assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER)).asString()
+					.isEqualTo(String.valueOf(this.port));
+				assertThat(headers.get(XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER).toString()).asString()
+					.isEqualTo("http");
+			});
 	}
 
 	@Test
 	public void requestSizeWorks() {
-		restClient.post().uri("/post").bodyValue("123456").header("test", "requestsize").exchange().expectStatus()
-				.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE).expectHeader().valueMatches("errormessage",
-						"Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
+		restClient.post()
+			.uri("/post")
+			.bodyValue("123456")
+			.header("test", "requestsize")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.expectHeader()
+			.valueMatches("errormessage",
+					"Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
 	}
 
 	@Test
 	public void requestHeaderSizeWorks() {
-		restClient.get().uri("/headers").header("test", "requestheadersize")
-				.header("X-AnyHeader",
-						"11111111112222222222333333333344444444445555555555666666666677777777778888888888")
-				.exchange().expectStatus().isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE).expectHeader()
-				.valueMatches("errormessage",
-						"Request Header/s size is larger than permissible limit (.*). Request Header/s size for 'x-anyheader' is .*");
-		restClient.get().uri("/headers").header("test", "requestheadersize")
-				.header("X-AnyHeader", "111111111122222222223333333333444444444455555555556666666666").exchange()
-				.expectStatus().isOk();
+		restClient.get()
+			.uri("/headers")
+			.header("test", "requestheadersize")
+			.header("X-AnyHeader", "11111111112222222222333333333344444444445555555555666666666677777777778888888888")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE)
+			.expectHeader()
+			.valueMatches("errormessage",
+					"Request Header/s size is larger than permissible limit (.*). Request Header/s size for 'x-anyheader' is .*");
+		restClient.get()
+			.uri("/headers")
+			.header("test", "requestheadersize")
+			.header("X-AnyHeader", "111111111122222222223333333333444444444455555555556666666666")
+			.exchange()
+			.expectStatus()
+			.isOk();
 	}
 
 	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
@@ -469,7 +631,9 @@ public class ServerMvcIntegrationTests {
 	void multipartFormDataRestTemplateWorks() {
 		MultiValueMap<String, HttpEntity<?>> formData = createMultipartData();
 		RequestEntity<MultiValueMap<String, HttpEntity<?>>> request = RequestEntity.post("/post")
-				.contentType(MULTIPART_FORM_DATA).header("Host", "www.testform.org").body(formData);
+			.contentType(MULTIPART_FORM_DATA)
+			.header("Host", "www.testform.org")
+			.body(formData);
 		ResponseEntity<Map> response = restTemplate.exchange(request, Map.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertMultipartData(response.getBody());
@@ -477,8 +641,13 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void redirectToWorks() {
-		restClient.get().uri("/anything/redirect").exchange().expectStatus().isEqualTo(HttpStatus.MOVED_PERMANENTLY)
-				.expectHeader().valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
+		restClient.get()
+			.uri("/anything/redirect")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.MOVED_PERMANENTLY)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
 	}
 
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
@@ -491,47 +660,84 @@ public class ServerMvcIntegrationTests {
 	private void assertMultipartData(Map responseBody) {
 		Map<String, Object> files = (Map<String, Object>) responseBody.get("files");
 		assertThat(files).containsKey("imgpart");
-		String file = (String) files.get("imgpart");
-		assertThat(file).startsWith("data:").contains(";base64,");
+		Object imgpart = files.get("imgpart");
+		if (imgpart instanceof List l) {
+			String file = (String) l.get(0);
+			assertThat(isPNG(file.getBytes()));
+		}
+		else {
+			String file = (String) imgpart;
+			assertThat(file).startsWith("data:").contains(";base64,");
+		}
+	}
+
+	private static boolean isPNG(byte[] bytes) {
+		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
+		return Arrays.equals(pngSignature, header);
 	}
 
 	@Test
 	public void removeRequestHeaderWorks() {
-		restClient.get().uri("/anything/removerequestheader").header("X-Request-Foo", "Bar").exchange().expectStatus()
-				.isOk().expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> map = res.getResponseBody();
-					Map<String, Object> headers = getMap(map, "headers");
-					assertThat(headers).doesNotContainKey("X-Request-Foo");
-				});
+		restClient.get()
+			.uri("/anything/removerequestheader")
+			.header("X-Request-Foo", "Bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> map = res.getResponseBody();
+				Map<String, Object> headers = getMap(map, "headers");
+				assertThat(headers).doesNotContainKey("X-Request-Foo");
+			});
 	}
 
 	@Test
 	public void setRequestHeaderWorks() {
-		restClient.get().uri("/headers").header("test", "setrequestheader").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).doesNotContainEntry("X-Test", "value1");
-					assertThat(headers).containsEntry("X-Test", "value2");
-				});
+		restClient.get()
+			.uri("/headers")
+			.header("test", "setrequestheader")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).doesNotContainEntry("X-Test", "value1");
+				assertThat(headers).containsEntry("X-Test", "value2");
+			});
 	}
 
 	@Test
 	public void setRequestHeaderHostWorks() {
-		restClient.get().uri("/headers").header("Host", "www.setrequesthostheader.org").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("Host", "otherhost.io");
-				});
+		restClient.get()
+			.uri("/headers")
+			.header("Host", "www.setrequesthostheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("Host", "otherhost.io");
+			});
 	}
 
 	@Test
 	public void setResponseHeaderWorks() {
-		restClient.get().uri("/anything/setresponseheader").header("test", "setresponseheader").exchange()
-				.expectStatus().isOk().expectBody(Map.class).consumeWith(res -> {
-					HttpHeaders headers = res.getResponseHeaders();
-					assertThat(headers).doesNotContainEntry("X-Test", List.of("value1"));
-					assertThat(headers).containsEntry("X-Test", List.of("value2"));
-				});
+		restClient.get()
+			.uri("/anything/setresponseheader")
+			.header("test", "setresponseheader")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				HttpHeaders headers = res.getResponseHeaders();
+				assertThat(headers).doesNotContainEntry("X-Test", List.of("value1"));
+				assertThat(headers).containsEntry("X-Test", List.of("value2"));
+			});
 	}
 
 	@Test
@@ -541,38 +747,70 @@ public class ServerMvcIntegrationTests {
 	}
 
 	private void testNestedRoute(String nestedPath) {
-		restClient.get().uri("/anything/nested/" + nestedPath).header("test", "nested").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Test", nestedPath);
-				});
+		restClient.get()
+			.uri("/anything/nested/" + nestedPath)
+			.header("test", "nested")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Test", nestedPath);
+			});
 	}
 
 	@Test
 	public void removeRequestParameterWorks() {
-		restClient.get().uri("/anything/removerequestparameter?foo=bar").header("test", "removerequestparam").exchange()
-				.expectStatus().isOk().expectHeader().doesNotExist("foo");
+		restClient.get()
+			.uri("/anything/removerequestparameter?foo=bar")
+			.header("test", "removerequestparam")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.doesNotExist("foo");
 	}
 
 	@Test
 	public void removeRequestParameterPostWorks() {
-		restClient.post().uri("/post?foo=bar").bodyValue("hello").header("Host", "www.removerequestparampost.org")
-				.exchange().expectStatus().isOk().expectHeader().doesNotExist("foo").expectBody(Map.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).containsEntry("data", "hello");
-				});
+		restClient.post()
+			.uri("/post?foo=bar")
+			.bodyValue("hello")
+			.header("Host", "www.removerequestparampost.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.doesNotExist("foo")
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody()).containsEntry("data", "hello");
+			});
 	}
 
 	@Test
 	public void removeResponseHeaderWorks() {
-		restClient.get().uri("/anything/removeresponseheader").header("test", "removeresponseheader").exchange()
-				.expectStatus().isOk().expectHeader().doesNotExist("X-Test");
+		restClient.get()
+			.uri("/anything/removeresponseheader")
+			.header("test", "removeresponseheader")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.doesNotExist("X-Test");
 	}
 
 	@Test
 	public void rewriteResponseHeaderWorks() {
-		restClient.get().uri("/headers").header("test", "rewriteresponseheader").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
+		restClient.get()
+			.uri("/headers")
+			.header("test", "rewriteresponseheader")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Request-Foo", "/42?user=ford&password=***&flag=true");
 	}
 
 	@Test
@@ -589,75 +827,126 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void mapRequestHeaderWorks() {
-		restClient.get().uri("/anything/maprequestheader").header("X-Foo", "fooval").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Bar", "fooval");
-				});
+		restClient.get()
+			.uri("/anything/maprequestheader")
+			.header("X-Foo", "fooval")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Bar", "fooval");
+			});
 	}
 
 	@Test
 	public void dedupeResponseHeaderWorks() {
-		restClient.get().uri("/headers").header("Host", "www.deduperesponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader().valueEquals("Access-Control-Allow-Credentials", "true").expectHeader()
-				.valueEquals("Access-Control-Allow-Origin", "https://example.org").expectHeader()
-				.valueEquals("Scout-Cookie", "S'mores").expectHeader()
-				.valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
+		restClient.get()
+			.uri("/headers")
+			.header("Host", "www.deduperesponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Access-Control-Allow-Credentials", "true")
+			.expectHeader()
+			.valueEquals("Access-Control-Allow-Origin", "https://example.org")
+			.expectHeader()
+			.valueEquals("Scout-Cookie", "S'mores")
+			.expectHeader()
+			.valueEquals("Next-Week-Lottery-Numbers", "4", "2", "42");
 	}
 
 	@Test
 	public void addRequestHeadersIfNotPresentWorks() {
-		restClient.get().uri("/headers").header("Host", "www.addrequestheadersifnotpresent.org")
-				.header("X-Request-Beta", "Value1").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					// this asserts that Value2 was not added
-					assertThat(headers).containsEntry("X-Request-Beta", "Value1");
-					assertThat(headers).containsKey("X-Request-Acme");
-					List<String> values = (List<String>) headers.get("X-Request-Acme");
-					assertThat(values).hasSize(4).containsOnly("ValueX", "ValueY", "ValueZ", "www");
-				});
+		restClient.get()
+			.uri("/headers")
+			.header("Host", "www.addrequestheadersifnotpresent.org")
+			.header("X-Request-Beta", "Value1")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				// this asserts that Value2 was not added
+				assertThat(headers).containsEntry("X-Request-Beta", "Value1");
+				assertThat(headers).containsKey("X-Request-Acme");
+				List<String> values = (List<String>) headers.get("X-Request-Acme");
+				assertThat(values).hasSize(4).containsOnly("ValueX", "ValueY", "ValueZ", "www");
+			});
 	}
 
 	@Test
 	public void rewriteLocationResponseHeaderWorks() {
-		restClient.get().uri("/anything/rewritelocationresponseheader")
-				.header("Host", "test1.rewritelocationresponseheader.org").exchange().expectStatus().isOk()
-				.expectHeader()
-				.valueEquals("Location", "https://test1.rewritelocationresponseheader.org/some/object/id");
+		restClient.get()
+			.uri("/anything/rewritelocationresponseheader")
+			.header("Host", "test1.rewritelocationresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Location", "https://test1.rewritelocationresponseheader.org/some/object/id");
 	}
 
 	@Test
 	public void readBodyWorks() {
 		Event messageEvent = new Event("message", "bar");
 
-		restClient.post().uri("/events").bodyValue(messageEvent).exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-Foo", "message").expectBody(Event.class)
-				.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageEvent));
+		restClient.post()
+			.uri("/events")
+			.bodyValue(messageEvent)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Foo", "message")
+			.expectBody(Event.class)
+			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageEvent));
 
 		Event messageChannelEvent = new Event("message.channel", "baz");
 
-		restClient.post().uri("/events").bodyValue(messageChannelEvent).exchange().expectStatus().isOk().expectHeader()
-				.valueEquals("X-Channel-Foo", "message.channel").expectBody(Event.class)
-				.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageChannelEvent));
+		restClient.post()
+			.uri("/events")
+			.bodyValue(messageChannelEvent)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Channel-Foo", "message.channel")
+			.expectBody(Event.class)
+			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo(messageChannelEvent));
 
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyStringWorks() {
-		restClient.post().uri("/post").header("Host", "www.modifyrequestbodystring.org").bodyValue("hello").exchange()
-				.expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
+		restClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbodystring.org")
+			.bodyValue("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data", "HELLOHELLO"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void rewriteRequestBodyObjectWorks() {
-		restClient.post().uri("/post").header("Host", "www.modifyrequestbodyobject.org").bodyValue("hello world")
-				.exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data",
-						"{\"message\":\"HELLO WORLD\"}"));
+		restClient.post()
+			.uri("/post")
+			.header("Host", "www.modifyrequestbodyobject.org")
+			.bodyValue("hello world")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> assertThat(result.getResponseBody()).containsEntry("data",
+					"{\"message\":\"HELLO WORLD\"}"));
 	}
 
 	@Test
@@ -667,45 +956,71 @@ public class ServerMvcIntegrationTests {
 
 	@Test
 	public void forwardNon200StatusWorks() {
-		restClient.get().uri("/doforward2").exchange().expectStatus().isCreated().expectBody(String.class)
-				.isEqualTo("hello2");
+		restClient.get()
+			.uri("/doforward2")
+			.exchange()
+			.expectStatus()
+			.isCreated()
+			.expectBody(String.class)
+			.isEqualTo("hello2");
 	}
 
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void queryParamWorks() {
-		restClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map responseBody = result.getResponseBody();
-					assertThat(responseBody).containsKey("args");
-					Map args = getMap(responseBody, "args");
-					assertThat(args).containsKey("foo");
-					assertThat(args.get("foo")).isEqualTo("bar");
-				});
+		restClient.get()
+			.uri("/get?foo=bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map responseBody = result.getResponseBody();
+				assertThat(responseBody).containsKey("args");
+				Map args = getMap(responseBody, "args");
+				assertThat(args).containsKey("foo");
+				assertThat(args.get("foo")).isEqualTo("bar");
+			});
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void queryParamWithSpecialCharactersWorks() {
-		restClient.get().uri("/get?myparam= &intlparam=æøå").exchange().expectStatus().isOk().expectBody(Map.class)
-				.consumeWith(result -> {
-					Map responseBody = result.getResponseBody();
-					assertThat(responseBody).containsKey("args");
-					Map args = getMap(responseBody, "args");
-					assertThat(args).containsKey("myparam");
-					assertThat(args.get("myparam")).isEqualTo(" ");
-					assertThat(args).containsKey("intlparam");
-					assertThat(args.get("intlparam")).isEqualTo("æøå");
-				});
+		restClient.get()
+			.uri("/get?myparam= &intlparam=æøå")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map responseBody = result.getResponseBody();
+				assertThat(responseBody).containsKey("args");
+				Map args = getMap(responseBody, "args");
+				assertThat(args).containsKey("myparam");
+				assertThat(args.get("myparam")).isEqualTo(" ");
+				assertThat(args).containsKey("intlparam");
+				assertThat(args.get("intlparam")).isEqualTo("æøå");
+			});
 	}
 
 	@Test
 	public void clientResponseBodyAttributeWorks() {
-		restClient.get().uri("/anything/readresponsebody").header("X-Foo", "fooval").exchange().expectStatus().isOk()
-				.expectBody(Map.class).consumeWith(res -> {
-					Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
-					assertThat(headers).containsEntry("X-Foo", "FOOVAL");
-				});
+		restClient.get()
+			.uri("/anything/readresponsebody")
+			.header("X-Foo", "fooval")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
+				assertThat(headers).containsEntry("X-Foo", "FOOVAL");
+			});
+	}
+
+	@Test
+	void logsArtifactDeprecatedWarning(CapturedOutput output) {
+		assertThat(output).contains("spring-cloud-gateway-server-mvc is deprecated");
 	}
 
 	@SpringBootConfiguration
@@ -714,13 +1029,13 @@ public class ServerMvcIntegrationTests {
 	protected static class TestConfiguration {
 
 		@Bean
-		TestHandler testHandler() {
-			return new TestHandler();
+		StaticPortController staticPortController() {
+			return new StaticPortController();
 		}
 
 		@Bean
-		RetryController retryController() {
-			return new RetryController();
+		TestHandler testHandler() {
+			return new TestHandler();
 		}
 
 		@Bean
@@ -742,7 +1057,7 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> nonGatewayRouterFunctions2() {
 			return route(GET("/hello2"), request -> ServerResponse.status(HttpStatus.CREATED).body("hello2"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello2");
+				.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "hello2");
 		}
 
 		@Bean
@@ -798,8 +1113,8 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testsetpath")
 					.route(POST("/mycustompath{extra}").and(host("**.setpathpost.org")), http())
-					.filter(new HttpbinUriResolver())
 					.filter(setPath("/{extra}"))
+					.filter(new HttpbinUriResolver())
 					.build();
 			// @formatter:on
 		}
@@ -807,11 +1122,12 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
 			// @formatter:off
-			return route(GET("/long/path/to/get"), http())
-					.filter(new HttpbinUriResolver())
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefix.org")), http())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefix"))
-					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "teststripprefix");
+					.filter(new HttpbinUriResolver())
+					.build();
 			// @formatter:on
 		}
 
@@ -820,9 +1136,21 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("teststripprefixpost")
 					.route(POST("/long/path/to/post").and(host("**.stripprefixpost.org")), http())
-					.filter(new HttpbinUriResolver())
 					.filter(stripPrefix(3))
 					.filter(addRequestHeader("X-Test", "stripPrefixPost"))
+					.filter(new HttpbinUriResolver())
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefixLb() {
+			// @formatter:off
+			return route("teststripprefix")
+					.route(GET("/long/path/to/get").and(host("**.stripprefixlb.org")), http())
+					.filter(stripPrefix(3))
+					.filter(addRequestHeader("X-Test", "stripPrefixLb"))
+					.filter(lb("httpbin"))
 					.build();
 			// @formatter:on
 		}
@@ -874,7 +1202,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
 			// @formatter:off
 			return route("testcircuitbreakerfallback")
-					.route(path("/anything/circuitbreakerfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.route(path("/anything/circuitbreakerfallback"), http())
+					.before(uri("https://nonexistantdomain.com1234"))
 					.filter(circuitBreaker("mycb1", "/hello"))
 					.build();
 			// @formatter:on
@@ -884,7 +1213,8 @@ public class ServerMvcIntegrationTests {
 		public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallbackToGatewayRoute() {
 			// @formatter:off
 			return route("testcircuitbreakergatewayfallback")
-					.route(path("/anything/circuitbreakergatewayfallback"), http(URI.create("https://nonexistantdomain.com1234")))
+					.route(path("/anything/circuitbreakergatewayfallback"), http())
+					.before(uri("https://nonexistantdomain.com1234"))
 					.filter(circuitBreaker("mycb2", URI.create("forward:/anything/gatewayfallback")))
 					.build()
 				.and(route("testgatewayfallback")
@@ -904,19 +1234,6 @@ public class ServerMvcIntegrationTests {
 					//.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setFallbackUri("forward:/inCaseOfFailureUseThis").setStatusCodes("500", "NOT_FOUND")))
 					.filter(setPath("/delay/5"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testcircuitbreakernofallback");
-			// @formatter:on
-		}
-
-		@Bean
-		public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
-			// @formatter:off
-			return route("testretry")
-					.route(path("/retry"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(retry(3))
-					//.filter(retry(config -> config.setRetries(3).setSeries(Set.of(HttpStatus.Series.SERVER_ERROR)).setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))))
-					.filter(prefixPath("/do"))
-					.build();
 			// @formatter:on
 		}
 
@@ -1006,8 +1323,7 @@ public class ServerMvcIntegrationTests {
 			// @formatter:off
 			return route("testform")
 					.POST("/post", host("**.testform.org"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(prefixPath("/test"))
+					.filter(new HttpbinUriResolver())
 					.filter(addRequestHeader("X-Test", "form"))
 					.build();
 			// @formatter:on
@@ -1171,8 +1487,8 @@ public class ServerMvcIntegrationTests {
 			return route("requestheadertorequesturi")
 					.route(cloudFoundryRouteService().and(host("**.requestheadertorequesturi.org")), http())
 					//.before(new HttpbinUriResolver()) NO URI RESOLVER!
-					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.filter(setPath("/hello"))
+					.before(requestHeaderToRequestUri("X-CF-Forwarded-Url"))
 					.build();
 			// @formatter:on
 		}
@@ -1261,12 +1577,12 @@ public class ServerMvcIntegrationTests {
 			return route("testmodifyrequestbodystring")
 					.POST("/post", host("**.modifyrequestbodystring.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase() + s.toUpperCase()))
+					.before(modifyRequestBody(String.class, String.class, null, (request, s) -> s.toUpperCase(Locale.ROOT) + s.toUpperCase(Locale.ROOT)))
 					.build().and(
 				route("testmodifyrequestbodyobject")
 					.POST("/post", host("**.modifyrequestbodyobject.org"), http())
 					.before(new HttpbinUriResolver())
-					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase())))
+					.before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE, (request, s) -> new Hello(s.toUpperCase(Locale.ROOT))))
 					.build());
 			// @formatter:on
 		}
@@ -1390,6 +1706,16 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@RestController
+	protected static class StaticPortController {
+
+		@GetMapping(path = "/anything/staticport", produces = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<?> messageEvents() {
+			return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+		}
+
+	}
+
+	@RestController
 	protected static class EventController {
 
 		@PostMapping(path = "/do/events", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -1400,37 +1726,6 @@ public class ServerMvcIntegrationTests {
 		@PostMapping(path = "/do/events/channel", produces = MediaType.APPLICATION_JSON_VALUE)
 		public ResponseEntity<Event> messageChannelEvents(@RequestBody Event e) {
 			return ResponseEntity.ok().header("X-Channel-Foo", e.foo()).body(e);
-		}
-
-	}
-
-	@RestController
-	protected static class RetryController {
-
-		Log log = LogFactory.getLog(getClass());
-
-		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
-
-		@GetMapping("/do/retry")
-		public ResponseEntity<String> retry(@RequestParam("key") String key,
-				@RequestParam(name = "count", defaultValue = "3") int count,
-				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
-			AtomicInteger num = getCount(key);
-			int i = num.incrementAndGet();
-			log.warn("Retry count: " + i);
-			String body = String.valueOf(i);
-			if (i < count) {
-				HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-				if (failStatus != null) {
-					httpStatus = HttpStatus.resolve(failStatus);
-				}
-				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
-			}
-			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
-		}
-
-		AtomicInteger getCount(String key) {
-			return map.computeIfAbsent(key, s -> new AtomicInteger());
 		}
 
 	}

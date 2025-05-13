@@ -1,6 +1,6 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
       - id: add_request_header_test
         uri: ${test.uri}

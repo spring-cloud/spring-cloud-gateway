@@ -1,0 +1,49 @@
+[[httpheadersfilters]]
+= HttpHeadersFilters
+
+`HttpHeadersFilters` are applied to the requests before sending them downstream, such as in the `NettyRoutingFilter`.
+
+[[forwarded-headers-filter]]
+== Forwarded Headers Filter
+The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header.
+
+The `Forwarded by` header part can be enabled by setting the following property to true (defaults to false):
+
+- `spring.cloud.gateway.forwarded.by.enabled=true`
+
+[[removehopbyhop-headers-filter]]
+== RemoveHopByHop Headers Filter
+The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The default list of headers that is removed comes from the https://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-14#section-7.1.3[IETF].
+
+.The default removed headers are:
+*  Connection
+*  Keep-Alive
+*  Proxy-Authenticate
+*  Proxy-Authorization
+*  TE
+*  Trailer
+*  Transfer-Encoding
+*  Upgrade
+
+To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
+
+[[xforwarded-headers-filter]]
+== XForwarded Headers Filter
+The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers.
+
+Creating of individual headers can be controlled by the following boolean properties (defaults to true):
+
+- `spring.cloud.gateway.x-forwarded.for-enabled`
+- `spring.cloud.gateway.x-forwarded.host-enabled`
+- `spring.cloud.gateway.x-forwarded.port-enabled`
+- `spring.cloud.gateway.x-forwarded.proto-enabled`
+- `spring.cloud.gateway.x-forwarded.prefix-enabled`
+
+Appending multiple headers can be controlled by the following boolean properties (defaults to true):
+
+- `spring.cloud.gateway.x-forwarded.for-append`
+- `spring.cloud.gateway.x-forwarded.host-append`
+- `spring.cloud.gateway.x-forwarded.port-append`
+- `spring.cloud.gateway.x-forwarded.proto-append`
+- `spring.cloud.gateway.x-forwarded.prefix-append`
+

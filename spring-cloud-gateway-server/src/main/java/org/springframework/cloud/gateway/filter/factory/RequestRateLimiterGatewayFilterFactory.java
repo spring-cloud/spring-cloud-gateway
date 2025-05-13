@@ -34,7 +34,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
  */
-@ConfigurationProperties("spring.cloud.gateway.filter.request-rate-limiter")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.request-rate-limiter")
 public class RequestRateLimiterGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
@@ -94,7 +94,7 @@ public class RequestRateLimiterGatewayFilterFactory
 		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter, defaultRateLimiter);
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
-				.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
+			.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
 
 		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY).flatMap(key -> {
 			if (EMPTY_KEY.equals(key)) {

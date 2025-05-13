@@ -16,8 +16,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -38,6 +43,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+/**
+ * Test class for {@link QueryRoutePredicateFactory} for <code>regex</code> parameter.
+ *
+ * @see QueryRoutePredicateFactory
+ */
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @DirtiesContext
 @ExtendWith(OutputCaptureExtension.class)
@@ -45,21 +55,36 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 	@Test
 	public void noQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
+		testClient.get()
+			.uri("/get")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
 	@Test
 	public void queryParamWorks() {
-		testClient.get().uri("/get?foo=bar").exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "foo_query_param");
+		testClient.get()
+			.uri("/get?foo=bar")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "foo_query_param");
 	}
 
 	@Test
 	public void emptyQueryParamWorks(CapturedOutput output) {
-		testClient.get().uri("/get?foo").exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER,
-				"default_path_to_httpbin");
+		testClient.get()
+			.uri("/get?foo")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "default_path_to_httpbin");
 		assertThat(output).doesNotContain("Error applying predicate for route: foo_query_param");
 	}
 
@@ -72,6 +97,31 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 		assertThat(predicate.toString()).contains("Query: param=myparam regexp=myregexp");
 	}
 
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setParam("myparam");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -82,8 +132,9 @@ public class QueryRoutePredicateFactoryTests extends BaseWebClientTests {
 
 		@Bean
 		RouteLocator queryRouteLocator(RouteLocatorBuilder builder) {
-			return builder.routes().route("foo_query_param",
-					r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri)).build();
+			return builder.routes()
+				.route("foo_query_param", r -> r.query("foo", "bar").filters(f -> f.prefixPath("/httpbin")).uri(uri))
+				.build();
 		}
 
 	}

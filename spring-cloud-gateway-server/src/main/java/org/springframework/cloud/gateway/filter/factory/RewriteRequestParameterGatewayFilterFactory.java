@@ -26,10 +26,14 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 /**
  * @author Fredrich Ombico
@@ -59,20 +63,32 @@ public class RewriteRequestParameterGatewayFilterFactory
 				ServerHttpRequest req = exchange.getRequest();
 
 				UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(req.getURI());
-				if (req.getQueryParams().containsKey(config.getName())) {
-					uriComponentsBuilder.replaceQueryParam(config.getName(), config.getReplacement());
+
+				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(req.getQueryParams());
+				if (queryParams.containsKey(config.getName())) {
+					queryParams.remove(config.getName());
+					queryParams.add(config.getName(), config.getReplacement());
 				}
 
-				URI uri = uriComponentsBuilder.build().toUri();
-				ServerHttpRequest request = req.mutate().uri(uri).build();
+				try {
+					MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+					URI uri = uriComponentsBuilder.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+						.build(true)
+						.toUri();
 
-				return chain.filter(exchange.mutate().request(request).build());
+					ServerHttpRequest request = req.mutate().uri(uri).build();
+					return chain.filter(exchange.mutate().request(request).build());
+				}
+				catch (IllegalArgumentException ex) {
+					throw new IllegalStateException("Invalid URI query: \"" + queryParams + "\"");
+				}
 			}
 
 			@Override
 			public String toString() {
 				return filterToStringCreator(RewriteRequestParameterGatewayFilterFactory.this)
-						.append(config.getName(), config.replacement).toString();
+					.append(config.getName(), config.replacement)
+					.toString();
 			}
 		};
 	}

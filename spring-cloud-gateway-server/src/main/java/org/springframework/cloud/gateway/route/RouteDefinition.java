@@ -56,6 +56,8 @@ public class RouteDefinition {
 
 	private int order = 0;
 
+	private boolean enabled = true;
+
 	public RouteDefinition() {
 	}
 
@@ -125,6 +127,14 @@ public class RouteDefinition {
 		this.metadata = metadata;
 	}
 
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -136,18 +146,19 @@ public class RouteDefinition {
 		RouteDefinition that = (RouteDefinition) o;
 		return this.order == that.order && Objects.equals(this.id, that.id)
 				&& Objects.equals(this.predicates, that.predicates) && Objects.equals(this.filters, that.filters)
-				&& Objects.equals(this.uri, that.uri) && Objects.equals(this.metadata, that.metadata);
+				&& Objects.equals(this.uri, that.uri) && Objects.equals(this.metadata, that.metadata)
+				&& Objects.equals(this.enabled, that.enabled);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.id, this.predicates, this.filters, this.uri, this.metadata, this.order);
+		return Objects.hash(this.id, this.predicates, this.filters, this.uri, this.metadata, this.order, this.enabled);
 	}
 
 	@Override
 	public String toString() {
 		return "RouteDefinition{" + "id='" + id + '\'' + ", predicates=" + predicates + ", filters=" + filters
-				+ ", uri=" + uri + ", order=" + order + ", metadata=" + metadata + '}';
+				+ ", uri=" + uri + ", order=" + order + ", metadata=" + metadata + ", enabled=" + enabled + '}';
 	}
 
 }

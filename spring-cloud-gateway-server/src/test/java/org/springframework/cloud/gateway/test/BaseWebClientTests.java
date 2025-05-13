@@ -42,6 +42,8 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -76,7 +78,12 @@ public class BaseWebClientTests {
 	protected void setup(ClientHttpConnector httpConnector, String baseUri) {
 		this.baseUri = baseUri;
 		this.webClient = WebClient.builder().clientConnector(httpConnector).baseUrl(this.baseUri).build();
-		this.testClient = WebTestClient.bindToServer(httpConnector).baseUrl(this.baseUri).build();
+		DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(this.baseUri);
+		uriBuilderFactory.setParserType(UriComponentsBuilder.ParserType.WHAT_WG);
+		this.testClient = WebTestClient.bindToServer(httpConnector)
+			.uriBuilderFactory(uriBuilderFactory)
+			.baseUrl(this.baseUri)
+			.build();
 	}
 
 	@Configuration(proxyBeanMethods = false)

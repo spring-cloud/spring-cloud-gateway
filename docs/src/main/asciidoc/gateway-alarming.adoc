@@ -1,0 +1,63 @@
+groups:
+  - name: Gateway_Service
+    rules:
+    - alert: Gateway Total Unsuccessful Requests Served
+      expr: sum(rate(spring_cloud_gateway_requests_seconds_count{outcome!="SUCCESSFUL"}[1m])) by (routeId, httpStatusCode, outcome, status)>1
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Total Unsuccessful Requests Served increases quickly"
+        description: "Unsuccessful Requests: routeId:{{ $labels.routeId }}, code:{{$labels.httpStatusCode}}, outcome:{{$labels.outcome}}, status:{{$labels.status}} : [{{ $value }}]."
+        value: "Current:{{$value}}"
+
+    - alert: Gateway QPS
+      expr: sum(rate(spring_cloud_gateway_requests_seconds_count[5m]))>10000
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "QPS increases quickly"
+        description: "QPS increases quickly: [{{ $value }}]."
+        value: "Current:{{$value}}"
+
+    - alert: Gateway Too many threads
+      expr: max(jvm_threads_live_threads)>220
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Too many threads"
+        description: "Too many threads: [{{ $value }}]."
+        value: "Current:{{$value}}"
+
+    - alert: Gateway minor GC
+      expr: max(rate(jvm_gc_pause_seconds_count{action="end of minor GC"}[5m]))*300>200
+      for: 1m
+      labels:
+         severity: warning
+      annotations:
+        summary: "minor GC has problem"
+        description: "minor GC has problem: [{{ $value }}]."
+        value: "Current:{{$value}}"
+
+    - alert: Gateway major GC
+      expr: max(rate(jvm_gc_pause_seconds_count{action="end of major GC"}[5m]))*300>10
+      for: 1m
+      labels:
+         severity: warning
+      annotations:
+        summary: "major GC has problem"
+        description: "major GC has problem: [{{ $value }}]."
+        value: "Current:{{$value}}"
+
+    - alert: Gateway Latency is too high
+      expr: (sum(rate(spring_cloud_gateway_requests_seconds_sum[30s])) by (routeId))/(sum(rate(spring_cloud_gateway_requests_seconds_count[30s])) by (routeId))*1000>5000
+      for: 30s
+      labels:
+        severity: critical
+      annotations:
+        summary: " Gateway Latency is too high"
+        description: " Gateway Latency is too high. routeId:{{ $labels.routeId }}. Latency is: [{{ $value }}] ms."
+        value: "Current:{{$value}} ms"
+

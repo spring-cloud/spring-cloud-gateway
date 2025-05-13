@@ -35,7 +35,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 /**
  * @author Spencer Gibb
  */
-@ConfigurationProperties("spring.cloud.gateway.set-status")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.set-status")
 public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
 
 	/**
@@ -78,8 +78,9 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
 					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
-						exchange.getResponse().getHeaders().set(originalStatusHeaderName,
-								singletonList(statusCode.value()).toString());
+						exchange.getResponse()
+							.getHeaders()
+							.set(originalStatusHeaderName, singletonList(statusCode.value()).toString());
 					}
 				}));
 			}
@@ -87,7 +88,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 			@Override
 			public String toString() {
 				return filterToStringCreator(SetStatusGatewayFilterFactory.this).append("status", config.getStatus())
-						.toString();
+					.toString();
 			}
 		};
 	}

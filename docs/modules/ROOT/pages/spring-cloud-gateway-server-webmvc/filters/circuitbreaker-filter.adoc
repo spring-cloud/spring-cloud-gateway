@@ -1,0 +1,223 @@
+[[spring-cloud-circuitbreaker-filter-factory]]
+= `CircuitBreaker` Filter
+
+The Spring Cloud CircuitBreaker GatewayFilter factory uses the Spring Cloud CircuitBreaker APIs to wrap Gateway routes in
+a circuit breaker. Spring Cloud CircuitBreaker supports multiple libraries that can be used with Spring Cloud Gateway. Spring Cloud supports Resilience4J out of the box.
+
+To enable the Spring Cloud CircuitBreaker filter, you need to place `spring-cloud-starter-circuitbreaker-reactor-resilience4j` on the classpath.
+The following example configures a Spring Cloud CircuitBreaker  filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: circuitbreakernofallback
+          uri: https://example.org
+          predicates:
+          - Path=/anything/circuitbreakernofallback
+          filters:
+          - CircuitBreaker=myCircuitBreaker
+----
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerNoFallback() {
+        return route("circuitbreakernofallback")
+            .route(path("/anything/circuitbreakernofallback"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker"))
+            .build();
+    }
+}
+----
+
+To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
+
+* https://cloud.spring.io/spring-cloud-circuitbreaker/reference/html/spring-cloud-circuitbreaker.html[Resilience4J Documentation]
+
+The Spring Cloud CircuitBreaker filter can also accept an optional `fallbackUri` parameter.
+Currently, only `forward:` schemed URIs are supported.
+If the fallback is called, the request is forwarded to the controller matched by the URI.
+The following example configures such a fallback:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: https://example.org
+          predicates:
+          - Path=/consumingServiceEndpoint
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: myCircuitBreaker
+              fallbackUri: forward:/inCaseOfFailureUseThis
+----
+
+The following listing does the same thing in Java:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import java.net.URI;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
+        return route("circuitbreaker_route")
+            .route(path("/consumingServiceEndpoint"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis")))
+            .build();
+    }
+}
+----
+
+This example forwards to the `/inCaseofFailureUseThis` URI when the circuit breaker fallback is called.
+
+CircuitBreaker also supports URI variables in the `fallbackUri`.
+This allows more complex routing options, like forwarding sections of the original host or url path using  https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/util/pattern/PathPattern.html[PathPattern expression].
+
+In the example below the call `consumingServiceEndpoint/users/1` will be redirected to `inCaseOfFailureUseThis/users/1`.
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import java.net.URI;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
+        return route("circuitbreaker_route")
+            .route(path("/consumingServiceEndpoint/{*segments}"), http())
+            .before(uri("https://example.org"))
+            .filter(circuitBreaker("myCircuitBreaker", URI.create("forward:/inCaseOfFailureUseThis/{segments}")))
+            .build();
+    }
+}
+----
+
+
+The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
+However, you can also reroute the request to a controller or handler in an external application, as follows:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallbackToGatewayRoute() {
+        return route("ingredients")
+                .route(path("/ingredients/**"), http())
+                .filter(lb("ingredients"))
+                .filter(circuitBreaker("fetchIngredients", URI.create("forward:/fallback")))
+                .build()
+            .and(route("ingredients-fallback")
+                .route(path("/fallback"), http())
+                .before(uri("https://localhost:9994"))
+                .build());
+    }
+}
+----
+
+In this example, there is no `fallback` endpoint or handler in the gateway application.
+However, there is one in another application, registered under `http://localhost:9994`.
+
+In case of the request being forwarded to fallback, the Spring Cloud CircuitBreaker Gateway filter also provides the `Throwable` that has caused it.
+It is added to the `ServerRequest` as the `MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR` attribute that can be used when handling the fallback within the gateway application.
+
+For the external controller/handler scenario, headers can be added with exception details.
+You can find more information on doing so in  the xref:spring-cloud-gateway-server-webmvc/filters/fallback-headers.adoc[FallbackHeaders Filters section].
+
+[[circuit-breaker-status-codes]]
+== Tripping The Circuit Breaker On Status Codes
+
+In some cases you might want to trip a circuit breaker based on the status code
+returned from the route it wraps.  The circuit breaker config object takes a list of
+status codes that if returned will cause the circuit breaker to be tripped.  When setting the
+status codes you want to trip the circuit breaker you can either use an integer with the status code
+value or the String representation of the `HttpStatus` enumeration.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: lb://backing-service:8088
+          predicates:
+          - Path=/consumingServiceEndpoint
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: myCircuitBreaker
+              fallbackUri: forward:/inCaseOfFailureUseThis
+              statusCodes:
+                - 500
+                - "NOT_FOUND"
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import java.net.URI;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallback() {
+        return route("circuitbreaker_route")
+                .route(path("/consumingServiceEndpoint"), http())
+                .filter(lb("backing-service"))
+				.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setFallbackUri("forward:/inCaseOfFailureUseThis").setStatusCodes("500", "NOT_FOUND")))
+                .build();
+    }
+}
+----
+

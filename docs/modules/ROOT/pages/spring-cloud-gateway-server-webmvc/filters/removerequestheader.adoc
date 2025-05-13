@@ -1,0 +1,48 @@
+[[removerequestheader-filter]]
+= `RemoveRequestHeader` GatewayFilter Factory
+:page-section-summary-toc: 1
+
+The `RemoveRequestHeader` filter takes a `name` parameter.
+It is the name of the header to be removed.
+The following listing configures a `RemoveRequestHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: removerequestheader_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - RemoveRequestHeader=X-Request-Foo
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRemoveRequestHeader() {
+        return route("removerequestheader_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(removeRequestHeader("X-Request-Foo"))
+            .build();
+    }
+}
+----
+
+This removes the `X-Request-Foo` header before it is sent downstream.
+

@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +74,11 @@ public abstract class MvcUtils {
 	public static final String GATEWAY_ATTRIBUTES_ATTR = qualify("gatewayAttributes");
 
 	/**
+	 * Gateway original request URL attribute name.
+	 */
+	public static final String GATEWAY_ORIGINAL_REQUEST_URL_ATTR = qualify("gatewayOriginalRequestUrl");
+
+	/**
 	 * Gateway request URL attribute name.
 	 */
 	public static final String GATEWAY_REQUEST_URL_ATTR = qualify("gatewayRequestUrl");
@@ -116,6 +122,14 @@ public abstract class MvcUtils {
 		}
 	}
 
+	public static ByteArrayInputStream getOrCacheBody(ServerRequest request) {
+		ByteArrayInputStream body = getAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR);
+		if (body != null) {
+			return body;
+		}
+		return cacheBody(request);
+	}
+
 	public static String expand(ServerRequest request, String template) {
 		Assert.notNull(request, "request may not be null");
 		Assert.notNull(template, "template may not be null");
@@ -144,7 +158,7 @@ public abstract class MvcUtils {
 
 	public static ApplicationContext getApplicationContext(ServerRequest request) {
 		WebApplicationContext webApplicationContext = RequestContextUtils
-				.findWebApplicationContext(request.servletRequest());
+			.findWebApplicationContext(request.servletRequest());
 		if (webApplicationContext == null) {
 			throw new IllegalStateException("No Application Context in request attributes");
 		}
@@ -165,16 +179,16 @@ public abstract class MvcUtils {
 		// attribute resetting in RequestPredicates
 		// computeIfAbsent if the used vanilla RouterFunctions.route()
 		Map<String, Object> attributes = (Map<String, Object>) request.attributes()
-				.computeIfAbsent(GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
+			.computeIfAbsent(GATEWAY_ATTRIBUTES_ATTR, s -> new HashMap<String, Object>());
 		return attributes;
 	}
 
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getUriTemplateVariables(ServerRequest request) {
 		Map<String, Object> reqUriTemplateVars = (Map<String, Object>) request.attributes()
-				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 		Map<String, Object> gatewayUriTemplateVars = (Map<String, Object>) getGatewayAttributes(request)
-				.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+			.get(URI_TEMPLATE_VARIABLES_ATTRIBUTE);
 		Map<String, Object> merged = mergeMaps(reqUriTemplateVars, gatewayUriTemplateVars);
 		return merged;
 	}
@@ -240,6 +254,13 @@ public abstract class MvcUtils {
 	public static void setRequestUrl(ServerRequest request, URI url) {
 		request.attributes().put(GATEWAY_REQUEST_URL_ATTR, url);
 		request.servletRequest().setAttribute(GATEWAY_REQUEST_URL_ATTR, url);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void addOriginalRequestUrl(ServerRequest request, URI url) {
+		LinkedHashSet<URI> urls = (LinkedHashSet<URI>) request.attributes()
+			.computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
+		urls.add(url);
 	}
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {

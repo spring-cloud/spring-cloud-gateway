@@ -16,9 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.security.Principal;
-
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
@@ -37,18 +36,29 @@ public abstract class TokenRelayFilterFunctions {
 
 	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay() {
+		return tokenRelay(null);
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay(String defaultClientRegistrationId) {
 		return (request, next) -> {
-			Principal principle = request.servletRequest().getUserPrincipal();
-			if (principle instanceof OAuth2AuthenticationToken token) {
-				String clientRegistrationId = token.getAuthorizedClientRegistrationId();
+			Authentication principal = (Authentication) request.servletRequest().getUserPrincipal();
+
+			String clientRegistrationId = defaultClientRegistrationId;
+			if (clientRegistrationId == null && principal instanceof OAuth2AuthenticationToken token) {
+				clientRegistrationId = token.getAuthorizedClientRegistrationId();
+			}
+			if (clientRegistrationId != null) {
 				OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest
-						.withClientRegistrationId(clientRegistrationId).principal(token).build();
+					.withClientRegistrationId(clientRegistrationId)
+					.principal(principal)
+					.build();
 				OAuth2AuthorizedClientManager clientManager = getApplicationContext(request)
-						.getBean(OAuth2AuthorizedClientManager.class);
+					.getBean(OAuth2AuthorizedClientManager.class);
 				OAuth2AuthorizedClient authorizedClient = clientManager.authorize(authorizeRequest);
 				OAuth2AccessToken accessToken = authorizedClient.getAccessToken();
 				ServerRequest modified = ServerRequest.from(request)
-						.headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken.getTokenValue())).build();
+					.headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken.getTokenValue()))
+					.build();
 				return next.handle(modified);
 			}
 			return next.handle(request);

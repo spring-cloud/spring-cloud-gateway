@@ -11,7 +11,7 @@ server:
 
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       httpclient:
         ssl:
           trustedX509Certificates:

@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author Thirunavukkarasu Ravichandran
  */
-public class RemoveRequestParameterGatewayFilterFactoryTests {
+class RemoveRequestParameterGatewayFilterFactoryTests {
 
 	private ServerWebExchange exchange;
 
@@ -46,7 +46,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	private ArgumentCaptor<ServerWebExchange> captor;
 
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		filterChain = mock(GatewayFilterChain.class);
 		captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(filterChain.filter(captor.capture())).thenReturn(Mono.empty());
@@ -54,9 +54,10 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterWorks() {
+	void removeRequestParameterFilterWorks() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
-				.queryParam("foo", singletonList("bar")).build();
+			.queryParam("foo", singletonList("bar"))
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");
@@ -69,7 +70,7 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterWorksWhenParamIsNotPresentInRequest() {
+	void removeRequestParameterFilterWorksWhenParamIsNotPresentInRequest() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
@@ -83,9 +84,11 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterShouldOnlyRemoveSpecifiedParam() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").queryParam("foo", "bar")
-				.queryParam("abc", "xyz").build();
+	void removeRequestParameterFilterShouldOnlyRemoveSpecifiedParam() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("abc", "xyz")
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");
@@ -99,9 +102,13 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 	}
 
 	@Test
-	public void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost").queryParam("foo", "bar")
-				.queryParam("aaa", "abc xyz").queryParam("bbb", "[xyz").queryParam("ccc", ",xyz").build();
+	void removeRequestParameterFilterShouldHandleRemainingParamsWhichRequiringEncoding() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("aaa", "abc xyz")
+			.queryParam("bbb", "[xyz")
+			.queryParam("ccc", ",xyz")
+			.build();
 		exchange = MockServerWebExchange.from(request);
 		NameConfig config = new NameConfig();
 		config.setName("foo");
@@ -114,6 +121,42 @@ public class RemoveRequestParameterGatewayFilterFactoryTests {
 		assertThat(actualRequest.getQueryParams()).containsEntry("aaa", singletonList("abc xyz"));
 		assertThat(actualRequest.getQueryParams()).containsEntry("bbb", singletonList("[xyz"));
 		assertThat(actualRequest.getQueryParams()).containsEntry("ccc", singletonList(",xyz"));
+	}
+
+	@Test
+	void removeRequestParameterFilterShouldHandleEncodedParameterName() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("baz[]", "qux")
+			.build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("baz[]");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("baz[]");
+		assertThat(actualRequest.getQueryParams()).containsEntry("foo", singletonList("bar"));
+	}
+
+	@Test
+	void removeRequestParameterFilterShouldMaintainEncodedParameters() {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost")
+			.queryParam("foo", "bar")
+			.queryParam("baz[]", "qux")
+			.build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("foo");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
+		assertThat(actualRequest.getQueryParams()).containsEntry("baz[]", singletonList("qux"));
 	}
 
 }

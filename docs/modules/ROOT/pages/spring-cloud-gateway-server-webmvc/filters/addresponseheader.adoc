@@ -1,0 +1,73 @@
+[[addresponseheader-filter]]
+= `AddResponseHeader` Filter
+
+The `AddResponseHeader` Filter takes a `name` and `value` parameter.
+The following example configures an `AddResponseHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_response_header_route
+          uri: https://example.org
+          predicates:
+          - Path=/anything/addresheader
+          filters:
+          - AddResponseHeader=X-Response-Red, Blue
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRespHeader() {
+        return route("add_response_header_route")
+            .GET("/anything/addresheader", http())
+            .before(uri("https://example.org"))
+            .after(addResponseHeader("X-Response-Red", "Blue"))
+            .build();
+    }
+}
+----
+
+This adds `X-Response-Red:Blue` header to the downstream response's headers for all matching requests.
+
+`AddResponseHeader` is aware of URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddResponseHeader` filter that uses a variable:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddRespHeader() {
+        return route("add_response_header_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .after(addResponseHeader("foo", "bar-{segment}"))
+            .build();
+    }
+}
+----
+

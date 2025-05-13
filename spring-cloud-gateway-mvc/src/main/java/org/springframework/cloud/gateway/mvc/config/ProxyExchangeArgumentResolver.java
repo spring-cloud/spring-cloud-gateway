@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019 the original author or authors.
+ * Copyright 2016-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -47,7 +49,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Set<String> autoForwardedHeaders;
 
-	private Set<String> sensitive;
+	private Set<String> excluded;
 
 	public ProxyExchangeArgumentResolver(RestTemplate builder) {
 		this.rest = builder;
@@ -62,8 +64,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
+	@Deprecated
+	public void setSensitive(Set<String> excluded) {
+		setExcluded(excluded);
+	}
+
+	public void setExcluded(Set<String> excluded) {
+		this.excluded = excluded;
 	}
 
 	@Override
@@ -77,15 +84,14 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
-		configureSensitive(proxy);
+		configureExcluded(proxy);
 		return proxy;
 	}
 
 	private Type type(MethodParameter parameter) {
 		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
-			type = param.getActualTypeArguments()[0];
+		if (type instanceof ParameterizedType parameterizedType) {
+			type = parameterizedType.getActualTypeArguments()[0];
 		}
 		return type;
 	}
@@ -96,7 +102,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		HttpHeaders headers = new HttpHeaders();
 		while (headerNames.hasMoreElements()) {
 			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header.toLowerCase())) {
+			if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
 				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
 			}
 		}
@@ -110,14 +116,14 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
-		if ((autoForwardedHeaders != null) && (autoForwardedHeaders.size() > 0)) {
+		if (!ObjectUtils.isEmpty(autoForwardedHeaders)) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
 		}
 	}
 
-	private void configureSensitive(final ProxyExchange<?> proxy) {
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
+	private void configureExcluded(final ProxyExchange<?> proxy) {
+		if (excluded != null) {
+			proxy.excluded(excluded.toArray(new String[0]));
 		}
 	}
 

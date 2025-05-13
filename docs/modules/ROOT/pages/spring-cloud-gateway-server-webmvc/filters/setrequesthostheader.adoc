@@ -1,0 +1,50 @@
+[[setrequesthostheader-filter]]
+= `SetRequestHostHeader` Filter
+
+There are certain situation when the host header may need to be overridden. In this situation, the `SetRequestHostHeader` filter can replace the existing host header with a specified value.
+The filter takes a `host` parameter.
+The following listing configures a `SetRequestHostHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: set_request_host_header_route
+          uri: http://localhost:8080
+          predicates:
+          - Path=/headers
+          filters:
+          - name: SetRequestHostHeader
+            args:
+              host: example.org
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHostHeader() {
+        return route("set_request_host_header_route")
+            .GET("/headers", http())
+            .before(uri("http://localhost:8080"))
+            .before(setRequestHostHeader("example.org"))
+            .build();
+    }
+}
+----
+
+The `SetRequestHostHeader` filter replaces the value of the host header with `example.org`.
+
+

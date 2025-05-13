@@ -33,6 +33,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy.FIFO;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.DISABLED;
 import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool.PoolType.FIXED;
 
@@ -80,8 +81,8 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 		ConnectionProvider connectionProvider = buildConnectionProvider(properties);
 
 		HttpClient httpClient = HttpClient.create(connectionProvider)
-				// TODO: move customizations to HttpClientCustomizers
-				.httpResponseDecoder(this::httpResponseDecoder);
+			// TODO: move customizations to HttpClientCustomizers
+			.httpResponseDecoder(this::httpResponseDecoder);
 
 		if (serverProperties.getHttp2().isEnabled()) {
 			httpClient = httpClient.protocol(HttpProtocol.HTTP11, HttpProtocol.H2);
@@ -170,13 +171,15 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 			// create either Fixed or Elastic pool
 			ConnectionProvider.Builder builder = ConnectionProvider.builder(pool.getName());
 			if (pool.getType() == FIXED) {
-				builder.maxConnections(pool.getMaxConnections()).pendingAcquireMaxCount(-1)
-						.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
+				builder.maxConnections(pool.getMaxConnections())
+					.pendingAcquireMaxCount(-1)
+					.pendingAcquireTimeout(Duration.ofMillis(pool.getAcquireTimeout()));
 			}
 			else {
 				// Elastic
-				builder.maxConnections(Integer.MAX_VALUE).pendingAcquireTimeout(Duration.ofMillis(0))
-						.pendingAcquireMaxCount(-1);
+				builder.maxConnections(Integer.MAX_VALUE)
+					.pendingAcquireTimeout(Duration.ofMillis(0))
+					.pendingAcquireMaxCount(-1);
 			}
 
 			if (pool.getMaxIdleTime() != null) {
@@ -187,6 +190,16 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 			}
 			builder.evictInBackground(pool.getEvictionInterval());
 			builder.metrics(pool.isMetrics());
+
+			// Define the pool leasing strategy
+			if (pool.getLeasingStrategy() == FIFO) {
+				builder.fifo();
+			}
+			else {
+				// LIFO
+				builder.lifo();
+			}
+
 			connectionProvider = builder.build();
 		}
 		return connectionProvider;

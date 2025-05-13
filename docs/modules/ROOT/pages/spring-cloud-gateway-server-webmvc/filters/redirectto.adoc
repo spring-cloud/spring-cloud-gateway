@@ -1,0 +1,49 @@
+[[redirectto-filter]]
+= `RedirectTo` Filter
+
+The `RedirectTo` filter takes two parameters, `status` and `url`.
+The `status` parameter should be a 300 series redirect HTTP code, such as 301.
+The `url` parameter should be a valid URL.
+This is the value of the `Location` header.
+For relative redirects, you should use `uri: no://op` as the uri of your route definition.
+The following listing configures a `RedirectTo` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: redirectto_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - RedirectTo=302, https://acme.org
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectTo() {
+        return route("redirectto_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .filter(redirectTo(302, URI.create("acme.org")))
+            .build();
+    }
+}
+----
+
+This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.

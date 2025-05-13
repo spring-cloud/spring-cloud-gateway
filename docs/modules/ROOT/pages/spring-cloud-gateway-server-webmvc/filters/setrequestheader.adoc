@@ -1,0 +1,88 @@
+[[setrequestheader-filter]]
+= `SetRequestHeader` Filter
+
+The `SetRequestHeader` filter takes `name` and `value` parameters.
+The following listing configures a `SetRequestHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: setrequestheader_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - SetRequestHeader=X-Request-Red, Blue
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHeader() {
+        return route("setrequestheader_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(setRequestHostHeader("X-Request-Red", "Blue"))
+            .build();
+    }
+}
+----
+
+This  filter replaces (rather than adding) all headers with the given name.
+So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+
+`SetRequestHeader` is aware of URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `SetRequestHeader` filter that uses a variable:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: setrequestheader_route
+        uri: https://example.org
+        predicates:
+        - Host: {segment}.myhost.org
+        filters:
+        - SetRequestHeader=X-Request-Red, Blue-{segment}
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetRequestHeader() {
+        return route("setrequestheader_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .before(setRequestHostHeader("X-Request-Red", "Blue-{segment}"))
+            .build();
+    }
+}
+----

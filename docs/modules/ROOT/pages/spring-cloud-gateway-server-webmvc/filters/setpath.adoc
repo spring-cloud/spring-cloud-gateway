@@ -1,0 +1,50 @@
+[[setpath-filter]]
+= `SetPath` Filter
+
+The `SetPath` filter takes a path `template` parameter.
+It offers a simple way to manipulate the request path by allowing templated segments of the path.
+This uses the URI templates from Spring Framework.
+Multiple matching segments are allowed.
+The following example configures a `SetPath` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: setpath_route
+          uri: https://example.org
+          predicates:
+          - Path=/red/{segment}
+          filters:
+          - SetPath=/{segment}
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsSetPath() {
+        return route("setpath_route")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(setPath("/{segment"))
+            .build();
+    }
+}
+----
+
+For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request.
+
+WARNING: If using the `lb()` filter, it needs to be after the `setPath()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

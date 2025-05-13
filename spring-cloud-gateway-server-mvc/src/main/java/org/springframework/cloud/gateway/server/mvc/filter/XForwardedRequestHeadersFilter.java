@@ -22,18 +22,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
-import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
-import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties.PREFIX;
-
-@ConfigurationProperties("spring.cloud.gateway.x-forwarded")
 public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestHttpHeadersFilter, Ordered {
 
 	/** Default http port. */
@@ -63,310 +58,15 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 	/** X-Forwarded-Prefix Header. */
 	public static final String X_FORWARDED_PREFIX_HEADER = "X-Forwarded-Prefix";
 
-	/** The order of the XForwardedHeadersFilter. */
-	private int order = 0;
+	private final XForwardedRequestHeadersFilterProperties properties;
 
-	/** If the XForwardedHeadersFilter is enabled. */
-	private boolean enabled = true;
-
-	/** If X-Forwarded-For is enabled. */
-	private boolean forEnabled = true;
-
-	/** If X-Forwarded-Host is enabled. */
-	private boolean hostEnabled = true;
-
-	/** If X-Forwarded-Port is enabled. */
-	private boolean portEnabled = true;
-
-	/** If X-Forwarded-Proto is enabled. */
-	private boolean protoEnabled = true;
-
-	/** If X-Forwarded-Prefix is enabled. */
-	private boolean prefixEnabled = true;
-
-	/** If appending X-Forwarded-For as a list is enabled. */
-	private boolean forAppend = true;
-
-	/** If appending X-Forwarded-Host as a list is enabled. */
-	private boolean hostAppend = true;
-
-	/** If appending X-Forwarded-Port as a list is enabled. */
-	private boolean portAppend = true;
-
-	/** If appending X-Forwarded-Proto as a list is enabled. */
-	private boolean protoAppend = true;
-
-	/** If appending X-Forwarded-Prefix as a list is enabled. */
-	private boolean prefixAppend = true;
-
-	@Deprecated
-	public XForwardedRequestHeadersFilter() {
-		this(new XForwardedRequestHeadersFilterProperties());
+	public XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties properties) {
+		this.properties = properties;
 	}
 
-	public XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props) {
-		// TODO: remove individual properties in 4.2.0
-		// this.properties = properties;
-		PropertyMapper map = PropertyMapper.get();
-		map.from(props::getOrder).to(o -> this.order = o);
-		map.from(props::isEnabled).to(b -> this.enabled = b);
-		map.from(props::isForEnabled).to(b -> this.forEnabled = b);
-		map.from(props::isHostEnabled).to(b -> this.hostEnabled = b);
-		map.from(props::isPortEnabled).to(b -> this.portEnabled = b);
-		map.from(props::isProtoEnabled).to(b -> this.protoEnabled = b);
-		map.from(props::isPrefixEnabled).to(b -> this.prefixEnabled = b);
-		map.from(props::isForAppend).to(b -> this.forAppend = b);
-		map.from(props::isHostAppend).to(b -> this.hostAppend = b);
-		map.from(props::isPortAppend).to(b -> this.portAppend = b);
-		map.from(props::isProtoAppend).to(b -> this.protoAppend = b);
-		map.from(props::isPrefixAppend).to(b -> this.prefixAppend = b);
-	}
-
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".order")
 	@Override
 	public int getOrder() {
-		return this.order;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setOrder(int)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".enabled")
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isForEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-enabled")
-	public boolean isForEnabled() {
-		return forEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setForEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setForEnabled(boolean forEnabled) {
-		this.forEnabled = forEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isHostEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-enabled")
-	public boolean isHostEnabled() {
-		return hostEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setHostEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setHostEnabled(boolean hostEnabled) {
-		this.hostEnabled = hostEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isPortEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-enabled")
-	public boolean isPortEnabled() {
-		return portEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setPortEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setPortEnabled(boolean portEnabled) {
-		this.portEnabled = portEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isProtoEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-enabled")
-	public boolean isProtoEnabled() {
-		return protoEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setProtoEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setProtoEnabled(boolean protoEnabled) {
-		this.protoEnabled = protoEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isPrefixEnabled()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-enabled")
-	public boolean isPrefixEnabled() {
-		return prefixEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setPrefixEnabled(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setPrefixEnabled(boolean prefixEnabled) {
-		this.prefixEnabled = prefixEnabled;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isForAppend()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".for-append")
-	public boolean isForAppend() {
-		return forAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setForAppend(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setForAppend(boolean forAppend) {
-		this.forAppend = forAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isHostAppend()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".host-append")
-	public boolean isHostAppend() {
-		return hostAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setHostAppend(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setHostAppend(boolean hostAppend) {
-		this.hostAppend = hostAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isPortAppend()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".port-append")
-	public boolean isPortAppend() {
-		return portAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setPortAppend(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setPortAppend(boolean portAppend) {
-		this.portAppend = portAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isProtoAppend()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".proto-append")
-	public boolean isProtoAppend() {
-		return protoAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setProtoAppend(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setProtoAppend(boolean protoAppend) {
-		this.protoAppend = protoAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#isPrefixAppend()} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	@DeprecatedConfigurationProperty(replacement = PREFIX + ".prefix-append")
-	public boolean isPrefixAppend() {
-		return prefixAppend;
-	}
-
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link XForwardedRequestHeadersFilterProperties#setPrefixAppend(boolean)} )}
-	 */
-	@SuppressWarnings("removal")
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public void setPrefixAppend(boolean prefixAppend) {
-		this.prefixAppend = prefixAppend;
+		return properties.getOrder();
 	}
 
 	@Override
@@ -374,22 +74,22 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
-		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : original.headerSet()) {
 			updated.addAll(entry.getKey(), entry.getValue());
 		}
 
 		InetSocketAddress remoteAddress = request.remoteAddress().orElse(null);
-		if (isForEnabled() && remoteAddress != null && remoteAddress.getAddress() != null) {
+		if (properties.isForEnabled() && remoteAddress != null && remoteAddress.getAddress() != null) {
 			String remoteAddr = remoteAddress.getAddress().getHostAddress();
-			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend());
+			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, properties.isForAppend());
 		}
 
 		String proto = request.uri().getScheme();
-		if (isProtoEnabled()) {
-			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
+		if (properties.isProtoEnabled()) {
+			write(updated, X_FORWARDED_PROTO_HEADER, proto, properties.isProtoAppend());
 		}
 
-		if (isPrefixEnabled()) {
+		if (properties.isPrefixEnabled()) {
 			// If the path of the url that the gw is routing to is a subset
 			// (and ending part) of the url that it is routing from then the difference
 			// is the prefix e.g. if request original.com/prefix/get/ is routed
@@ -397,18 +97,15 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 			// - see XForwardedHeadersFilterTests, so first get uris, then extract paths
 			// and remove one from another if it's the ending part.
 
-			LinkedHashSet<URI> originalUris = null; // TODO:
-													// exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
-			URI requestUri = null; // TODO:
-									// exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+			LinkedHashSet<URI> originalUris = MvcUtils.getAttribute(request,
+					MvcUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+			URI requestUri = request.uri();
 
 			if (originalUris != null && requestUri != null) {
 
 				originalUris.forEach(originalUri -> {
 
 					if (originalUri != null && originalUri.getPath() != null) {
-						String prefix = originalUri.getPath();
-
 						// strip trailing slashes before checking if request path is end
 						// of original path
 						String originalUriPath = stripTrailingSlash(originalUri);
@@ -421,17 +118,17 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 			}
 		}
 
-		if (isPortEnabled()) {
+		if (properties.isPortEnabled()) {
 			String port = String.valueOf(request.uri().getPort());
 			if (request.uri().getPort() < 0) {
 				port = String.valueOf(getDefaultPort(proto));
 			}
-			write(updated, X_FORWARDED_PORT_HEADER, port, isPortAppend());
+			write(updated, X_FORWARDED_PORT_HEADER, port, properties.isPortAppend());
 		}
 
-		if (isHostEnabled()) {
+		if (properties.isHostEnabled()) {
 			String host = toHostHeader(request);
-			write(updated, X_FORWARDED_HOST_HEADER, host, isHostAppend());
+			write(updated, X_FORWARDED_HOST_HEADER, host, properties.isHostAppend());
 		}
 
 		return updated;
@@ -442,7 +139,7 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		if (requestUriPath != null && (originalUriPath.endsWith(requestUriPath))) {
 			prefix = substringBeforeLast(originalUriPath, requestUriPath);
 			if (prefix != null && prefix.length() > 0 && prefix.length() <= originalUri.getPath().length()) {
-				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, isPrefixAppend());
+				write(updated, X_FORWARDED_PREFIX_HEADER, prefix, properties.isPrefixAppend());
 			}
 		}
 	}

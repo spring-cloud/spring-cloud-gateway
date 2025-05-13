@@ -97,7 +97,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec between(ZonedDateTime datetime1, ZonedDateTime datetime2) {
 		return asyncPredicate(getBean(BetweenRoutePredicateFactory.class)
-				.applyAsync(c -> c.setDatetime1(datetime1).setDatetime2(datetime2)));
+			.applyAsync(c -> c.setDatetime1(datetime1).setDatetime2(datetime2)));
 	}
 
 	/**
@@ -188,7 +188,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec path(boolean matchTrailingSlash, String... patterns) {
 		return asyncPredicate(getBean(PathRoutePredicateFactory.class)
-				.applyAsync(c -> c.setPatterns(Arrays.asList(patterns)).setMatchTrailingSlash(matchTrailingSlash)));
+			.applyAsync(c -> c.setPatterns(Arrays.asList(patterns)).setMatchTrailingSlash(matchTrailingSlash)));
 	}
 
 	/**
@@ -202,6 +202,18 @@ public class PredicateSpec extends UriSpec {
 	public <T> BooleanSpec readBody(Class<T> inClass, Predicate<T> predicate) {
 		return asyncPredicate(
 				getBean(ReadBodyRoutePredicateFactory.class).applyAsync(c -> c.setPredicate(inClass, predicate)));
+	}
+
+	/**
+	 * A predicate that checks if a query parameter value matches criteria of a given
+	 * predicate.
+	 * @param param the query parameter name
+	 * @param predicate a predicate to check the value of the param
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec query(String param, Predicate<String> predicate) {
+		return asyncPredicate(
+				getBean(QueryRoutePredicateFactory.class).applyAsync(c -> c.setParam(param).setPredicate(predicate)));
 	}
 
 	/**
@@ -287,7 +299,7 @@ public class PredicateSpec extends UriSpec {
 	 */
 	public BooleanSpec weight(String group, int weight) {
 		return asyncPredicate(getBean(WeightRoutePredicateFactory.class)
-				.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
+			.applyAsync(c -> c.setGroup(group).setRouteId(routeBuilder.getId()).setWeight(weight)));
 	}
 
 	public BooleanSpec cloudFoundryRouteService() {

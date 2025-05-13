@@ -61,7 +61,7 @@ class OnEnabledComponentTests {
 		String componentName = "disabled-component";
 		this.onEnabledComponent = createOnEnabledComponent(componentName);
 		when(conditionContext.getEnvironment()).thenReturn(environment);
-		environment.setProperty("spring.cloud.gateway." + componentName + ".enabled", "false");
+		environment.setProperty("spring.cloud.gateway.server.webflux." + componentName + ".enabled", "false");
 
 		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
 				mockMetaData(DisabledComponent.class));
@@ -73,7 +73,7 @@ class OnEnabledComponentTests {
 	private AnnotatedTypeMetadata mockMetaData(Class<?> value) {
 		AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
 		when(metadata.getAnnotationAttributes(eq(ConditionalOnEnabledFilter.class.getName())))
-				.thenReturn(Collections.singletonMap("value", value));
+			.thenReturn(Collections.singletonMap("value", value));
 		return metadata;
 	}
 

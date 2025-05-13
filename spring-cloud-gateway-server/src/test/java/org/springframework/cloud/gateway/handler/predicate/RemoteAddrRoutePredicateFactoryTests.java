@@ -17,8 +17,13 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -52,25 +57,33 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 	public void remoteAddrWorks() {
 		Mono<ClientResponse> result = webClient.get().uri("/ok/httpbin/").exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(DURATION);
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
+			.expectComplete()
+			.verify(DURATION);
 	}
 
 	@Test
 	public void remoteAddrRejects() {
 		Mono<ClientResponse> result = webClient.get().uri("/nok/httpbin/").exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
-				.expectComplete().verify(DURATION);
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.NOT_FOUND))
+			.expectComplete()
+			.verify(DURATION);
 	}
 
 	@Test
 	public void remoteAddrWorksWithXForwardedRemoteAddress() {
-		Mono<ClientResponse> result = webClient.get().uri("/xforwardfor").header("X-Forwarded-For", "12.34.56.78")
-				.exchangeToMono(Mono::just);
+		Mono<ClientResponse> result = webClient.get()
+			.uri("/xforwardfor")
+			.header("X-Forwarded-For", "12.34.56.78")
+			.exchangeToMono(Mono::just);
 
-		StepVerifier.create(result).consumeNextWith(response -> assertStatus(response, HttpStatus.OK)).expectComplete()
-				.verify(Duration.ofSeconds(20));
+		StepVerifier.create(result)
+			.consumeNextWith(response -> assertStatus(response, HttpStatus.OK))
+			.expectComplete()
+			.verify(Duration.ofSeconds(20));
 	}
 
 	@Test
@@ -79,6 +92,31 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 		config.setSources("1.2.3.4", "5.6.7.8");
 		Predicate predicate = new RemoteAddrRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("RemoteAddrs: [1.2.3.4, 5.6.7.8]");
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setSources("1.2.3.4", "5.6.7.8");
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 	@EnableAutoConfiguration
@@ -92,11 +130,13 @@ public class RemoteAddrRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("x_forwarded_for_test",
-							r -> r.path("/xforwardfor").and()
-									.remoteAddr(XForwardedRemoteAddressResolver.maxTrustedIndex(1), "12.34.56.78")
-									.filters(f -> f.setStatus(200)).uri(uri))
-					.build();
+				.route("x_forwarded_for_test",
+						r -> r.path("/xforwardfor")
+							.and()
+							.remoteAddr(XForwardedRemoteAddressResolver.maxTrustedIndex(1), "12.34.56.78")
+							.filters(f -> f.setStatus(200))
+							.uri(uri))
+				.build();
 		}
 
 	}

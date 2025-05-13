@@ -1,0 +1,71 @@
+[[ratelimiter-filter]]
+= RateLimiter Filter
+
+The RateLimiter Filter use https://bucket4j.com/[Bucket4j] to determine if the current request is allowed to proceed. If it is not, a status of `HTTP 429 - Too Many Requests` (by default) is returned.
+
+Please review https://bucket4j.com/8.7.0/toc.html#concepts[Bucket4j Concepts] prior to reading this documentation.
+
+The algorithm used by Bucket4j is the https://en.wikipedia.org/wiki/Token_bucket[Token Bucket Algorithm].
+
+The filter takes a `keyResolver` parameter and other Bucket4j configuration parameters. The key resolver is a `java.util.Function<ServerRequest, String>`. This allows the user to extract any information out of the request to use as a key in the configured https://github.com/bucket4j/bucket4j#bucket4j-distributed-features[Bucket4j distribution] mechanism. A common key would be the `Principal` retrieved from the `ServerRequest`.
+
+By default, if the key resolver does not find a key, requests are denied with the `FORBIDDEN` status.
+
+NOTE: Currently, the only way to configure key resolvers is through the Java DSL and not through external properties.
+
+== Bucket4j Distributed Configuration
+
+A bean of type `io.github.bucket4j.distributed.proxy.AsyncProxyManager`. To do this, use the `ProxyManager.asAsync()` method.
+
+.RateLimiterConfiguration.java
+[source,java]
+----
+import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.bucket4j.caffeine.CaffeineProxyManager;
+
+@Configuration
+class RateLimiterConfiguration {
+
+	@Bean
+	public AsyncProxyManager<String> caffeineProxyManager() {
+		Caffeine<String, RemoteBucketState> builder = (Caffeine) Caffeine.newBuilder().maximumSize(100);
+		return new CaffeineProxyManager<>(builder, Duration.ofMinutes(1)).asAsync();
+	}
+}
+----
+
+The above configures an `AsyncProxyManager` using `Caffeine`, a local in-memory cache, useful for testing.
+
+== Configuring Buckets
+
+By default, the Bucket is configured using a configured `capacity` and `period`. Capacity is how many tokens the bucket has. The period is a `java.util.Duration` that defines how long for the tokens available in the bucket to be regenerated.
+
+Other configuration items are the `statusCode` returned when the request is denied. By default it is 429, TO_MANY_REQUESTS. The `tokens` item defines how many tokens are used for each request and defaults to 1. The `headerName` item is the name of the header that contains the number of remaining tokens, this defaults to `X-RateLimit-Remaining`. The `timeout` option defines a `Duration` for the distributed bucket to return an answer and is not set by default.
+
+The following is an example of configuring a route with rate limiting:
+
+.RouteConfiguration.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRateLimited() {
+        return route("rate_limited_route")
+            .GET("/api/**", http())
+            .before(uri("https://example.org"))
+            .filter(rateLimit(c -> c.setCapacity(100)
+                    .setPeriod(Duration.ofMinutes(1))
+                    .setKeyResolver(request -> request.servletRequest().getUserPrincipal().getName())))
+            .build();
+    }
+}
+----
+
+This configures the rate limiting with a bucket capacity of 100 tokens per minute. The key resolver gets the principle name from the Servlet request.

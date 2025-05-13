@@ -1,0 +1,324 @@
+[[actuator-api]]
+= Actuator API
+
+The `/gateway` actuator endpoint lets you monitor and interact with a Spring Cloud Gateway application.
+To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed over HTTP or JMX] in the application properties.
+The following listing shows how to do so:
+
+.application.properties
+[source,properties]
+----
+management.endpoint.gateway.enabled=true # default value
+management.endpoints.web.exposure.include=gateway
+----
+
+This endpoint provides an overview of what is available on the child actuator endpoint and the available methods for each reference. The resulting response is similar to the following:
+
+[source,json]
+----
+[
+   {
+      "href":"/actuator/gateway/",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routedefinitions",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/globalfilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routefilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routes",
+      "methods":[ "POST", "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routepredicates",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/refresh",
+      "methods":[ "POST" ]
+   },
+   {
+      "href":"/actuator/gateway/routes/route-id-1/combinedfilters",
+      "methods":[ "GET" ]
+   },
+   {
+      "href":"/actuator/gateway/routes/route-id-1",
+      "methods":[ "POST", "DELETE", "GET" ]
+   }
+]
+----
+
+[[verbose-actuator-format]]
+== Verbose Actuator Format
+
+A new, more verbose format has been added to Spring Cloud Gateway.
+It adds more detail to each route, letting you view the predicates and filters associated with each route along with any configuration that is available.
+The following example configures `/actuator/gateway/routes`:
+
+[source,json]
+----
+[
+  {
+    "predicate": "(Hosts: [**.addrequestheader.org] && Paths: [/headers], match trailing slash: true)",
+    "route_id": "add_request_header_test",
+    "filters": [
+      "[[AddResponseHeader X-Response-Default-Foo = 'Default-Bar'], order = 1]",
+      "[[AddRequestHeader X-Request-Foo = 'Bar'], order = 1]",
+      "[[PrefixPath prefix = '/httpbin'], order = 2]"
+    ],
+    "uri": "lb://testservice",
+    "order": 0
+  }
+]
+----
+
+This feature is enabled by default. To disable it, set the following property:
+
+.application.properties
+[source,properties]
+----
+spring.cloud.gateway.actuator.verbose.enabled=false
+----
+
+This will default to `true` in a future release.
+
+[[retrieving-route-filters]]
+== Retrieving Route Filters
+
+This section details how to retrieve route filters, including:
+
+* xref:spring-cloud-gateway-server-webflux/actuator-api.adoc#gateway-global-filters[Global Filters]
+* <<gateway-route-filters>>
+
+[[gateway-global-filters]]
+=== Global Filters
+
+To retrieve the xref:spring-cloud-gateway-server-webflux/global-filters.adoc[global filters] applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
+
+----
+{
+  "org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5": 10100,
+  "org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter@4f6fd101": 10000,
+  "org.springframework.cloud.gateway.filter.NettyWriteResponseFilter@32d22650": -1,
+  "org.springframework.cloud.gateway.filter.ForwardRoutingFilter@106459d9": 2147483647,
+  "org.springframework.cloud.gateway.filter.NettyRoutingFilter@1fbd5e0": 2147483647,
+  "org.springframework.cloud.gateway.filter.ForwardPathFilter@33a71d23": 0,
+  "org.springframework.cloud.gateway.filter.AdaptCachedBodyGlobalFilter@135064ea": 2147483637,
+  "org.springframework.cloud.gateway.filter.WebsocketRoutingFilter@23c05889": 2147483646
+}
+----
+
+The response contains the details of the global filters that are in place.
+For each global filter, there is a string representation of the filter object (for example, `org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5`) and the corresponding xref:spring-cloud-gateway-server-webflux/global-filters.adoc#gateway-combined-global-filter-and-gatewayfilter-ordering[order] in the filter chain.
+
+[[gateway-route-filters]]
+=== Route Filters
+To retrieve the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories.adoc[`GatewayFilter` factories] applied to routes, make a `GET` request to `/actuator/gateway/routefilters`.
+The resulting response is similar to the following:
+
+----
+{
+  "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
+  "[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]": null,
+  "[SaveSessionGatewayFilterFactory@4449b273 configClass = Object]": null
+}
+----
+
+The response contains the details of the `GatewayFilter` factories applied to any particular route.
+For each factory there is a string representation of the corresponding object (for example, `[SecureHeadersGatewayFilterFactory@fceab5d configClass = Object]`).
+Note that the `null` value is due to an incomplete implementation of the endpoint controller, because it tries to set the order of the object in the filter chain, which does not apply to a `GatewayFilter` factory object.
+
+[[refreshing-the-route-cache]]
+== Refreshing the Route Cache
+
+To clear the routes cache, make a `POST` request to `/actuator/gateway/refresh`.
+The request returns a 200 without a response body.
+
+To clear the routes with specific metadata values, add the Query parameter `metadata` specifying the `key:value` pairs that the routes to be cleared should match.
+If an error is produced during the asynchronous refresh, the refresh will not modify the existing routes.
+
+Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` will only refresh the routes whose `group` metadata is `group-1`: `first_route` and `third_route`.
+[source,json]
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-2" }
+},
+{
+  "route_id": "third_route",
+  "route_object": {
+    "predicate": "...",
+  },
+  "metadata": { "group": "group-1" }
+}]
+----
+
+[[retrieving-the-routes-defined-in-the-gateway]]
+== Retrieving the Routes Defined in the Gateway
+
+To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`.
+The resulting response is similar to the following:
+
+----
+[{
+  "route_id": "first_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@1e9d7e7d",
+    "filters": [
+      "OrderedGatewayFilter{delegate=org.springframework.cloud.gateway.filter.factory.PreserveHostHeaderGatewayFilterFactory$$Lambda$436/674480275@6631ef72, order=0}"
+    ]
+  },
+  "order": 0
+},
+{
+  "route_id": "second_route",
+  "route_object": {
+    "predicate": "org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory$$Lambda$432/1736826640@cd8d298",
+    "filters": []
+  },
+  "order": 0
+}]
+----
+
+The response contains the details of all the routes defined in the gateway.
+The following table describes the structure of each element (each is a route) of the response:
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`route_id`
+| String
+| The route ID.
+
+|`route_object.predicate`
+| Object
+| The route predicate.
+
+|`route_object.filters`
+| Array
+| The xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories.adoc[`GatewayFilter` factories] applied to the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
+
+[[gateway-retrieving-information-about-a-particular-route]]
+== Retrieving Information about a Particular Route
+
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/\{id}` (for example, `/actuator/gateway/routes/first_route`).
+The resulting response is similar to the following:
+
+----
+{
+  "id": "first_route",
+  "predicates": [{
+    "name": "Path",
+    "args": {"_genkey_0":"/first"}
+  }],
+  "filters": [],
+  "uri": "https://www.uri-destination.org",
+  "order": 0
+}
+----
+
+The following table describes the structure of the response:
+
+[cols="3,2,4"]
+|===
+| Path | Type | Description
+
+|`id`
+| String
+| The route ID.
+
+|`predicates`
+| Array
+| The collection of route predicates. Each item defines the name and the arguments of a given predicate.
+
+|`filters`
+| Array
+| The collection of filters applied to the route.
+
+|`uri`
+| String
+| The destination URI of the route.
+
+|`order`
+| Number
+| The route order.
+
+|===
+
+[[creating-and-deleting-a-particular-route-definition]]
+== Creating and Deleting a Particular Route Definition
+
+To create a route definition, make a `POST` request to `/gateway/routes/\{id_route_to_create}` with a JSON body that specifies the fields of the route (see xref:spring-cloud-gateway-server-webflux/actuator-api.adoc#gateway-retrieving-information-about-a-particular-route[Retrieving Information about a Particular Route]).
+
+To delete a route definition, make a `DELETE` request to `/gateway/routes/\{id_route_to_delete}`.
+
+[[creating-multiple-route-definitions]]
+== Creating multiple Route Definitions
+
+To create multiple route definitions in a single request, make a `POST` request to `/gateway/routes` with a JSON body that specifies the fields of the route, including the route id (see xref:spring-cloud-gateway-server-webflux/actuator-api.adoc#gateway-retrieving-information-about-a-particular-route[Retrieving Information about a Particular Route]).
+
+The route definitions will be discarded if any route raises an error during the creation of the routes.
+
+[[recap:-the-list-of-all-endpoints]]
+== Recap: The List of All endpoints
+
+The following table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
+
+[cols="2,2,5"]
+|===
+| ID | HTTP Method | Description
+
+|`globalfilters`
+|GET
+| Displays the list of global filters applied to the routes.
+
+|`routefilters`
+|GET
+| Displays the list of `GatewayFilter` factories applied to a particular route.
+
+|`refresh`
+|POST
+| Clears the routes cache.
+
+|`routes`
+|GET
+| Displays the list of routes defined in the gateway.
+
+|`routes/\{id}`
+|GET
+| Displays information about a particular route.
+
+|`routes/\{id}`
+|POST
+| Adds a new route to the gateway.
+
+|`routes/\{id}`
+|DELETE
+| Removes an existing route from the gateway.
+
+|===

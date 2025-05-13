@@ -41,9 +41,17 @@ class CookieRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 	}
 
 	private void assertCookieValue(String value) {
-		testClient.get().uri("/cookie").header(HttpHeaders.HOST, "www.cookieregex.org").cookie("mycookie", value)
-				.exchange().expectStatus().isOk().expectHeader().valueEquals(ROUTE_ID_HEADER, "cookie_regex_test")
-				.expectBody(String.class).isEqualTo(value);
+		testClient.get()
+			.uri("/cookie")
+			.header(HttpHeaders.HOST, "www.cookieregex.org")
+			.cookie("mycookie", value)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "cookie_regex_test")
+			.expectBody(String.class)
+			.isEqualTo(value);
 	}
 
 	@EnableAutoConfiguration

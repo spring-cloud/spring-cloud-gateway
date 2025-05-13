@@ -1,0 +1,113 @@
+[[tokenrelay-filter]]
+= `TokenRelay` Filter
+
+A Token Relay is where an OAuth2 consumer acts as a Client and
+forwards the incoming token to outgoing resource requests. The
+consumer can be a pure Client (like an SSO application) or a Resource
+Server.
+
+////
+TODO: support TokenRelay clientRegistrationId
+Spring Cloud Gateway Server MVC can forward OAuth2 access tokens downstream to the services
+it is proxying using the `TokenRelay` filter.
+
+The `TokenRelay` filter takes one optional parameter, `clientRegistrationId`.
+The following example configures a `TokenRelay` filter:
+
+.App.java
+[source,java]
+----
+
+@Bean
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    return builder.routes()
+            .route("resource", r -> r.path("/resource")
+                    .filters(f -> f.tokenRelay("myregistrationid"))
+                    .uri("http://localhost:9000"))
+            .build();
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: resource
+        uri: http://localhost:9000
+        predicates:
+        - Path=/resource
+        filters:
+        - TokenRelay=myregistrationid
+----
+
+The example above specifies a `clientRegistrationId`, which can be used to obtain and forward an OAuth2 access token for any available `ClientRegistration`.
+////
+
+Spring Cloud Gateway Server MVC can forward the OAuth2 access token of the currently authenticated user `oauth2Login()` is used to authenticate the user.
+//To add this functionality to the gateway, you can omit the `clientRegistrationId` parameter like this:
+
+.RouteConfiguration.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.tokenRelay;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsTokenRelay() {
+        return route("resource")
+            .GET("/resource", http())
+            .before(uri("https://localhost:9000"))
+            .filter(tokenRelay())
+            .build();
+    }
+}
+----
+
+or this
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: resource
+          uri: http://localhost:9000
+          predicates:
+          - Path=/resource
+          filters:
+          - TokenRelay=
+----
+
+and it will (in addition to logging the user in and grabbing a token)
+pass the authentication token downstream to the services (in this case
+`/resource`).
+
+To enable this for Spring Cloud Gateway Server MVC add the following dependencies
+
+- `org.springframework.boot:spring-boot-starter-oauth2-client`
+
+How does it work?
+// The filter extracts an OAuth2 access token from the currently authenticated user for the provided `clientRegistrationId`.
+// If no `clientRegistrationId` is provided,
+The currently authenticated user's own access token (obtained during login) is used and the extracted access token is placed in a request header for the downstream requests.
+
+//For a full working sample see https://github.com/spring-cloud-samples/sample-gateway-oauth2login[this project].
+
+NOTE: The Token Relay filter will only work if the proper `spring.security.oauth2.client.*` properties are set which will trigger creation of a `OAuth2AuthorizedClientManager` bean.
+
+NOTE: The default implementation used by the Token Relay filter
+uses an in-memory data store.  You will need to provide your own implementation `OAuth2AuthorizedClientService`
+if you need a more robust solution.

@@ -1,0 +1,115 @@
+[[secureheaders-gatewayfilter-factory]]
+= `SecureHeaders` `GatewayFilter` Factory
+
+The `SecureHeaders` `GatewayFilter` factory adds a number of headers to the response, per the recommendation made in https://blog.appcanary.com/2017/http-security-headers.html[this blog post].
+
+The following headers (shown with their default values) are added:
+
+* `X-Xss-Protection:1 (mode=block`)
+* `Strict-Transport-Security (max-age=631138519`)
+* `X-Frame-Options (DENY)`
+* `X-Content-Type-Options (nosniff)`
+* `Referrer-Policy (no-referrer)`
+* `Content-Security-Policy (default-src 'self' https:; font-src 'self' https: data:; img-src 'self' https: data:; object-src 'none'; script-src https:; style-src 'self' https: 'unsafe-inline')`
+* `X-Download-Options (noopen)`
+* `X-Permitted-Cross-Domain-Policies (none)`
+
+To change the default values, set the appropriate property in the `spring.cloud.gateway.filter.secure-headers` namespace.
+The following properties are available:
+
+* `xss-protection-header`
+* `strict-transport-security`
+* `frame-options`
+* `content-type-options`
+* `referrer-policy`
+* `content-security-policy`
+* `download-options`
+* `permitted-cross-domain-policies`
+
+To disable the default values set the `spring.cloud.gateway.filter.secure-headers.disable` property with comma-separated values.
+The following example shows how to do so:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      filter:
+        secure-headers:
+          disable: x-frame-options,strict-transport-security
+----
+
+To apply the `SecureHeaders` filter to a specific route, add the filter to the list of filters of that route.
+You can customize the route filter using arguments. Route configuration overrides the global default configuration for this route.
+
+.application.yml
+[source,yaml]
+----
+      - id: secureheaders_route
+        uri: http://example.org
+        predicates:
+        - Path=/**
+        filters:
+          - name: SecureHeaders
+            args:
+              disable: x-frame-options
+----
+
+NOTE: The lowercase full name of the secure header needs to be used to disable it.
+
+== Further options
+
+You may opt in to add the `Permissions-Policy` header to the response. Permissions Policy is a security header
+that allows web developers to manage which browser features a website can utilize. Please see
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy[Permissions-Policy] and
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy#directives[Directives] to configure it
+for your environment.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      filter:
+        secure-headers:
+          enable: permissions-policy
+          permissions-policy : geolocation=(self "https://example.com")
+----
+
+In the above https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy/geolocation[example]
+the Geolocation API is disabled within all browsing contexts except for its own origin and those whose origin is "https://example.com".
+The Permissions-Policy may be configured separately for each route.
+
+.application.yml
+[source,yaml]
+----
+      - id: secureheaders_route
+        uri: http://anotherexample.org
+        predicates:
+        - Path=/**
+        filters:
+          - name: SecureHeaders
+            args:
+              disable: x-frame-options
+              enable: permissions-policy
+              permissions-policy : geolocation=("https://anotherexample.org")
+----
+
+WARNING: When you enable Permissions-Policy and do not explicitly configure any directives, a default value will be applied.
+Specifically, this default value disables a wide range of standardized and experimental features.
+This behavior might not be appropriate for your specific environment or use case.
+
+Permissions-Policy default value when enabled and no explicit configuration:
+
+`Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(),
+display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(),
+fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(),
+payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(),
+web-share=(), xr-spatial-tracking=()`
+
+
+NOTE: You can check the Permissions Policy feature list for Chrome with https://developer.chrome.com/docs/privacy-security/permissions-policy#chrome_devtools_integration[DevTool Integration].
+
+When you configure the header value for your environment, make sure to check the browser console for syntax errors.

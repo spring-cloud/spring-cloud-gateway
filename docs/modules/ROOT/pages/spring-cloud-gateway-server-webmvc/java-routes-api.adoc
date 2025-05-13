@@ -1,0 +1,54 @@
+[[java-routes-api]]
+= Java Routes API
+
+Spring Cloud Gateway Server MVC uses the Spring WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html[RouterFunctions.Builder] as the default way to create Routes, which are WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunction.html[RouterFunction] instances.
+
+A https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.Builder.html[`RouterFunctions.Builder`] instance is obtained by calling https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RouterFunctions.html#route()[RouterFunctions.route()]
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.web.servlet.function.RouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+class SimpleGateway {
+    @Bean
+    public RouterFunction<ServerResponse> getRoute() {
+        return route().GET("/get", http())
+            .before(uri("https://example.org"))
+            .build();
+    }
+}
+----
+
+There are methods in `RouterFunctions.Builder` for each HTTP methods (GET, POST, etc...) combined with a path predicate, such as `/get` as above. The final parameter is the `HandlerFilterFunction`, in this case `HandlerFunctions.http()`. There are overloaded methods for each HTTP method for additional `RequestPredicate` parameters as well as a generic `route(RequestPredicate, HandlerFunction`) method for general use.
+
+[[gateway-routerfunctions-builder]]
+== Gateway MVC implementation of RouterFunctions.Builder
+
+Some advanced filters require some metadata to be added to request attributes. To accommodate this, there is a `org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions` class. `GatewayRouterFunctions.route(String routeId) creates a `RouterFunctions.Builder` instance then adds a 'before' filter to add the `routeId` as request metadata.
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+class SimpleGateway {
+    @Bean
+    public RouterFunction<ServerResponse> getRoute() {
+        return route("simple_route").GET("/get", http())
+            .before(uri("https://example.org"))
+            .build();
+    }
+}
+----
+
+[[gateway-handlerfunctions]]
+== Gateway MVC Handler Functions
+
+Various `RouterFunctions.Builder` methods require a `HandlerFunction<ServerResponse>`. To create a route that is proxied by the MVC Gateway, `HandlerFunction` implementations are supplied in `org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions`. The most basic is the `http()` `HandlerFunction`. The function looks for a `URI` in the `org.springframework.cloud.gateway.server.mvc.common.MvcUtils.GATEWAY_REQUEST_URL_ATTR` request attribute. This allows for dynamic targets such as load balancing to set the `URI`.
+
+WARNING: As of version 4.1.7, `HandlerFunctions.http(String)` and `HandlerFunctions.http(URI)` are now deprecated. Please use `HandlerFunctions.http()` in combination with the `BeforeFilterFunctions.uri()` filter instead. This fixes inconsistencies in dealing with the route url request attribute.

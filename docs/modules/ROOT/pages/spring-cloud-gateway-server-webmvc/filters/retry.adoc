@@ -1,0 +1,113 @@
+[[retry-filter]]
+= `Retry` Filter
+
+The `Retry` filter supports the following parameters:
+
+* `retries`: The number of retries that should be attempted.
+//TODO: implement statuses
+//* `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
+* `methods`: The HTTP methods that should be retried, represented by using `org.springframework.http.HttpMethod`.
+* `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
+* `exceptions`: A list of thrown exceptions that should be retried.
+* `cacheBody`: A flag to signal if the request body should be cached. If set to `true`, the `adaptCacheBody` filter must be used to send the cached body downstream.
+//* `backoff`: The configured exponential backoff for the retries.
+//Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
+//If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
+//If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
+
+The following defaults are configured for `Retry` filter, if enabled:
+
+* `retries`: Three times
+* `series`: 5XX series
+* `methods`: GET method
+* `exceptions`: `IOException`, `TimeoutException` and `RetryException`
+* `cacheBody`: `false`
+//* `backoff`: disabled
+
+WARNING: Setting `cacheBody` to `true` causes the gateway to read the whole body into memory. This should be used with caution.
+
+The following listing configures a Retry  filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: retry_route
+          uri: http://localhost:8080/flakey
+          predicates:
+          - Host=*.retry.com
+          filters:
+          - name: Retry
+            args:
+              retries: 3
+              series: SERVER_ERROR
+              methods: GET,POST
+              cacheBody: true
+          - name: AdaptCachedBody
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.adaptCachedBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRetry() {
+        return route("retry_route")
+            .route(host("*.retry.com"), http())
+            .before(uri("http://localhost:8080/flakey"))
+            .filter(retry(config -> config.setRetries(3)
+                    .setSeries(Set.of(HttpStatus.Series.SERVER_ERROR))
+                    .setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))
+                    .setCacheBody(true)))
+            .filter(adaptCachedBody())
+            .build();
+    }
+}
+----
+
+NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that, in case of an error, it does not do anything that could result in a response being sent to the client and committed.
+For example, if the target endpoint is an annotated controller, the target controller method should not return `ResponseEntity` with an error status code.
+Instead, it should throw an `Exception` or signal an error (for example, through a `Mono.error(ex)` return value), which the retry filter can be configured to handle by retrying.
+
+NOTE: When using the retry filter, it will retry all filters that come after it. Make sure the results of the filters following the retry filter are as expected when they are executed multiple times.
+
+WARNING: When using the retry filter with any HTTP method with a body and `cacheBody=true`, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `MvcUtils.CACHED_REQUEST_BODY_ATT`. The type of the object is `ByteArrayInputStream`.
+
+A simplified "shortcut" notation can be added with a single `status` and `method`.
+
+The following two example routes are equivalent:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: retry_route
+        uri: https://example.org
+        filters:
+        - name: Retry
+          args:
+            retries: 3
+            statuses: INTERNAL_SERVER_ERROR
+            methods: GET
+      - id: retryshortcut_route
+        uri: https://example.org
+        filters:
+        - Retry=3,INTERNAL_SERVER_ERROR,GET
+----
+

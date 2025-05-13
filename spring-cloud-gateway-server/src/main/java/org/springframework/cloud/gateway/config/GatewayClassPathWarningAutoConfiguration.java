@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 public class GatewayClassPathWarningAutoConfiguration {
 
 	private static final Log log = LogFactory.getLog(GatewayClassPathWarningAutoConfiguration.class);
@@ -55,6 +55,18 @@ public class GatewayClassPathWarningAutoConfiguration {
 			log.warn(BORDER + "Spring Webflux is missing from the classpath, "
 					+ "which is required for Spring Cloud Gateway at this time. "
 					+ "Please add spring-boot-starter-webflux dependency." + BORDER);
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("org.springframework.cloud.gateway.server.webflux.Marker")
+	protected static class NewModuleConfiguration {
+
+		public NewModuleConfiguration() {
+			log.warn(BORDER + "The artifact spring-cloud-gateway-server is deprecated. "
+					+ "It will be removed in the next major release. "
+					+ "Please add spring-cloud-gateway-server-webflux dependency." + BORDER);
 		}
 
 	}

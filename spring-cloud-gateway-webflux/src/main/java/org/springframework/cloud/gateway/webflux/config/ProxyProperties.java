@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.http.HttpHeaders;
 
@@ -31,10 +32,23 @@ import org.springframework.http.HttpHeaders;
  *
  * @author Dave Syer
  * @author Tim Ysewyn
+ * @author Joris Kuipers
+ * @deprecated {@link ProxyExchangeWebfluxProperties}
  *
  */
+@Deprecated
 @ConfigurationProperties("spring.cloud.gateway.proxy")
 public class ProxyProperties {
+
+	/**
+	 * Contains headers that are considered case-sensitive by default.
+	 */
+	public static Set<String> DEFAULT_SENSITIVE = Set.of("cookie", "authorization");
+
+	/**
+	 * Contains headers that are skipped by default.
+	 */
+	public static Set<String> DEFAULT_SKIPPED = Set.of("content-length", "host");
 
 	/**
 	 * Fixed header values that will be added to all downstream requests.
@@ -42,15 +56,22 @@ public class ProxyProperties {
 	private Map<String, String> headers = new LinkedHashMap<>();
 
 	/**
-	 * A set of header names that should be send downstream by default.
+	 * A set of header names that should be sent downstream by default.
 	 */
 	private Set<String> autoForward = new HashSet<>();
 
 	/**
 	 * A set of sensitive header names that will not be sent downstream by default.
 	 */
-	private Set<String> sensitive = null;
+	private Set<String> sensitive = DEFAULT_SENSITIVE;
 
+	/**
+	 * A set of header names that will not be sent downstream because they could be
+	 * problematic.
+	 */
+	private Set<String> skipped = DEFAULT_SKIPPED;
+
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".headers", since = "4.3.0")
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
@@ -59,6 +80,8 @@ public class ProxyProperties {
 		this.headers = headers;
 	}
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".auto-forward",
+			since = "4.3.0")
 	public Set<String> getAutoForward() {
 		return autoForward;
 	}
@@ -67,12 +90,23 @@ public class ProxyProperties {
 		this.autoForward = autoForward;
 	}
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".sensitive",
+			since = "4.3.0")
 	public Set<String> getSensitive() {
 		return sensitive;
 	}
 
 	public void setSensitive(Set<String> sensitive) {
 		this.sensitive = sensitive;
+	}
+
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".skipped", since = "4.3.0")
+	public Set<String> getSkipped() {
+		return skipped;
+	}
+
+	public void setSkipped(Set<String> skipped) {
+		this.skipped = skipped;
 	}
 
 	public HttpHeaders convertHeaders() {

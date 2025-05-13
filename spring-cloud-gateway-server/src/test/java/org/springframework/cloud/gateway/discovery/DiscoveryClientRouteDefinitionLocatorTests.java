@@ -42,17 +42,17 @@ import static org.springframework.cloud.gateway.filter.factory.RewritePathGatewa
 import static org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory.PATTERN_KEY;
 
 @SpringBootTest(classes = DiscoveryClientRouteDefinitionLocatorTests.Config.class,
-		properties = { "spring.cloud.gateway.discovery.locator.enabled=true",
-				"spring.cloud.gateway.discovery.locator.route-id-prefix=testedge_",
-				"spring.cloud.gateway.discovery.locator.include-expression=metadata['edge'] == 'true'",
-				"spring.cloud.gateway.discovery.locator.lower-case-service-id=true"
+		properties = { "spring.cloud.gateway.server.webflux.discovery.locator.enabled=true",
+				"spring.cloud.gateway.server.webflux.discovery.locator.route-id-prefix=testedge_",
+				"spring.cloud.gateway.server.webflux.discovery.locator.include-expression=metadata['edge'] == 'true'",
+				"spring.cloud.gateway.server.webflux.discovery.locator.lower-case-service-id=true"
 		/*
-		 * "spring.cloud.gateway.discovery.locator.predicates[0].name=Path",
-		 * "spring.cloud.gateway.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase()+'/**'",
-		 * "spring.cloud.gateway.discovery.locator.filters[0].name=RewritePath",
-		 * "spring.cloud.gateway.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase() + '/(?<remaining>.*)'"
+		 * "spring.cloud.gateway.server.webflux.discovery.locator.predicates[0].name=Path",
+		 * "spring.cloud.gateway.server.webflux.discovery.locator.predicates[0].args[pattern]='/'+serviceId.toLowerCase(Locale.ROOT)+'/**'",
+		 * "spring.cloud.gateway.server.webflux.discovery.locator.filters[0].name=RewritePath",
+		 * "spring.cloud.gateway.server.webflux.discovery.locator.filters[0].args[regexp]='/' + serviceId.toLowerCase(Locale.ROOT) + '/(?<remaining>.*)'"
 		 * ,
-		 * "spring.cloud.gateway.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
+		 * "spring.cloud.gateway.server.webflux.discovery.locator.filters[0].args[replacement]='/$\\\\{remaining}'",
 		 */
 		})
 public class DiscoveryClientRouteDefinitionLocatorTests {
@@ -80,8 +80,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter = definition.getFilters().get(0);
 		assertThat(filter.getName()).isEqualTo("RewritePath");
-		assertThat(filter.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+		assertThat(filter.getArgs()).hasSize(2)
+			.containsEntry(REGEXP_KEY, "/service1/?(?<remaining>.*)")
+			.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 
 		RouteDefinition definition2 = definitions.get(1);
 		assertThat(definition2.getId()).isEqualTo("testedge_service3");
@@ -96,8 +97,9 @@ public class DiscoveryClientRouteDefinitionLocatorTests {
 		assertThat(definition.getFilters()).hasSize(1);
 		FilterDefinition filter2 = definition2.getFilters().get(0);
 		assertThat(filter2.getName()).isEqualTo("RewritePath");
-		assertThat(filter2.getArgs()).hasSize(2).containsEntry(REGEXP_KEY, "/service3/?(?<remaining>.*)")
-				.containsEntry(REPLACEMENT_KEY, "/${remaining}");
+		assertThat(filter2.getArgs()).hasSize(2)
+			.containsEntry(REGEXP_KEY, "/service3/?(?<remaining>.*)")
+			.containsEntry(REPLACEMENT_KEY, "/${remaining}");
 	}
 
 	@SpringBootConfiguration

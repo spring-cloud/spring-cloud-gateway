@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -31,6 +30,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,12 +47,16 @@ public class PathRoutePredicatePathContainerAttrBenchMarkTests {
 
 	static {
 		predicates = new LinkedList<>();
-		PATH_PATTERN_PREFIX = String.format("/%s/%s/", RandomStringUtils.random(20, true, false),
-				RandomStringUtils.random(10, true, false));
+		Random random = new Random();
+		String path1 = String.format("%1$" + 20 + "s", random.nextInt()).replace(' ', '0');
+		String path2 = String.format("%1$" + 10 + "s", random.nextInt()).replace(' ', '0');
+		PATH_PATTERN_PREFIX = String.format("/%s/%s/", path1, path2);
 		for (int i = 0; i < ROUTES_NUM; i++) {
 			PathRoutePredicateFactory.Config config = new PathRoutePredicateFactory.Config()
-					.setPatterns(Collections.singletonList(PATH_PATTERN_PREFIX + i)).setMatchTrailingSlash(true);
-			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+				.setPatterns(Collections.singletonList(PATH_PATTERN_PREFIX + i))
+				.setMatchTrailingSlash(true);
+			Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties())
+				.apply(config);
 			predicates.add(predicate);
 		}
 	}
@@ -66,7 +70,8 @@ public class PathRoutePredicatePathContainerAttrBenchMarkTests {
 	public void testPathContainerAttr() {
 		Random random = new Random();
 		MockServerHttpRequest request = MockServerHttpRequest
-				.get(HOST + PATH_PATTERN_PREFIX + random.nextInt(ROUTES_NUM)).build();
+			.get(HOST + PATH_PATTERN_PREFIX + random.nextInt(ROUTES_NUM))
+			.build();
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		for (Predicate<ServerWebExchange> predicate : predicates) {
 			if (predicate.test(exchange)) {

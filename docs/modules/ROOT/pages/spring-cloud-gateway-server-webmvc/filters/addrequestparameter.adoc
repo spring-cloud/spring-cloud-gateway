@@ -1,0 +1,72 @@
+[[addrequestparameter-filter]]
+= `AddRequestParameter` Filter
+
+The `AddRequestParameter` Filter takes a `name` and `value` parameter.
+The following example configures an `AddRequestParameter` filter:
+
+application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_request_parameter_route
+          uri: https://example.org
+          predicates:
+          - Path=/anything/addrequestparam
+          filters:
+          - AddRequestParameter=red, blue
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqParameter() {
+        return route("add_request_parameter_route")
+            .GET("/anything/addrequestparam", http())
+            .before(uri("https://example.org"))
+            .before(addRequestParameter("red", "blue"))
+            .build();
+    }
+}
+----
+
+This will add `red=blue` to the downstream request's query string for all matching requests.
+
+`AddRequestParameter` is aware of the URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddRequestParameter` filter that uses a variable:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestParameter;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqParameter() {
+        return route("add_request_parameter_route")
+            .route(host("{segment}.myhost.org"), http())
+            .before(uri("https://example.org"))
+            .before(addRequestParameter("foo", "bar-{segment}"))
+            .build();
+    }
+}
+----

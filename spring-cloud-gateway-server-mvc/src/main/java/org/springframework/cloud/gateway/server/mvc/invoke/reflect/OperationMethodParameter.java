@@ -84,10 +84,10 @@ class OperationMethodParameter implements OperationParameter {
 
 		boolean isMandatory(Parameter parameter) {
 			MergedAnnotation<Nonnull> annotation = MergedAnnotations.from(parameter).get(Nonnull.class);
-			return !annotation.isPresent()/*
-											 * || annotation.getEnum("when", When.class)
-											 * == When.ALWAYS
-											 */;
+			return !annotation
+				.isPresent()/*
+							 * || annotation.getEnum("when", When.class) == When.ALWAYS
+							 */;
 		}
 
 	}

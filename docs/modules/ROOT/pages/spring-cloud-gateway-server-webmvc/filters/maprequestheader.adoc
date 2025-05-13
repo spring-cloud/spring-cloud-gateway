@@ -1,0 +1,49 @@
+[[maprequestheader-filter]]
+= `MapRequestHeader` Filter
+
+The `MapRequestHeader` filter takes `fromHeader` and `toHeader` parameters.
+It creates a new named header (`toHeader`), and the value is extracted out of an existing named header (`fromHeader`) from the incoming http request.
+If the input header does not exist, the filter has no impact.
+If the new named header already exists, its values are augmented with the new values.
+The following example configures a `MapRequestHeader`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: map_request_header_route
+          uri: https://example.org
+          predicates:
+          - Path=/mypath
+          filters:
+          - MapRequestHeader=Blue, X-Request-Red
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.mapRequestHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsMapRequestHeader() {
+        return route("map_request_header_route")
+				.GET("/mypath", http())
+                .before(uri("https://example.org"))
+				.before(mapRequestHeader("Blue", "X-Request-Red"))
+				.build();
+    }
+}
+----
+
+This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.
+

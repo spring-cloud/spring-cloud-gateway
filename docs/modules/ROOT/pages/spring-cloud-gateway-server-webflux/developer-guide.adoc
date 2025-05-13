@@ -1,0 +1,157 @@
+[[developer-guide]]
+= Developer Guide
+
+These are basic guides to writing some custom components of the gateway.
+
+[[writing-custom-route-predicate-factories]]
+== Writing Custom Route Predicate Factories
+
+
+In order to write a Route Predicate you will need to implement `RoutePredicateFactory` as a bean. There is an abstract class called `AbstractRoutePredicateFactory` which you can extend.
+
+.MyRoutePredicateFactory.java
+[source,java]
+----
+@Component
+public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRoutePredicateFactory.Config> {
+
+    public MyRoutePredicateFactory() {
+        super(Config.class);
+    }
+
+    @Override
+    public Predicate<ServerWebExchange> apply(Config config) {
+        // grab configuration from Config object
+        return exchange -> {
+            //grab the request
+            ServerHttpRequest request = exchange.getRequest();
+            //take information from the request to see if it
+            //matches configuration.
+            return matches(config, request);
+        };
+    }
+
+    public static class Config {
+        //Put the configuration properties for your filter here
+    }
+
+}
+----
+[[writing-custom-gatewayfilter-factories]]
+== Writing Custom GatewayFilter Factories
+
+To write a `GatewayFilter`, you must implement `GatewayFilterFactory` as a bean.
+You can extend an abstract class called `AbstractGatewayFilterFactory`.
+The following examples show how to do so:
+
+.PreGatewayFilterFactory.java
+====
+[source,java]
+----
+@Component
+public class PreGatewayFilterFactory extends AbstractGatewayFilterFactory<PreGatewayFilterFactory.Config> {
+
+	public PreGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+			//If you want to build a "pre" filter you need to manipulate the
+			//request before calling chain.filter
+			ServerHttpRequest.Builder builder = exchange.getRequest().mutate();
+			//use builder to manipulate the request
+			return chain.filter(exchange.mutate().request(builder.build()).build());
+		};
+	}
+
+	public static class Config {
+		//Put the configuration properties for your filter here
+	}
+
+}
+----
+
+.PostGatewayFilterFactory.java
+[source,java]
+----
+@Component
+public class PostGatewayFilterFactory extends AbstractGatewayFilterFactory<PostGatewayFilterFactory.Config> {
+
+	public PostGatewayFilterFactory() {
+		super(Config.class);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
+		// grab configuration from Config object
+		return (exchange, chain) -> {
+			return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+				ServerHttpResponse response = exchange.getResponse();
+				//Manipulate the response in some way
+			}));
+		};
+	}
+
+	public static class Config {
+		//Put the configuration properties for your filter here
+	}
+
+}
+----
+====
+
+[[naming-custom-filters-and-references-in-configuration]]
+=== Naming Custom Filters And References In Configuration
+
+Custom filters class names should end in `GatewayFilterFactory`.
+
+For example, to reference a filter named `Something` in configuration files, the filter
+must be in a class named `SomethingGatewayFilterFactory`.
+
+WARNING: It is possible to create a gateway filter named without the
+`GatewayFilterFactory` suffix, such as `class AnotherThing`. This filter could be
+referenced as `AnotherThing` in configuration files. This is **not** a supported naming
+convention and this syntax may be removed in future releases. Please update the filter
+name to be compliant.
+
+[[writing-custom-global-filters]]
+== Writing Custom Global Filters
+
+To write a custom global filter, you must implement `GlobalFilter` interface as a bean.
+This applies the filter to all requests.
+
+The following examples show how to set up global pre- and post-filters, respectively:
+
+[source,java]
+----
+@Bean
+public GlobalFilter customGlobalFilter() {
+    return (exchange, chain) -> exchange.getPrincipal()
+        .map(Principal::getName)
+        .defaultIfEmpty("Default User")
+        .map(userName -> {
+          //adds header to proxied request
+          ServerHttpRequest.Builder builder = exchange.getRequest().mutate().header("CUSTOM-REQUEST-HEADER", userName);
+          //use builder to manipulate the request
+          return exchange.mutate().request(builder.build()).build();
+        })
+        .flatMap(chain::filter);
+}
+
+@Bean
+public GlobalFilter customGlobalPostFilter() {
+    return (exchange, chain) -> chain.filter(exchange)
+        .then(Mono.just(exchange))
+        .map(serverWebExchange -> {
+          //adds header to response
+          serverWebExchange.getResponse().getHeaders().set("CUSTOM-RESPONSE-HEADER",
+              HttpStatus.OK.equals(serverWebExchange.getResponse().getStatusCode()) ? "It worked": "It did not work");
+          return serverWebExchange;
+        })
+        .then();
+}
+----
+

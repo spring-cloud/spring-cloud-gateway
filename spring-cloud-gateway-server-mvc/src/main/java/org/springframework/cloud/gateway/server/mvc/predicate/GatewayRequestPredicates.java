@@ -272,7 +272,12 @@ public abstract class GatewayRequestPredicates {
 
 		@Override
 		public void accept(RequestPredicates.Visitor visitor) {
-			visitor.header(name, pattern.pattern());
+			if (pattern != null) {
+				visitor.header(name, pattern.pattern());
+			}
+			else {
+				visitor.header(name, "");
+			}
 		}
 
 		@Override
@@ -374,6 +379,9 @@ public abstract class GatewayRequestPredicates {
 		@Override
 		public boolean test(ServerRequest request) {
 			String host = request.headers().firstHeader(HttpHeaders.HOST);
+			if (host == null) {
+				host = "";
+			}
 			PathContainer pathContainer = PathContainer.parsePath(host, PathContainer.Options.MESSAGE_ROUTE);
 			PathPattern.PathMatchInfo info = this.pattern.matchAndExtract(pathContainer);
 			traceMatch("Pattern", this.pattern.getPatternString(), host, info != null);
@@ -533,8 +541,8 @@ public abstract class GatewayRequestPredicates {
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean test(ServerRequest request) {
-			Map<String, String> weights = (Map<String, String>) request.attributes().getOrDefault(WEIGHT_ATTR,
-					Collections.emptyMap());
+			Map<String, String> weights = (Map<String, String>) request.attributes()
+				.getOrDefault(WEIGHT_ATTR, Collections.emptyMap());
 
 			String routeId = (String) request.attributes().get(GATEWAY_ROUTE_ID_ATTR);
 			if (ObjectUtils.isEmpty(routeId)) {

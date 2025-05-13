@@ -15,7 +15,7 @@ server:
     client-auth: Need
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       httpclient:
         ssl:
           key-store: classpath:scg-keystore-with-different-key-password.jks

@@ -1,0 +1,48 @@
+[[rewritepath-filter]]
+= `RewritePath` Filter
+
+The `RewritePath` filter takes a path `regexp` parameter and a `replacement` parameter.
+This uses Java regular expressions for a flexible way to rewrite the request path.
+The following listing configures a `RewritePath` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: rewritepath_route
+          uri: https://example.org
+          predicates:
+          - Path=/red/**
+          filters:
+          - RewritePath=/red/?(?<segment>.*), /$\{segment}
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.rewritePath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRewritePath() {
+        return route("rewritepath_route")
+            .GET("/red/**", http())
+            .before(uri("https://example.org"))
+            .before(rewritePath("/red/(?<segment>.*)", "/${segment}"))
+            .build();
+    }
+}
+----
+
+For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request. Note that in `application.yml` the `$` should be replaced with `$\` because of the YAML specification.
+
+WARNING: If using the `lb()` filter, it needs to be after the `rewritePath()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

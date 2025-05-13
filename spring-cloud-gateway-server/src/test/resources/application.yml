@@ -14,7 +14,7 @@ spring:
       - logging
 
   cloud:
-    gateway:
+    gateway.server.webflux:
       globalcors:
         cors-configurations:
           '[/**]':
@@ -103,6 +103,19 @@ spring:
             args:
               name: fallbackcmd
               fallbackUri: forward:/circuitbreakerFallbackController
+
+        # =====================================
+      - id: circuitbreaker_fallback_test_post
+        uri: ${test.uri}
+        predicates:
+          - Host=**.circuitbreakerfallbackpost.org
+        filters:
+          - name: CircuitBreaker
+            args:
+              name: fallbackcmd
+              statusCodes:
+                - 200
+              fallbackUri: forward:/circuitbreakerPostFallbackController
 
         # =====================================
       - id: circuitbreaker_fallback_test_variables
@@ -524,6 +537,15 @@ spring:
         predicates:
         - Host=**.weighthigh.org
         - Weight=group1, 8
+
+      # =====================================
+      - id: disabled_config_test
+        uri: ${test.uri}
+        enabled: false
+        predicates:
+          - name: Path
+            args:
+              pattern: /**
 
       # =====================================
       # should be last and not follow alphabetical order

@@ -45,7 +45,7 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoute
  * @author Spencer Gibb
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.enabled", matchIfMissing = true)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @AutoConfigureAfter(CompositeDiscoveryClientAutoConfiguration.class)
 @ConditionalOnClass({ DispatcherHandler.class, CompositeDiscoveryClientAutoConfiguration.class })
@@ -92,7 +92,7 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
+		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.discovery.locator.enabled")
 		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(
 				ReactiveDiscoveryClient discoveryClient, DiscoveryLocatorProperties properties) {
 			return new DiscoveryClientRouteDefinitionLocator(discoveryClient, properties);

@@ -20,10 +20,14 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -34,7 +38,17 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * @author Olga Maciaszek-Sharma
+ * @author Tillmann Heigel
+ */
 public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
+
+	private Integer serverPort;
+
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private boolean forwardedByEnabled = false;
 
 	/**
 	 * Forwarded header.
@@ -84,6 +98,14 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return result;
 	}
 
+	public void setForwardedByEnabled(boolean forwardedByEnabled) {
+		this.forwardedByEnabled = forwardedByEnabled;
+	}
+
+	public void setServerPort(Integer serverPort) {
+		this.serverPort = serverPort;
+	}
+
 	@Override
 	public int getOrder() {
 		return 0;
@@ -96,7 +118,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
-		for (Map.Entry<String, List<String>> entry : original.entrySet()) {
+		for (Map.Entry<String, List<String>> entry : original.headerSet()) {
 			if (!entry.getKey().equalsIgnoreCase(FORWARDED_HEADER)) {
 				updated.addAll(entry.getKey(), entry.getValue());
 			}
@@ -134,11 +156,36 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			}
 			forwarded.put("for", forValue);
 		}
-		// TODO: support by?
+
+		if (forwardedByEnabled) {
+			addForwardedByHeader(forwarded);
+		}
 
 		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
 
 		return updated;
+	}
+
+	private void addForwardedByHeader(Forwarded forwarded) {
+		try {
+			addForwardedBy(forwarded, InetAddress.getLocalHost());
+		}
+		catch (UnknownHostException e) {
+			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+		}
+	}
+
+	/* visible for testing */ void addForwardedBy(Forwarded forwarded, InetAddress localAddress) {
+		if (localAddress != null) {
+			String byValue = localAddress.getHostAddress();
+			if (localAddress instanceof Inet6Address) {
+				byValue = "[" + byValue + "]";
+			}
+			if (serverPort != null && serverPort > 0) {
+				byValue = byValue + ":" + serverPort;
+			}
+			forwarded.put("by", byValue);
+		}
 	}
 
 	/* for testing */ static class Forwarded {

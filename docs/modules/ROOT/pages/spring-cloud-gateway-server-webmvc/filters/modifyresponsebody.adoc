@@ -1,0 +1,55 @@
+[[modifyresponsebody-filter]]
+= `ModifyResponseBody` Filter
+
+You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a response body filter:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.modifyResponseBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Bean
+public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBodySimple() {
+	return route("modify_response_body")
+			.GET("/anything/modifyresponsebody", http())
+            .before(uri("https://example.org"))
+			.after(modifyResponseBody(String.class, String.class, null,
+					(request, response, s) -> s.replace("fooval", "FOOVAL")))
+			.build();
+}
+----
+
+The sample above does not change the content type or do anything dynamic. Below, the sample changes the content type and dynamically modifies the content.
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.modifyResponseBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import org.springframework.http.MediaType;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyResponseBody() {
+        return route("modify_response_bodu")
+            .route(host("*.modifyresponsebodu.org"), http())
+            .before(uri("https://example.org"))
+            .after(modifyResponseBody(String.class, String.class, MediaType.APPLICATION_JSON_VALUE,
+                    (request, s) -> s.toUpperCase()))
+            .build();
+    }
+
+}
+----

@@ -74,8 +74,10 @@ public class JsonToGrpcApplicationTests {
 		configurer.addRoute(grpcServerPort, "/json/hello",
 				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
 
-		String response = restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
-				"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class).getBody();
+		String response = restTemplate
+			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
+					"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class)
+			.getBody();
 
 		Assertions.assertThat(response).isNotNull();
 		Assertions.assertThat(response).contains("{\"greeting\":\"Hello, Duff McKagan\"}");
@@ -94,7 +96,9 @@ public class JsonToGrpcApplicationTests {
 				NoopHostnameVerifier.INSTANCE);
 
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("https", sslSocketFactory).register("http", new PlainConnectionSocketFactory()).build();
+			.register("https", sslSocketFactory)
+			.register("http", new PlainConnectionSocketFactory())
+			.build();
 
 		HttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
 		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(connectionManager).build();

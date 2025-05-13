@@ -1,0 +1,88 @@
+[[addrequestheadersifnotpresent-filter]]
+= `AddRequestHeadersIfNotPresent` Filter
+
+The `AddRequestHeadersIfNotPresent` filter takes a collection of `name` and `value` pairs separated by colon.
+The following example configures an `AddRequestHeadersIfNotPresent` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: add_request_headers_route_inp
+          uri: https://example.org
+          predicates:
+          - Path=/red
+          filters:
+          - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeadersIfNotPresent;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeaderInp() {
+        return route("add_request_headers_route_inp")
+            .GET("/red", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeadersIfNotPresent("X-Request-Color-1:blue","X-Request-Color-2:green"));
+    }
+}
+----
+
+This listing adds 2 headers `X-Request-Color-1:blue` and `X-Request-Color-2:green` to the downstream request's headers for all matching requests.
+This is similar to how `AddRequestHeader` works, but unlike `AddRequestHeader` it will do it only if the header is not already there.
+Otherwise, the original value in the client request is sent.
+
+Additionally, to set a multi-valued header, use the header name multiple times like `addRequestHeadersIfNotPresent("X-Request-Color-1:blue","X-Request-Color-1:green")`.
+
+`AddRequestHeadersIfNotPresent` also supports URI variables used to match a path or host.
+URI variables may be used in the value and are expanded at runtime.
+The following example configures an `AddRequestHeadersIfNotPresent` filter that uses a variable:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.addRequestHeadersIfNotPresent;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsAddReqHeaderInp() {
+        return route("add_request_header_route_inp")
+            .GET("/red/{segment}", http())
+            .before(uri("https://example.org"))
+            .before(addRequestHeadersIfNotPresent("X-Request-red", "blue-{segment}"));
+    }
+}
+----
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: add_request_header_route_inp
+        uri: https://example.org
+        predicates:
+        - Path=/red/{segment}
+        filters:
+        - AddRequestHeadersIfNotPresent=X-Request-Red:Blue-{segment}
+----
+

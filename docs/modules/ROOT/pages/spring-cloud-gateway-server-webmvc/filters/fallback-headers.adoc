@@ -1,0 +1,73 @@
+[[fallback-headers]]
+= `FallbackHeaders` Filter
+
+The `FallbackHeaders` factory lets you add Spring Cloud CircuitBreaker execution exception details in the headers of a request forwarded to a `fallbackUri` in an external application, as in the following scenario:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: ingredients
+          uri: lb://ingredients
+          predicates:
+          - Path=/ingredients/**
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: fetchIngredients
+              fallbackUri: forward:/fallback
+        - id: ingredients-fallback
+          uri: http://localhost:9994
+          predicates:
+          - Path=/fallback
+          filters:
+          - name: FallbackHeaders
+            args:
+              executionExceptionTypeHeaderName: Test-Header
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.fallbackHeaders;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerFallbackToGatewayRoute() {
+        return route("ingredients")
+                .route(path("/ingredients/**"), http())
+                .filter(lb("ingredients"))
+                .filter(circuitBreaker("fetchIngredients", URI.create("forward:/fallback")))
+                .build()
+            .and(route("ingredients-fallback")
+                .route(path("/fallback"), http())
+                .before(uri("http://localhost:9994"))
+                .before(fallbackHeaders())
+                .build());
+    }
+}
+----
+
+In this example, after an execution exception occurs while running the circuit breaker, the request is forwarded to the `fallback` endpoint or handler in an application running on `localhost:9994`.
+The headers with the exception type, message and (if available) root cause exception type and message are added to that request by the `FallbackHeaders` filter.
+
+You can overwrite the names of the headers in the configuration by setting the values of the following arguments (shown with their default values):
+
+* `executionExceptionTypeHeaderName` (`"Execution-Exception-Type"`)
+* `executionExceptionMessageHeaderName` (`"Execution-Exception-Message"`)
+* `rootCauseExceptionTypeHeaderName` (`"Root-Cause-Exception-Type"`)
+* `rootCauseExceptionMessageHeaderName` (`"Root-Cause-Exception-Message"`)
+
+For more information on circuit breakers and the gateway see the xref:spring-cloud-gateway-server-webmvc/filters/circuitbreaker-filter.adoc[Spring Cloud CircuitBreaker Filter section].
+

@@ -44,7 +44,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Set<String> autoForwardedHeaders;
 
-	private Set<String> sensitive;
+	private Set<String> excluded;
 
 	public ProxyExchangeArgumentResolver(WebClient builder) {
 		this.rest = builder;
@@ -58,8 +58,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
-	public void setSensitive(Set<String> sensitive) {
-		this.sensitive = sensitive;
+	@Deprecated
+	public void setSensitive(Set<String> excluded) {
+		setExcluded(excluded);
+	}
+
+	public void setExcluded(Set<String> excluded) {
+		this.excluded = excluded;
 	}
 
 	@Override
@@ -69,8 +74,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private Type type(MethodParameter parameter) {
 		Type type = parameter.getGenericParameterType();
-		if (type instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) type;
+		if (type instanceof ParameterizedType param) {
 			type = param.getActualTypeArguments()[0];
 		}
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
@@ -87,8 +91,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		if (this.autoForwardedHeaders.size() > 0) {
 			proxy.headers(extractAutoForwardedHeaders(exchange));
 		}
-		if (sensitive != null) {
-			proxy.sensitive(sensitive.toArray(new String[0]));
+		if (excluded != null) {
+			proxy.excluded(excluded.toArray(new String[0]));
 		}
 		return Mono.just(proxy);
 	}

@@ -1,0 +1,50 @@
+[[deduperesponseheader-filter]]
+= `DedupeResponseHeader` Filter
+
+The `DedupeResponseHeader` GatewayFilter factory takes a `name` parameter and an optional `strategy` parameter. `name` can contain a space-separated list of header names.
+The following example configures a `DedupeResponseHeader` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: dedupe_response_header_route
+          uri: https://example.org
+          predicates:
+          - Path=/hello
+          filters:
+          - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+----
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.web.servlet.function.RequestPredicates.path;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsDedupeResponseHeader() {
+        return route("dedupe_response_header_route")
+                .route(path("/hello"), http())
+                .before(uri("https://example.org"))
+                .after(dedupeResponseHeader("Access-Control-Allow-Credentials Access-Control-Allow-Origin"))
+                .build();
+    }
+}
+----
+
+This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.
+
+The `DedupeResponseHeader` filter also accepts an optional `strategy` parameter.
+The accepted values are `RETAIN_FIRST` (default), `RETAIN_LAST`, and `RETAIN_UNIQUE`.
+
+

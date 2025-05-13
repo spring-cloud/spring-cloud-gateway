@@ -53,9 +53,9 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// Registers RouterFunctionHolderFactory::routerFunctionHolderSupplier so when the
 		// bean is refreshed, that method is called again.
 		AbstractBeanDefinition routerFnProviderBeanDefinition = BeanDefinitionBuilder
-				.rootBeanDefinition(RouterFunctionHolder.class)
-				.setFactoryMethodOnBean("routerFunctionHolderSupplier", "routerFunctionHolderFactory")
-				.getBeanDefinition();
+			.rootBeanDefinition(RouterFunctionHolder.class)
+			.setFactoryMethodOnBean("routerFunctionHolderSupplier", "routerFunctionHolderFactory")
+			.getBeanDefinition();
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(routerFnProviderBeanDefinition,
 				"gatewayRouterFunctionHolder");
 		BeanDefinitionHolder proxy = ScopedProxyUtils.createScopedProxy(holder, registry, true);
@@ -73,7 +73,8 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrar implements ImportBeanDe
 		// holder can be refreshed and all config based routes will be reloaded.
 
 		AbstractBeanDefinition routerFunctionBeanDefinition = BeanDefinitionBuilder
-				.genericBeanDefinition(DelegatingRouterFunction.class).getBeanDefinition();
+			.genericBeanDefinition(DelegatingRouterFunction.class)
+			.getBeanDefinition();
 		registry.registerBeanDefinition("gatewayCompositeRouterFunction", routerFunctionBeanDefinition);
 	}
 

@@ -21,7 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * @author Ryan Baxter
  */
-@ConfigurationProperties("spring.cloud.gateway.loadbalancer")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".loadbalancer")
 public class GatewayLoadBalancerProperties {
 
 	private boolean use404;

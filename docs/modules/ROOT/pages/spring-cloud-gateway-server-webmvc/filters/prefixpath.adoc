@@ -1,0 +1,49 @@
+[[prefixpath-filter]]
+= `PrefixPath` Filter
+:page-section-summary-toc: 1
+
+The `PrefixPath` filter takes a single `prefix` parameter.
+The following example configures a `PrefixPath` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: prefixpath_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - PrefixPath=/mypath
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsPrefixPath() {
+        return route("prefixpath_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(prefixPath("/mypath"))
+            .build();
+    }
+}
+----
+
+This prefixes `/mypath` to the path of all matching requests.
+So a request to `/hello` is sent to `/mypath/hello`.
+
+WARNING: If using the `lb()` filter, it needs to be after the `prefixPath()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

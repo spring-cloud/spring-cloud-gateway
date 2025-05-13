@@ -1,0 +1,48 @@
+[[requestheadersize-filter]]
+= `RequestHeaderSize` Filter
+:page-section-summary-toc: 1
+
+The `RequestHeaderSize` filter takes `maxSize` and `errorHeaderName` parameters.
+The `maxSize` parameter is the maximum data size allowed by the request header (including key and value). The `errorHeaderName` parameter sets the name of the response header containing an error message, by default it is "errorMessage".
+The following listing configures a `RequestHeaderSize` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: requestheadersize_route
+          uri: https://example.org
+          predicates:
+          - Path=/**
+          filters:
+          - RequestHeaderSize=1000B
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.requestHeaderSize;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsRequestHeaderSize() {
+        return route("requestheadersize_route")
+            .GET("/**", http())
+            .before(uri("https://example.org"))
+            .before(requestHeaderSize("1000B"))
+            .build();
+    }
+}
+----
+
+This will send a status 431 if size of any request header is greater than 1000 Bytes.
+

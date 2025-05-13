@@ -1,0 +1,16 @@
+[[gateway-how-it-works]]
+= How It Works
+:page-section-summary-toc: 1
+
+The following diagram provides a high-level overview of how Spring Cloud Gateway works:
+
+image::spring_cloud_gateway_mvc_diagram.png[Spring Cloud Gateway Server MVC Diagram]
+
+In Spring Cloud Gateway Server MVC routes are normal WebMvc.fn `RouterFunction` instances with a special https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/HandlerFunction.html[HandlerFunction] to forward the requests over HTTP defined in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/handler/HandlerFunctions.java[org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions]. Please see the https://docs.spring.io/spring-framework/reference/web/webmvc-functional.html[WebMvc.fn] documentation for regular use of the functional API.
+
+In addition to custom `HandlerFunctions` for HTTP forwarding, Spring Cloud Gateway Server MVC provides additional `RequestPredicate` implementations in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/predicate/GatewayRequestPredicates.java[org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates] and `HandlerFilterFunctions` implementations in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/filter/FilterFunctions.java[org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions]. All the custom filters that can be pure 'before' filters are implemented in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/filter/BeforeFilterFunctions.java[org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions] and adapted in `FilterFunctions` as request processors. The custom 'after' filters in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/filter/AfterFilterFunctions.java[org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions] are also adapted in `FilterFunctions` as response processors.
+
+There are additional `*FilterFunctions` classes for optional filters that are documented along with each filter.
+
+
+WARNING: Any path defined on a route URI will be ignored.

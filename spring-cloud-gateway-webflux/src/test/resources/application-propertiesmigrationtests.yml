@@ -1,0 +1,10 @@
+spring.cloud.gateway.proxy:
+  headers:
+    X-Foo: xfooval
+    X-Bar: xbarval
+  auto-forward: X-FWD1, X-FWD2
+  sensitive: X-S1, X-S21
+  skipped: X-SK1, X-SK2, X-SK3
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE

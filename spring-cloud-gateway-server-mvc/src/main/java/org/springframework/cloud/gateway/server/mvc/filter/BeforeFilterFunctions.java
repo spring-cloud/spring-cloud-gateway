@@ -45,6 +45,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
+import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
@@ -105,8 +106,11 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			ServerRequest.Builder requestBuilder = ServerRequest.from(request);
 			newHeaders.forEach((newHeaderName, newHeaderValues) -> {
-				boolean headerIsMissingOrBlank = request.headers().asHttpHeaders().getOrEmpty(newHeaderName).stream()
-						.allMatch(h -> !StringUtils.hasText(h));
+				boolean headerIsMissingOrBlank = request.headers()
+					.asHttpHeaders()
+					.getOrEmpty(newHeaderName)
+					.stream()
+					.allMatch(h -> !StringUtils.hasText(h));
 				if (headerIsMissingOrBlank) {
 					requestBuilder.headers(httpHeaders -> {
 						List<String> expandedValues = MvcUtils.expandMultiple(request, newHeaderValues);
@@ -134,20 +138,22 @@ public abstract class BeforeFilterFunctions {
 			Consumer<FallbackHeadersConfig> configConsumer) {
 		FallbackHeadersConfig config = new FallbackHeadersConfig();
 		configConsumer.accept(config);
-		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR).map(Throwable.class::cast)
-				.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
-					httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
-					if (throwable.getMessage() != null) {
-						httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+		return request -> request.attribute(CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR)
+			.map(Throwable.class::cast)
+			.map(throwable -> ServerRequest.from(request).headers(httpHeaders -> {
+				httpHeaders.add(config.getExecutionExceptionTypeHeaderName(), throwable.getClass().getName());
+				if (throwable.getMessage() != null) {
+					httpHeaders.add(config.getExecutionExceptionMessageHeaderName(), throwable.getMessage());
+				}
+				Throwable rootCause = getRootCause(throwable);
+				if (rootCause != null) {
+					httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
+					if (rootCause.getMessage() != null) {
+						httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
 					}
-					Throwable rootCause = getRootCause(throwable);
-					if (rootCause != null) {
-						httpHeaders.add(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
-						if (rootCause.getMessage() != null) {
-							httpHeaders.add(config.getRootCauseExceptionMessageHeaderName(), rootCause.getMessage());
-						}
-					}
-				}).build()).orElse(request);
+				}
+			}).build())
+			.orElse(request);
 	}
 
 	private static Throwable getRootCause(Throwable throwable) {
@@ -183,6 +189,7 @@ public abstract class BeforeFilterFunctions {
 		final UriTemplate uriTemplate = new UriTemplate(prefix);
 
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
@@ -209,9 +216,13 @@ public abstract class BeforeFilterFunctions {
 			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
 			queryParams.remove(name);
 
+			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
-					.replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+				.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+				.build(true)
+				.toUri();
 
 			// remove resolved params from request
 			return ServerRequest.from(request).params(params -> params.remove(name)).uri(newUri).build();
@@ -252,7 +263,7 @@ public abstract class BeforeFilterFunctions {
 				StringBuilder errorMessage = new StringBuilder(
 						String.format(REQUEST_HEADER_SIZE_ERROR_PREFIX, maxSize));
 				longHeaders.forEach((header, size) -> errorMessage
-						.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
+					.append(String.format(REQUEST_HEADER_SIZE_ERROR, header, DataSize.of(size, DataUnit.BYTES))));
 
 				throw new ResponseStatusException(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE, errorMessage.toString()) {
 					@Override
@@ -316,17 +327,40 @@ public abstract class BeforeFilterFunctions {
 		String normalizedReplacement = replacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
-			// TODO: original request url
-			String path = request.uri().getRawPath();
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
+			String path = request.uri().getPath();
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
-			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
+				.replacePath(newPath)
+				.encode()
+				.build()
+				.toUri();
 
 			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
 
-			// TODO: can this be restored at some point?
-			// MvcUtils.setRequestUrl(modified, modified.uri());
 			return modified;
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> rewriteRequestParameter(String name, String replacement) {
+		return request -> {
+			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
+			if (queryParams.containsKey(name)) {
+				queryParams.remove(name);
+				queryParams.add(name, replacement);
+			}
+
+			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
+				.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+				.build(true)
+				.toUri();
+
+			return ServerRequest.from(request).params(params -> {
+				params.remove(name);
+				params.add(name, replacement);
+			}).uri(rewrittenUri).build();
 		};
 	}
 
@@ -341,12 +375,12 @@ public abstract class BeforeFilterFunctions {
 		UriTemplate uriTemplate = new UriTemplate(path);
 
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
-			String newPath = uri.getRawPath();
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
-			return ServerRequest.from(request).uri(prefixedUri).build();
+			URI newUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(uri.getRawPath()).build(true).toUri();
+			return ServerRequest.from(request).uri(newUri).build();
 		};
 	}
 
@@ -377,6 +411,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> stripPrefix(int parts) {
 		return request -> {
+			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			// TODO: gateway url attributes
 			String path = request.uri().getRawPath();
 			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
@@ -398,9 +433,23 @@ public abstract class BeforeFilterFunctions {
 			}
 			// TODO: end duplicate code from StripPrefixGatewayFilterFactory
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath.toString()).build()
-					.toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri())
+				.replacePath(newPath.toString())
+				.build(true)
+				.toUri();
+
 			return ServerRequest.from(request).uri(prefixedUri).build();
+		};
+	}
+
+	public static Function<ServerRequest, ServerRequest> uri(String uri) {
+		return uri(URI.create(uri));
+	}
+
+	public static Function<ServerRequest, ServerRequest> uri(URI uri) {
+		return request -> {
+			MvcUtils.setRequestUrl(request, uri);
+			return request;
 		};
 	}
 

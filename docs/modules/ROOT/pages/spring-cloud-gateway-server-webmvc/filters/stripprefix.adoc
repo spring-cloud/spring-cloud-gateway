@@ -1,0 +1,48 @@
+[[stripprefix-filter]]
+= `StripPrefix` Filter
+
+The `StripPrefix` filter takes one parameter, `parts`.
+The `parts` parameter indicates the number of parts in the path to strip from the request before sending it downstream.
+The following listing configures a `StripPrefix` filter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: strip_prefix_route
+          uri: https://example.org
+          predicates:
+          - Path=/name/**
+          filters:
+          - StripPrefix=2
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsStripPrefix() {
+        return route("strip_prefix_route")
+            .GET("/name/**", http())
+            .before(uri("https://example.org"))
+            .before(stripPrefix(2))
+            .build();
+    }
+}
+----
+
+When a request is made through the gateway to `/name/blue/red`, the full request url looks like `https://example.org/red`.
+
+WARNING: If using the `lb()` filter, it needs to be after the `stripPrefix()` filter, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

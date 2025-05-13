@@ -1,0 +1,40 @@
+[[modifyrequestbody-filter]]
+= `ModifyRequestBody` Filter
+
+You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following listing shows how to modify a request body  filter:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.modifyRequestBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
+import org.springframework.http.MediaType;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsModifyRequestBody() {
+        return route("modify_request_body")
+            .route(host("*.modifyrequestbody.org"), http())
+            .before(uri("https://example.org"))
+            .before(modifyRequestBody(String.class, Hello.class, MediaType.APPLICATION_JSON_VALUE,
+                    (request, s) -> new Hello(s.toUpperCase())))
+            .build();
+    }
+
+	record Hello(String message) { }
+}
+----
+
+NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
+
+

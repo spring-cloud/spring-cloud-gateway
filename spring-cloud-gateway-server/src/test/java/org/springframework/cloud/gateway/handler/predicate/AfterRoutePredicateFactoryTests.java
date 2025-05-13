@@ -18,8 +18,13 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory.Config;
@@ -77,7 +82,7 @@ public class AfterRoutePredicateFactoryTests {
 	@Test
 	public void testPredicates() {
 		boolean result = new AfterRoutePredicateFactory().apply(c -> c.setDatetime(ZonedDateTime.now().minusHours(2)))
-				.test(getExchange());
+			.test(getExchange());
 		assertThat(result).isTrue();
 	}
 
@@ -97,6 +102,31 @@ public class AfterRoutePredicateFactoryTests {
 		config.setDatetime(ZonedDateTime.now());
 		Predicate predicate = new AfterRoutePredicateFactory().apply(config);
 		assertThat(predicate.toString()).contains("After: " + config.getDatetime());
+	}
+
+	@Test
+	public void testConfig() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			config.setDatetime(ZonedDateTime.now());
+
+			assertThat(validator.validate(config).isEmpty()).isTrue();
+		}
+	}
+
+	@Test
+	public void testConfigNullField() {
+		try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+			Validator validator = factory.getValidator();
+
+			Config config = new Config();
+			Set<ConstraintViolation<Config>> validate = validator.validate(config);
+
+			assertThat(validate.isEmpty()).isFalse();
+			assertThat(validate.size()).isEqualTo(1);
+		}
 	}
 
 }

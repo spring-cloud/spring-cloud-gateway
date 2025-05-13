@@ -44,7 +44,7 @@ class HeaderKeyValueGeneratorTest {
 	@Test
 	void exceptionIsThrown_whenConstructorHeaderIsNull() {
 		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> new HeaderKeyValueGenerator(null, SEPARATOR));
+			.isThrownBy(() -> new HeaderKeyValueGenerator(null, SEPARATOR));
 	}
 
 	@Test

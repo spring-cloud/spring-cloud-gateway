@@ -21,9 +21,12 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory.Config;
@@ -33,13 +36,15 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.web.server.WebFilterChainProxy;
+import org.springframework.security.web.server.firewall.StrictServerWebExchangeFirewall;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
 @DirtiesContext
 public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 
@@ -51,8 +56,12 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void trailingSlashReturns404() {
 		// since the configuration does not allow the trailing / to match this should fail
-		testClient.get().uri("/abc/123/function/").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus()
-				.isNotFound();
+		testClient.get()
+			.uri("/abc/123/function/")
+			.header(HttpHeaders.HOST, "www.path.org")
+			.exchange()
+			.expectStatus()
+			.isNotFound();
 	}
 
 	@Test
@@ -61,9 +70,16 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	private void expectPathRoute(String uri, String host, String routeId) {
-		testClient.get().uri(uri).header(HttpHeaders.HOST, host).exchange().expectStatus().isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, routeId);
+		testClient.get()
+			.uri(uri)
+			.header(HttpHeaders.HOST, host)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, routeId);
 	}
 
 	@Test
@@ -81,19 +97,32 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	// @Disabled
 	public void pathRouteWorksWithPercent() {
-		testClient.get().uri("/abc/123%/function").header(HttpHeaders.HOST, "www.path.org").exchange().expectStatus()
-				.isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "path_test");
+		testClient.get()
+			.uri("/abc/123%/function")
+			.header(HttpHeaders.HOST, "www.path.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "path_test");
 	}
 
 	@Test
 	public void pathRouteWorksWithRegex() {
-		testClient.get().uri("/regex/123").header(HttpHeaders.HOST, "www.pathregex.org").exchange().expectStatus()
-				.isOk().expectHeader()
-				.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName()).expectHeader()
-				.valueEquals(ROUTE_ID_HEADER, "path_regex");
+		testClient.get()
+			.uri("/regex/123")
+			.header(HttpHeaders.HOST, "www.pathregex.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
+			.expectHeader()
+			.valueEquals(ROUTE_ID_HEADER, "path_regex");
 	}
 
 	@Test
@@ -105,14 +134,14 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 	@Test
 	public void toStringFormat() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(false);
-		Predicate predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("false");
 	}
 
 	@Test
 	public void toStringFormatMatchTrailingSlashTrue() {
 		Config config = new Config().setPatterns(Arrays.asList("patternA", "patternB")).setMatchTrailingSlash(true);
-		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory().apply(config);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
 		assertThat(predicate.toString()).contains("patternA").contains("patternB").contains("true");
 	}
 
@@ -124,14 +153,32 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 		@Value("${test.uri}")
 		String uri;
 
+		// TODO: move to bean of StrictServerWebExchangeFirewall
+		@Bean
+		public BeanPostProcessor firewallPostProcessor() {
+			return new BeanPostProcessor() {
+				@Override
+				public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+					if (bean instanceof WebFilterChainProxy webFilterChainProxy) {
+						StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
+						firewall.setAllowUrlEncodedPercent(true);
+						webFilterChainProxy.setFirewall(firewall);
+					}
+					return bean;
+				}
+			};
+		}
+
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
-					.route("path_multi_dsl",
-							r -> r.host("**.pathmultidsl.org").and()
-									.path(false, "/anything/multidsl1", "/anything/multidsl3")
-									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
-					.build();
+				.route("path_multi_dsl",
+						r -> r.host("**.pathmultidsl.org")
+							.and()
+							.path(false, "/anything/multidsl1", "/anything/multidsl3")
+							.filters(f -> f.prefixPath("/httpbin"))
+							.uri(uri))
+				.build();
 		}
 
 	}

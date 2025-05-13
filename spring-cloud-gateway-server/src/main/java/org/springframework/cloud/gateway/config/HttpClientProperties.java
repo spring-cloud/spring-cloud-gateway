@@ -32,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
-@ConfigurationProperties("spring.cloud.gateway.httpclient")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".httpclient")
 @Validated
 public class HttpClientProperties {
 
@@ -169,7 +169,7 @@ public class HttpClientProperties {
 
 	public static class Pool {
 
-		/** Type of pool for HttpClient to use, defaults to ELASTIC. */
+		/** Type of pool for HttpClient to use (elastic, fixed or disabled). */
 		private PoolType type = PoolType.ELASTIC;
 
 		/** The channel pool map name, defaults to proxy. */
@@ -207,6 +207,12 @@ public class HttpClientProperties {
 		 * Disabled by default.
 		 */
 		private boolean metrics = false;
+
+		/**
+		 * Configures the leasing strategy for the pool (fifo or lifo), defaults to FIFO
+		 * which is Netty's default.
+		 */
+		private LeasingStrategy leasingStrategy = LeasingStrategy.FIFO;
 
 		public PoolType getType() {
 			return type;
@@ -272,11 +278,20 @@ public class HttpClientProperties {
 			this.metrics = metrics;
 		}
 
+		public LeasingStrategy getLeasingStrategy() {
+			return leasingStrategy;
+		}
+
+		public void setLeasingStrategy(LeasingStrategy leasingStrategy) {
+			this.leasingStrategy = leasingStrategy;
+		}
+
 		@Override
 		public String toString() {
 			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
 					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
-					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics + '}';
+					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics
+					+ ", leasingStrategy=" + leasingStrategy + '}';
 		}
 
 		public enum PoolType {
@@ -298,11 +313,27 @@ public class HttpClientProperties {
 
 		}
 
+		public enum LeasingStrategy {
+
+			/**
+			 * FIFO leasing strategy.
+			 */
+			FIFO,
+
+			/**
+			 * LIFO leasing strategy.
+			 */
+			LIFO
+
+		}
+
 	}
 
 	public static class Proxy {
 
-		/** proxyType for proxy configuration of Netty HttpClient. */
+		/**
+		 * proxyType for proxy configuration of Netty HttpClient (http, socks4 or socks5).
+		 */
 		private ProxyProvider.Proxy type = ProxyProvider.Proxy.HTTP;
 
 		/** Hostname for proxy configuration of Netty HttpClient. */
@@ -390,6 +421,9 @@ public class HttpClientProperties {
 
 		/** Trusted certificates for verifying the remote endpoint's certificate. */
 		private List<String> trustedX509Certificates = new ArrayList<>();
+
+		/** The name of the SSL bundle to use. */
+		private String sslBundle;
 
 		// use netty default SSL timeouts
 		/** SSL handshake timeout. Default to 10000 ms */
@@ -496,13 +530,22 @@ public class HttpClientProperties {
 			this.closeNotifyReadTimeout = closeNotifyReadTimeout;
 		}
 
+		public String getSslBundle() {
+			return sslBundle;
+		}
+
+		public void setSslBundle(String sslBundle) {
+			this.sslBundle = sslBundle;
+		}
+
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("useInsecureTrustManager", useInsecureTrustManager)
-					.append("trustedX509Certificates", trustedX509Certificates)
-					.append("handshakeTimeout", handshakeTimeout)
-					.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
-					.append("closeNotifyReadTimeout", closeNotifyReadTimeout).toString();
+				.append("trustedX509Certificates", trustedX509Certificates)
+				.append("handshakeTimeout", handshakeTimeout)
+				.append("closeNotifyFlushTimeout", closeNotifyFlushTimeout)
+				.append("closeNotifyReadTimeout", closeNotifyReadTimeout)
+				.toString();
 		}
 
 	}
@@ -534,7 +577,8 @@ public class HttpClientProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("maxFramePayloadLength", maxFramePayloadLength)
-					.append("proxyPing", proxyPing).toString();
+				.append("proxyPing", proxyPing)
+				.toString();
 		}
 
 	}
