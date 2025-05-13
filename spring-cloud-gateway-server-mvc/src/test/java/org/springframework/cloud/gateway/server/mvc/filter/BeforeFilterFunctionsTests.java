@@ -243,4 +243,32 @@ class BeforeFilterFunctionsTests {
 			.isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
 	}
 
+	@Test
+	void prefixPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
+				.get("http://localhost/get").buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest,
+				Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/prefix")
+				.apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/prefix/get");
+	}
+
+	@Test
+	void prefixEncodedPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
+				.get("http://localhost/get/é").buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest,
+				Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/pre fix")
+				.apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/pre%20fix/get/%C3%A9");
+	}
+
 }
