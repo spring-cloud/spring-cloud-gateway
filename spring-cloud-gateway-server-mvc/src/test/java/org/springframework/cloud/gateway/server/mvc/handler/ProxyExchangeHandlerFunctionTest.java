@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -46,13 +47,56 @@ class ProxyExchangeHandlerFunctionTest {
 		TestProxyExchange proxyExchange = new TestProxyExchange();
 		ProxyExchangeHandlerFunction function = new ProxyExchangeHandlerFunction(proxyExchange, new ObjectProvider<>() {
 			@Override
-			public Stream<RequestHttpHeadersFilter> stream() {
+			public RequestHttpHeadersFilter getObject() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public RequestHttpHeadersFilter getObject(Object... args) throws BeansException {
+				return null;
+			}
+
+			@Override
+			public RequestHttpHeadersFilter getIfAvailable() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public RequestHttpHeadersFilter getIfUnique() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public Stream<RequestHttpHeadersFilter> orderedStream() {
 				return Stream.of((httpHeaders, serverRequest) -> new HttpHeaders());
 			}
+
 		}, new ObjectProvider<>() {
+
 			@Override
-			public Stream<ResponseHttpHeadersFilter> stream() {
+			public ResponseHttpHeadersFilter getObject() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public ResponseHttpHeadersFilter getObject(Object... args) throws BeansException {
+				return null;
+			}
+
+			@Override
+			public ResponseHttpHeadersFilter getIfAvailable() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public ResponseHttpHeadersFilter getIfUnique() throws BeansException {
+				return null;
+			}
+
+			@Override
+			public Stream<ResponseHttpHeadersFilter> orderedStream() {
 				return Stream.of((httpHeaders, serverRequest) -> new HttpHeaders());
+
 			}
 		});
 
