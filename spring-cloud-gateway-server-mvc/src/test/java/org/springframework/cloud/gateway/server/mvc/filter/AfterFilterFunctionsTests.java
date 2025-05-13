@@ -60,58 +60,58 @@ class AfterFilterFunctionsTests {
 	@Test
 	void doesNotRemoveJsonAttributes() {
 		restClient.get()
-				.uri("/anything/does_not/remove_json_attributes")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectBody(Map.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).containsEntry("foo", "bar");
-					assertThat(res.getResponseBody()).containsEntry("baz", "qux");
-				});
+			.uri("/anything/does_not/remove_json_attributes")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody()).containsEntry("foo", "bar");
+				assertThat(res.getResponseBody()).containsEntry("baz", "qux");
+			});
 	}
 
 	@Test
 	void removeJsonAttributesToAvoidBeingRecursive() {
 		restClient.get()
-				.uri("/anything/remove_json_attributes_to_avoid_being_recursive")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectBody(Map.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).doesNotContainKey("foo");
-					assertThat(res.getResponseBody()).containsEntry("baz", "qux");
-				});
+			.uri("/anything/remove_json_attributes_to_avoid_being_recursive")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody()).doesNotContainKey("foo");
+				assertThat(res.getResponseBody()).containsEntry("baz", "qux");
+			});
 	}
 
 	@Test
 	void removeJsonAttributesRecursively() {
 		restClient.get()
-				.uri("/anything/remove_json_attributes_recursively")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectBody(Map.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).containsKey("foo");
-					assertThat((Map<String, String>) res.getResponseBody().get("foo")).containsEntry("bar", "A");
-					assertThat(res.getResponseBody()).containsEntry("quux", "C");
-					assertThat(res.getResponseBody()).doesNotContainKey("qux");
-				});
+			.uri("/anything/remove_json_attributes_recursively")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody()).containsKey("foo");
+				assertThat((Map<String, String>) res.getResponseBody().get("foo")).containsEntry("bar", "A");
+				assertThat(res.getResponseBody()).containsEntry("quux", "C");
+				assertThat(res.getResponseBody()).doesNotContainKey("qux");
+			});
 	}
 
 	@Test
 	void raisedErrorWhenRemoveJsonAttributes() {
 		restClient.get()
-				.uri("/anything/raised_error_when_remove_json_attributes")
-				.exchange()
-				.expectStatus()
-				.is5xxServerError()
-				.expectBody(String.class)
-				.consumeWith(res -> {
-					assertThat(res.getResponseBody()).isEqualTo("Failed to process JSON of response body.");
-				});
+			.uri("/anything/raised_error_when_remove_json_attributes")
+			.exchange()
+			.expectStatus()
+			.is5xxServerError()
+			.expectBody(String.class)
+			.consumeWith(res -> {
+				assertThat(res.getResponseBody()).isEqualTo("Failed to process JSON of response body.");
+			});
 	}
 
 	@SpringBootConfiguration

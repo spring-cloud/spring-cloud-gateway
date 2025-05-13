@@ -142,11 +142,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void gatewayHttpClientPropertiesWork() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none",
-					"spring.cloud.gateway.mvc.http-client.connect-timeout=1s",
-					"spring.cloud.gateway.mvc.http-client.read-timeout=2s",
-					"spring.cloud.gateway.mvc.http-client.ssl-bundle=mybundle",
-					"spring.cloud.gateway.mvc.http-client.type=autodetect",
+			.properties("spring.main.web-application-type=none", "spring.http.client.connect-timeout=1s",
+					"spring.http.client.read-timeout=2s", "spring.http.client.ssl.bundle=mybundle",
 					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
 					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
 			.run();
@@ -201,7 +198,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void settingHttpClientFactoryWorks() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none", "spring.http.client.settings.factory=simple")
+			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);

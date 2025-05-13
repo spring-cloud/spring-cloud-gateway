@@ -216,18 +216,19 @@ public class GatewayServerMvcAutoConfiguration {
 		static final boolean REACTOR_NETTY = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", null);
 		static final boolean JDK = ClassUtils.isPresent("java.net.http.HttpClient", null);
 		static final boolean HIGHER_PRIORITY = APACHE || JETTY || REACTOR_NETTY;
+		static final String SPRING_REDIRECTS_PROPERTY = "spring.http.client.redirects";
+		static final String SPRING_HTTP_FACTORY_PROPERTY = "spring.http.client.factory";
 
 		@Override
 		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-			HttpRedirects redirects = environment.getProperty("spring.http.client.settings.redirects",
-					HttpRedirects.class);
+			HttpRedirects redirects = environment.getProperty(SPRING_REDIRECTS_PROPERTY, HttpRedirects.class);
 			if (redirects == null) {
 				// the user hasn't set anything, change the default
 				environment.getPropertySources()
 					.addFirst(new MapPropertySource("gatewayHttpClientProperties",
-							Map.of("spring.http.client.settings.redirects", HttpRedirects.DONT_FOLLOW)));
+							Map.of(SPRING_REDIRECTS_PROPERTY, HttpRedirects.DONT_FOLLOW)));
 			}
-			Factory factory = environment.getProperty("spring.http.client.settings.factory", Factory.class);
+			Factory factory = environment.getProperty(SPRING_HTTP_FACTORY_PROPERTY, Factory.class);
 			boolean setJdkHttpClientProperties = false;
 
 			if (factory == null && !HIGHER_PRIORITY) {
