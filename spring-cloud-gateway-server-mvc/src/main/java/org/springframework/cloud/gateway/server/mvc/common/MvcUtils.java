@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,11 +41,14 @@ import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 import static org.springframework.web.servlet.function.RouterFunctions.URI_TEMPLATE_VARIABLES_ATTRIBUTE;
 
@@ -261,6 +265,17 @@ public abstract class MvcUtils {
 		LinkedHashSet<URI> urls = (LinkedHashSet<URI>) request.attributes()
 			.computeIfAbsent(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, s -> new LinkedHashSet<>());
 		urls.add(url);
+	}
+
+	public static MultiValueMap<String, String> encodeQueryParams(MultiValueMap<String, String> params) {
+		MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(params.size());
+		for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+			for (String value : entry.getValue()) {
+				encodedQueryParams.add(UriUtils.encode(entry.getKey(), StandardCharsets.UTF_8),
+						UriUtils.encode(value, StandardCharsets.UTF_8));
+			}
+		}
+		return CollectionUtils.unmodifiableMultiValueMap(encodedQueryParams);
 	}
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {

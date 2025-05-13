@@ -103,7 +103,7 @@ class ProxyExchangeHandlerFunctionTest {
 		function.onApplicationEvent(null);
 
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
-			.get("http://localhost/é?foo=value1 value2&bar=value3=")
+			.get("http://localhost/é?foo=value1 value2&bar=value3=&qux=value4+")
 			.buildRequest(null);
 		servletRequest.setAttribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost:8080"));
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -112,10 +112,11 @@ class ProxyExchangeHandlerFunctionTest {
 
 		URI uri = proxyExchange.getRequest().getUri();
 
-		assertThat(uri).hasToString("http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3%3D")
+		assertThat(uri).hasToString("http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3%3D&qux=value4%2B")
 			.hasPath("/é")
 			.hasParameter("foo", "value1 value2")
-			.hasParameter("bar", "value3=");
+			.hasParameter("bar", "value3=")
+			.hasParameter("qux", "value4+");
 	}
 
 	private class TestProxyExchange extends AbstractProxyExchange {

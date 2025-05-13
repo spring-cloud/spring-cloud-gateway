@@ -36,7 +36,6 @@ import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 /**
  * @author raccoonback
@@ -139,7 +138,7 @@ public class ProxyExchangeHandlerFunction
 		boolean encoded = containsEncodedQuery(serverRequest.uri(), serverRequest.params());
 		MultiValueMap<String, String> params = serverRequest.params();
 		if (!encoded) {
-			params = UriUtils.encodeQueryParams(serverRequest.params());
+			params = MvcUtils.encodeQueryParams(serverRequest.params());
 		}
 		return params;
 	}
