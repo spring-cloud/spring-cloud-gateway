@@ -247,28 +247,22 @@ class BeforeFilterFunctionsTests {
 
 	@Test
 	void prefixPath() {
-		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
-				.get("http://localhost/get").buildRequest(null);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get").buildRequest(null);
 
-		ServerRequest request = ServerRequest.create(servletRequest,
-				Collections.emptyList());
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
-		ServerRequest modified = BeforeFilterFunctions.prefixPath("/prefix")
-				.apply(request);
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/prefix").apply(request);
 
 		assertThat(modified.uri().getRawPath()).isEqualTo("/prefix/get");
 	}
 
 	@Test
 	void prefixEncodedPath() {
-		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
-				.get("http://localhost/get/é").buildRequest(null);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/é").buildRequest(null);
 
-		ServerRequest request = ServerRequest.create(servletRequest,
-				Collections.emptyList());
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
-		ServerRequest modified = BeforeFilterFunctions.prefixPath("/pre fix")
-				.apply(request);
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/pre fix").apply(request);
 
 		assertThat(modified.uri().getRawPath()).isEqualTo("/pre%20fix/get/%C3%A9");
 	}
