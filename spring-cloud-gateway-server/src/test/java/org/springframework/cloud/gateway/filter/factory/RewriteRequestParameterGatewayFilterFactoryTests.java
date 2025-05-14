@@ -88,6 +88,12 @@ class RewriteRequestParameterGatewayFilterFactoryTests {
 				Map.of("campaign[]", List.of("blue"), "color", List.of("white")));
 	}
 
+	@Test
+	void rewriteRequestParameterFilterWithPlusSign() {
+		testRewriteRequestParameterFilter("color", "white+", "campaign=blue%2B&color=green",
+				Map.of("campaign", List.of("blue+"), "color", List.of("white+")));
+	}
+
 	private void testRewriteRequestParameterFilter(String name, String replacement, String query,
 			Map<String, List<String>> expectedQueryParams) {
 		GatewayFilter filter = new RewriteRequestParameterGatewayFilterFactory()
