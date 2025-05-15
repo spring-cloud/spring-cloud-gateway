@@ -58,6 +58,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGa
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
@@ -867,6 +868,16 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec requestHeaderToRequestUri(String headerName) {
 		return filter(getBean(RequestHeaderToRequestUriGatewayFilterFactory.class).apply(c -> c.setName(headerName)));
+	}
+
+	/**
+	 * A filter which changes the URI the request will be routed to by the Gateway by
+	 * pulling it from a header on the request.
+	 * @param uri the URI
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setRequestUri(String uri) {
+		return filter(getBean(SetRequestUriGatewayFilterFactory.class).apply(c -> c.setTemplate(uri)));
 	}
 
 	/**
