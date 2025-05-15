@@ -22,14 +22,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.util.Timeout;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.HttpComponentsClientHttpRequestFactoryBuilder;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
@@ -37,6 +39,7 @@ import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSupplie
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,11 +65,19 @@ public class HttpClientApplication {
 	}
 
 	@Bean
-	public HttpComponentsClientHttpRequestFactoryBuilder httpComponentsClientHttpRequestFactoryBuilder() {
-		return ClientHttpRequestFactoryBuilder.httpComponents()
-			.withConnectionManagerCustomizer(builder -> builder.setMaxConnTotal(2).setMaxConnPerRoute(2))
-			.withDefaultRequestConfigCustomizer(
-					c -> c.setConnectionRequestTimeout(Timeout.of(Duration.ofMillis(3000))));
+	public HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory() {
+		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+		connectionManager.setMaxTotal(2);
+		connectionManager.setDefaultMaxPerRoute(2);
+
+		CloseableHttpClient httpClient = HttpClients.custom()
+			.setConnectionManager(connectionManager)
+			.setDefaultRequestConfig(
+					RequestConfig.custom().setConnectionRequestTimeout(Timeout.of(Duration.ofMillis(3000))).build())
+			.build();
+
+		HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+		return factory;
 	}
 
 	@Bean
