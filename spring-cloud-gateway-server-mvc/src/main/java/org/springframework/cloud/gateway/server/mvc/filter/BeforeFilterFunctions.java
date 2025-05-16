@@ -351,7 +351,7 @@ public abstract class BeforeFilterFunctions {
 				queryParams.add(name, replacement);
 			}
 
-			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+			MultiValueMap<String, String> encodedQueryParams = MvcUtils.encodeQueryParams(queryParams);
 			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
 				.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
 				.build(true)
