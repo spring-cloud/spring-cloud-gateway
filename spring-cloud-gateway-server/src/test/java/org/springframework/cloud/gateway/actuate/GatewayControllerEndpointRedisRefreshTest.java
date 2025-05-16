@@ -49,8 +49,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Peter Müller
  */
-@SpringBootTest(properties = {"management.endpoint.gateway.enabled=true",
-		"management.endpoints.web.exposure.include=*", "spring.cloud.gateway.actuator.verbose.enabled=true"},
+@SpringBootTest(properties = { "management.endpoint.gateway.enabled=true",
+		"management.endpoints.web.exposure.include=*", "spring.cloud.gateway.actuator.verbose.enabled=true" },
 		webEnvironment = RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("redis-route-repository")
@@ -94,8 +94,9 @@ public class GatewayControllerEndpointRedisRefreshTest {
 		createOrUpdateRouteWithCors(cors);
 
 		Awaitility.await().atMost(Duration.ofSeconds(3)).untilAsserted(() -> assertRouteHasCorsConfig(cors));
-		Awaitility.await().atMost(Duration.ofSeconds(3))
-				.untilAsserted(() -> assertPreflightAllowOrigin("http://example.org"));
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(3))
+			.untilAsserted(() -> assertPreflightAllowOrigin("http://example.org"));
 	}
 
 	void createOrUpdateRouteWithCors(Map<String, Object> cors) {
@@ -108,41 +109,41 @@ public class GatewayControllerEndpointRedisRefreshTest {
 		testRouteDefinition.setMetadata(Map.of("cors", cors));
 
 		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/cors-test-route")
-				.accept(MediaType.APPLICATION_JSON)
-				.body(BodyInserters.fromValue(testRouteDefinition))
-				.exchange()
-				.expectStatus()
-				.isCreated();
+			.uri("http://localhost:" + port + "/actuator/gateway/routes/cors-test-route")
+			.accept(MediaType.APPLICATION_JSON)
+			.body(BodyInserters.fromValue(testRouteDefinition))
+			.exchange()
+			.expectStatus()
+			.isCreated();
 
 		testClient.post()
-				.uri("http://localhost:" + port + "/actuator/gateway/refresh")
-				.exchange()
-				.expectStatus()
-				.isOk();
+			.uri("http://localhost:" + port + "/actuator/gateway/refresh")
+			.exchange()
+			.expectStatus()
+			.isOk();
 	}
 
 	void assertRouteHasCorsConfig(Map<String, Object> cors) {
 		testClient.get()
-				.uri("http://localhost:" + port + "/actuator/gateway/routes/cors-test-route")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectBody()
-				.jsonPath("$.metadata")
-				.value(map -> assertThat((Map<String, Object>) map).hasSize(1)
-						.containsEntry("cors", cors));
+			.uri("http://localhost:" + port + "/actuator/gateway/routes/cors-test-route")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.jsonPath("$.metadata")
+			.value(map -> assertThat((Map<String, Object>) map).hasSize(1).containsEntry("cors", cors));
 	}
 
 	void assertPreflightAllowOrigin(String origin) {
 		testClient.options()
-				.uri("http://localhost:" + port + "/")
-				.header("Origin", "http://example.org")
-				.header("Access-Control-Request-Method", "GET")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectHeader()
-				.valueEquals("Access-Control-Allow-Origin", origin);
+			.uri("http://localhost:" + port + "/")
+			.header("Origin", "http://example.org")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Access-Control-Allow-Origin", origin);
 	}
+
 }
