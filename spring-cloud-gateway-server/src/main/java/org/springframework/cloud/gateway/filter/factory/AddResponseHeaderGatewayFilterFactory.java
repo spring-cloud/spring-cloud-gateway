@@ -16,12 +16,17 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Arrays;
+import java.util.List;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -29,10 +34,22 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Spencer Gibb
  */
-public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+public class AddResponseHeaderGatewayFilterFactory
+		extends AbstractGatewayFilterFactory<AddResponseHeaderGatewayFilterFactory.Config> {
+
+	private static final String OVERRIDE_KEY = "override";
+
+	public AddResponseHeaderGatewayFilterFactory() {
+		super(Config.class);
+	}
 
 	@Override
-	public GatewayFilter apply(NameValueConfig config) {
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY, OVERRIDE_KEY);
+	}
+
+	@Override
+	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -42,19 +59,76 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			@Override
 			public String toString() {
 				return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
-					.append(config.getName(), config.getValue())
+					.append(GatewayFilter.NAME_KEY, config.getName())
+					.append(GatewayFilter.VALUE_KEY, config.getValue())
+					.append(OVERRIDE_KEY, config.isOverride())
 					.toString();
 			}
 		};
 	}
 
-	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
-		final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-		HttpHeaders headers = exchange.getResponse().getHeaders();
+	void addHeader(ServerWebExchange exchange, Config config) {
 		// if response has been commited, no more response headers will bee added.
 		if (!exchange.getResponse().isCommitted()) {
-			headers.add(config.getName(), value);
+			final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+			HttpHeaders headers = exchange.getResponse().getHeaders();
+			if (config.override) {
+				headers.add(config.getName(), value);
+			}
+			else {
+				boolean headerIsMissingOrBlank = headers.getOrEmpty(config.getName())
+					.stream()
+					.allMatch(h -> !StringUtils.hasText(h));
+				if (headerIsMissingOrBlank) {
+					headers.add(config.getName(), value);
+				}
+			}
 		}
+	}
+
+	public static class Config {
+
+		private String name;
+
+		private String value;
+
+		private boolean override = true;
+
+		public String getName() {
+			return name;
+		}
+
+		public Config setName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public Config setValue(String value) {
+			this.value = value;
+			return this;
+		}
+
+		public boolean isOverride() {
+			return override;
+		}
+
+		public Config setOverride(boolean override) {
+			this.override = override;
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append(NAME_KEY, name)
+				.append(VALUE_KEY, value)
+				.append(OVERRIDE_KEY, override)
+				.toString();
+		}
+
 	}
 
 }
