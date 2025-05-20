@@ -1,7 +1,7 @@
 [[addresponseheader-gatewayfilter-factory]]
 = `AddResponseHeader` `GatewayFilter` Factory
 
-The `AddResponseHeader` `GatewayFilter` Factory takes a `name` and `value` parameter.
+The `AddResponseHeader` `GatewayFilter` Factory takes three parameters: `name`, `value` and `override`(default value is `true`) .
 The following example configures an `AddResponseHeader` `GatewayFilter`:
 
 .application.yml
@@ -15,9 +15,12 @@ spring:
         uri: https://example.org
         filters:
         - AddResponseHeader=X-Response-Red, Blue
+        - AddResponseHeader=X-Response-Black, White, false
 ----
 
 This adds `X-Response-Red:Blue` header to the downstream response's headers for all matching requests.
+and if the response already contains the `X-Response-Black` header, this will not add the `X-Response-Black: White`
+header to the downstream response's headers for all matching requests.
 
 `AddResponseHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
