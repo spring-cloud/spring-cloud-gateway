@@ -90,7 +90,6 @@ public class SetRequestUriGatewayFilterFactory
 			return Optional.of(uri);
 		}
 		catch (IllegalArgumentException e) {
-
 			log.info("Request url is invalid : url={}, error={}", config.getTemplate(), e.getMessage());
 			return Optional.ofNullable(null);
 		}
