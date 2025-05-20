@@ -36,7 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Olga Maciaszek-Sharma
  *
  */
-@SpringBootTest(classes = {ServerMvcLoadBalancerIntegrationTests.Config.class, FilterAutoConfiguration.class},
+@SpringBootTest(classes = { ServerMvcLoadBalancerIntegrationTests.Config.class, FilterAutoConfiguration.class },
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 @ActiveProfiles("lb")
@@ -50,13 +50,13 @@ public class ServerMvcLoadBalancerIntegrationTests {
 
 	@Test
 	void shouldUseLbHandlerFunctionDefinitionToResolveHost() {
-		testRestClient.get()
-				.uri("http://localhost:" + port + "/test")
-				.exchange().expectStatus().isOk();
+		testRestClient.get().uri("http://localhost:" + port + "/test").exchange().expectStatus().isOk();
 	}
 
 	@SpringBootApplication
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	static class Config {
+
 	}
+
 }

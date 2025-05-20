@@ -209,22 +209,22 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void loadBalancerFunctionHandlerAdded() {
 		new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
-						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
-						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-						RestClientAutoConfiguration.class))
-				.run(context -> assertThat(context).hasBean("lbHandlerFunctionDefinition"));
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.run(context -> assertThat(context).hasBean("lbHandlerFunctionDefinition"));
 	}
 
 	@Test
 	void loadBalancerFunctionHandlerNotAddedWhenNoLoadBalancerClientOnClasspath() {
 		new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
-						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
-						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-						RestClientAutoConfiguration.class))
-				.withClassLoader(new FilteredClassLoader(LoadBalancerClient.class))
-				.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(LoadBalancerClient.class))
+			.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
 	}
 
 	@SpringBootConfiguration
