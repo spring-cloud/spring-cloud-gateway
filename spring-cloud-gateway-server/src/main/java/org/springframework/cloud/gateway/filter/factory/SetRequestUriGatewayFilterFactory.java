@@ -84,7 +84,8 @@ public class SetRequestUriGatewayFilterFactory
 			String url = getUri(exchange, config);
 			URI uri = URI.create(url);
 			if (!uri.isAbsolute()) {
-				throw new IllegalArgumentException("URI is not absolute");
+				log.info("Request url is invalid: url={}, error=URI is not absolute", url);
+				return Optional.ofNullable(null);
 			}
 			return Optional.of(uri);
 		}
