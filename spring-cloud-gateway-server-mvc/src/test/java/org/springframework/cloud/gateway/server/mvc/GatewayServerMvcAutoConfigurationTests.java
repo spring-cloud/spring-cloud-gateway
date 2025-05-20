@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
@@ -47,6 +48,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilte
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -202,6 +204,27 @@ public class GatewayServerMvcAutoConfigurationTests {
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+	}
+
+	@Test
+	void loadBalancerFunctionHandlerAdded() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class))
+				.run(context -> assertThat(context).hasBean("lbHandlerFunctionDefinition"));
+	}
+
+	@Test
+	void loadBalancerFunctionHandlerNotAddedWhenNoLoadBalancerClientOnClasspath() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class))
+				.withClassLoader(new FilteredClassLoader(LoadBalancerClient.class))
+				.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
 	}
 
 	@SpringBootConfiguration
