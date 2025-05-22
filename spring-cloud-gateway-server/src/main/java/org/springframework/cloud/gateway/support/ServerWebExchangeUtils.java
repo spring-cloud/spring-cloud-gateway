@@ -17,9 +17,11 @@
 package org.springframework.cloud.gateway.support;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -48,9 +50,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriUtils;
 
 /**
  * @author Spencer Gibb
@@ -258,6 +264,17 @@ public final class ServerWebExchangeUtils {
 		}
 
 		return encoded;
+	}
+
+	public static MultiValueMap<String, String> encodeQueryParams(MultiValueMap<String, String> params) {
+		MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(params.size());
+		for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+			for (String value : entry.getValue()) {
+				encodedQueryParams.add(UriUtils.encode(entry.getKey(), StandardCharsets.UTF_8),
+						UriUtils.encode(value, StandardCharsets.UTF_8));
+			}
+		}
+		return CollectionUtils.unmodifiableMultiValueMap(encodedQueryParams);
 	}
 
 	public static HttpStatus parse(String statusString) {
