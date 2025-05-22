@@ -43,7 +43,7 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.cloud.gateway.mvc.http-client.type=jdk" },
+@SpringBootTest(properties = { "spring.http.client.factory=jdk" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class VanillaRouterFunctionTests {
