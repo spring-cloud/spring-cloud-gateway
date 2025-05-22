@@ -57,7 +57,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
-@EnableConfigurationProperties(ProxyProperties.class)
+@EnableConfigurationProperties({ ProxyExchangeWebMvcProperties.class, ProxyProperties.class })
 public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
@@ -66,7 +66,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean
 	public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(Optional<RestTemplateBuilder> optional,
-			ProxyProperties proxy) {
+			ProxyExchangeWebMvcProperties properties) {
 		RestTemplateBuilder builder = optional.orElse(new RestTemplateBuilder());
 		RestTemplate template = builder.build();
 		template.setErrorHandler(new NoOpResponseErrorHandler());
@@ -77,14 +77,14 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 			}
 		});
 		ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(template);
-		resolver.setHeaders(proxy.convertHeaders());
-		resolver.setAutoForwardedHeaders(proxy.getAutoForward());
+		resolver.setHeaders(properties.convertHeaders());
+		resolver.setAutoForwardedHeaders(properties.getAutoForward());
 		Set<String> excludedHeaderNames = new HashSet<>();
-		if (proxy.getSensitive() != null) {
-			excludedHeaderNames.addAll(proxy.getSensitive());
+		if (properties.getSensitive() != null) {
+			excludedHeaderNames.addAll(properties.getSensitive());
 		}
-		if (proxy.getSkipped() != null) {
-			excludedHeaderNames.addAll(proxy.getSkipped());
+		if (properties.getSkipped() != null) {
+			excludedHeaderNames.addAll(properties.getSkipped());
 		}
 		resolver.setExcluded(excludedHeaderNames);
 		return resolver;

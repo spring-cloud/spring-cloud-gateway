@@ -20,7 +20,7 @@ management:
 
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       httpserver:
         wiretap: true
       httpclient:

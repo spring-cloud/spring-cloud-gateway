@@ -15,21 +15,10 @@
 #
 #
 
-org.springframework.cloud.gateway.server.mvc.filter.FilterSupplier=\
-  org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.FilterSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.FilterSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.FilterSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions.FilterSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.FilterSupplier
-
-org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier=\
-  org.springframework.cloud.gateway.server.mvc.handler.DefaultHandlerSupplier,\
-  org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerHandlerSupplier
-
-org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
-  org.springframework.cloud.gateway.server.mvc.predicate.MvcPredicateSupplier,\
-  org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.PredicateSupplier
-
 org.springframework.boot.env.EnvironmentPostProcessor=\
   org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration.GatewayHttpClientEnvironmentPostProcessor,\
   org.springframework.cloud.gateway.server.mvc.common.MultipartEnvironmentPostProcessor
+
+# Application Listeners
+org.springframework.context.ApplicationListener=\
+  org.springframework.cloud.gateway.server.mvc.config.GatewayServerWebMvcPropertiesMigrationListener

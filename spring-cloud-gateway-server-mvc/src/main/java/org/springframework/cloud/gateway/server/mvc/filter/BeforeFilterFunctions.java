@@ -195,7 +195,7 @@ public abstract class BeforeFilterFunctions {
 
 			String newPath = uri.getRawPath() + request.uri().getRawPath();
 
-			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build().toUri();
+			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build(true).toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
 		};
 	}

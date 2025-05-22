@@ -28,7 +28,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * @author Ingyu Hwang
  */
-@ConfigurationProperties("spring.cloud.gateway.metrics")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".metrics")
 @Validated
 public class GatewayMetricsProperties {
 

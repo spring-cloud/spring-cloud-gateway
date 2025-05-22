@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
@@ -44,6 +46,9 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResp
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,18 +114,19 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void filterEnabledPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-			.withPropertyValues("spring.cloud.gateway.mvc.form-filter.enabled=false",
-					"spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-content-length-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-hop-by-hop-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-hop-by-hop-response-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.remove-http2-status-response-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
-					"spring.cloud.gateway.mvc.weight-calculator-filter.enabled=false",
-					"spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled=false")
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.form-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-hop-by-hop-response-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.remove-http2-status-response-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false")
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(FormFilter.class);
 				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class);
@@ -138,11 +144,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void gatewayHttpClientPropertiesWork() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none",
-					"spring.cloud.gateway.mvc.http-client.connect-timeout=1s",
-					"spring.cloud.gateway.mvc.http-client.read-timeout=2s",
-					"spring.cloud.gateway.mvc.http-client.ssl-bundle=mybundle",
-					"spring.cloud.gateway.mvc.http-client.type=autodetect",
+			.properties("spring.main.web-application-type=none", "spring.http.client.connect-timeout=1s",
+					"spring.http.client.read-timeout=2s", "spring.http.client.ssl.bundle=mybundle",
 					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
 					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
 			.run();
@@ -161,7 +164,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	void bootHttpClientPropertiesWork() {
 		new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(GatewayServerMvcAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
 			.withPropertyValues("spring.http.client.connect-timeout=1s", "spring.http.client.read-timeout=2s",
@@ -185,12 +189,42 @@ public class GatewayServerMvcAutoConfigurationTests {
 	}
 
 	@Test
+	void settingHttpClientFactoryOldPropertyWorks() {
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
+			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
+			.run();
+		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
+		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+	}
+
+	@Test
 	void settingHttpClientFactoryWorks() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
 			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+	}
+
+	@Test
+	void loadBalancerFunctionHandlerAdded() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.run(context -> assertThat(context).hasBean("lbHandlerFunctionDefinition"));
+	}
+
+	@Test
+	void loadBalancerFunctionHandlerNotAddedWhenNoLoadBalancerClientOnClasspath() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(LoadBalancerClient.class))
+			.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
 	}
 
 	@SpringBootConfiguration

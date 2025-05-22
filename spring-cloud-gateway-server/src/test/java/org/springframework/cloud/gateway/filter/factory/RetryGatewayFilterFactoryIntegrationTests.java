@@ -64,8 +64,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.httpclient.connect-timeout=500",
-				"spring.cloud.gateway.httpclient.response-timeout=2s",
+		properties = { "spring.cloud.gateway.server.webflux.httpclient.connect-timeout=500",
+				"spring.cloud.gateway.server.webflux.httpclient.response-timeout=2s",
 				"logging.level.org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory=TRACE" })
 @DirtiesContext
 // default filter AddResponseHeader suppresses bug

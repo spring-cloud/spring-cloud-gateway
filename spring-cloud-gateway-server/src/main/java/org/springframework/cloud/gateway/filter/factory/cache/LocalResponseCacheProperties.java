@@ -30,7 +30,7 @@ import org.springframework.util.unit.DataSize;
 @ConfigurationProperties(prefix = LocalResponseCacheProperties.PREFIX)
 public class LocalResponseCacheProperties {
 
-	static final String PREFIX = "spring.cloud.gateway.filter.local-response-cache";
+	static final String PREFIX = "spring.cloud.gateway.server.webflux.filter.local-response-cache";
 
 	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheProperties.class);
 

@@ -107,6 +107,16 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.projectreactor.netty</groupId>
+					<artifactId>reactor-netty</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-webflux</artifactId>
+				</exclusion>
+			</exclusions>
 			<scope>test</scope>
 		</dependency>
         <!-- Third party test dependencies -->

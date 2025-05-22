@@ -14,7 +14,7 @@ spring:
       - logging
 
   cloud:
-    gateway:
+    gateway.server.webflux:
       globalcors:
         cors-configurations:
           '[/**]':

@@ -1,6 +1,6 @@
 spring:
   cloud:
-    gateway:
+    gateway.server.webflux:
       routes:
         - id: cors_preflight_test
           uri: ${test.uri}

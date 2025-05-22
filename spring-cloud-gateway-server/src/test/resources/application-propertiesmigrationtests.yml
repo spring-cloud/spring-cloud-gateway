@@ -1,0 +1,32 @@
+spring.cloud.gateway:
+  route-refresh-listener.enabled: false
+  forwarded.enabled: false
+  x-forwarded.enabled: false
+  predicate.after.enabled: false
+  filter.add-request-parameter.enabled: false
+  routes:
+    - id: listRoute1
+      uri: https://examplel1.com
+      predicates:
+        - name: Method
+          args:
+            methods: GET
+        - name: Path
+          args:
+            pattern: /anything/listRoute1
+      filters:
+        - AddRequestHeader=X-Test,listRoute1
+    - id: listRoute2
+      uri: https://examplel2.com
+      predicates:
+        - name: Method
+          args:
+            methods: GET
+        - name: Path
+          args:
+            pattern: /anything/listRoute2
+      filters:
+        - AddRequestHeader=X-Test,listRoute2
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE

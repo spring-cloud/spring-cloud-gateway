@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.globalcors.add-to-simple-url-handler-mapping=true")
+		properties = "spring.cloud.gateway.server.webflux.globalcors.add-to-simple-url-handler-mapping=true")
 @DirtiesContext
 @ActiveProfiles("request-header-web-filter")
 public class SimpleUrlHandlerCorsTests extends BaseWebClientTests {
