@@ -45,7 +45,6 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
-import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
@@ -216,7 +215,7 @@ public abstract class BeforeFilterFunctions {
 			MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.params());
 			queryParams.remove(name);
 
-			MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+			MultiValueMap<String, String> encodedQueryParams = MvcUtils.encodeQueryParams(queryParams);
 
 			// remove from uri
 			URI newUri = UriComponentsBuilder.fromUri(request.uri())
