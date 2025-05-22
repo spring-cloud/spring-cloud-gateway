@@ -1,4 +1,4 @@
-spring.cloud.gateway.mvc:
+spring.cloud.gateway.server.webmvc:
   routesMap:
     testsimplefunction:
       uri: fn:upper
