@@ -117,8 +117,9 @@ class BeforeFilterFunctionsTests {
 	@Test
 	void rewriteEncodedRequestParameter() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/path")
-			.param("foo[]", "bar")
-			.param("baz", "qux")
+			.param("foo", "bar")
+			.param("baz[]", "qux[]")
+				.param("quux", "corge+")
 			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -126,7 +127,8 @@ class BeforeFilterFunctionsTests {
 		ServerRequest result = BeforeFilterFunctions.rewriteRequestParameter("foo[]", "replacement[]").apply(request);
 
 		assertThat(result.param("foo[]")).isPresent().hasValue("replacement[]");
-		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz=qux&foo%5B%5D=replacement%5B%5D");
+		assertThat(result.param("quux")).isPresent().hasValue("corge+");
+		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz=qux&foo%5B%5D=replacement%5B%5D&quux=corge%2B");
 	}
 
 	@Test

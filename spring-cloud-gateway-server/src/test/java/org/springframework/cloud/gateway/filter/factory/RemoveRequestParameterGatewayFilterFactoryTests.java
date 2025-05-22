@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.net.URI;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -24,6 +26,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory.NameConfig;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -121,6 +124,23 @@ class RemoveRequestParameterGatewayFilterFactoryTests {
 		assertThat(actualRequest.getQueryParams()).containsEntry("aaa", singletonList("abc xyz"));
 		assertThat(actualRequest.getQueryParams()).containsEntry("bbb", singletonList("[xyz"));
 		assertThat(actualRequest.getQueryParams()).containsEntry("ccc", singletonList(",xyz"));
+	}
+
+	@Test
+	void removeRequestParameterFilterShouldHandleRemainingPlusSignParams() {
+		MockServerHttpRequest request = MockServerHttpRequest
+			.method(HttpMethod.GET, URI.create("http://localhost?foo=bar&aaa=%2Bxyz"))
+			.build();
+		exchange = MockServerWebExchange.from(request);
+		NameConfig config = new NameConfig();
+		config.setName("foo");
+		GatewayFilter filter = new RemoveRequestParameterGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, filterChain);
+
+		ServerHttpRequest actualRequest = captor.getValue().getRequest();
+		assertThat(actualRequest.getQueryParams()).doesNotContainKey("foo");
+		assertThat(actualRequest.getQueryParams()).containsEntry("aaa", singletonList("+xyz"));
 	}
 
 	@Test
