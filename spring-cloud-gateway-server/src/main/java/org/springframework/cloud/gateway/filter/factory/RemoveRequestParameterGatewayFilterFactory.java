@@ -24,12 +24,12 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
@@ -59,7 +59,8 @@ public class RemoveRequestParameterGatewayFilterFactory
 				queryParams.remove(config.getName());
 
 				try {
-					MultiValueMap<String, String> encodedQueryParams = UriUtils.encodeQueryParams(queryParams);
+					MultiValueMap<String, String> encodedQueryParams = ServerWebExchangeUtils
+						.encodeQueryParams(queryParams);
 					URI newUri = UriComponentsBuilder.fromUri(request.getURI())
 						.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
 						.build(true)

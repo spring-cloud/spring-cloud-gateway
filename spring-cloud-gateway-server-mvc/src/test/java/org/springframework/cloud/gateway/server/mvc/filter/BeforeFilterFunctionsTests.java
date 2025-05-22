@@ -119,6 +119,7 @@ class BeforeFilterFunctionsTests {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/path")
 			.queryParam("foo", "bar")
 			.queryParam("baz[]", "qux[]")
+			.queryParam("quux", "corge+")
 			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -127,7 +128,8 @@ class BeforeFilterFunctionsTests {
 
 		assertThat(result.param("foo")).isEmpty();
 		assertThat(result.param("baz[]")).isPresent().hasValue("qux[]");
-		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz%5B%5D=qux%5B%5D");
+		assertThat(result.param("quux")).isPresent().hasValue("corge+");
+		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz%5B%5D=qux%5B%5D&quux=corge%2B");
 	}
 
 	@Test
