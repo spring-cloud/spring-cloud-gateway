@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -51,15 +53,64 @@ class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 			.header("Host", host)
 			.exchange()
 			.expectHeader()
-			.valueEquals("X-Request-Foo", expectedValue);
+			.valueEquals("X-Request-Foo", expectedValue)
+			.expectHeader()
+			.valueEquals("X-Request-Example", "ValueA");
+	}
+
+	@Test
+	void testResponseHeaderFilterHeaderPresent() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
+		String host = "www.addresponseheader.org";
+		String expectedValue = "Bar";
+
+		Map<String, String> body = new HashMap<>();
+		body.put("X-Request-Example", "ValueB");
+
+		testClient.patch()
+			.uri(uri)
+			.header("Host", host)
+			.bodyValue(body)
+			.exchange()
+			.expectHeader()
+			.valueEquals("X-Request-Foo", expectedValue)
+			.expectHeader()
+			.valueEquals("X-Request-Example", "ValueB");
 	}
 
 	@Test
 	void testResponseHeaderFilterJavaDsl() {
-		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/get").build(true).toUri();
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
 		String host = "www.addresponseheaderjava.org";
 		String expectedValue = "myresponsevalue-www";
-		testClient.get().uri(uri).header("Host", host).exchange().expectHeader().valueEquals("example", expectedValue);
+		testClient.get()
+			.uri(uri)
+			.header("Host", host)
+			.exchange()
+			.expectHeader()
+			.valueEquals("example", expectedValue)
+			.expectHeader()
+			.valueEquals("example2", "myresponsevalue2-www");
+	}
+
+	@Test
+	void testResponseHeaderFilterHeaderPresentJavaDsl() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/headers").build(true).toUri();
+		String host = "www.addresponseheaderjava.org";
+		String expectedValue = "myresponsevalue-www";
+
+		Map<String, String> body = new HashMap<>();
+		body.put("example2", "myresponsevalue2");
+
+		testClient.patch()
+			.uri(uri)
+			.header("Host", host)
+			.bodyValue(body)
+			.exchange()
+			.expectHeader()
+			.valueEquals("example", expectedValue)
+			.expectHeader()
+			.valueEquals("example2", "myresponsevalue2");
 	}
 
 	@Test
@@ -81,11 +132,11 @@ class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 				.route("add_response_header_java_test",
-						r -> r.path("/get")
+						r -> r.path("/headers")
 							.and()
 							.host("{sub}.addresponseheaderjava.org")
-							.filters(
-									f -> f.prefixPath("/httpbin").addResponseHeader("example", "myresponsevalue-{sub}"))
+							.filters(f -> f.addResponseHeader("example", "myresponsevalue-{sub}")
+								.addResponseHeader("example2", "myresponsevalue2-{sub}", false))
 							.uri(uri))
 				.build();
 		}
