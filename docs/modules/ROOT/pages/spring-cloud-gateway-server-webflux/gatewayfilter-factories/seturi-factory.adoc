@@ -1,0 +1,26 @@
+[[seturi-gatewayfilter-factory]]
+= `SetRequestUri` `GatewayFilter` Factory
+
+The `SetRequestUri` `GatewayFilter` factory takes a `uri` parameter.
+It offers a simple way to manipulate the request uri by allowing templated segments of the path.
+This uses the URI templates from Spring Framework.
+Multiple matching segments are allowed.
+The following listing configures a `SetRequestUri` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: seturi_route
+        uri: no://op
+        predicates:
+        - Path=/{appId}/**
+        filters:
+        - SetRequestUri=http://{appId}.example.com
+----
+
+For a request path of `/red-application/blue`, this sets the uri to `http://red-application.example.com` before making the downstream request and the final url, including path is going to be `http://red-application.example.com/red-application/blue`
+

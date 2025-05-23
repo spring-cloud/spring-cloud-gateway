@@ -1967,16 +1967,6 @@
       }
     },
     {
-      "name": "spring.cloud.gateway.mvc.routes",
-      "type": "java.util.List<org.springframework.cloud.gateway.route.RouteDefinition>",
-      "description": "List of Routes.",
-      "deprecated": true,
-      "deprecation": {
-        "replacement": "spring.cloud.gateway.server.webflux.mvc.routes",
-        "since": "4.3.0"
-      }
-    },
-    {
       "name": "spring.cloud.gateway.observability.enabled",
       "type": "java.lang.Boolean",
       "description": "If Micrometer Observability support should be turned on.",

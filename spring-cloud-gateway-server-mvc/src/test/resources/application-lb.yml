@@ -1,0 +1,11 @@
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: test
+            uri: lb://httpbin
+            predicates:
+              - Path=/test/**
+            filters:
+              - StripPrefix=1

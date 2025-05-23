@@ -146,4 +146,30 @@
 			<scope>test</scope>
 		</dependency>
     </dependencies>
+
+	<profiles>
+		<profile>
+			<id>github_actions</id>
+			<!-- TODO: github actions fails with restricted header host -->
+			<activation>
+				<property>
+					<name>env.GITHUB_ACTIONS</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<jdk.httpclient.allowRestrictedHeaders>host</jdk.httpclient.allowRestrictedHeaders>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

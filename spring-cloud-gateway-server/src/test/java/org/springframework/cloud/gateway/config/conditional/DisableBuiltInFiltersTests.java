@@ -100,6 +100,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.server.webflux.filter.secure-headers.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.set-request-header.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.set-request-host-header.enabled=false",
+					"spring.cloud.gateway.server.webflux.filter.set-request-uri.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.set-response-header.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.rewrite-response-header.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.rewrite-location-response-header.enabled=false",
