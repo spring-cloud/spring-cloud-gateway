@@ -16,12 +16,17 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Arrays;
+import java.util.List;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -30,6 +35,23 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  * @author Spencer Gibb
  */
 public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
+
+	private static final String OVERRIDE_KEY = "override";
+
+	@Override
+	public Class getConfigClass() {
+		return Config.class;
+	}
+
+	@Override
+	public NameValueConfig newConfig() {
+		return new Config();
+	}
+
+	@Override
+	public List<String> shortcutFieldOrder() {
+		return Arrays.asList(GatewayFilter.NAME_KEY, GatewayFilter.VALUE_KEY, OVERRIDE_KEY);
+	}
 
 	@Override
 	public GatewayFilter apply(NameValueConfig config) {
@@ -41,6 +63,13 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 
 			@Override
 			public String toString() {
+				if (config instanceof Config) {
+					return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
+						.append(GatewayFilter.NAME_KEY, config.getName())
+						.append(GatewayFilter.VALUE_KEY, config.getValue())
+						.append(OVERRIDE_KEY, ((Config) config).isOverride())
+						.toString();
+				}
 				return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
 					.append(config.getName(), config.getValue())
 					.toString();
@@ -49,12 +78,51 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 	}
 
 	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
-		final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
-		HttpHeaders headers = exchange.getResponse().getHeaders();
 		// if response has been commited, no more response headers will bee added.
 		if (!exchange.getResponse().isCommitted()) {
-			headers.add(config.getName(), value);
+			final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+			HttpHeaders headers = exchange.getResponse().getHeaders();
+
+			boolean override = true; // default is true
+			if (config instanceof Config) {
+				override = ((Config) config).isOverride();
+			}
+
+			if (override) {
+				headers.add(config.getName(), value);
+			}
+			else {
+				boolean headerIsMissingOrBlank = headers.getOrEmpty(config.getName())
+					.stream()
+					.allMatch(h -> !StringUtils.hasText(h));
+				if (headerIsMissingOrBlank) {
+					headers.add(config.getName(), value);
+				}
+			}
 		}
+	}
+
+	public static class Config extends AbstractNameValueGatewayFilterFactory.NameValueConfig {
+
+		private boolean override = true;
+
+		public boolean isOverride() {
+			return override;
+		}
+
+		public Config setOverride(boolean override) {
+			this.override = override;
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this).append(NAME_KEY, name)
+				.append(VALUE_KEY, value)
+				.append(OVERRIDE_KEY, override)
+				.toString();
+		}
+
 	}
 
 }

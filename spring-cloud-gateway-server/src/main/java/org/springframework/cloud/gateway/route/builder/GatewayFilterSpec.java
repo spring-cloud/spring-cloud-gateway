@@ -226,6 +226,22 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * Adds a header to the response returned to the Gateway from the route.
+	 * @param headerName the header name
+	 * @param headerValue the header value
+	 * @param override override or not
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue, boolean override) {
+		AddResponseHeaderGatewayFilterFactory.Config config = new AddResponseHeaderGatewayFilterFactory.Config();
+		config.setName(headerName);
+		config.setValue(headerValue);
+		config.setOverride(override);
+
+		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class).apply(config));
+	}
+
+	/**
 	 * A filter that adds a local cache for storing response body for repeated requests.
 	 * <p>
 	 * If `timeToLive` and `size` are null, a global cache is used configured by the
