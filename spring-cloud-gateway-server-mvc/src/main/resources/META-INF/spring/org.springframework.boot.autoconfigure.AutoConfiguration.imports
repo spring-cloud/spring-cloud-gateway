@@ -1,5 +1,8 @@
 org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.GatewayMvcClassPathWarningAutoConfiguration
+org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration
+org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.handler.GatewayMultipartAutoConfiguration
+org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration
 org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.config.DefaultFunctionConfiguration

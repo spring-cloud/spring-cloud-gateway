@@ -46,8 +46,8 @@ public class LocalResponseCacheGlobalFilterTests {
 
 	@Nested
 	@SpringBootTest(
-			properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true",
-					"spring.cloud.gateway.global-filter.local-response-cache.enabled=false" },
+			properties = { "spring.cloud.gateway.server.webflux.filter.local-response-cache.enabled=true",
+					"spring.cloud.gateway.server.webflux.global-filter.local-response-cache.enabled=false" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class GlobalCacheNotEnabled extends BaseWebClientTests {
 
@@ -98,7 +98,7 @@ public class LocalResponseCacheGlobalFilterTests {
 	}
 
 	@Nested
-	@SpringBootTest(properties = { "spring.cloud.gateway.filter.local-response-cache.enabled=true" },
+	@SpringBootTest(properties = { "spring.cloud.gateway.server.webflux.filter.local-response-cache.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class GlobalCacheEnabled extends BaseWebClientTests {
 

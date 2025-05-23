@@ -118,19 +118,20 @@ public class GatewayAutoConfigurationTests {
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
 					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
 					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
-			.withPropertyValues("spring.cloud.gateway.httpclient.ssl.use-insecure-trust-manager=true",
-					"spring.cloud.gateway.httpclient.ssl.ssl-bundle=mybundle",
-					"spring.cloud.gateway.httpclient.connect-timeout=10",
-					"spring.cloud.gateway.httpclient.response-timeout=10s",
-					"spring.cloud.gateway.httpclient.pool.eviction-interval=10s",
-					"spring.cloud.gateway.httpclient.pool.type=fixed",
-					"spring.cloud.gateway.httpclient.pool.metrics=true",
-					"spring.cloud.gateway.httpclient.pool.leasing-strategy=lifo",
-					"spring.cloud.gateway.httpclient.compression=true", "spring.cloud.gateway.httpclient.wiretap=true",
+			.withPropertyValues("spring.cloud.gateway.server.webflux.httpclient.ssl.use-insecure-trust-manager=true",
+					"spring.cloud.gateway.server.webflux.httpclient.ssl.ssl-bundle=mybundle",
+					"spring.cloud.gateway.server.webflux.httpclient.connect-timeout=10",
+					"spring.cloud.gateway.server.webflux.httpclient.response-timeout=10s",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.eviction-interval=10s",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.type=fixed",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.metrics=true",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.leasing-strategy=lifo",
+					"spring.cloud.gateway.server.webflux.httpclient.compression=true",
+					"spring.cloud.gateway.server.webflux.httpclient.wiretap=true",
 					// greater than integer max value
-					"spring.cloud.gateway.httpclient.max-initial-line-length=2147483647",
-					"spring.cloud.gateway.httpclient.proxy.host=myhost",
-					"spring.cloud.gateway.httpclient.websocket.max-frame-payload-length=1024")
+					"spring.cloud.gateway.server.webflux.httpclient.max-initial-line-length=2147483647",
+					"spring.cloud.gateway.server.webflux.httpclient.proxy.host=myhost",
+					"spring.cloud.gateway.server.webflux.httpclient.websocket.max-frame-payload-length=1024")
 			.run(context -> {
 				assertThat(context).hasSingleBean(HttpClient.class);
 				HttpClient httpClient = context.getBean(HttpClient.class);
@@ -185,7 +186,7 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void verboseActuatorDisabled() {
 		try (ConfigurableApplicationContext ctx = SpringApplication.run(Config.class, "--spring.jmx.enabled=false",
-				"--server.port=0", "--spring.cloud.gateway.actuator.verbose.enabled=false",
+				"--server.port=0", "--spring.cloud.gateway.server.webflux.actuator.verbose.enabled=false",
 				"--management.endpoint.gateway.enabled=true")) {
 			assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
 		}
@@ -233,7 +234,8 @@ public class GatewayAutoConfigurationTests {
 	public void noTokenRelayFilter() {
 		assertThatThrownBy(() -> {
 			try (ConfigurableApplicationContext ctx = SpringApplication.run(RouteLocatorBuilderConfig.class,
-					"--spring.jmx.enabled=false", "--spring.cloud.gateway.filter.token-relay.enabled=false",
+					"--spring.jmx.enabled=false",
+					"--spring.cloud.gateway.server.webflux.filter.token-relay.enabled=false",
 					"--spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
 					"--spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
 					"--spring.security.oauth2.client.registration[test].provider=testprovider",

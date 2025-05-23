@@ -66,6 +66,8 @@ import static org.junit.Assume.assumeThat;
 		RewriteLocationResponseHeaderGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RewritePathGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactoryIntegrationTests.class,

@@ -35,7 +35,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureAfter(BindingServiceConfiguration.class)
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class, GatewayAutoConfiguration.class })
 @ConditionalOnClass({ StreamBridge.class, DispatcherHandler.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.stream.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".stream.enabled", matchIfMissing = true)
 class GatewayStreamAutoConfiguration {
 
 	@Bean

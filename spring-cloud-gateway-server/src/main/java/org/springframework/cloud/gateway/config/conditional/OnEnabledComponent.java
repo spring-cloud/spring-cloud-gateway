@@ -34,7 +34,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionMessage.
 
 public abstract class OnEnabledComponent<T> extends SpringBootCondition implements ConfigurationCondition {
 
-	private static final String PREFIX = "spring.cloud.gateway.";
+	private static final String PREFIX = "spring.cloud.gateway.server.webflux.";
 
 	private static final String SUFFIX = ".enabled";
 

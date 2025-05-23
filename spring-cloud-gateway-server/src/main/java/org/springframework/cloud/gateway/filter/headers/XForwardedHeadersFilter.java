@@ -32,7 +32,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
-@ConfigurationProperties("spring.cloud.gateway.x-forwarded")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.x-forwarded")
 public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	/** Default http port. */

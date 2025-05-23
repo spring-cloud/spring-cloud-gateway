@@ -30,7 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
-@ConfigurationProperties("spring.cloud.gateway.filter.remove-hop-by-hop")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.remove-hop-by-hop")
 public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	/**

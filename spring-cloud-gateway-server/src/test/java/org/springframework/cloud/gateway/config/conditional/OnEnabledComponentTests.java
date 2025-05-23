@@ -61,7 +61,7 @@ class OnEnabledComponentTests {
 		String componentName = "disabled-component";
 		this.onEnabledComponent = createOnEnabledComponent(componentName);
 		when(conditionContext.getEnvironment()).thenReturn(environment);
-		environment.setProperty("spring.cloud.gateway." + componentName + ".enabled", "false");
+		environment.setProperty("spring.cloud.gateway.server.webflux." + componentName + ".enabled", "false");
 
 		ConditionOutcome outcome = onEnabledComponent.getMatchOutcome(conditionContext,
 				mockMetaData(DisabledComponent.class));

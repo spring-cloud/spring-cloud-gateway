@@ -48,7 +48,7 @@ public class MvcFailureAnalyzerApplicationTests {
 	@Test
 	public void exceptionNotThrownWhenDisabled(CapturedOutput output) {
 		assertThatCode(() -> new SpringApplication(MvcFailureAnalyzerApplication.class)
-			.run("--spring.cloud.gateway.enabled=false", "--server.port=0")).doesNotThrowAnyException();
+			.run("--spring.cloud.gateway.server.webflux.enabled=false", "--server.port=0")).doesNotThrowAnyException();
 		assertThat(output).doesNotContain(MvcFoundOnClasspathFailureAnalyzer.MESSAGE,
 				MvcFoundOnClasspathFailureAnalyzer.ACTION);
 	}

@@ -18,12 +18,13 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Predicate;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsyncPredicateTest {
 
@@ -110,12 +111,12 @@ public class AsyncPredicateTest {
 
 		@DisplayName("predicate must have been tested")
 		public void assertTested() {
-			Assertions.assertTrue(tested);
+			assertThat(tested).isTrue();
 		}
 
 		@DisplayName("predicate must not have been tested")
 		public void assertUntested() {
-			Assertions.assertFalse(tested);
+			assertThat(tested).isFalse();
 		}
 
 	}

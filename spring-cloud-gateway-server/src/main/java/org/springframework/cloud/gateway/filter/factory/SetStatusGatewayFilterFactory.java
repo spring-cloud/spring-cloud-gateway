@@ -35,7 +35,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 /**
  * @author Spencer Gibb
  */
-@ConfigurationProperties("spring.cloud.gateway.set-status")
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.set-status")
 public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<SetStatusGatewayFilterFactory.Config> {
 
 	/**

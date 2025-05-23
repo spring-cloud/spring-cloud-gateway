@@ -14,7 +14,7 @@ spring:
       - logging
 
   cloud:
-    gateway:
+    gateway.server.webflux:
       globalcors:
         cors-configurations:
           '[/**]':
@@ -72,6 +72,7 @@ spring:
         - Path=/headers
         filters:
         - AddResponseHeader=X-Request-Foo, Bar
+        - AddResponseHeader=X-Request-Example, ValueA, false
 
       - id: cache_request_body_test
         uri: ${test.uri}

@@ -183,8 +183,8 @@ public interface ShortcutConfigurable {
 		public GatewayEvaluationContext(BeanFactory beanFactory) {
 			this.beanFactoryResolver = new BeanFactoryResolver(beanFactory);
 			Environment env = beanFactory.getBean(Environment.class);
-			boolean restrictive = env.getProperty("spring.cloud.gateway.restrictive-property-accessor.enabled",
-					Boolean.class, true);
+			boolean restrictive = env.getProperty(
+					"spring.cloud.gateway.server.webflux.restrictive-property-accessor.enabled", Boolean.class, true);
 			if (restrictive) {
 				delegate = SimpleEvaluationContext.forPropertyAccessors(new RestrictivePropertyAccessor())
 					.withMethodResolvers((context, targetObject, name, argumentTypes) -> null)

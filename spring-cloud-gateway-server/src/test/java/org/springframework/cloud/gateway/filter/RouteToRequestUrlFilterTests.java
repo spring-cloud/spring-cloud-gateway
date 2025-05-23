@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
@@ -32,6 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,7 +64,7 @@ public class RouteToRequestUrlFilterTests {
 
 	@Test
 	public void invalidHost() {
-		Assertions.assertThrows(IllegalStateException.class, () -> {
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> {
 			MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/getb").build();
 			testFilter(request, "lb://my_host");
 		});

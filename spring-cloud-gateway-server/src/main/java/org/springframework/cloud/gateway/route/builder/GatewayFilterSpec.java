@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.ParameterizedTypeReference;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -59,6 +58,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGa
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
@@ -84,6 +84,7 @@ import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.server.ServerWebExchange;
@@ -223,6 +224,22 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue) {
 		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
 			.apply(c -> c.setName(headerName).setValue(headerValue)));
+	}
+
+	/**
+	 * Adds a header to the response returned to the Gateway from the route.
+	 * @param headerName the header name
+	 * @param headerValue the header value
+	 * @param override override or not
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue, boolean override) {
+		AddResponseHeaderGatewayFilterFactory.Config config = new AddResponseHeaderGatewayFilterFactory.Config();
+		config.setName(headerName);
+		config.setValue(headerValue);
+		config.setOverride(override);
+
+		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class).apply(config));
 	}
 
 	/**
@@ -867,6 +884,16 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec requestHeaderToRequestUri(String headerName) {
 		return filter(getBean(RequestHeaderToRequestUriGatewayFilterFactory.class).apply(c -> c.setName(headerName)));
+	}
+
+	/**
+	 * A filter which changes the URI the request will be routed to by the Gateway by
+	 * pulling it from a header on the request.
+	 * @param uri the URI
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec setRequestUri(String uri) {
+		return filter(getBean(SetRequestUriGatewayFilterFactory.class).apply(c -> c.setTemplate(uri)));
 	}
 
 	/**

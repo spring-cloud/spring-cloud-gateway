@@ -62,7 +62,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.forwarded.by.enabled=true")
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = "spring.cloud.gateway.server.webflux.forwarded.by.enabled=true")
 @DirtiesContext
 @SuppressWarnings("unchecked")
 @ExtendWith(OutputCaptureExtension.class)

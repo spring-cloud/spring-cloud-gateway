@@ -57,6 +57,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.ssl.SslBundles;
@@ -110,6 +111,7 @@ import org.springframework.cloud.gateway.filter.factory.SecureHeadersProperties;
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
@@ -192,9 +194,10 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Mete Alpaslan Katırcıoğlu
  * @author Alberto C. Ríos
  * @author Olga Maciaszek-Sharma
+ * @author FuYiNan Guo
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.enabled", matchIfMissing = true)
 @EnableConfigurationProperties
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class, WebFluxAutoConfiguration.class })
 @AutoConfigureAfter({ GatewayReactiveLoadBalancerClientAutoConfiguration.class,
@@ -270,7 +273,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.cloud.client.discovery.event.HeartbeatMonitor")
-	@ConditionalOnProperty(prefix = GatewayProperties.PREFIX, name = ".route-refresh-listener.enabled",
+	@ConditionalOnProperty(prefix = GatewayProperties.PREFIX, name = "route-refresh-listener.enabled",
 			matchIfMissing = true)
 	public RouteRefreshListener routeRefreshListener(ApplicationEventPublisher publisher) {
 		return new RouteRefreshListener(publisher);
@@ -288,7 +291,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.globalcors.enabled", matchIfMissing = true)
 	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
 			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
 			RouteLocator routeLocator) {
@@ -316,9 +319,10 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.forwarded.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.forwarded.enabled", matchIfMissing = true)
 	public ForwardedHeadersFilter forwardedHeadersFilter(Environment env, ServerProperties serverProperties) {
-		boolean forwardedByEnabled = env.getProperty("spring.cloud.gateway.forwarded.by.enabled", Boolean.class, false);
+		boolean forwardedByEnabled = env.getProperty("spring.cloud.gateway.server.webflux.forwarded.by.enabled",
+				Boolean.class, false);
 		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter();
 		forwardedHeadersFilter.setForwardedByEnabled(forwardedByEnabled);
 		forwardedHeadersFilter.setServerPort(serverProperties.getPort());
@@ -333,7 +337,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.x-forwarded.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.x-forwarded.enabled", matchIfMissing = true)
 	public XForwardedHeadersFilter xForwardedHeadersFilter() {
 		return new XForwardedHeadersFilter();
 	}
@@ -466,7 +470,8 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledPredicate
 	public HostRoutePredicateFactory hostRoutePredicateFactory(Environment env) {
-		boolean includePort = env.getProperty("spring.cloud.gateway.predicate.host.include-port", Boolean.class, true);
+		boolean includePort = env.getProperty("spring.cloud.gateway.server.webflux.predicate.host.include-port",
+				Boolean.class, true);
 		return new HostRoutePredicateFactory(includePort);
 	}
 
@@ -478,8 +483,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledPredicate
-	public PathRoutePredicateFactory pathRoutePredicateFactory() {
-		return new PathRoutePredicateFactory();
+	public PathRoutePredicateFactory pathRoutePredicateFactory(WebFluxProperties webFluxProperties) {
+		return new PathRoutePredicateFactory(webFluxProperties);
 	}
 
 	@Bean
@@ -720,6 +725,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnEnabledFilter
+	public SetRequestUriGatewayFilterFactory setRequestUriGatewayFilterFactory() {
+		return new SetRequestUriGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
 	public RequestSizeGatewayFilterFactory requestSizeGatewayFilterFactory() {
 		return new RequestSizeGatewayFilterFactory();
 	}
@@ -767,7 +778,7 @@ public class GatewayAutoConfiguration {
 		protected final Log logger = LogFactory.getLog(getClass());
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.httpserver.wiretap")
+		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.httpserver.wiretap")
 		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
 				ServerProperties serverProperties) {
 			return new NettyWebServerFactoryCustomizer(environment, serverProperties) {
@@ -851,7 +862,8 @@ public class GatewayAutoConfiguration {
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.actuator.verbose.enabled",
+				matchIfMissing = true)
 		@ConditionalOnAvailableEndpoint
 		public GatewayControllerEndpoint gatewayControllerEndpoint(List<GlobalFilter> globalFilters,
 				List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> routePredicates,
@@ -881,7 +893,8 @@ public class GatewayAutoConfiguration {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(name = "spring.cloud.gateway.actuator.verbose.enabled", matchIfMissing = true)
+		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.actuator.verbose.enabled",
+				matchIfMissing = true)
 		static class VerboseDisabled {
 
 		}
@@ -889,7 +902,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnProperty(name = "spring.cloud.gateway.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.enabled", matchIfMissing = true)
 	@ConditionalOnClass({ OAuth2AuthorizedClient.class, SecurityWebFilterChain.class, SecurityProperties.class })
 	@ConditionalOnEnabledFilter(TokenRelayGatewayFilterFactory.class)
 	protected static class TokenRelayConfiguration {

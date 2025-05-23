@@ -42,7 +42,7 @@ public class GatewayProperties {
 	/**
 	 * Properties prefix.
 	 */
-	public static final String PREFIX = "spring.cloud.gateway";
+	public static final String PREFIX = "spring.cloud.gateway.server.webflux";
 
 	private final Log logger = LogFactory.getLog(getClass());
 

@@ -32,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * Configuration properties for the Netty {@link reactor.netty.http.client.HttpClient}.
  */
-@ConfigurationProperties("spring.cloud.gateway.httpclient")
+@ConfigurationProperties(GatewayProperties.PREFIX + ".httpclient")
 @Validated
 public class HttpClientProperties {
 

@@ -1,5 +1,5 @@
 strip.prefix.static.uri: http://${httpbin.host}:${httpbin.port}
-spring.cloud.gateway.mvc:
+spring.cloud.gateway.server.webmvc:
   routes:
     - id: strip_prefix_static_port_config
       uri: ${strip.prefix.static.uri}

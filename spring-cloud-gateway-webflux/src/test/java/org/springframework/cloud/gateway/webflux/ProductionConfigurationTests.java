@@ -62,7 +62,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = { "spring.cloud.gateway.proxy.skipped=host" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.cloud.gateway.proxy-exchange.webflux.skipped=host" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
 @DirtiesContext
 @ExtendWith(OutputCaptureExtension.class)

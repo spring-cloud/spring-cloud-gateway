@@ -119,6 +119,7 @@ class BeforeFilterFunctionsTests {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/path")
 			.param("foo[]", "bar")
 			.param("baz", "qux")
+			.param("quux", "corge+")
 			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -126,7 +127,24 @@ class BeforeFilterFunctionsTests {
 		ServerRequest result = BeforeFilterFunctions.rewriteRequestParameter("foo[]", "replacement[]").apply(request);
 
 		assertThat(result.param("foo[]")).isPresent().hasValue("replacement[]");
-		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz=qux&foo%5B%5D=replacement%5B%5D");
+		assertThat(result.param("quux")).isPresent().hasValue("corge+");
+		assertThat(result.uri().toString())
+			.hasToString("http://localhost/path?quux=corge%2B&baz=qux&foo%5B%5D=replacement%5B%5D");
+	}
+
+	@Test
+	void rewritePlusSignRequestParameter() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/path")
+			.param("foo", "bar")
+			.param("baz", "qux")
+			.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.rewriteRequestParameter("foo", "replacement+").apply(request);
+
+		assertThat(result.param("foo")).isPresent().hasValue("replacement+");
+		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz=qux&foo=replacement%2B");
 	}
 
 	@Test
@@ -134,6 +152,7 @@ class BeforeFilterFunctionsTests {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/path")
 			.param("foo", "bar")
 			.param("baz[]", "qux[]")
+			.param("quux", "corge+")
 			.buildRequest(null);
 
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -141,7 +160,8 @@ class BeforeFilterFunctionsTests {
 		ServerRequest result = BeforeFilterFunctions.rewriteRequestParameter("foo", "replacement").apply(request);
 
 		assertThat(result.param("foo")).isPresent().hasValue("replacement");
-		assertThat(result.uri().toString()).hasToString("http://localhost/path?baz%5B%5D=qux%5B%5D&foo=replacement");
+		assertThat(result.uri().toString())
+			.hasToString("http://localhost/path?baz%5B%5D=qux%5B%5D&quux=corge%2B&foo=replacement");
 	}
 
 	@Test
@@ -243,6 +263,28 @@ class BeforeFilterFunctionsTests {
 
 		assertThat(modified.uri().getRawPath())
 			.isEqualTo("/modified/path/with%E2%80%93en%E2%80%93dashes%20and%20spaces");
+	}
+
+	@Test
+	void prefixPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get").buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/prefix").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/prefix/get");
+	}
+
+	@Test
+	void prefixEncodedPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get/é").buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/pre fix").apply(request);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/pre%20fix/get/%C3%A9");
 	}
 
 }

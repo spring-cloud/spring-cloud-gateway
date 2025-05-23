@@ -24,8 +24,10 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPattern.PathMatchInfo;
@@ -41,6 +43,7 @@ import static org.springframework.http.server.PathContainer.parsePath;
 /**
  * @author Spencer Gibb
  * @author Dhawal Kapil
+ * @author FuYiNan Guo
  */
 public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<PathRoutePredicateFactory.Config> {
 
@@ -50,8 +53,20 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private PathPatternParser pathPatternParser = new PathPatternParser();
 
+	private final WebFluxProperties webFluxProperties;
+
+	/**
+	 * @deprecated {@link #PathRoutePredicateFactory(WebFluxProperties)}
+	 */
+	@Deprecated
 	public PathRoutePredicateFactory() {
 		super(Config.class);
+		this.webFluxProperties = new WebFluxProperties();
+	}
+
+	public PathRoutePredicateFactory(WebFluxProperties webFluxProperties) {
+		super(Config.class);
+		this.webFluxProperties = webFluxProperties;
 	}
 
 	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
@@ -82,7 +97,16 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 		synchronized (this.pathPatternParser) {
 			pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
-				PathPattern pathPattern = this.pathPatternParser.parse(pattern);
+				String basePath = webFluxProperties.getBasePath();
+				boolean basePathIsNotBlank = StringUtils.hasText(basePath);
+				String pathPatternStr = pattern;
+				if (basePathIsNotBlank) {
+					if (pattern.length() > 1 && !pattern.startsWith("/")) {
+						basePath += ("/");
+					}
+					pathPatternStr = basePath + pattern;
+				}
+				PathPattern pathPattern = this.pathPatternParser.parse(pathPatternStr);
 				pathPatterns.add(pathPattern);
 			});
 		}

@@ -89,7 +89,8 @@ public class CorsGlobalTests extends BaseWebClientTests {
 
 	}
 
-	@SpringBootTest(classes = TestConfig.class, properties = "spring.cloud.gateway.globalcors.enabled=false")
+	@SpringBootTest(classes = TestConfig.class,
+			properties = "spring.cloud.gateway.server.webflux.globalcors.enabled=false")
 	public static class DisabledByProperty {
 
 		@Autowired(required = false)

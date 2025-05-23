@@ -18,23 +18,26 @@ package org.springframework.cloud.gateway.server.mvc;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.http.client.AbstractHttpRequestFactoryProperties.Factory;
 import org.springframework.boot.autoconfigure.http.client.HttpClientAutoConfiguration;
-import org.springframework.boot.autoconfigure.http.client.HttpClientProperties.Factory;
 import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings.Redirects;
+import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
@@ -47,9 +50,12 @@ import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNorma
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
+import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
 import org.springframework.cloud.gateway.server.mvc.handler.RestClientProxyExchange;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
@@ -70,8 +76,9 @@ import org.springframework.web.client.RestClient;
  * @author Jürgen Wißkirchen
  */
 @AutoConfiguration(after = { HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-		RestClientAutoConfiguration.class })
-@ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
+		RestClientAutoConfiguration.class, FilterAutoConfiguration.class, HandlerFunctionAutoConfiguration.class,
+		PredicateAutoConfiguration.class })
+@ConditionalOnProperty(name = GatewayMvcProperties.PREFIX + ".enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
 @ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
@@ -83,8 +90,11 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env) {
-		return new RouterFunctionHolderFactory(env);
+	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory,
+			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
+		return new RouterFunctionHolderFactory(env, beanFactory, filterBeanFactoryDiscoverer,
+				predicateBeanFactoryDiscoverer);
 	}
 
 	@Bean
@@ -206,17 +216,19 @@ public class GatewayServerMvcAutoConfiguration {
 		static final boolean REACTOR_NETTY = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", null);
 		static final boolean JDK = ClassUtils.isPresent("java.net.http.HttpClient", null);
 		static final boolean HIGHER_PRIORITY = APACHE || JETTY || REACTOR_NETTY;
+		static final String SPRING_REDIRECTS_PROPERTY = "spring.http.client.redirects";
+		static final String SPRING_HTTP_FACTORY_PROPERTY = "spring.http.client.factory";
 
 		@Override
 		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-			Redirects redirects = environment.getProperty("spring.http.client.redirects", Redirects.class);
+			HttpRedirects redirects = environment.getProperty(SPRING_REDIRECTS_PROPERTY, HttpRedirects.class);
 			if (redirects == null) {
 				// the user hasn't set anything, change the default
 				environment.getPropertySources()
 					.addFirst(new MapPropertySource("gatewayHttpClientProperties",
-							Map.of("spring.http.client.redirects", Redirects.DONT_FOLLOW)));
+							Map.of(SPRING_REDIRECTS_PROPERTY, HttpRedirects.DONT_FOLLOW)));
 			}
-			Factory factory = environment.getProperty("spring.http.client.factory", Factory.class);
+			Factory factory = environment.getProperty(SPRING_HTTP_FACTORY_PROPERTY, Factory.class);
 			boolean setJdkHttpClientProperties = false;
 
 			if (factory == null && !HIGHER_PRIORITY) {

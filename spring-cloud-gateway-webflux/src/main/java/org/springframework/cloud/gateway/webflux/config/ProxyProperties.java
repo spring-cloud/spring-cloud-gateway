@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.http.HttpHeaders;
 
@@ -32,8 +33,10 @@ import org.springframework.http.HttpHeaders;
  * @author Dave Syer
  * @author Tim Ysewyn
  * @author Joris Kuipers
+ * @deprecated {@link ProxyExchangeWebfluxProperties}
  *
  */
+@Deprecated
 @ConfigurationProperties("spring.cloud.gateway.proxy")
 public class ProxyProperties {
 
@@ -53,7 +56,7 @@ public class ProxyProperties {
 	private Map<String, String> headers = new LinkedHashMap<>();
 
 	/**
-	 * A set of header names that should be send downstream by default.
+	 * A set of header names that should be sent downstream by default.
 	 */
 	private Set<String> autoForward = new HashSet<>();
 
@@ -68,6 +71,7 @@ public class ProxyProperties {
 	 */
 	private Set<String> skipped = DEFAULT_SKIPPED;
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".headers", since = "4.3.0")
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
@@ -76,6 +80,8 @@ public class ProxyProperties {
 		this.headers = headers;
 	}
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".auto-forward",
+			since = "4.3.0")
 	public Set<String> getAutoForward() {
 		return autoForward;
 	}
@@ -84,6 +90,8 @@ public class ProxyProperties {
 		this.autoForward = autoForward;
 	}
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".sensitive",
+			since = "4.3.0")
 	public Set<String> getSensitive() {
 		return sensitive;
 	}
@@ -92,6 +100,7 @@ public class ProxyProperties {
 		this.sensitive = sensitive;
 	}
 
+	@DeprecatedConfigurationProperty(replacement = ProxyExchangeWebfluxProperties.PREFIX + ".skipped", since = "4.3.0")
 	public Set<String> getSkipped() {
 		return skipped;
 	}

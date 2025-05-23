@@ -72,6 +72,7 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 		InputStream body = clientResponse.getBody();
 		// put the body input stream in a request attribute so filters can read it.
 		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
+		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientResponse);
 		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
 			.build((req, httpServletResponse) -> {
 				try (clientResponse) {

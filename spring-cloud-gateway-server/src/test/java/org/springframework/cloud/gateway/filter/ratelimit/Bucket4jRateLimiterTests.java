@@ -43,7 +43,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.redis.enabled=false")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.gateway.server.webflux.redis.enabled=false")
 @DirtiesContext
 public class Bucket4jRateLimiterTests extends BaseWebClientTests {
 

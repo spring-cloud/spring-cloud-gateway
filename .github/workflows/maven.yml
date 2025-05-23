@@ -19,7 +19,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'liberica'
           java-version: '17'
           cache: 'maven'
       - name: Build with Maven

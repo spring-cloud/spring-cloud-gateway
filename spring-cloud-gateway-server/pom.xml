@@ -16,7 +16,7 @@
 	<description>Spring Cloud Gateway Server</description>
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
-		<grpc.version>1.71.0</grpc.version>
+		<grpc.version>1.72.0</grpc.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
@@ -194,6 +194,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-properties-migrator</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -210,11 +215,6 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-test-support</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-stream-rabbit</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
