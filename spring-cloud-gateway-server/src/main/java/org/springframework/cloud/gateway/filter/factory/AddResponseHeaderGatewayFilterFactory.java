@@ -34,13 +34,18 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 /**
  * @author Spencer Gibb
  */
-public class AddResponseHeaderGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<AddResponseHeaderGatewayFilterFactory.Config> {
+public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
 	private static final String OVERRIDE_KEY = "override";
 
-	public AddResponseHeaderGatewayFilterFactory() {
-		super(Config.class);
+	@Override
+	public Class getConfigClass() {
+		return Config.class;
+	}
+
+	@Override
+	public NameValueConfig newConfig() {
+		return new Config();
 	}
 
 	@Override
@@ -49,7 +54,7 @@ public class AddResponseHeaderGatewayFilterFactory
 	}
 
 	@Override
-	public GatewayFilter apply(Config config) {
+	public GatewayFilter apply(NameValueConfig config) {
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -58,21 +63,32 @@ public class AddResponseHeaderGatewayFilterFactory
 
 			@Override
 			public String toString() {
+				if (config instanceof Config) {
+					return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
+						.append(GatewayFilter.NAME_KEY, config.getName())
+						.append(GatewayFilter.VALUE_KEY, config.getValue())
+						.append(OVERRIDE_KEY, ((Config) config).isOverride())
+						.toString();
+				}
 				return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
-					.append(GatewayFilter.NAME_KEY, config.getName())
-					.append(GatewayFilter.VALUE_KEY, config.getValue())
-					.append(OVERRIDE_KEY, config.isOverride())
+					.append(config.getName(), config.getValue())
 					.toString();
 			}
 		};
 	}
 
-	void addHeader(ServerWebExchange exchange, Config config) {
+	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
 		// if response has been commited, no more response headers will bee added.
 		if (!exchange.getResponse().isCommitted()) {
 			final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 			HttpHeaders headers = exchange.getResponse().getHeaders();
-			if (config.override) {
+
+			boolean override = true; // default is true
+			if (config instanceof Config) {
+				override = ((Config) config).isOverride();
+			}
+
+			if (override) {
 				headers.add(config.getName(), value);
 			}
 			else {
@@ -86,31 +102,9 @@ public class AddResponseHeaderGatewayFilterFactory
 		}
 	}
 
-	public static class Config {
-
-		private String name;
-
-		private String value;
+	public static class Config extends AbstractNameValueGatewayFilterFactory.NameValueConfig {
 
 		private boolean override = true;
-
-		public String getName() {
-			return name;
-		}
-
-		public Config setName(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public Config setValue(String value) {
-			this.value = value;
-			return this;
-		}
 
 		public boolean isOverride() {
 			return override;

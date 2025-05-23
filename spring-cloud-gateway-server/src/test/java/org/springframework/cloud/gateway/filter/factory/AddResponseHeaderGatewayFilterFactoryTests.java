@@ -27,6 +27,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -114,9 +115,7 @@ class AddResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 
 	@Test
 	void toStringFormat() {
-		AddResponseHeaderGatewayFilterFactory.Config config = new AddResponseHeaderGatewayFilterFactory.Config()
-			.setName("myname")
-			.setValue("myvalue");
+		NameValueConfig config = new NameValueConfig().setName("myname").setValue("myvalue");
 		GatewayFilter filter = new AddResponseHeaderGatewayFilterFactory().apply(config);
 		assertThat(filter.toString()).contains("myname").contains("myvalue");
 	}

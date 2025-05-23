@@ -233,8 +233,12 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec addResponseHeader(String headerName, String headerValue, boolean override) {
-		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class)
-			.apply(c -> c.setName(headerName).setValue(headerValue).setOverride(override)));
+		AddResponseHeaderGatewayFilterFactory.Config config = new AddResponseHeaderGatewayFilterFactory.Config();
+		config.setName(headerName);
+		config.setValue(headerValue);
+		config.setOverride(override);
+
+		return filter(getBean(AddResponseHeaderGatewayFilterFactory.class).apply(config));
 	}
 
 	/**
