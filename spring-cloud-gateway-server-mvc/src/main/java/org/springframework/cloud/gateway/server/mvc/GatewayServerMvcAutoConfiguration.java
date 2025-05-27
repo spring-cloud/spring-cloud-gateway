@@ -31,9 +31,9 @@ import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings.Redirects;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
-import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcRuntimeHintsProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -54,7 +54,6 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -73,7 +72,6 @@ import org.springframework.web.client.RestClient;
 		RestClientAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.gateway.mvc.enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
-@ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
@@ -197,6 +195,11 @@ public class GatewayServerMvcAutoConfiguration {
 	@Bean
 	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
 		return new XForwardedRequestHeadersFilterProperties();
+	}
+
+	@Bean
+	static GatewayMvcRuntimeHintsProcessor gatewayMvcRuntimeHintsProcessor() {
+		return new GatewayMvcRuntimeHintsProcessor();
 	}
 
 	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {
