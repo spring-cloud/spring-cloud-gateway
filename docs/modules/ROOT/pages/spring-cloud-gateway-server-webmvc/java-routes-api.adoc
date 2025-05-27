@@ -59,8 +59,9 @@ The most basic handler function is `http()` `HandlerFunction`. If a `URI` is sup
 WARNING: As of version 4.1.7, `HandlerFunctions.http(String)` and `HandlerFunctions.http(URI)` are now deprecated. Please use `HandlerFunctions.http()` in combination with the `BeforeFilterFunctions.uri()` filter instead. This fixes inconsistencies in dealing with the route url request attribute.
 
 === Spring Cloud Function Handler Function
-This feature provides support for transparently routing to Java functions when using https://spring.io/projects/spring-cloud-function[Spring Cloud Function] framework.
-Gateway routing configuration will be provided as soon as you provide Spring Cloud Function dependency. 
+By placing https://spring.io/projects/spring-cloud-function[Spring Cloud Function] on the classpath, Spring Cloud Gateway will automatically configure routes to invoke functions you define as beans. The bean names of the functions will be used as the path of the routes.
+
+For example, given the following configuration:
 
 [source,xml]
 ----
@@ -95,9 +96,24 @@ public class DemoFunctionGatewayApplication {
 	}
 }
 ----
-You can now invoke `concat` or `uppercase` as GET or POST request
-For example, for simple GET you can invoke `http://localhost:8080/uppercase/hello` where `/hello` becomes a payload and you will get _HELLO_ in response.
-You can also use POST `curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat`
+You can invoke the `concat` or `uppercase` functions by issuing a `GET` or `POST` request to `/concat` or `/uppercase`.
 
-Additionally you can now benefit from function composition. For example `curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat,uppercase` 
-will result in _HELLOHELLO_ response.
+Making a `GET` request to ``http://localhost:8080/uppercase/hello` will invoke the `uppercase` function with the String `hello` and return `HELLO` in the `GET` response body.  
+
+Instead of passing  the function parameter as a path parameter you can use a `POST` request.  For example the following cURL command can issued to invoke the `concat` function:
+
+[source,bash]
+----
+$ curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat
+----
+
+The response body will contain `hellohello`.
+
+Spring Cloud Gateway also supports function composition by issuing a request to a path composed of function names separated by a comma.  For example:
+
+[source,bash]
+----
+$ curl -d ‘"hello"' -H "Content-Type: application/json" -X POST http://localhost:8080/concat,uppercase
+----
+
+The response body will contain `HELLOHELLO`.
