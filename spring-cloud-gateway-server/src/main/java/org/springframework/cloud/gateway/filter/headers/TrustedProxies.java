@@ -39,6 +39,9 @@ import org.springframework.util.StringUtils;
 @FunctionalInterface
 public interface TrustedProxies {
 
+	/**
+	 * Property name.
+	 */
 	String PROPERTY = GatewayProperties.PREFIX + ".trusted-proxies";
 
 	boolean isTrusted(String host);
