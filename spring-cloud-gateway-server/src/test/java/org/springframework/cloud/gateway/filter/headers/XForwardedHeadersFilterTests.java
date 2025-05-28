@@ -61,8 +61,8 @@ public class XForwardedHeadersFilterTests {
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers).doesNotContainKeys(X_FORWARDED_FOR_HEADER)
-			.containsKeys(X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+		assertThat(headers).doesNotContainKeys(X_FORWARDED_FOR_HEADER).containsKeys(X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_HOST_HEADER)).isEqualTo("localhost:8080");
 		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("8080");
@@ -322,36 +322,34 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void trustedProxiesConditionMatches() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
-			.withPropertyValues(GatewayProperties.PREFIX + ".trusted-proxies=11\\.0\\.0\\..*")
-			.run(context -> {
-				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+				.withPropertyValues(GatewayProperties.PREFIX + ".trusted-proxies=11\\.0\\.0\\..*").run(context -> {
+					assertThat(context).hasSingleBean(XForwardedHeadersFilter.class);
+				});
 	}
 
 	@Test
 	public void trustedProxiesConditionDoesNotMatch() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
-			.run(context -> {
-				assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class);
+				});
 	}
 
 	@Test
 	public void emptyTrustedProxiesFails() {
 		Assertions.assertThatThrownBy(() -> new XForwardedHeadersFilter(""))
-			.isInstanceOf(IllegalArgumentException.class);
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void xForwardedHeadersNotTrusted() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-			.header(HttpHeaders.HOST, "myhost")
-			.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(HttpHeaders.HOST, "myhost").build();
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("11\\.0\\.0\\..*");
 
@@ -366,11 +364,9 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void untrustedXForwardedForNotAppended() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-			.header(HttpHeaders.HOST, "myhost")
-			.header(X_FORWARDED_FOR_HEADER, "127.0.0.1")
-			.header(X_FORWARDED_FOR_HEADER, "10.0.0.10")
-			.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(HttpHeaders.HOST, "myhost").header(X_FORWARDED_FOR_HEADER, "127.0.0.1")
+				.header(X_FORWARDED_FOR_HEADER, "10.0.0.10").build();
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("10\\.0\\.0\\..*");
 
@@ -379,16 +375,14 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
 				X_FORWARDED_PROTO_HEADER);
 
-		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1")
-			.contains("10.0.0.1", "10.0.0.10");
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1").contains("10.0.0.1",
+				"10.0.0.10");
 	}
 
 	@Test
 	public void remoteAdddressIsNullUnTrustedProxyNotAppended() {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-			.header(HttpHeaders.HOST, "myhost")
-			.header(X_FORWARDED_FOR_HEADER, "127.0.0.1")
-			.build();
+				.header(HttpHeaders.HOST, "myhost").header(X_FORWARDED_FOR_HEADER, "127.0.0.1").build();
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("10\\.0\\.0\\..*");
 

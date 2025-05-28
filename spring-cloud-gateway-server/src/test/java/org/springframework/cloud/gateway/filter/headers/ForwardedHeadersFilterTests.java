@@ -96,15 +96,13 @@ public class ForwardedHeadersFilterTests {
 
 		assertThat(forwardeds).hasSize(3);
 		Optional<Forwarded> added = forwardeds.stream()
-			.filter(forwarded -> forwarded.get("for").contains("10.0.0.1:80"))
-			.findFirst();
+				.filter(forwarded -> forwarded.get("for").contains("10.0.0.1:80")).findFirst();
 		assertThat(added).isPresent();
 		added.ifPresent(forwarded -> {
 			assertThat(forwarded.getValues()).containsEntry("proto", "http").containsEntry("for", "\"10.0.0.1:80\"");
 		});
 		Optional<Forwarded> existing = forwardeds.stream()
-			.filter(forwarded -> forwarded.get("for").equals("23.45.67.89"))
-			.findFirst();
+				.filter(forwarded -> forwarded.get("for").equals("23.45.67.89")).findFirst();
 		assertThat(existing).isPresent();
 		existing.ifPresent(forwarded -> {
 			assertThat(forwarded.getValues()).containsEntry("for", "23.45.67.89");
@@ -216,36 +214,34 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void trustedProxiesConditionMatches() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
-			.withPropertyValues("spring.cloud.gateway.trusted-proxies=11\\.0\\.0\\..*")
-			.run(context -> {
-				assertThat(context).hasSingleBean(ForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.gateway.trusted-proxies=11\\.0\\.0\\..*").run(context -> {
+					assertThat(context).hasSingleBean(ForwardedHeadersFilter.class);
+				});
 	}
 
 	@Test
 	public void trustedProxiesConditionDoesNotMatch() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
-			.run(context -> {
-				assertThat(context).doesNotHaveBean(ForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+						ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(ForwardedHeadersFilter.class);
+				});
 	}
 
 	@Test
 	public void emptyTrustedProxiesFails() {
 		Assertions.assertThatThrownBy(() -> new ForwardedHeadersFilter(""))
-			.isInstanceOf(IllegalArgumentException.class);
+				.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void forwardedHeadersNotTrusted() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-			.header(HttpHeaders.HOST, "myhost")
-			.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(HttpHeaders.HOST, "myhost").build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter("11\\.0\\.0\\..*");
 
@@ -258,10 +254,9 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void untrustedForwardedForNotAppended() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
-			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-			.header(HttpHeaders.HOST, "myhost")
-			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=\"127.0.0.1:80\",for=10.0.0.11")
-			.build();
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(HttpHeaders.HOST, "myhost")
+				.header(FORWARDED_HEADER, "proto=http;host=myhost;for=\"127.0.0.1:80\",for=10.0.0.11").build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter("10\\.0\\.0\\..*");
 
@@ -278,9 +273,8 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void remoteAdddressIsNullUnTrustedProxyNotAppended() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-			.header(HttpHeaders.HOST, "myhost")
-			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=127.0.0.1")
-			.build();
+				.header(HttpHeaders.HOST, "myhost").header(FORWARDED_HEADER, "proto=http;host=myhost;for=127.0.0.1")
+				.build();
 
 		ForwardedHeadersFilter filter = new ForwardedHeadersFilter("10\\.0\\.0\\..*");
 
