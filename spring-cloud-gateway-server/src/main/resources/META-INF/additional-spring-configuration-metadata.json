@@ -2432,6 +2432,18 @@
         "replacement": "spring.cloud.gateway.server.webflux.x-forwarded.proto-enabled",
         "since": "4.3.0"
       }
+    },
+    {
+      "name": "spring.cloud.gateway.trusted-proxies",
+      "type": "java.lang.String",
+      "description": "Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.",
+      "sourceType": "org.springframework.cloud.gateway.config.GatewayProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webflux.trusted-proxies",
+        "since": "4.3.0"
+      }
     }
   ]
 }

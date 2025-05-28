@@ -66,8 +66,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT,
 		properties = { "spring.cloud.gateway.server.webflux.httpclient.connect-timeout=500",
 				"spring.cloud.gateway.server.webflux.httpclient.response-timeout=2s",
-				"logging.level.org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory=TRACE"
-				"spring.cloud.gateway.server.webflux.trusted-proxies=.*", "spring.cloud.gateway.server.webflux.x-forwarded.enabled=true" })
+				"logging.level.org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory=TRACE",
+				"spring.cloud.gateway.server.webflux.trusted-proxies=.*",
+				"spring.cloud.gateway.server.webflux.x-forwarded.enabled=true" })
 @DirtiesContext
 // default filter AddResponseHeader suppresses bug
 // https://github.com/spring-cloud/spring-cloud-gateway/issues/1315,

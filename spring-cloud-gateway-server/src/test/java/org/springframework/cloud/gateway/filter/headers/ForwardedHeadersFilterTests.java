@@ -264,7 +264,7 @@ public class ForwardedHeadersFilterTests {
 		new ReactiveWebApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, SslAutoConfiguration.class,
 					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
-			.withPropertyValues("spring.cloud.gateway.trusted-proxies=11\\.0\\.0\\..*")
+			.withPropertyValues("spring.cloud.gateway.server.webflux.trusted-proxies=11\\.0\\.0\\..*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(ForwardedHeadersFilter.class);
 			});

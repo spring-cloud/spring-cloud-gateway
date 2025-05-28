@@ -323,7 +323,8 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@Conditional(TrustedProxies.ForwardedTrustedProxiesCondition.class)
-	public ForwardedHeadersFilter forwardedHeadersFilter(Environment env, ServerProperties serverProperties, GatewayProperties properties) {
+	public ForwardedHeadersFilter forwardedHeadersFilter(Environment env, ServerProperties serverProperties,
+			GatewayProperties properties) {
 		boolean forwardedByEnabled = env.getProperty("spring.cloud.gateway.server.webflux.forwarded.by.enabled",
 				Boolean.class, false);
 		ForwardedHeadersFilter forwardedHeadersFilter = new ForwardedHeadersFilter(properties.getTrustedProxies());

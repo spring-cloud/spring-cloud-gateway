@@ -82,9 +82,10 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 	}
 
 	private XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props,
-										   TrustedProxies trustedProxies) {
+			TrustedProxies trustedProxies) {
+		Assert.notNull(props, "XForwardedRequestHeadersFilterProperties must not be null");
 		Assert.notNull(trustedProxies, "trustedProxies must not be null");
-
+		this.properties = props;
 		this.trustedProxies = trustedProxies;
 	}
 

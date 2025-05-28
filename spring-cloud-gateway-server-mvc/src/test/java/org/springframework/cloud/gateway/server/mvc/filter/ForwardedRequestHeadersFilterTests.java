@@ -27,7 +27,16 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter.Forwarded;
+import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -51,6 +60,31 @@ public class ForwardedRequestHeadersFilterTests {
 			map.put(values[i], values[++i]);
 		}
 		return map;
+	}
+
+	@Test
+	public void trustedProxiesConditionMatches() {
+		new WebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebMvcAutoConfiguration.class, RestClientAutoConfiguration.class,
+					SslAutoConfiguration.class, ServletWebServerFactoryAutoConfiguration.class,
+					GatewayServerMvcAutoConfiguration.class, FilterAutoConfiguration.class,
+					PredicateAutoConfiguration.class))
+			.withPropertyValues(GatewayMvcProperties.PREFIX + ".trusted-proxies=11\\.0\\.0\\..*")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class);
+			});
+	}
+
+	@Test
+	public void trustedProxiesConditionDoesNotMatch() {
+		new WebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebMvcAutoConfiguration.class, RestClientAutoConfiguration.class,
+					SslAutoConfiguration.class, ServletWebServerFactoryAutoConfiguration.class,
+					GatewayServerMvcAutoConfiguration.class, FilterAutoConfiguration.class,
+					PredicateAutoConfiguration.class))
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class);
+			});
 	}
 
 	@Test

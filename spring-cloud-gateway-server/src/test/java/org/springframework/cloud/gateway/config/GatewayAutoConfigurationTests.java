@@ -357,8 +357,9 @@ public class GatewayAutoConfigurationTests {
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
 					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
 					ServerPropertiesConfig.class))
-			.withPropertyValues("spring.cloud.gateway.forwarded.enabled=true",
-					"spring.cloud.gateway.x-forwarded.enabled=true", "spring.cloud.gateway.trusted-proxies=.*")
+			.withPropertyValues("spring.cloud.gateway.server.webflux.forwarded.enabled=true",
+					"spring.cloud.gateway.server.webflux.x-forwarded.enabled=true",
+					"spring.cloud.gateway.server.webflux.trusted-proxies=.*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
 					.hasSingleBean(ForwardedHeadersFilter.class);
