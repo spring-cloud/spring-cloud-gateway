@@ -30,6 +30,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
@@ -222,7 +223,7 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void trustedProxiesConditionMatches() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, SslAutoConfiguration.class,
 					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.gateway.trusted-proxies=11\\.0\\.0\\..*")
 			.run(context -> {
@@ -233,7 +234,7 @@ public class ForwardedHeadersFilterTests {
 	@Test
 	public void trustedProxiesConditionDoesNotMatch() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, SslAutoConfiguration.class,
 					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(ForwardedHeadersFilter.class);
