@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>4.1.8</version>
+		<version>4.1.8-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
