@@ -59,7 +59,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		properties = { "spring.cloud.gateway.forwarded.enabled=true", "spring.cloud.gateway.x-forwarded.enabled=true",
+				"spring.cloud.gateway.trusted-proxies=.*",
+				"logging.level.org.springframework.cloud.gateway.filter.headers=TRACE" })
 @DirtiesContext
 @SuppressWarnings("unchecked")
 class GatewayIntegrationTests extends BaseWebClientTests {

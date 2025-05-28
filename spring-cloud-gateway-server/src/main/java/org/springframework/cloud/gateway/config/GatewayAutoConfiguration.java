@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.config;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -61,6 +62,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
+import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
@@ -125,6 +127,7 @@ import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilte
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.TrustedProxies;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
@@ -315,9 +318,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.forwarded.enabled", matchIfMissing = true)
-	public ForwardedHeadersFilter forwardedHeadersFilter() {
-		return new ForwardedHeadersFilter();
+	@Conditional(TrustedProxies.ForwardedTrustedProxiesCondition.class)
+	public ForwardedHeadersFilter forwardedHeadersFilter(GatewayProperties properties) {
+		return new ForwardedHeadersFilter(properties.getTrustedProxies());
 	}
 
 	// HttpHeaderFilter beans
@@ -328,9 +331,9 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.x-forwarded.enabled", matchIfMissing = true)
-	public XForwardedHeadersFilter xForwardedHeadersFilter() {
-		return new XForwardedHeadersFilter();
+	@Conditional(TrustedProxies.XForwardedTrustedProxiesCondition.class)
+	public XForwardedHeadersFilter xForwardedHeadersFilter(GatewayProperties properties) {
+		return new XForwardedHeadersFilter(properties.getTrustedProxies());
 	}
 
 	@Bean
@@ -758,6 +761,21 @@ public class GatewayAutoConfiguration {
 					super.customize(factory);
 				}
 			};
+		}
+
+		@Bean
+		@TrustedProxies.ConditionalOnPropertyExists
+		public NettyServerCustomizer gatewayNettyServerCustomizer(GatewayProperties gatewayProperties) {
+			TrustedProxies trustedProxies = TrustedProxies.from(gatewayProperties.getTrustedProxies());
+
+			return httpServer -> httpServer.forwarded((connectionInfo, httpRequest) -> {
+				InetSocketAddress remoteAddress = connectionInfo.getRemoteAddress();
+				if (remoteAddress != null && trustedProxies.isTrusted(remoteAddress.getHostString())) {
+					// update remote address
+					return DefaultNettyHttpForwardedHeaderHandler.INSTANCE.apply(connectionInfo, httpRequest);
+				}
+				return connectionInfo;
+			});
 		}
 
 		@Bean
