@@ -134,7 +134,6 @@
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 
-|spring.cloud.gateway.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.
 |spring.cloud.gateway.x-forwarded.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
 |spring.cloud.gateway.x-forwarded.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
 |spring.cloud.gateway.x-forwarded.for-enabled | `+++true+++` | If X-Forwarded-For is enabled.
