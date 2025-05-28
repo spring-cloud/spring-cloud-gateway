@@ -71,7 +71,7 @@ final class DefaultNettyHttpForwardedHeaderHandler implements BiFunction<Connect
 	@Deprecated
 	static final String FORWARDED_HEADER_VALIDATION = "reactor.netty.http.server.forwarded.strictValidation";
 	static final boolean DEFAULT_FORWARDED_HEADER_VALIDATION = Boolean
-		.parseBoolean(System.getProperty(FORWARDED_HEADER_VALIDATION, "true"));
+			.parseBoolean(System.getProperty(FORWARDED_HEADER_VALIDATION, "true"));
 
 	@Override
 	public ConnectionInfo apply(ConnectionInfo connectionInfo, HttpRequest request) {
@@ -114,8 +114,8 @@ final class DefaultNettyHttpForwardedHeaderHandler implements BiFunction<Connect
 		String hostHeader = request.headers().get(X_FORWARDED_HOST_HEADER);
 		if (hostHeader != null) {
 			connectionInfo = connectionInfo
-				.withHostAddress(AddressUtils.parseAddress(hostHeader.split(",", 2)[0].trim(),
-						getDefaultHostPort(connectionInfo.getScheme()), DEFAULT_FORWARDED_HEADER_VALIDATION));
+					.withHostAddress(AddressUtils.parseAddress(hostHeader.split(",", 2)[0].trim(),
+							getDefaultHostPort(connectionInfo.getScheme()), DEFAULT_FORWARDED_HEADER_VALIDATION));
 		}
 
 		String portHeader = request.headers().get(X_FORWARDED_PORT_HEADER);

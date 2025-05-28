@@ -352,27 +352,27 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void forwardedHeaderFiltersNotEnabledByDefault() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
-					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
-					ServerPropertiesConfig.class))
-			.run(context -> {
-				assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class)
-					.doesNotHaveBean(ForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						ServerPropertiesConfig.class))
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class)
+							.doesNotHaveBean(ForwardedHeadersFilter.class);
+				});
 	}
 
 	@Test
 	public void forwardedHeaderFiltersEnabledWithProperties() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
-					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
-					ServerPropertiesConfig.class))
-			.withPropertyValues("spring.cloud.gateway.forwarded.enabled=true",
-					"spring.cloud.gateway.x-forwarded.enabled=true", "spring.cloud.gateway.trusted-proxies=.*")
-			.run(context -> {
-				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
-					.hasSingleBean(ForwardedHeadersFilter.class);
-			});
+				.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+						SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+						ServerPropertiesConfig.class))
+				.withPropertyValues("spring.cloud.gateway.forwarded.enabled=true",
+						"spring.cloud.gateway.x-forwarded.enabled=true", "spring.cloud.gateway.trusted-proxies=.*")
+				.run(context -> {
+					assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
+							.hasSingleBean(ForwardedHeadersFilter.class);
+				});
 	}
 
 	@Configuration
