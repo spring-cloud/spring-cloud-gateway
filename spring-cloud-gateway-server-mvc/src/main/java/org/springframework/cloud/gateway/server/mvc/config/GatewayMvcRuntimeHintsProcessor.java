@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ReflectionHints;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -84,7 +85,7 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 
 	private static Set<Class<?>> getTypesToRegister(String packageName) {
 		Set<Class<?>> classesToAdd = new HashSet<>();
-		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
+		ClassPathScanningCandidateComponentProvider provider = buildProvider();
 		provider.addIncludeFilter(new AssignableTypeFilter(Object.class));
 		Set<BeanDefinition> components = provider.findCandidateComponents(packageName);
 		for (BeanDefinition component : components) {
@@ -102,6 +103,17 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 			}
 		}
 		return classesToAdd;
+	}
+
+	private static ClassPathScanningCandidateComponentProvider buildProvider() {
+		return new ClassPathScanningCandidateComponentProvider(false) {
+			@SuppressWarnings("NullableProblems")
+			@Override
+			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+				// Include both concrete classes and interfaces
+				return beanDefinition.getMetadata().isIndependent() && !beanDefinition.getMetadata().isAnnotation();
+			}
+		};
 	}
 
 	private static boolean shouldRegisterClass(Class<?> clazz) {
