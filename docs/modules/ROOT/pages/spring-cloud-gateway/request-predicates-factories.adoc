@@ -192,7 +192,7 @@ This route matches if the request path was, for example: `/red/1` or `/red/1/` o
 
 If `matchTrailingSlash` is set to `false`, then request path `/red/1/` will not be matched.
 
-If you have set `spring.webflux.base-path` property, this will influence the path matching. The property value will be automatically prepended to the path patterns. For example, with `spring.webflux.base-path=/app` and a path pattern of `/red/{segment}`, the full pattern used for matching would be `/app/red/{segment}`.
+If you have set `spring.webflux.base-path` property, this will influence the path matching. The property value will be automatically prepended to the path patterns. For example, with `spring.webflux.base-path=/app` and a path pattern of `/red/\{segment\}`, the full pattern used for matching would be `/app/red/\{segment\}`.
 
 This predicate extracts the URI template variables (such as `segment`, defined in the preceding example) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
 Those values are then available for use by <<gateway-route-filters,`GatewayFilter` factories>>
