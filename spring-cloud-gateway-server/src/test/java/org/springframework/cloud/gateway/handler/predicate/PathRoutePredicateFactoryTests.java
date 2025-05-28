@@ -33,7 +33,6 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.web.server.firewall.StrictServerWebExchangeFirewall;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -133,13 +132,6 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 									.path(false, "/anything/multidsl1", "/anything/multidsl3")
 									.filters(f -> f.prefixPath("/httpbin")).uri(uri))
 					.build();
-		}
-
-		@Bean
-		StrictServerWebExchangeFirewall strictServerWebExchangeFirewall() {
-			StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
-			firewall.setAllowUrlEncodedPercent(true);
-			return firewall;
 		}
 
 	}

@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -326,7 +327,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			}
 			// these headers should be treated as a single comma separated header
 			if (headers.containsKey(name)) {
-				List<String> values = headers.get(name).stream().filter(shouldWrite).toList();
+				List<String> values = headers.get(name).stream().filter(shouldWrite).collect(Collectors.toList());
 				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
 				headers.set(name, delimitedValue);
 			}
