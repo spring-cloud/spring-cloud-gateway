@@ -109,6 +109,7 @@
 *** xref:spring-cloud-gateway-server-webmvc/filters/requestsize.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/setrequesthostheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/tokenrelay.adoc[]
+** xref:spring-cloud-gateway-server-webmvc/httpheadersfilters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/writing-custom-predicates-and-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/working-with-servlets-and-filters.adoc[]
 

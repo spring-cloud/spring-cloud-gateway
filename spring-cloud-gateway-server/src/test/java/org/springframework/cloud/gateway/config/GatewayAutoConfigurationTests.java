@@ -58,8 +58,10 @@ import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint
 import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
 import org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -206,8 +208,8 @@ public class GatewayAutoConfigurationTests {
 					"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
 					"spring.security.oauth2.client.registration[test].client-id=login-client")
 			.run(context -> {
-				assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
-				assertThat(context).hasSingleBean(TokenRelayGatewayFilterFactory.class);
+				assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class)
+					.hasSingleBean(TokenRelayGatewayFilterFactory.class);
 			});
 	}
 
@@ -225,8 +227,8 @@ public class GatewayAutoConfigurationTests {
 					"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
 					"spring.security.oauth2.client.registration[test].client-id=login-client")
 			.run(context -> {
-				assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class);
-				assertThat(context).hasBean("myReactiveOAuth2AuthorizedClientManager");
+				assertThat(context).hasSingleBean(ReactiveOAuth2AuthorizedClientManager.class)
+					.hasBean("myReactiveOAuth2AuthorizedClientManager");
 			});
 	}
 
@@ -290,8 +292,8 @@ public class GatewayAutoConfigurationTests {
 					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
 			.withPropertyValues("server.http2.enabled=true")
 			.run(context -> {
-				assertThat(context).hasSingleBean(GRPCRequestHeadersFilter.class);
-				assertThat(context).hasSingleBean(GRPCResponseHeadersFilter.class);
+				assertThat(context).hasSingleBean(GRPCRequestHeadersFilter.class)
+					.hasSingleBean(GRPCResponseHeadersFilter.class);
 				HttpClient httpClient = context.getBean(HttpClient.class);
 				assertThat(httpClient.configuration().protocols()).contains(HttpProtocol.HTTP11, HttpProtocol.H2);
 			});
@@ -305,8 +307,8 @@ public class GatewayAutoConfigurationTests {
 					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
 			.withPropertyValues("server.http2.enabled=false")
 			.run(context -> {
-				assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class);
-				assertThat(context).doesNotHaveBean(GRPCResponseHeadersFilter.class);
+				assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class)
+					.doesNotHaveBean(GRPCResponseHeadersFilter.class);
 			});
 	}
 
@@ -334,6 +336,32 @@ public class GatewayAutoConfigurationTests {
 				assertThat(context).hasSingleBean(HttpClient.class);
 				HttpClient httpClient = context.getBean(HttpClient.class);
 				assertThat(httpClient).isInstanceOf(CustomHttpClient.class);
+			});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersNotEnabledByDefault() {
+		new ReactiveWebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					ServerPropertiesConfig.class))
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class)
+					.doesNotHaveBean(ForwardedHeadersFilter.class);
+			});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersEnabledWithProperties() {
+		new ReactiveWebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					ServerPropertiesConfig.class))
+			.withPropertyValues("spring.cloud.gateway.forwarded.enabled=true",
+					"spring.cloud.gateway.x-forwarded.enabled=true", "spring.cloud.gateway.trusted-proxies=.*")
+			.run(context -> {
+				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
+					.hasSingleBean(ForwardedHeadersFilter.class);
 			});
 	}
 

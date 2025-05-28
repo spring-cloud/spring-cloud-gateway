@@ -7,3 +7,7 @@ logging:
 spring:
   mvc:
     log-request-details: true
+  cloud:
+    gateway:
+      mvc:
+        trusted-proxies: .*

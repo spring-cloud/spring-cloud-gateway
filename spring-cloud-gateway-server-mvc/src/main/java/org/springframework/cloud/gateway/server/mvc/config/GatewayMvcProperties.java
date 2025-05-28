@@ -66,6 +66,12 @@ public class GatewayMvcProperties {
 	 */
 	private int streamingBufferSize = 16384;
 
+	/**
+	 * Regular expression defining proxies that are trusted when they appear in a
+	 * Forwarded of X-Forwarded header.
+	 */
+	private String trustedProxies;
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -102,6 +108,14 @@ public class GatewayMvcProperties {
 		this.streamingBufferSize = streamingBufferSize;
 	}
 
+	public String getTrustedProxies() {
+		return trustedProxies;
+	}
+
+	public void setTrustedProxies(String trustedProxies) {
+		this.trustedProxies = trustedProxies;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("httpClient", httpClient)
@@ -109,6 +123,7 @@ public class GatewayMvcProperties {
 			.append("routesMap", routesMap)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
+			.append("trustedProxies", trustedProxies)
 			.toString();
 	}
 
