@@ -33,6 +33,7 @@ import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContrib
 import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -75,7 +76,8 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 			ReflectionHints hints = generationContext.getRuntimeHints().reflection();
 			Set<Class<?>> typesToRegister = Stream
 				.of(getTypesToRegister(GATEWAY_MVC_FILTER_PACKAGE_NAME),
-						getTypesToRegister(GATEWAY_MVC_PREDICATE_PACKAGE_NAME), PROPERTIES)
+						getTypesToRegister(GATEWAY_MVC_PREDICATE_PACKAGE_NAME), PROPERTIES,
+						new HashSet<>(Collections.singletonList(FilterFunctions.class)))
 				.flatMap(Set::stream)
 				.collect(Collectors.toSet());
 			typesToRegister.forEach(clazz -> hints.registerType(TypeReference.of(clazz),
