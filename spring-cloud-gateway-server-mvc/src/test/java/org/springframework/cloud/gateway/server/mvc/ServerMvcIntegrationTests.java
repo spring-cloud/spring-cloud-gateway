@@ -1032,7 +1032,6 @@ public class ServerMvcIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
-	protected static class TestConfiguration {
 	@Import(PermitAllSecurityConfiguration.class)
 	protected static class TestConfiguration extends WebMvcConfigurationSupport {
 
