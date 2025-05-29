@@ -40,6 +40,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -61,10 +62,13 @@ import org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPred
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
+import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -83,10 +87,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_FIRST;
@@ -142,11 +148,14 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.http.client.factory=jdk", "spring.cloud.gateway.function.enabled=false" },
-		webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.http.client.factory=jdk", "spring.cloud.gateway.function.enabled=false",
+		"logging.level.org.springframework.security=TRACE" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 @ExtendWith(OutputCaptureExtension.class)
 public class ServerMvcIntegrationTests {
+
+	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
+			StandardCharsets.UTF_8);
 
 	static {
 		// if set type to autodetect above
@@ -161,6 +170,12 @@ public class ServerMvcIntegrationTests {
 
 	@Autowired
 	TestRestClient restClient;
+
+	private static boolean isPNG(byte[] bytes) {
+		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
+		return Arrays.equals(pngSignature, header);
+	}
 
 	@Test
 	public void nonGatewayRouterFunctionWorks() {
@@ -317,7 +332,7 @@ public class ServerMvcIntegrationTests {
 			.isEqualTo(HttpStatus.TOO_MANY_REQUESTS)
 			.expectHeader()
 			.valueEquals("x-status", "201"); // .expectBody(String.class).isEqualTo("Failed
-												// with 201");
+		// with 201");
 	}
 
 	@Test
@@ -588,9 +603,6 @@ public class ServerMvcIntegrationTests {
 			.isOk();
 	}
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
-			StandardCharsets.UTF_8);
-
 	@Test
 	void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -669,12 +681,6 @@ public class ServerMvcIntegrationTests {
 			String file = (String) imgpart;
 			assertThat(file).startsWith("data:").contains(";base64,");
 		}
-	}
-
-	private static boolean isPNG(byte[] bytes) {
-		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
-		return Arrays.equals(pngSignature, header);
 	}
 
 	@Test
@@ -1027,6 +1033,8 @@ public class ServerMvcIntegrationTests {
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	protected static class TestConfiguration {
+	@Import(PermitAllSecurityConfiguration.class)
+	protected static class TestConfiguration extends WebMvcConfigurationSupport {
 
 		@Bean
 		StaticPortController staticPortController() {
@@ -1041,6 +1049,23 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		EventController eventController() {
 			return new EventController();
+		}
+
+		// TODO This is needed to work around https://github.com/spring-cloud/spring-cloud-gateway/issues/3816
+		// which results from Spring Security being on the classpath.  Once we can address this issue we should
+		// remove this bean and no longer extend WebMvcConfigurationSupport in this configuration class
+		@Bean
+		@Lazy
+		@Override
+		public @NotNull HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+			return new HandlerMappingIntrospector() {
+				@Override
+				public @NotNull Filter createCacheFilter() {
+					return (request, response, chain) -> {
+						chain.doFilter(request, response);
+					};
+				}
+			};
 		}
 
 		@Bean
@@ -1667,6 +1692,12 @@ public class ServerMvcIntegrationTests {
 
 	private static class MyFilter implements Filter, Ordered {
 
+		static boolean isFormPost(HttpServletRequest request) {
+			String contentType = request.getContentType();
+			return (contentType != null && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+					&& HttpMethod.POST.matches(request.getMethod()));
+		}
+
 		@Override
 		public int getOrder() {
 			return FormFilter.FORM_FILTER_ORDER - 1;
@@ -1687,12 +1718,6 @@ public class ServerMvcIntegrationTests {
 				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
 				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
 			}
-		}
-
-		static boolean isFormPost(HttpServletRequest request) {
-			String contentType = request.getContentType();
-			return (contentType != null && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-					&& HttpMethod.POST.matches(request.getMethod()));
 		}
 
 	}
