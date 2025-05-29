@@ -1,11 +1,11 @@
 [[httpheadersfilters]]
 = HttpHeadersFilters
 
-`HttpHeadersFilters` are applied to the requests before sending them downstream, such as in the `NettyRoutingFilter`.
+HttpHeadersFilters are applied to the requests before sending them downstream, such as in the `NettyRoutingFilter`.
 
 [[forwarded-headers-filter]]
 == Forwarded Headers Filter
-The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header. To activate this filter set the `spring.cloud.gateway.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
+The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header. To activate this filter set the `spring.cloud.gateway.mvc.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
 
 [[removehopbyhop-headers-filter]]
 == RemoveHopByHop Headers Filter
@@ -21,11 +21,11 @@ The `RemoveHopByHop` Headers Filter removes headers from forwarded requests. The
 *  Transfer-Encoding
 *  Upgrade
 
-To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
+//To change this, set the `spring.cloud.gateway.filter.remove-hop-by-hop.headers` property to the list of header names to remove.
 
 [[xforwarded-headers-filter]]
 == XForwarded Headers Filter
-The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers.  To activate this filter set the `spring.cloud.gateway.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
+The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send to the downstream service. It uses the `Host` header, scheme, port and path of the current request to create the various headers.  To activate this filter set the `spring.cloud.gateway.mvc.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 

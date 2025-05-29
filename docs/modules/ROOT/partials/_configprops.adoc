@@ -129,6 +129,7 @@
 |spring.cloud.gateway.mvc.streaming-buffer-size | `+++16384+++` | Buffer size for streaming media mime-types.
 |spring.cloud.gateway.mvc.streaming-media-types |  | Mime-types that are streaming.
 |spring.cloud.gateway.mvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
+|spring.cloud.gateway.mvc.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded of X-Forwarded header.
 |spring.cloud.gateway.mvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
 |spring.cloud.gateway.mvc.x-forwarded-request-headers-filter.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
@@ -170,6 +171,7 @@
 |spring.cloud.gateway.routes |  | List of Routes.
 |spring.cloud.gateway.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.streaming-media-types |  | 
+|spring.cloud.gateway.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.
 |spring.cloud.gateway.x-forwarded.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
 |spring.cloud.gateway.x-forwarded.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
 |spring.cloud.gateway.x-forwarded.for-enabled | `+++true+++` | If X-Forwarded-For is enabled.

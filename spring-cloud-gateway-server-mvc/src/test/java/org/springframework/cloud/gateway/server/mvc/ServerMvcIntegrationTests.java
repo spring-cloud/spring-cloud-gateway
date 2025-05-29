@@ -584,7 +584,7 @@ public class ServerMvcIntegrationTests {
 			.isOk();
 	}
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
+	private static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
 			StandardCharsets.UTF_8);
 
 	@Test
