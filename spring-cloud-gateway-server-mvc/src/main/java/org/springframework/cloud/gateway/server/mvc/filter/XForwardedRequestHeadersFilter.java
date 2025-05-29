@@ -16,20 +16,28 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.core.Ordered;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
 public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestHttpHeadersFilter, Ordered {
+
+	private static final Log log = LogFactory.getLog(XForwardedRequestHeadersFilter.class);
 
 	/** Default http port. */
 	public static final int HTTP_PORT = 80;
@@ -60,8 +68,25 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 
 	private final XForwardedRequestHeadersFilterProperties properties;
 
+	private final TrustedProxies trustedProxies;
+
+	@Deprecated
 	public XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties properties) {
-		this.properties = properties;
+		this(properties, s -> true);
+		log.warn(GatewayMvcProperties.PREFIX
+				+ ".trusted-proxies is not set. Using deprecated Constructor. Untrusted hosts might be added to X-Forwarded header.");
+	}
+
+	public XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props, String trustedProxies) {
+		this(props, TrustedProxies.from(trustedProxies));
+	}
+
+	private XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props,
+			TrustedProxies trustedProxies) {
+		Assert.notNull(props, "XForwardedRequestHeadersFilterProperties must not be null");
+		Assert.notNull(trustedProxies, "trustedProxies must not be null");
+		this.properties = props;
+		this.trustedProxies = trustedProxies;
 	}
 
 	@Override
@@ -71,6 +96,13 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 
 	@Override
 	public HttpHeaders apply(HttpHeaders input, ServerRequest request) {
+		if (request.servletRequest().getRemoteAddr() != null
+				&& !trustedProxies.isTrusted(request.servletRequest().getRemoteAddr())) {
+			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
+					request.servletRequest().getRemoteHost()));
+			return input;
+		}
+
 		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
@@ -78,10 +110,12 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 			updated.addAll(entry.getKey(), entry.getValue());
 		}
 
-		InetSocketAddress remoteAddress = request.remoteAddress().orElse(null);
-		if (properties.isForEnabled() && remoteAddress != null && remoteAddress.getAddress() != null) {
-			String remoteAddr = remoteAddress.getAddress().getHostAddress();
-			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, properties.isForAppend());
+		if (properties.isForEnabled()) {
+			String remoteAddr = null;
+			if (request.servletRequest().getRemoteAddr() != null) {
+				remoteAddr = request.servletRequest().getRemoteAddr();
+			}
+			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, properties.isForAppend(), trustedProxies::isTrusted);
 		}
 
 		String proto = request.uri().getScheme();
@@ -156,28 +190,28 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 	}
 
 	private void write(HttpHeaders headers, String name, String value, boolean append) {
-		if (value == null) {
-			return;
-		}
+		write(headers, name, value, append, s -> true);
+	}
+
+	private void write(HttpHeaders headers, String name, String value, boolean append, Predicate<String> shouldWrite) {
 		if (append) {
-			headers.add(name, value);
+			if (value != null) {
+				headers.add(name, value);
+			}
 			// these headers should be treated as a single comma separated header
-			List<String> values = headers.get(name);
-			String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
-			headers.set(name, delimitedValue);
+			if (headers.containsKey(name)) {
+				List<String> values = headers.get(name).stream().filter(shouldWrite).toList();
+				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
+				headers.set(name, delimitedValue);
+			}
 		}
-		else {
+		else if (value != null && shouldWrite.test(value)) {
 			headers.set(name, value);
 		}
 	}
 
 	private int getDefaultPort(String scheme) {
 		return HTTPS_SCHEME.equals(scheme) ? HTTPS_PORT : HTTP_PORT;
-	}
-
-	private boolean hasHeader(ServerRequest request, String name) {
-		HttpHeaders headers = request.headers().asHttpHeaders();
-		return headers.containsKey(name) && StringUtils.hasLength(headers.getFirst(name));
 	}
 
 	private String toHostHeader(ServerRequest request) {

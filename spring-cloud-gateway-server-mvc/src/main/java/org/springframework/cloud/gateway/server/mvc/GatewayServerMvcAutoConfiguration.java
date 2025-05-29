@@ -32,9 +32,9 @@ import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.web.client.RestClientCustomizer;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
-import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcAotRuntimeHintsRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcRuntimeHintsProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.RouterFunctionHolderFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
@@ -47,6 +47,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequest
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.TrustedProxies;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
@@ -59,8 +60,8 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFacto
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -80,7 +81,6 @@ import org.springframework.web.client.RestClient;
 		PredicateAutoConfiguration.class })
 @ConditionalOnProperty(name = GatewayMvcProperties.PREFIX + ".enabled", matchIfMissing = true)
 @Import(GatewayMvcPropertiesBeanDefinitionRegistrar.class)
-@ImportRuntimeHints(GatewayMvcAotRuntimeHintsRegistrar.class)
 public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
@@ -122,10 +122,9 @@ public class GatewayServerMvcAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "forwarded-request-headers-filter.enabled",
-			matchIfMissing = true)
-	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter() {
-		return new ForwardedRequestHeadersFilter();
+	@Conditional(TrustedProxies.ForwardedTrustedProxiesCondition.class)
+	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter(GatewayMvcProperties properties) {
+		return new ForwardedRequestHeadersFilter(properties.getTrustedProxies());
 	}
 
 	@Bean
@@ -199,14 +198,20 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(prefix = XForwardedRequestHeadersFilterProperties.PREFIX, name = ".enabled",
 			matchIfMissing = true)
-	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter(
-			XForwardedRequestHeadersFilterProperties props) {
-		return new XForwardedRequestHeadersFilter(props);
+	@Conditional(TrustedProxies.XForwardedTrustedProxiesCondition.class)
+	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props,
+			GatewayMvcProperties gatewayMvcProperties) {
+		return new XForwardedRequestHeadersFilter(props, gatewayMvcProperties.getTrustedProxies());
 	}
 
 	@Bean
 	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
 		return new XForwardedRequestHeadersFilterProperties();
+	}
+
+	@Bean
+	static GatewayMvcRuntimeHintsProcessor gatewayMvcRuntimeHintsProcessor() {
+		return new GatewayMvcRuntimeHintsProcessor();
 	}
 
 	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {

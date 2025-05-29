@@ -63,7 +63,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = "spring.cloud.gateway.server.webflux.forwarded.by.enabled=true")
+		properties = { "spring.cloud.gateway.server.webflux.forwarded.by.enabled=true",
+				"spring.cloud.gateway.server.webflux.forwarded.enabled=true",
+				"spring.cloud.gateway.server.webflux.x-forwarded.enabled=true",
+				"spring.cloud.gateway.server.webflux.trusted-proxies=.*",
+				"logging.level.org.springframework.cloud.gateway.filter.headers=TRACE" })
 @DirtiesContext
 @SuppressWarnings("unchecked")
 @ExtendWith(OutputCaptureExtension.class)

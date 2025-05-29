@@ -365,6 +365,18 @@
       "defaultValue": "jdk",
       "deprecated": true,
       "deprecation": {}
+    },
+    {
+      "name": "spring.cloud.gateway.mvc.trusted-proxies",
+      "type": "java.lang.String",
+      "description": "Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.",
+      "sourceType": "org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties",
+      "defaultValue": true,
+      "deprecated": true,
+      "deprecation": {
+        "replacement": "spring.cloud.gateway.server.webmvc.trusted-proxies",
+        "since": "4.3.0"
+      }
     }
   ]
 }
