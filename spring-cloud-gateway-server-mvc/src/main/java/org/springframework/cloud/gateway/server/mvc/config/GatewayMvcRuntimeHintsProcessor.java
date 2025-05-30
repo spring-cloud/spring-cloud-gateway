@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +37,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 /**
@@ -85,6 +88,34 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 	}
 
 	private static Set<Class<?>> getTypesToRegister(String packageName) {
+		Set<Class<?>> classesToAdd = getClassesToAdd(packageName);
+		Set<Class<?>> genericsToAdd = new HashSet<>();
+		Set<Class<?>> superTypes = new HashSet<>();
+		Set<Class<?>> enclosingClasses = new HashSet<>();
+		for (Class<?> clazz : classesToAdd) {
+			ResolvableType resolvableType = ResolvableType.forType(clazz);
+			addGenericsForClass(genericsToAdd, resolvableType);
+			addSuperTypesForClass(resolvableType, superTypes, genericsToAdd);
+			addEnclosingClassesForClass(enclosingClasses, resolvableType.getRawClass());
+		}
+		classesToAdd.addAll(genericsToAdd);
+		classesToAdd.addAll(superTypes);
+		classesToAdd.addAll(enclosingClasses);
+		return classesToAdd.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+	}
+
+	private static void addEnclosingClassesForClass(Set<Class<?>> enclosingClasses, Class<?> clazz) {
+		if (clazz == null) {
+			return;
+		}
+		Class<?> enclosing = clazz.getEnclosingClass();
+		if (enclosing != null) {
+			enclosingClasses.add(enclosing);
+			addEnclosingClassesForClass(enclosingClasses, enclosing);
+		}
+	}
+
+	private static Set<Class<?>> getClassesToAdd(String packageName) {
 		Set<Class<?>> classesToAdd = new HashSet<>();
 		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(false);
 		provider.addIncludeFilter(new AssignableTypeFilter(Object.class));
@@ -104,6 +135,24 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 			}
 		}
 		return classesToAdd;
+	}
+
+	private static void addGenericsForClass(Set<Class<?>> genericsToAdd, ResolvableType resolvableType) {
+		if (resolvableType.getSuperType().hasGenerics()) {
+			genericsToAdd.addAll(Arrays.stream(resolvableType.getSuperType().getGenerics())
+				.map(ResolvableType::toClass)
+				.collect(Collectors.toSet()));
+		}
+	}
+
+	private static void addSuperTypesForClass(ResolvableType resolvableType, Set<Class<?>> supertypesToAdd,
+			Set<Class<?>> genericsToAdd) {
+		ResolvableType superType = resolvableType.getSuperType();
+		if (!ResolvableType.NONE.equals(superType)) {
+			addGenericsForClass(genericsToAdd, superType);
+			supertypesToAdd.add(superType.toClass());
+			addSuperTypesForClass(superType, supertypesToAdd, genericsToAdd);
+		}
 	}
 
 	private static boolean shouldRegisterClass(Class<?> clazz) {
