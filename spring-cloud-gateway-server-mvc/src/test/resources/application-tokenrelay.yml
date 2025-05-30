@@ -1,0 +1,13 @@
+spring:
+  cloud.gateway.server.webmvc.routes:
+    - id: default_route
+      uri: https://examplel2.com
+      predicates:
+        - Path=/**
+      filters:
+        - HttpbinUriResolver=
+        - TokenRelay=token
+        - AddResponseHeader=X-Route,weight_high_test
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE

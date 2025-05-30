@@ -34,11 +34,13 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
+import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.context.ActiveProfiles;
@@ -230,6 +232,7 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
+	@Import(PermitAllSecurityConfiguration.class)
 	static class Config {
 
 	}

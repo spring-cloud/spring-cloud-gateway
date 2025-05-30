@@ -26,8 +26,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
+import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -90,6 +92,7 @@ public class WeightRequestPredicateIntegrationTests {
 
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
+	@Import(PermitAllSecurityConfiguration.class)
 	public static class TestConfig {
 
 		public TestConfig(WeightCalculatorFilter filter) {
