@@ -29,6 +29,7 @@ import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +57,19 @@ public class GatewayPropertiesMigrationTests {
 	@Test
 	public void deprecatedRoutePropertiesWork() {
 		assertThat(properties.getRoutes()).hasSize(2);
+	}
+
+	@Test
+	public void deprecatedDefaultFiltersPropertiesWork() {
+		assertThat(properties.getDefaultFilters()).hasSize(2);
+		assertThat(properties.getDefaultFilters().get(0).getName()).isEqualTo("AddRequestHeader");
+		assertThat(properties.getDefaultFilters().get(1).getName()).isEqualTo("AddRequestHeader");
+	}
+
+	@Test
+	public void deprecatedStreamingMediaTypesWork() {
+		assertThat(properties.getStreamingMediaTypes()).hasSize(1)
+			.containsOnly(new MediaType("application", "activemessage"));
 	}
 
 	private void assertBeanDoesNotExist(Class<?> type) {

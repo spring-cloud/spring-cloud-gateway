@@ -42,6 +42,8 @@ spring.cloud.gateway.mvc:
       uri: https://example2.com
       predicates:
         - Path=/anything/example2
+  streaming-media-types: application/activemessage
+
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE

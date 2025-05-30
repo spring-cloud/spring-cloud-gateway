@@ -54,9 +54,13 @@ class GatewayServerWebfluxPropertiesMigrationListener implements ApplicationList
 
 	private static final String DEPRECATED_ROUTES_LIST_KEY = DEPRECATED_ROOT + ".routes";
 
+	private static final String DEPRECATED_DEFAULT_FILTERS_KEY = DEPRECATED_ROOT + ".default-filters";
+
 	private static final String GATEWAY_PROPERTY_SOURCE_PREFIX = "migrategatewayflux";
 
 	private static final String NEW_ROUTES_LIST_KEY = GatewayProperties.PREFIX + ".routes";
+
+	private static final String NEW_DEFAULT_FILTERS_KEY = GatewayProperties.PREFIX + ".default-filters";
 
 	private final List<Migration> routesMigrations = new ArrayList<>();
 
@@ -81,6 +85,8 @@ class GatewayServerWebfluxPropertiesMigrationListener implements ApplicationList
 		ConfigurationPropertySources.get(env).forEach(propertySource -> {
 			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-",
 					DEPRECATED_ROUTES_LIST_KEY, NEW_ROUTES_LIST_KEY));
+			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "default-filters-",
+					DEPRECATED_DEFAULT_FILTERS_KEY, NEW_DEFAULT_FILTERS_KEY));
 		});
 	}
 

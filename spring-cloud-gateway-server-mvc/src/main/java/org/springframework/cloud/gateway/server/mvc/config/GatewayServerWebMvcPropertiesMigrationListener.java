@@ -56,8 +56,6 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 
 	private static final String DEPRECATED_ROUTES_MAP_KEY = DEPRECATED_ROOT + ".routes-map";
 
-	private static final String DEPRECATED_ROUTESMAP_KEY = DEPRECATED_ROOT + ".routesMap";
-
 	private static final String GATEWAY_PROPERTY_SOURCE_PREFIX = "migrategatewaymvc";
 
 	private static final String NEW_ROUTES_LIST_KEY = GatewayMvcProperties.PREFIX + ".routes";
@@ -88,8 +86,6 @@ class GatewayServerWebMvcPropertiesMigrationListener implements ApplicationListe
 			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-",
 					DEPRECATED_ROUTES_LIST_KEY, NEW_ROUTES_LIST_KEY));
 			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routes-map-",
-					DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
-			routesMigrations.addAll(migrate(env, propertySource, GATEWAY_PROPERTY_SOURCE_PREFIX + "routesMap-",
 					DEPRECATED_ROUTES_MAP_KEY, NEW_ROUTES_MAP_KEY));
 		});
 	}

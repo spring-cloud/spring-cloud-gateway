@@ -34,6 +34,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNorma
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,6 +68,12 @@ public class GatewayMvcPropertiesMigrationTests {
 	public void deprecatedRoutePropertiesWork() {
 		assertThat(properties.getRoutes()).hasSize(2);
 		assertThat(properties.getRoutesMap()).hasSize(2);
+	}
+
+	@Test
+	public void deprecatedStreamingMediaTypesWork() {
+		assertThat(properties.getStreamingMediaTypes()).hasSize(1)
+			.containsOnly(new MediaType("application", "activemessage"));
 	}
 
 	private void assertBeanDoesNotExist(Class<?> type) {
