@@ -23,6 +23,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  *
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
 interface KeyValueGenerator {
 
@@ -38,5 +39,9 @@ interface KeyValueGenerator {
 	}
 
 	String getKeyValue(ServerHttpRequest request);
+
+	boolean isEnabled();
+
+	void setEnabled(boolean enabled);
 
 }

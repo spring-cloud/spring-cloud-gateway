@@ -32,6 +32,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  * @author Marta Medio
  * @author Ignacio Lozano
  * @author Simone Gerevini
+ * @author Dong Hyeon Lee
  */
 public class CacheKeyGenerator {
 
@@ -80,7 +81,7 @@ public class CacheKeyGenerator {
 		Stream<KeyValueGenerator> keyValueGenerators = getKeyValueGenerators(varyHeaders);
 
 		final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-		keyValueGenerators.map(generator -> generator.apply(request)).map(String::getBytes).forEach(bytes -> {
+		keyValueGenerators.filter(KeyValueGenerator::isEnabled).map(generator -> generator.apply(request)).map(String::getBytes).forEach(bytes -> {
 			byteOutputStream.writeBytes(bytes);
 			byteOutputStream.writeBytes(KEY_SEPARATOR_BYTES);
 		});

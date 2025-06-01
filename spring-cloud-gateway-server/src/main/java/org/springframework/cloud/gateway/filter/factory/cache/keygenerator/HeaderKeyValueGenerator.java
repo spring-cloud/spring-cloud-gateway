@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
@@ -27,12 +28,16 @@ import org.springframework.util.StringUtils;
 /**
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
+@ConfigurationProperties("spring.cloud.gateway.server.webflux.header")
 class HeaderKeyValueGenerator implements KeyValueGenerator {
 
 	private final String header;
 
 	private final String valueSeparator;
+
+	private boolean enabled = true;
 
 	HeaderKeyValueGenerator(String header, String valueSeparator) {
 		this.valueSeparator = valueSeparator;
@@ -60,4 +65,13 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 		return value == null ? Stream.empty() : value.stream();
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 }
