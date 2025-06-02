@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.config;
 
+import java.util.List;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
@@ -36,6 +38,10 @@ import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCache
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheUtils;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CookiesKeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.HeaderKeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.KeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.UriKeyValueGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -85,8 +91,25 @@ public class LocalResponseCacheAutoConfiguration {
 	}
 
 	@Bean
-	public CacheKeyGenerator cacheKeyGenerator() {
-		return new CacheKeyGenerator();
+	public UriKeyValueGenerator uriKeyValueGenerator(LocalResponseCacheProperties cacheProperties) {
+		return new UriKeyValueGenerator(cacheProperties.getEnableUriKeyGenerator());
+	}
+
+	@Bean
+	public HeaderKeyValueGenerator headerKeyValueGenerator(LocalResponseCacheProperties cacheProperties) {
+		return new HeaderKeyValueGenerator(cacheProperties.getEnableHeaderKeyGenerator(), "Authorization", ";");
+	}
+
+	@Bean
+	public CookiesKeyValueGenerator cookiesKeyValueGenerator(LocalResponseCacheProperties cacheProperties) {
+		return new CookiesKeyValueGenerator(cacheProperties.getEnableCookiesKeyGenerator(), ";");
+	}
+
+	@Bean
+	public CacheKeyGenerator cacheKeyGenerator(UriKeyValueGenerator uriGenerator,
+			HeaderKeyValueGenerator headerGenerator, CookiesKeyValueGenerator cookiesGenerator) {
+		List<KeyValueGenerator> defaultGenerators = List.of(uriGenerator, headerGenerator, cookiesGenerator);
+		return new CacheKeyGenerator(defaultGenerators);
 	}
 
 	/**

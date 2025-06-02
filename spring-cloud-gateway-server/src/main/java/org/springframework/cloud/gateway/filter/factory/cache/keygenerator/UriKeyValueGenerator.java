@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
@@ -26,10 +25,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  * @author Ignacio Lozano
  * @author Dong Hyeon Lee
  */
-@ConfigurationProperties("spring.cloud.gateway.server.webflux.uri")
 public class UriKeyValueGenerator implements KeyValueGenerator {
 
 	private boolean enabled = true;
+
+	public UriKeyValueGenerator(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	@Override
 	public String getKeyValue(ServerHttpRequest request) {

@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
@@ -42,11 +41,11 @@ public class CacheKeyGenerator {
 
 	private final ThreadLocal<MessageDigest> messageDigest;
 
-	/* for testing */ static final List<KeyValueGenerator> DEFAULT_KEY_VALUE_GENERATORS = List.of(
-			new UriKeyValueGenerator(), new HeaderKeyValueGenerator(HttpHeaders.AUTHORIZATION, KEY_SEPARATOR),
-			new CookiesKeyValueGenerator(KEY_SEPARATOR));
+	/* for testing */ static List<KeyValueGenerator> DEFAULT_KEY_VALUE_GENERATORS;
 
-	public CacheKeyGenerator() {
+	public CacheKeyGenerator(List<KeyValueGenerator> keyValueGeneratorList) {
+		DEFAULT_KEY_VALUE_GENERATORS = keyValueGeneratorList;
+
 		messageDigest = ThreadLocal.withInitial(() -> {
 			try {
 				return MessageDigest.getInstance("MD5");
@@ -74,17 +73,20 @@ public class CacheKeyGenerator {
 
 	private Stream<KeyValueGenerator> getKeyValueGenerators(List<String> varyHeaders) {
 		return Stream.concat(DEFAULT_KEY_VALUE_GENERATORS.stream(),
-				varyHeaders.stream().sorted().map(header -> new HeaderKeyValueGenerator(header, ",")));
+				varyHeaders.stream().sorted().map(header -> new HeaderKeyValueGenerator(true, header, ",")));
 	}
 
 	private byte[] generateRawKey(ServerHttpRequest request, List<String> varyHeaders) {
 		Stream<KeyValueGenerator> keyValueGenerators = getKeyValueGenerators(varyHeaders);
 
 		final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-		keyValueGenerators.filter(KeyValueGenerator::isEnabled).map(generator -> generator.apply(request)).map(String::getBytes).forEach(bytes -> {
-			byteOutputStream.writeBytes(bytes);
-			byteOutputStream.writeBytes(KEY_SEPARATOR_BYTES);
-		});
+		keyValueGenerators.filter(KeyValueGenerator::isEnabled)
+			.map(generator -> generator.apply(request))
+			.map(String::getBytes)
+			.forEach(bytes -> {
+				byteOutputStream.writeBytes(bytes);
+				byteOutputStream.writeBytes(KEY_SEPARATOR_BYTES);
+			});
 
 		return byteOutputStream.toByteArray();
 	}

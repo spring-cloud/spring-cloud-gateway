@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.CollectionUtils;
@@ -31,14 +30,14 @@ import org.springframework.util.MultiValueMap;
  * @author Ignacio Lozano
  * @author Dong Hyeon Lee
  */
-@ConfigurationProperties("spring.cloud.gateway.server.webflux.cookies")
-class CookiesKeyValueGenerator implements KeyValueGenerator {
+public class CookiesKeyValueGenerator implements KeyValueGenerator {
 
 	private final String valueSeparator;
 
 	private boolean enabled = true;
 
-	CookiesKeyValueGenerator(String valueSeparator) {
+	public CookiesKeyValueGenerator(boolean enabled, String valueSeparator) {
+		this.enabled = enabled;
 		this.valueSeparator = Objects.requireNonNull(valueSeparator);
 	}
 
@@ -65,5 +64,4 @@ class CookiesKeyValueGenerator implements KeyValueGenerator {
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
-
 }

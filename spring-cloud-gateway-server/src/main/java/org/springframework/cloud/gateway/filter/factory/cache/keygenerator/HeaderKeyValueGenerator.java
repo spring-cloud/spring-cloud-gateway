@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
@@ -30,8 +29,7 @@ import org.springframework.util.StringUtils;
  * @author Ignacio Lozano
  * @author Dong Hyeon Lee
  */
-@ConfigurationProperties("spring.cloud.gateway.server.webflux.header")
-class HeaderKeyValueGenerator implements KeyValueGenerator {
+public class HeaderKeyValueGenerator implements KeyValueGenerator {
 
 	private final String header;
 
@@ -39,7 +37,8 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 
 	private boolean enabled = true;
 
-	HeaderKeyValueGenerator(String header, String valueSeparator) {
+	public HeaderKeyValueGenerator(boolean enabled, String header, String valueSeparator) {
+		this.enabled = enabled;
 		this.valueSeparator = valueSeparator;
 		if (!StringUtils.hasText(header)) {
 			throw new IllegalArgumentException("The parameter cannot be empty or null");

@@ -36,8 +36,7 @@ class DefaultKeyValueGeneratorTests {
 
 	@BeforeEach
 	void enableAllGenerators() {
-		CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS
-				.forEach(generator -> generator.setEnabled(true));
+		CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.forEach(generator -> generator.setEnabled(true));
 	}
 
 	@Test
@@ -81,7 +80,7 @@ class DefaultKeyValueGeneratorTests {
 	}
 
 	@Test
-	void isEnabledFalse(){
+	void isEnabledFalse() {
 		String uri = "http://myuri";
 		HttpHeaders headers = new HttpHeaders();
 		String authorization = "my-auth";
@@ -105,10 +104,10 @@ class DefaultKeyValueGeneratorTests {
 
 	public String applyDisabled(ServerHttpRequest request) {
 		return CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.stream()
-				.peek(generator -> generator.setEnabled(false))
-				.filter(KeyValueGenerator::isEnabled)
-				.map(generator -> generator.apply(request))
-				.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
+			.peek(generator -> generator.setEnabled(false))
+			.filter(KeyValueGenerator::isEnabled)
+			.map(generator -> generator.apply(request))
+			.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
 	}
 
 }

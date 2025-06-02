@@ -25,6 +25,10 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CookiesKeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.HeaderKeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.KeyValueGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.UriKeyValueGenerator;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -38,7 +42,10 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
  */
 class CacheKeyGeneratorTest {
 
-	final CacheKeyGenerator cacheKeyGenerator = new CacheKeyGenerator();
+	List<KeyValueGenerator> defaultGenerators = List.of(new UriKeyValueGenerator(true),
+			new HeaderKeyValueGenerator(true, "Authorization", ";"), new CookiesKeyValueGenerator(true, ";"));
+
+	final CacheKeyGenerator cacheKeyGenerator = new CacheKeyGenerator(defaultGenerators);
 
 	@Test
 	public void shouldGenerateSameKeyForSameUri() {

@@ -25,7 +25,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  * @author Ignacio Lozano
  * @author Dong Hyeon Lee
  */
-interface KeyValueGenerator {
+public interface KeyValueGenerator {
 
 	/*
 	 * Calls getKeyValue() and guards against null.
