@@ -220,32 +220,31 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 
-		if (request.getRemoteAddress() != null
-				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
-			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
-					request.getRemoteAddress()));
-			return input;
-		}
-
-		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
+		// get remote address.
+		String remoteAddr = null;
+		if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
+			remoteAddr = request.getRemoteAddress().getHostString();
+		}
+		// isTrusted default true
+		boolean isTrusted = true;
 
-		for (Map.Entry<String, List<String>> entry : original.headerSet()) {
+		for (Map.Entry<String, List<String>> entry : input.headerSet()) {
 			updated.addAll(entry.getKey(), entry.getValue());
 		}
 
 		if (isForEnabled()) {
-			String remoteAddr = null;
-			if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
-				remoteAddr = request.getRemoteAddress().getHostString();
+			//check trusted proxies only contains X-Forwarded-For
+			if (input.containsKey(X_FORWARDED_FOR_HEADER)) {
+				isTrusted = trustedProxies.isTrusted(remoteAddr);
 			}
 			// match xforwarded for against trusted proxies
-			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), trustedProxies::isTrusted);
+			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend() && isTrusted);
 		}
 
 		String proto = request.getURI().getScheme();
 		if (isProtoEnabled()) {
-			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend());
+			write(updated, X_FORWARDED_PROTO_HEADER, proto, isProtoAppend() && isTrusted);
 		}
 
 		if (isPrefixEnabled()) {
@@ -283,12 +282,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			if (request.getURI().getPort() < 0) {
 				port = String.valueOf(getDefaultPort(proto));
 			}
-			write(updated, X_FORWARDED_PORT_HEADER, port, isPortAppend());
+			write(updated, X_FORWARDED_PORT_HEADER, port, isPortAppend() && isTrusted);
 		}
 
 		if (isHostEnabled()) {
 			String host = toHostHeader(request);
-			write(updated, X_FORWARDED_HOST_HEADER, host, isHostAppend());
+			write(updated, X_FORWARDED_HOST_HEADER, host, isHostAppend() && isTrusted);
 		}
 
 		return updated;
@@ -316,22 +315,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	private void write(HttpHeaders headers, String name, String value, boolean append) {
-		write(headers, name, value, append, s -> true);
-	}
-
-	private void write(HttpHeaders headers, String name, String value, boolean append, Predicate<String> shouldWrite) {
-		if (append) {
-			if (value != null) {
-				headers.add(name, value);
-			}
-			// these headers should be treated as a single comma separated header
-			if (headers.containsKey(name)) {
-				List<String> values = headers.get(name).stream().filter(shouldWrite).toList();
-				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
-				headers.set(name, delimitedValue);
-			}
+		if (value == null) {
+			return;
 		}
-		else if (value != null && shouldWrite.test(value)) {
+		if (append) {
+			headers.add(name, value);
+		} else {
 			headers.set(name, value);
 		}
 	}

@@ -76,8 +76,9 @@ public class GatewayProperties {
 	/**
 	 * Regular expression defining proxies that are trusted when they appear in a
 	 * Forwarded or X-Forwarded header.
+	 * Default is internal IPs.
 	 */
-	private String trustedProxies;
+	private String trustedProxies = "10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3}|169\\.254\\.\\d{1,3}\\.\\d{1,3}|127\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|100\\.6[4-9]{1}\\.\\d{1,3}\\.\\d{1,3}|100\\.[7-9]{1}\\d{1}\\.\\d{1,3}\\.\\d{1,3}|100\\.1[0-1]{1}\\d{1}\\.\\d{1,3}\\.\\d{1,3}|100\\.12[0-7]{1}\\.\\d{1,3}\\.\\d{1,3}|172\\.1[6-9]{1}\\.\\d{1,3}\\.\\d{1,3}|172\\.2[0-9]{1}\\.\\d{1,3}\\.\\d{1,3}|172\\.3[0-1]{1}\\.\\d{1,3}\\.\\d{1,3}|0:0:0:0:0:0:0:1|::1|fe[89ab]\\p{XDigit}:.*|f[cd]\\p{XDigit}{2}:.*+";
 
 	public boolean isRouteFilterCacheEnabled() {
 		return routeFilterCacheEnabled;
@@ -133,12 +134,12 @@ public class GatewayProperties {
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes)
-			.append("defaultFilters", defaultFilters)
-			.append("streamingMediaTypes", streamingMediaTypes)
-			.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
-			.append("routeFilterCacheEnabled", routeFilterCacheEnabled)
-			.append("trustedProxies", trustedProxies)
-			.toString();
+				.append("defaultFilters", defaultFilters)
+				.append("streamingMediaTypes", streamingMediaTypes)
+				.append("failOnRouteDefinitionError", failOnRouteDefinitionError)
+				.append("routeFilterCacheEnabled", routeFilterCacheEnabled)
+				.append("trustedProxies", trustedProxies)
+				.toString();
 
 	}
 
