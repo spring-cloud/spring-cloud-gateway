@@ -40,7 +40,6 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -154,9 +153,6 @@ import static org.springframework.web.servlet.function.RequestPredicates.path;
 @ExtendWith(OutputCaptureExtension.class)
 public class ServerMvcIntegrationTests {
 
-	public static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
-			StandardCharsets.UTF_8);
-
 	static {
 		// if set type to autodetect above
 		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
@@ -170,12 +166,6 @@ public class ServerMvcIntegrationTests {
 
 	@Autowired
 	TestRestClient restClient;
-
-	private static boolean isPNG(byte[] bytes) {
-		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
-		return Arrays.equals(pngSignature, header);
-	}
 
 	@Test
 	public void nonGatewayRouterFunctionWorks() {
@@ -603,6 +593,9 @@ public class ServerMvcIntegrationTests {
 			.isOk();
 	}
 
+	private static final MediaType FORM_URL_ENCODED_CONTENT_TYPE = new MediaType(APPLICATION_FORM_URLENCODED,
+			StandardCharsets.UTF_8);
+
 	@Test
 	void formUrlencodedWorks() {
 		LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
@@ -681,6 +674,12 @@ public class ServerMvcIntegrationTests {
 			String file = (String) imgpart;
 			assertThat(file).startsWith("data:").contains(";base64,");
 		}
+	}
+
+	private static boolean isPNG(byte[] bytes) {
+		byte[] pngSignature = { (byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+		byte[] header = Arrays.copyOf(bytes, pngSignature.length);
+		return Arrays.equals(pngSignature, header);
 	}
 
 	@Test
@@ -1056,10 +1055,10 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		@Lazy
 		@Override
-		public @NotNull HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+		public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
 			return new HandlerMappingIntrospector() {
 				@Override
-				public @NotNull Filter createCacheFilter() {
+				public Filter createCacheFilter() {
 					return (request, response, chain) -> {
 						chain.doFilter(request, response);
 					};
@@ -1691,12 +1690,6 @@ public class ServerMvcIntegrationTests {
 
 	private static class MyFilter implements Filter, Ordered {
 
-		static boolean isFormPost(HttpServletRequest request) {
-			String contentType = request.getContentType();
-			return (contentType != null && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-					&& HttpMethod.POST.matches(request.getMethod()));
-		}
-
 		@Override
 		public int getOrder() {
 			return FormFilter.FORM_FILTER_ORDER - 1;
@@ -1717,6 +1710,12 @@ public class ServerMvcIntegrationTests {
 				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
 				assertThat(request.getParameter("foo")).isEqualTo("fooquery");
 			}
+		}
+
+		static boolean isFormPost(HttpServletRequest request) {
+			String contentType = request.getContentType();
+			return (contentType != null && contentType.contains(MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+					&& HttpMethod.POST.matches(request.getMethod()));
 		}
 
 	}

@@ -27,7 +27,6 @@ import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.TestAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
