@@ -44,7 +44,7 @@ class HeaderKeyValueGeneratorTest {
 	@Test
 	void exceptionIsThrown_whenConstructorHeaderIsNull() {
 		assertThatExceptionOfType(IllegalArgumentException.class)
-			.isThrownBy(() -> new HeaderKeyValueGenerator(null, SEPARATOR));
+			.isThrownBy(() -> new HeaderKeyValueGenerator(true, null, SEPARATOR));
 	}
 
 	@Test
@@ -53,7 +53,7 @@ class HeaderKeyValueGeneratorTest {
 		headers.set(HEADER_NAME, SINGLE_HEADER_VALUE);
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://this").headers(headers).build();
 
-		String result = new HeaderKeyValueGenerator(HEADER_NAME, SEPARATOR).apply(request);
+		String result = new HeaderKeyValueGenerator(true, HEADER_NAME, SEPARATOR).apply(request);
 
 		assertThat(result).isEqualTo(HEADER_NAME + "=" + SINGLE_HEADER_VALUE);
 	}
@@ -64,7 +64,7 @@ class HeaderKeyValueGeneratorTest {
 		headers.put(HEADER_NAME, List.of(VALUE1, VALUE2));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://this").headers(headers).build();
 
-		String result = new HeaderKeyValueGenerator(HEADER_NAME, SEPARATOR).apply(request);
+		String result = new HeaderKeyValueGenerator(true, HEADER_NAME, SEPARATOR).apply(request);
 
 		assertThat(result).isEqualTo(HEADER_NAME + "=" + VALUE1 + SEPARATOR + VALUE2);
 	}
@@ -75,7 +75,7 @@ class HeaderKeyValueGeneratorTest {
 		headers.put(HEADER_NAME, List.of(VALUE2, VALUE1));
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://this").headers(headers).build();
 
-		String result = new HeaderKeyValueGenerator(HEADER_NAME, SEPARATOR).apply(request);
+		String result = new HeaderKeyValueGenerator(true, HEADER_NAME, SEPARATOR).apply(request);
 
 		assertThat(result).isEqualTo(HEADER_NAME + "=" + VALUE1 + SEPARATOR + VALUE2);
 	}
