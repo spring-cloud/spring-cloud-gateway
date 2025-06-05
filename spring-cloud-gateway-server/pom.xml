@@ -276,7 +276,7 @@
 				<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<groupId>org.jetbrains.kotlin</groupId>
-				<version>1.9.25</version>
+				<version>2.1.0</version>
 				<configuration>
 					<jvmTarget>17</jvmTarget>
 				</configuration>
