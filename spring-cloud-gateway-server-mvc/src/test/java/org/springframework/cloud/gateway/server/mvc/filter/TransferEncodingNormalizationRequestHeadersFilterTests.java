@@ -36,7 +36,8 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
-		assertThat(headers.headerNames()).contains(HttpHeaders.CONTENT_LENGTH).doesNotContain(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).contains(HttpHeaders.CONTENT_LENGTH)
+			.doesNotContain(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
@@ -47,7 +48,8 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
-		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH).contains(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH)
+			.contains(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
@@ -58,7 +60,8 @@ public class TransferEncodingNormalizationRequestHeadersFilterTests {
 			.buildRequest(null);
 
 		HttpHeaders headers = testFilter(ServerRequest.create(servletRequest, Collections.emptyList()));
-		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH).contains(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH)
+			.contains(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	private HttpHeaders testFilter(ServerRequest request) {

@@ -135,17 +135,19 @@ public abstract class AfterFilterFunctions {
 		return (request, response) -> {
 			BiFunction<String, List<String>, List<String>> remappingFunction = (key, values) -> {
 				List<String> rewrittenValues = values.stream()
-						.map(value -> pattern.matcher(value).replaceAll(replacement))
-						.toList();
+					.map(value -> pattern.matcher(value).replaceAll(replacement))
+					.toList();
 				return new ArrayList<>(rewrittenValues);
 			};
 			if (response.headers().get(name) != null) {
 				List<String> oldValue = response.headers().get(name);
 				List<String> newValue = remappingFunction.apply(name, oldValue);
-				if (newValue != null)
+				if (newValue != null) {
 					response.headers().put(name, newValue);
-				else
+				}
+				else {
 					response.headers().remove(name);
+				}
 			}
 			return response;
 		};

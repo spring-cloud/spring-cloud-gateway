@@ -114,8 +114,8 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
-				X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 	}
 
 	// verify that existing forwarded header is not forwarded if not trusted
@@ -135,8 +135,8 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
-				X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1")
 			.contains("10.0.0.1", "10.0.0.10");
@@ -156,8 +156,8 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
-				X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");
 	}

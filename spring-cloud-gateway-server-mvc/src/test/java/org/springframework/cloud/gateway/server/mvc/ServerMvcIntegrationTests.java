@@ -337,7 +337,8 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> map = res.getResponseBody();
 				Map<String, Object> headers = getMap(map, "headers");
 				assertThat(headers).doesNotContainKey("x-bar");
-				assertThat(res.getResponseHeaders().asMultiValueMap()).containsEntry("x-bar", Collections.singletonList("val1"));
+				assertThat(res.getResponseHeaders().asMultiValueMap()).containsEntry("x-bar",
+						Collections.singletonList("val1"));
 			});
 	}
 
