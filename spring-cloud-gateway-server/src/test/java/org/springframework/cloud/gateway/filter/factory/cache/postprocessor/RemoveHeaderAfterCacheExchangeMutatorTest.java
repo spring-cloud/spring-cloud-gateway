@@ -54,7 +54,7 @@ class RemoveHeaderAfterCacheExchangeMutatorTest {
 
 		mutator.accept(inputExchange, cachedResponse);
 
-		assertThat(inputExchange.getResponse().getHeaders()).doesNotContainKey(HTTP_HEADER_TO_REMOVE)
+		assertThat(inputExchange.getResponse().getHeaders().asMultiValueMap()).doesNotContainKey(HTTP_HEADER_TO_REMOVE)
 			.containsEntry(CACHE_CONTROL, List.of("max-age=60"))
 			.containsEntry(CONTENT_TYPE, List.of("application/octet-stream"))
 			.hasSize(2);
@@ -70,7 +70,7 @@ class RemoveHeaderAfterCacheExchangeMutatorTest {
 
 		mutator.accept(inputExchange, cachedResponse);
 
-		assertThat(inputExchange.getResponse().getHeaders()).doesNotContainKey(HTTP_HEADER_TO_REMOVE)
+		assertThat(inputExchange.getResponse().getHeaders().asMultiValueMap()).doesNotContainKey(HTTP_HEADER_TO_REMOVE)
 			.doesNotContainKey(PRAGMA)
 			.doesNotContainKey(EXPIRES)
 			.containsEntry(CACHE_CONTROL, List.of("max-age=60"))
@@ -87,7 +87,8 @@ class RemoveHeaderAfterCacheExchangeMutatorTest {
 
 		mutator.accept(inputExchange, cachedResponse);
 
-		assertThat(inputExchange.getResponse().getHeaders()).containsEntry(CACHE_CONTROL, List.of("max-age=60"))
+		assertThat(inputExchange.getResponse().getHeaders().asMultiValueMap())
+			.containsEntry(CACHE_CONTROL, List.of("max-age=60"))
 			.containsEntry(CONTENT_TYPE, List.of("application/octet-stream"))
 			.hasSize(2);
 	}

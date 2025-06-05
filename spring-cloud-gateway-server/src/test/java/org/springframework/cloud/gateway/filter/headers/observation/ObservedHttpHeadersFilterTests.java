@@ -86,7 +86,7 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 			// then
 			assertThat((String) exchange.getAttribute(ObservedResponseHttpHeadersFilter.OBSERVATION_STOPPED))
 				.isNotNull();
-			assertThat(headers).containsEntry("X-A", Collections.singletonList("aValue"))
+			assertThat(headers.asMultiValueMap()).containsEntry("X-A", Collections.singletonList("aValue"))
 				.containsEntry("X-B3-Sampled", Collections.singletonList("1"))
 				.containsEntry("X-B3-TraceId", Collections.singletonList(context.traceId()))
 				.doesNotContainEntry("X-B3-SpanId", Collections.singletonList(context.spanId()))

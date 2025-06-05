@@ -44,6 +44,7 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -175,14 +176,15 @@ public class HttpBinCompatibleController {
 
 	@RequestMapping(value = "/responseheaders/{status}", method = { RequestMethod.GET, RequestMethod.POST })
 	public ResponseEntity<Map<String, Object>> responseHeaders(@PathVariable int status, ServerWebExchange exchange) {
-		HttpHeaders httpHeaders = exchange.getRequest()
+		LinkedMultiValueMap<String, String> map = exchange.getRequest()
 			.getHeaders()
 			.headerSet()
 			.stream()
 			.filter(entry -> entry.getKey().startsWith("X-Test-"))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
 					(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
-					HttpHeaders::new));
+					LinkedMultiValueMap::new));
+		HttpHeaders httpHeaders = new HttpHeaders(map);
 
 		return ResponseEntity.status(status).headers(httpHeaders).body(Collections.singletonMap("status", status));
 	}

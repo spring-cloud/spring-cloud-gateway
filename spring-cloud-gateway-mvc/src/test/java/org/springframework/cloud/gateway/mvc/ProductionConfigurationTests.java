@@ -558,7 +558,7 @@ public class ProductionConfigurationTests {
 
 			@GetMapping("/headers")
 			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
-				return new LinkedMultiValueMap<>(headers);
+				return new LinkedMultiValueMap<>(headers.asMultiValueMap());
 			}
 
 		}

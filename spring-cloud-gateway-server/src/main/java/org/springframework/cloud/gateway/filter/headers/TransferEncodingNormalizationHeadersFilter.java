@@ -34,7 +34,7 @@ public class TransferEncodingNormalizationHeadersFilter implements HttpHeadersFi
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		String transferEncoding = input.getFirst(HttpHeaders.TRANSFER_ENCODING);
 		if (transferEncoding != null && "chunked".equalsIgnoreCase(transferEncoding.trim())
-				&& input.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				&& input.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 
 			HttpHeaders filtered = new HttpHeaders();
 			// avoids read only if input is read only

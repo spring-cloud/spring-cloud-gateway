@@ -106,12 +106,12 @@ public class WebsocketRoutingFilterTests {
 		MockServerWebExchange exchange = MockServerWebExchange.from(request);
 		exchange.getAttributes().put(PRESERVE_HOST_HEADER_ATTRIBUTE, preserveHostHeader);
 		HttpHeaders httpHeaders = HttpHeadersFilter.filterRequest(filters, exchange);
-		assertThat(httpHeaders).doesNotContainKeys("Sec-Websocket-Something").containsKey("x-foo");
+		assertThat(httpHeaders.headerNames()).doesNotContain("Sec-Websocket-Something").contains("x-foo");
 		if (preserveHostHeader) {
-			assertThat(httpHeaders).containsKey(HOST);
+			assertThat(httpHeaders.headerNames()).contains(HOST);
 		}
 		else {
-			assertThat(httpHeaders).doesNotContainKeys(HOST);
+			assertThat(httpHeaders.headerNames()).doesNotContain(HOST);
 		}
 	}
 

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -98,16 +99,14 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 	private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
 
 		@Override
-		public void handleError(ClientHttpResponse response) throws IOException {
-		}
-
-		@Override
 		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
+
 		}
 
 		@Override
-		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, URI url, HttpMethod method)
-				throws IOException {
+		protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, @Nullable URI url,
+				@Nullable HttpMethod method) throws IOException {
+
 		}
 
 	}

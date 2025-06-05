@@ -270,7 +270,7 @@ public class ForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).doesNotContainKeys(FORWARDED_HEADER);
+		assertThat(headers.headerNames()).doesNotContain(FORWARDED_HEADER);
 	}
 
 	// verify that existing forwarded header is not forwarded if not trusted
@@ -288,7 +288,7 @@ public class ForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).containsKeys(FORWARDED_HEADER);
+		assertThat(headers.headerNames()).contains(FORWARDED_HEADER);
 		List<String> forwardedHeaders = headers.get(FORWARDED_HEADER);
 		Optional<String> filtered = forwardedHeaders.stream().filter(value -> value.contains("127.0.0.1")).findFirst();
 		assertThat(filtered).isEmpty();
@@ -309,7 +309,7 @@ public class ForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).containsKeys(FORWARDED_HEADER);
+		assertThat(headers.headerNames()).contains(FORWARDED_HEADER);
 		List<String> forwardedHeaders = headers.get(FORWARDED_HEADER);
 		Optional<String> filtered = forwardedHeaders.stream().filter(value -> value.contains("127.0.0.1")).findFirst();
 		assertThat(filtered).isEmpty();

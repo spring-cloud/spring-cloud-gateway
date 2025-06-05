@@ -59,8 +59,8 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).doesNotContainKeys(X_FORWARDED_FOR_HEADER)
-			.containsKeys(X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER)
+			.contains(X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_HOST_HEADER)).isEqualTo("myhost");
 		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("80");
@@ -114,7 +114,7 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).doesNotContainKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
+		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
 				X_FORWARDED_PROTO_HEADER);
 	}
 
@@ -135,7 +135,7 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
 				X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1")
@@ -156,7 +156,7 @@ public class XForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers).containsKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
 				X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");

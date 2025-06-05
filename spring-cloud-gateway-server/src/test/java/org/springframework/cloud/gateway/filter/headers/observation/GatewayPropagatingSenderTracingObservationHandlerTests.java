@@ -70,7 +70,7 @@ class GatewayPropagatingSenderTracingObservationHandlerTests {
 
 		handler.onStart(gatewayContext);
 
-		then(headers).doesNotContainKeys("foo", "bar")
+		then(headers.asMultiValueMap()).doesNotContainKeys("foo", "bar")
 			.containsEntry("baz", Collections.singletonList("baz value"))
 			.containsEntry("remote", Collections.singletonList("remote value"));
 	}

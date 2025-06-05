@@ -479,7 +479,7 @@ public class ProductionConfigurationTests {
 
 			@GetMapping("/headers")
 			public Map<String, List<String>> headers(@RequestHeader HttpHeaders headers) {
-				return headers;
+				return headers.asMultiValueMap();
 			}
 
 			@DeleteMapping("/foos/{id}/no-body")

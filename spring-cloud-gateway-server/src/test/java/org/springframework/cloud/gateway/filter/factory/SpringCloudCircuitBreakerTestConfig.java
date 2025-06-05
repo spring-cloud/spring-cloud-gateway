@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -97,16 +98,17 @@ public class SpringCloudCircuitBreakerTestConfig {
 
 	@RequestMapping("/resetExchangeFallbackController")
 	public ResponseEntity<Map<String, String>> resetExchangeFallbackController(ServerWebExchange exchange) {
+		LinkedMultiValueMap<String, String> map = exchange.getRequest()
+			.getHeaders()
+			.headerSet()
+			.stream()
+			.filter(entry -> entry.getKey().startsWith("X-Test-"))
+			.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey() + "-fallback", entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+					(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
+					LinkedMultiValueMap::new));
 		return ResponseEntity.status(HttpStatus.OK)
-			.headers((HttpHeaders) exchange.getRequest()
-				.getHeaders()
-				.entrySet()
-				.stream()
-				.filter(entry -> entry.getKey().startsWith("X-Test-"))
-				.map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey() + "-fallback", entry.getValue()))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-						(list1, list2) -> Stream.concat(list1.stream(), list2.stream()).collect(Collectors.toList()),
-						HttpHeaders::new)))
+			.headers(new HttpHeaders(map))
 			.body(Collections.singletonMap("from", "resetExchangeFallbackController"));
 	}
 

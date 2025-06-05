@@ -345,12 +345,6 @@ public abstract class GatewayRequestPredicates {
 			super.setPathOptions(PathContainer.Options.MESSAGE_ROUTE);
 		}
 
-		@SuppressWarnings("deprecation")
-		@Override
-		public void setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
-			raiseError();
-		}
-
 		@Override
 		public void setCaseSensitive(boolean caseSensitive) {
 			raiseError();

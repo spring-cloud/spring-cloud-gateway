@@ -35,7 +35,7 @@ public class TestAutoConfiguration {
 	@Bean
 	RestTemplateCustomizer testRestClientRestTemplateCustomizer() {
 		return restTemplate -> restTemplate.setClientHttpRequestInitializers(List.of(request -> {
-			if (!request.getHeaders().containsKey(HttpHeaders.ACCEPT)) {
+			if (!request.getHeaders().containsHeader(HttpHeaders.ACCEPT)) {
 				request.getHeaders().setAccept(List.of(MediaType.ALL));
 			}
 		}));

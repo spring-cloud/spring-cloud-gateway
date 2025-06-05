@@ -305,12 +305,6 @@ public abstract class BodyFilterFunctions {
 		}
 
 		@Override
-		@Deprecated
-		public String methodName() {
-			return delegate.methodName();
-		}
-
-		@Override
 		public URI uri() {
 			return delegate.uri();
 		}
@@ -323,12 +317,6 @@ public abstract class BodyFilterFunctions {
 		@Override
 		public String path() {
 			return delegate.path();
-		}
-
-		@Override
-		@Deprecated
-		public PathContainer pathContainer() {
-			return delegate.pathContainer();
 		}
 
 		@Override

@@ -75,7 +75,7 @@ public class TokenRelayFilterFunctionsTests {
 	@Test
 	public void emptyPrincipal() throws Exception {
 		filter.filter(ServerRequest.create(request, converters), req -> {
-			assertThat(req.headers().asHttpHeaders().containsKey(HttpHeaders.AUTHORIZATION)).isFalse();
+			assertThat(req.headers().asHttpHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isFalse();
 			return null;
 		});
 	}
@@ -131,7 +131,7 @@ public class TokenRelayFilterFunctionsTests {
 	public void principalIsNotOAuth2AuthenticationToken() throws Exception {
 		request.setUserPrincipal(new TestingAuthenticationToken("my", null));
 		filter.filter(ServerRequest.create(request, converters), req -> {
-			assertThat(req.headers().asHttpHeaders().containsKey(HttpHeaders.AUTHORIZATION)).isFalse();
+			assertThat(req.headers().asHttpHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isFalse();
 			return null;
 		});
 	}

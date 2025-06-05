@@ -39,7 +39,7 @@ public class GRPCRequestHeadersFilterTest {
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers).containsKeys("te");
+		assertThat(headers.headerNames()).contains("te");
 
 		assertThat(headers.getFirst("te")).isEqualTo("trailers");
 	}
@@ -54,7 +54,7 @@ public class GRPCRequestHeadersFilterTest {
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers).doesNotContainKeys("te");
+		assertThat(headers.headerNames()).doesNotContain("te");
 	}
 
 }

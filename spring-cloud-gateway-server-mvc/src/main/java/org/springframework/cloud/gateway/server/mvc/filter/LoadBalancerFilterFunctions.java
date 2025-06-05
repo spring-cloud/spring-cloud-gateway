@@ -42,6 +42,7 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -135,7 +136,7 @@ public abstract class LoadBalancerFilterFunctions {
 	}
 
 	private static MultiValueMap<String, String> buildCookies(MultiValueMap<String, Cookie> cookies) {
-		HttpHeaders newCookies = new HttpHeaders();
+		LinkedMultiValueMap<String, String> newCookies = new LinkedMultiValueMap<>(cookies.size());
 		if (cookies != null) {
 			cookies.forEach((key, value) -> value
 				.forEach(cookie -> newCookies.put(cookie.getName(), Collections.singletonList(cookie.getValue()))));

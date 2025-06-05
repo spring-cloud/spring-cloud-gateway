@@ -55,7 +55,7 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 			MultiValueMap<String, Cookie> cookies) {
 
 		this.statusCode = statusCode;
-		this.headers = HttpHeaders.writableHttpHeaders(headers);
+		this.headers = HttpHeaders.copyOf(headers);
 		this.cookies = new LinkedMultiValueMap<>(cookies);
 	}
 
@@ -67,12 +67,6 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 	@Override
 	public void setStatusCode(HttpStatusCode statusCode) {
 		this.statusCode = statusCode;
-	}
-
-	@Override
-	@Deprecated
-	public int rawStatusCode() {
-		return this.statusCode.value();
 	}
 
 	@Override

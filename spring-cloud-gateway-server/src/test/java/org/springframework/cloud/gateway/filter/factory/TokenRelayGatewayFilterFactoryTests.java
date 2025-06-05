@@ -94,7 +94,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 	public void emptyPrincipal() {
 		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(mockExchange, filterChain).block(TIMEOUT);
-		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
+		assertThat(request.getHeaders().headerNames()).doesNotContain(HttpHeaders.AUTHORIZATION);
 	}
 
 	@Test
@@ -125,8 +125,8 @@ public class TokenRelayGatewayFilterFactoryTests {
 		verify(filterChain).filter(sweCaptor.capture());
 		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
 
-		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
-				Collections.singletonList("Bearer mytoken"));
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders().asMultiValueMap())
+			.containsEntry(HttpHeaders.AUTHORIZATION, Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
 			.forClass(OAuth2AuthorizeRequest.class);
@@ -169,8 +169,8 @@ public class TokenRelayGatewayFilterFactoryTests {
 		verify(filterChain).filter(sweCaptor.capture());
 		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
 
-		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
-				Collections.singletonList("Bearer mytoken"));
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders().asMultiValueMap())
+			.containsEntry(HttpHeaders.AUTHORIZATION, Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
 			.forClass(OAuth2AuthorizeRequest.class);
@@ -191,7 +191,7 @@ public class TokenRelayGatewayFilterFactoryTests {
 		GatewayFilter filter = new TokenRelayGatewayFilterFactory(objectProvider).apply();
 		filter.filter(exchange, filterChain).block(TIMEOUT);
 
-		assertThat(request.getHeaders()).doesNotContainKeys(HttpHeaders.AUTHORIZATION);
+		assertThat(request.getHeaders().headerNames()).doesNotContain(HttpHeaders.AUTHORIZATION);
 	}
 
 	@Test
@@ -223,8 +223,8 @@ public class TokenRelayGatewayFilterFactoryTests {
 		ArgumentCaptor<ServerWebExchange> sweCaptor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		verify(filterChain).filter(sweCaptor.capture());
 		ServerWebExchange mutatedServerWebExchange = sweCaptor.getValue();
-		assertThat(mutatedServerWebExchange.getRequest().getHeaders()).containsEntry(HttpHeaders.AUTHORIZATION,
-				Collections.singletonList("Bearer mytoken"));
+		assertThat(mutatedServerWebExchange.getRequest().getHeaders().asMultiValueMap())
+			.containsEntry(HttpHeaders.AUTHORIZATION, Collections.singletonList("Bearer mytoken"));
 
 		ArgumentCaptor<OAuth2AuthorizeRequest> authorizeRequestCaptor = ArgumentCaptor
 			.forClass(OAuth2AuthorizeRequest.class);

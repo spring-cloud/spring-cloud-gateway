@@ -92,7 +92,7 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 	void shouldContinueChainWhenNoServiceInstanceResponse() {
 		ServerWebExchange filteredExchange = testFilter(exchange);
 
-		assertThat(filteredExchange.getRequest().getHeaders()).isEmpty();
+		assertThat(filteredExchange.getRequest().getHeaders().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -104,7 +104,7 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 		ServerWebExchange filteredExchange = testFilter(exchange);
 
-		assertThat(filteredExchange.getRequest().getHeaders()).isEmpty();
+		assertThat(filteredExchange.getRequest().getHeaders().isEmpty()).isTrue();
 	}
 
 	@Test
@@ -116,7 +116,7 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 
 		ServerWebExchange filteredExchange = testFilter(exchange);
 
-		assertThat(filteredExchange.getRequest().getHeaders()).isEmpty();
+		assertThat(filteredExchange.getRequest().getHeaders().isEmpty()).isTrue();
 	}
 
 	private ServerWebExchange testFilter(ServerWebExchange exchange) {

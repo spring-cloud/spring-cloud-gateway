@@ -84,7 +84,7 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		// cannot use netty client since we cannot read custom http status
 		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.POST,
 				new HttpEntity<>(headers), String.class);
-		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+		assertThat(response.getStatusCode().value()).isEqualTo(432);
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
 		assertMetricsContainsTag("routeId", "test_custom_http_status_metrics");

@@ -111,7 +111,8 @@ class B3BraveObservedHttpHeadersFilterTests {
 			headers = responseHttpHeadersFilter.filter(headers, exchange);
 
 			// then
-			assertThat(headers).containsOnlyKeys("X-A", "b3").doesNotContainEntry("b3", request.getHeaders().get("b3"));
+			assertThat(headers.asMultiValueMap()).containsOnlyKeys("X-A", "b3")
+				.doesNotContainEntry("b3", request.getHeaders().get("b3"));
 			assertThat(headers.get("b3").get(0)).matches("^" + context.traceId() + "-(.*)-1-" + context.spanId() + "$");
 			List<FinishedSpan> finishedSpans = testSpanHandler.spans()
 				.stream()

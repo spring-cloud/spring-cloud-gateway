@@ -31,7 +31,7 @@ public class RemoveHttp2StatusResponseHeadersFilter implements HttpHeadersFilter
 
 	@Override
 	public HttpHeaders apply(HttpHeaders input, ServerResponse serverResponse) {
-		if (input.containsKey(":status")) {
+		if (input.containsHeader(":status")) {
 
 			HttpHeaders filtered = new HttpHeaders();
 			filtered.addAll(input);

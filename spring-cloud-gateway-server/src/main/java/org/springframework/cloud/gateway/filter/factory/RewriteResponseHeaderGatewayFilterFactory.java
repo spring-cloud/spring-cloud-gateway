@@ -81,7 +81,16 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
 		final String name = config.getName();
 		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
-		responseHeaders.computeIfPresent(name, (k, v) -> rewriteHeaders(config, v));
+		if (responseHeaders.get(name) != null) {
+			List<String> oldValue = responseHeaders.get(name);
+			List<String> newValue = rewriteHeaders(config, oldValue);
+			if (newValue != null) {
+				responseHeaders.put(name, newValue);
+			}
+			else {
+				responseHeaders.remove(name);
+			}
+		}
 	}
 
 	protected List<String> rewriteHeaders(Config config, List<String> headers) {

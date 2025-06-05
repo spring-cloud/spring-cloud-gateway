@@ -171,7 +171,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> mapRequestHeader(String fromHeader, String toHeader) {
 		return request -> {
-			if (request.headers().asHttpHeaders().containsKey(fromHeader)) {
+			if (request.headers().asHttpHeaders().containsHeader(fromHeader)) {
 				List<String> values = request.headers().header(fromHeader);
 				return ServerRequest.from(request).header(toHeader, values.toArray(new String[0])).build();
 			}
@@ -281,7 +281,7 @@ public abstract class BeforeFilterFunctions {
 
 	public static Function<ServerRequest, ServerRequest> requestHeaderToRequestUri(String name) {
 		return request -> {
-			if (request.headers().asHttpHeaders().containsKey(name)) {
+			if (request.headers().asHttpHeaders().containsHeader(name)) {
 				String newUri = request.headers().firstHeader(name);
 				try {
 					MvcUtils.setRequestUrl(request, new URI(newUri));
@@ -302,7 +302,7 @@ public abstract class BeforeFilterFunctions {
 		Assert.notNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		return request -> {
-			if (request.headers().asHttpHeaders().containsKey(HttpHeaders.CONTENT_LENGTH)) {
+			if (request.headers().asHttpHeaders().containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 				long contentLength = request.headers().asHttpHeaders().getContentLength();
 				if (contentLength > maxSize.toBytes()) {
 					String errorMessage = String.format(REQUEST_SIZE_ERROR_MSG, DataSize.ofBytes(contentLength),

@@ -337,7 +337,7 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> map = res.getResponseBody();
 				Map<String, Object> headers = getMap(map, "headers");
 				assertThat(headers).doesNotContainKey("x-bar");
-				assertThat(res.getResponseHeaders()).containsEntry("x-bar", Collections.singletonList("val1"));
+				assertThat(res.getResponseHeaders().asMultiValueMap()).containsEntry("x-bar", Collections.singletonList("val1"));
 			});
 	}
 
@@ -739,7 +739,7 @@ public class ServerMvcIntegrationTests {
 			.isOk()
 			.expectBody(Map.class)
 			.consumeWith(res -> {
-				HttpHeaders headers = res.getResponseHeaders();
+				MultiValueMap<String, String> headers = res.getResponseHeaders().asMultiValueMap();
 				assertThat(headers).doesNotContainEntry("X-Test", List.of("value1"));
 				assertThat(headers).containsEntry("X-Test", List.of("value2"));
 			});

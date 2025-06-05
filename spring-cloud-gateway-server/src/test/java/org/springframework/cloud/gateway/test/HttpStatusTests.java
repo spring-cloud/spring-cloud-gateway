@@ -58,7 +58,7 @@ public class HttpStatusTests extends BaseWebClientTests {
 	@Test
 	void nonStandardCodeWorks() {
 		ResponseEntity<String> response = new TestRestTemplate().getForEntity(baseUri + "/status/432", String.class);
-		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+		assertThat(response.getStatusCode().value()).isEqualTo(432);
 		assertThat(response.getBody()).isEqualTo("Failed with 432");
 
 		/*

@@ -35,7 +35,8 @@ public class TransferEncodingNormalizationHeadersFilterTests {
 			.header(HttpHeaders.CONTENT_LENGTH, "6");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).containsKey(HttpHeaders.CONTENT_LENGTH).doesNotContainKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).contains(HttpHeaders.CONTENT_LENGTH)
+			.doesNotContain(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
@@ -45,7 +46,8 @@ public class TransferEncodingNormalizationHeadersFilterTests {
 			.header(HttpHeaders.TRANSFER_ENCODING, "chunked");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH)
+			.contains(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	@Test
@@ -55,7 +57,8 @@ public class TransferEncodingNormalizationHeadersFilterTests {
 			.header(HttpHeaders.TRANSFER_ENCODING, "Chunked ");
 
 		HttpHeaders headers = testFilter(MockServerWebExchange.from(builder));
-		assertThat(headers).doesNotContainKey(HttpHeaders.CONTENT_LENGTH).containsKey(HttpHeaders.TRANSFER_ENCODING);
+		assertThat(headers.headerNames()).doesNotContain(HttpHeaders.CONTENT_LENGTH)
+			.contains(HttpHeaders.TRANSFER_ENCODING);
 	}
 
 	private HttpHeaders testFilter(MockServerWebExchange exchange) {

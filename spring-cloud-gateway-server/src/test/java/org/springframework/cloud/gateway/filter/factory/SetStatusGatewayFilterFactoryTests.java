@@ -66,7 +66,7 @@ public class SetStatusGatewayFilterFactoryTests extends BaseWebClientTests {
 		headers.set(HttpHeaders.HOST, "www.setcustomstatus.org");
 		ResponseEntity<String> response = new TestRestTemplate().exchange(baseUri + "/headers", HttpMethod.GET,
 				new HttpEntity<>(headers), String.class);
-		assertThat(response.getStatusCodeValue()).isEqualTo(432);
+		assertThat(response.getStatusCode().value()).isEqualTo(432);
 
 		// https://jira.spring.io/browse/SPR-16748
 		/*

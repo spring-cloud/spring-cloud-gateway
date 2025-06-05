@@ -50,7 +50,7 @@ public class HttpHeadersFilterMixedTypeTests {
 		HttpHeaders result = HttpHeadersFilter.filterRequest(Arrays.asList(filter1, filter2),
 				MockServerWebExchange.from(mockRequest));
 
-		assertThat(result).containsOnlyKeys("header1", "header3");
+		assertThat(result.headerNames()).containsOnly("header1", "header3");
 	}
 
 	private HttpHeadersFilter filterRemovingHeaders(Type type, String... headerNames) {

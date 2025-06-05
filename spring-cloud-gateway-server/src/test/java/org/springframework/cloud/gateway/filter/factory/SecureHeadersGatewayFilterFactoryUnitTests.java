@@ -80,9 +80,10 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = exchange.getResponse();
-		assertThat(response.getHeaders()).containsOnlyKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
-				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders().headerNames()).containsOnly(X_XSS_PROTECTION_HEADER,
+				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER,
+				REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
+				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 	}
 
 	@Test
@@ -98,9 +99,10 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = captor.getValue().getResponse();
-		assertThat(response.getHeaders()).doesNotContainKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
-				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders().headerNames()).doesNotContain(X_XSS_PROTECTION_HEADER,
+				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER,
+				REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
+				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 
 	}
 
@@ -117,9 +119,10 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = exchange.getResponse();
-		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
-				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders().headerNames()).contains(X_XSS_PROTECTION_HEADER,
+				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER,
+				REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
+				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 
 		assertThat(response.getHeaders().get(STRICT_TRANSPORT_SECURITY_HEADER)).containsOnly("max-age=65535");
 		assertThat(response.getHeaders().get(REFERRER_POLICY_HEADER)).containsOnly("referrer");
@@ -184,7 +187,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = captor.getValue().getResponse();
-		assertThat(response.getHeaders()).doesNotContainKeys(PERMISSIONS_POLICY_HEADER);
+		assertThat(response.getHeaders().headerNames()).doesNotContain(PERMISSIONS_POLICY_HEADER);
 	}
 
 	@Test
@@ -199,9 +202,10 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 
 		ServerHttpResponse response = captor.getValue().getResponse();
 
-		assertThat(response.getHeaders()).containsKeys(X_XSS_PROTECTION_HEADER, STRICT_TRANSPORT_SECURITY_HEADER,
-				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
-				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
+		assertThat(response.getHeaders().headerNames()).contains(X_XSS_PROTECTION_HEADER,
+				STRICT_TRANSPORT_SECURITY_HEADER, X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER,
+				REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
+				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 
 		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER))
 			.containsExactly(SecureHeadersProperties.PERMISSIONS_POLICY_HEADER_OPT_IN_DEFAULT);
@@ -235,7 +239,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = captor.getValue().getResponse();
-		assertThat(response.getHeaders()).containsOnlyKeys(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+		assertThat(response.getHeaders().headerNames()).containsOnly(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
 				PERMISSIONS_POLICY_HEADER);
 	}
 
@@ -255,7 +259,7 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 		filter.filter(exchange, filterChain).block();
 
 		ServerHttpResponse response = exchange.getResponse();
-		assertThat(response.getHeaders()).containsOnlyKeys(X_XSS_PROTECTION_HEADER, X_FRAME_OPTIONS_HEADER,
+		assertThat(response.getHeaders().headerNames()).containsOnly(X_XSS_PROTECTION_HEADER, X_FRAME_OPTIONS_HEADER,
 				X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER,
 				X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, PERMISSIONS_POLICY_HEADER);
 		assertThat(response.getHeaders().get(PERMISSIONS_POLICY_HEADER)).containsExactly("camera=*");

@@ -365,7 +365,7 @@ public class ProxyExchange<T> {
 		webRequest.getHeaderNames().forEachRemaining(headerNames::add);
 		Set<String> filteredKeys = filterHeaderKeys(headerNames);
 		filteredKeys.stream()
-			.filter(key -> !headers.containsKey(key))
+			.filter(key -> !headers.containsHeader(key))
 			.forEach(header -> headers.addAll(header, Arrays.asList(webRequest.getHeaderValues(header))));
 	}
 
@@ -379,7 +379,7 @@ public class ProxyExchange<T> {
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
-		return filterHeaderKeys(headers.keySet());
+		return filterHeaderKeys(headers.headerNames());
 	}
 
 	private Set<String> filterHeaderKeys(Collection<String> headerNames) {
@@ -529,7 +529,7 @@ public class ProxyExchange<T> {
 
 		@Override
 		public Enumeration<String> getHeaderNames() {
-			Set<String> names = headers.keySet();
+			Set<String> names = headers.headerNames();
 			if (names.isEmpty()) {
 				return super.getHeaderNames();
 			}

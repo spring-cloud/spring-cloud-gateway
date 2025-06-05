@@ -188,7 +188,9 @@ public class SecureHeadersGatewayFilterFactory
 	private void addHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd, String headerName,
 			String headerValue) {
 		if (headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
-			headers.addIfAbsent(headerName, headerValue);
+			if (!headers.containsHeader(headerName)) {
+				headers.add(headerName, headerValue);
+			}
 		}
 	}
 

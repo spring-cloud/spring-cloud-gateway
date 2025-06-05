@@ -186,7 +186,8 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 					.header(CUSTOM_HEADER, "2")
 					.exchange()
 					.expectBody()
-					.jsonPath("$.headers." + CUSTOM_HEADER, customHeaderFromReq1));
+					.jsonPath("$.headers." + CUSTOM_HEADER)
+					.isEqualTo(customHeaderFromReq1));
 		}
 
 		@Test
@@ -211,7 +212,8 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.header("X-Request-Vary", "*")
 				.exchange()
 				.expectBody()
-				.jsonPath("$.headers." + CUSTOM_HEADER, "1");
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
 			testClient.get()
 				.uri(uri)
 				.header("Host", "www.localresponsecache.org")
@@ -219,7 +221,8 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.header("X-Request-Vary", "*")
 				.exchange()
 				.expectBody()
-				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
@@ -325,7 +328,8 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.header(CUSTOM_HEADER, "2")
 				.exchange()
 				.expectBody()
-				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
@@ -348,7 +352,8 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.header(CUSTOM_HEADER, "2")
 				.exchange()
 				.expectBody()
-				.jsonPath("$.headers." + CUSTOM_HEADER, "2");
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
 		}
 
 		@Test
@@ -390,7 +395,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.exchange()
 				.expectBody(Map.class)
 				.consumeWith(response -> {
-					assertThat(response.getResponseHeaders()).hasEntrySatisfying("Vary",
+					assertThat(response.getResponseHeaders().asMultiValueMap()).hasEntrySatisfying("Vary",
 							o -> assertThat(o).contains(varyHeader));
 					assertThat((Map) response.getResponseBody().get("headers")).containsEntry(nonVaryHeader,
 							expectedNonVaryResponse);

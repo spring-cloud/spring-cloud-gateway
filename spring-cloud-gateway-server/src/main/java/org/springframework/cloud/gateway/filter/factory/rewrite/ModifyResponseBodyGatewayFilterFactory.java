@@ -232,8 +232,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
 				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
 				HttpHeaders headers = getDelegate().getHeaders();
-				if (!headers.containsKey(HttpHeaders.TRANSFER_ENCODING)
-						|| headers.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				if (!headers.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+						|| headers.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
 				}
 

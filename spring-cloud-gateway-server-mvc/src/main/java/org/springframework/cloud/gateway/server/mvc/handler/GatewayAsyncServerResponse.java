@@ -86,12 +86,6 @@ final class GatewayAsyncServerResponse extends GatewayErrorHandlingServerRespons
 	}
 
 	@Override
-	@Deprecated
-	public int rawStatusCode() {
-		return delegate(ServerResponse::rawStatusCode);
-	}
-
-	@Override
 	public HttpHeaders headers() {
 		return delegate(ServerResponse::headers);
 	}

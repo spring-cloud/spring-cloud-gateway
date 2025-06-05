@@ -366,7 +366,7 @@ public class WebSocketIntegrationTests {
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
 			HttpHeaders headers = session.getHandshakeInfo().getHeaders();
-			if (!headers.containsKey("my-header")) {
+			if (!headers.containsHeader("my-header")) {
 				return Mono.error(new IllegalStateException("Missing my-header"));
 			}
 			String payload = "my-header:" + headers.getFirst("my-header");

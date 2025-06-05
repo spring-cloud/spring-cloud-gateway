@@ -130,7 +130,7 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		Mono<Void> response = filter.filter(exchange, this.filterChain);
 		response.subscribe(aVoid -> {
 			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-			assertThat(exchange.getResponse().getHeaders()).containsEntry("X-Tokens-Remaining",
+			assertThat(exchange.getResponse().getHeaders().asMultiValueMap()).containsEntry("X-Tokens-Remaining",
 					Collections.singletonList(tokensRemaining));
 		});
 

@@ -57,7 +57,7 @@ class SetResponseHeadersAfterCacheExchangeMutatorTest {
 
 		toTest.accept(inputExchange, cachedResponse);
 
-		Assertions.assertThat(inputExchange.getResponse().getHeaders())
+		Assertions.assertThat(inputExchange.getResponse().getHeaders().asMultiValueMap())
 			.containsEntry("X-Header-1", List.of("Value-cached"));
 	}
 
@@ -69,7 +69,7 @@ class SetResponseHeadersAfterCacheExchangeMutatorTest {
 
 		toTest.accept(inputExchange, cachedResponse);
 
-		Assertions.assertThat(inputExchange.getResponse().getHeaders()).doesNotContainKey("X-Header-1");
+		Assertions.assertThat(inputExchange.getResponse().getHeaders().headerNames()).doesNotContain("X-Header-1");
 	}
 
 }

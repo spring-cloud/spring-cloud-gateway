@@ -119,9 +119,9 @@ public class ServerWebExchangeUtilsTests {
 				.as("exchange attributes")
 				.doesNotContainKey(GATEWAY_PREDICATE_PATH_CONTAINER_ATTR);
 
-			Assertions.assertThat(exchange.getRequest().getHeaders())
+			Assertions.assertThat(exchange.getRequest().getHeaders().headerNames())
 				.as("request headers")
-				.doesNotContainKey(HttpHeaders.ORIGIN);
+				.doesNotContain(HttpHeaders.ORIGIN);
 		}));
 	}
 

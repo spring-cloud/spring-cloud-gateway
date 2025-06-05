@@ -133,12 +133,20 @@ public abstract class AfterFilterFunctions {
 		String replacement = originalReplacement.replace("$\\", "$");
 		Pattern pattern = Pattern.compile(regexp);
 		return (request, response) -> {
-			response.headers().computeIfPresent(name, (key, values) -> {
+			BiFunction<String, List<String>, List<String>> remappingFunction = (key, values) -> {
 				List<String> rewrittenValues = values.stream()
-					.map(value -> pattern.matcher(value).replaceAll(replacement))
-					.toList();
+						.map(value -> pattern.matcher(value).replaceAll(replacement))
+						.toList();
 				return new ArrayList<>(rewrittenValues);
-			});
+			};
+			if (response.headers().get(name) != null) {
+				List<String> oldValue = response.headers().get(name);
+				List<String> newValue = remappingFunction.apply(name, oldValue);
+				if (newValue != null)
+					response.headers().put(name, newValue);
+				else
+					response.headers().remove(name);
+			}
 			return response;
 		};
 	}

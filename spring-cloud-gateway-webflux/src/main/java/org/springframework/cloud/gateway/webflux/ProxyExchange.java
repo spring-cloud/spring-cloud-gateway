@@ -400,13 +400,13 @@ public class ProxyExchange<T> {
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
 		Set<String> filteredKeys = filterHeaderKeys(toAdd);
 		filteredKeys.stream()
-			.filter(key -> !headers.containsKey(key))
+			.filter(key -> !headers.containsHeader(key))
 			.forEach(header -> headers.addAll(header, toAdd.get(header)));
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
 		final Set<String> excludedHeaders = this.excluded != null ? this.excluded : Collections.emptySet();
-		return headers.keySet()
+		return headers.headerNames()
 			.stream()
 			.filter(header -> !excludedHeaders.contains(header.toLowerCase(Locale.ROOT)))
 			.collect(Collectors.toSet());

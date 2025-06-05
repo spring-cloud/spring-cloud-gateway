@@ -171,8 +171,8 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(getHeadersFilters(), headers, exchange,
 						Type.RESPONSE);
 
-				if (!filteredResponseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
-						&& filteredResponseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				if (!filteredResponseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+						&& filteredResponseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 					// It is not valid to have both the transfer-encoding header and
 					// the content-length header.
 					// Remove the transfer-encoding header in the response if the
@@ -180,7 +180,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
 				}
 
-				exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.keySet());
+				exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.headerNames());
 
 				response.getHeaders().addAll(filteredResponseHeaders);
 

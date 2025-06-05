@@ -31,7 +31,7 @@ public class RemoveContentLengthRequestHeadersFilter implements HttpHeadersFilte
 
 	@Override
 	public HttpHeaders apply(HttpHeaders input, ServerRequest request) {
-		if (input.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+		if (input.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 
 			HttpHeaders filtered = new HttpHeaders();
 			// avoids read only if input is read only

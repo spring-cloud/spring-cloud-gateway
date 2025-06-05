@@ -153,8 +153,8 @@ public class FunctionRoutingFilter implements GlobalFilter, Ordered {
 				ServerHttpResponse response = exchange.getResponse();
 				Mono<DataBuffer> messageBody = writeBody(response, outputMessage, outClass);
 				HttpHeaders responseHeaders = response.getHeaders();
-				if (!responseHeaders.containsKey(HttpHeaders.TRANSFER_ENCODING)
-						|| responseHeaders.containsKey(HttpHeaders.CONTENT_LENGTH)) {
+				if (!responseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+						|| responseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
 					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
 				}
 				responseHeaders.addAll(newResponseHeaders);

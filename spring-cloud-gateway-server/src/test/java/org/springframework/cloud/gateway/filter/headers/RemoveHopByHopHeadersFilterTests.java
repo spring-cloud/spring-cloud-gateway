@@ -98,7 +98,7 @@ public class RemoveHopByHopHeadersFilterTests {
 
 		Set<String> toRemove = new HashSet<>(HEADERS_REMOVED_ON_REQUEST);
 		toRemove.addAll(Arrays.asList(additionalHeaders));
-		assertThat(headers).doesNotContainKeys(toRemove.toArray(new String[0]));
+		assertThat(headers.headerNames()).doesNotContain(toRemove.toArray(new String[0]));
 	}
 
 }

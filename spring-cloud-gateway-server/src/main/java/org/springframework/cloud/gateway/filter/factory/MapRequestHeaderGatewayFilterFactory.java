@@ -59,7 +59,7 @@ public class MapRequestHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				if (!exchange.getRequest().getHeaders().containsKey(config.getFromHeader())) {
+				if (!exchange.getRequest().getHeaders().containsHeader(config.getFromHeader())) {
 					return chain.filter(exchange);
 				}
 				List<String> headerValues = exchange.getRequest().getHeaders().get(config.getFromHeader());

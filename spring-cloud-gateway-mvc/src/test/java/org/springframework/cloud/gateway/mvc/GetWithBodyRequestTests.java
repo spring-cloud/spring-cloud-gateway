@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Collections;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,6 +40,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
@@ -193,7 +195,14 @@ public class GetWithBodyRequestTests {
 		private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
 
 			@Override
-			public void handleError(ClientHttpResponse response) throws IOException {
+			public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
+
+			}
+
+			@Override
+			protected void handleError(ClientHttpResponse response, HttpStatusCode statusCode, @Nullable URI url,
+					@Nullable HttpMethod method) throws IOException {
+
 			}
 
 		}

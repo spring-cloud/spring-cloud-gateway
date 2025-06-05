@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfigu
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
+import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -158,7 +159,7 @@ public class GatewayServerMvcAutoConfigurationTests {
 		assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
 		assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
 		assertThat(settings.sslBundle()).isNotNull();
-		assertThat(settings.redirects()).isEqualTo(ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW);
+		assertThat(settings.redirects()).isEqualTo(HttpRedirects.DONT_FOLLOW);
 	}
 
 	@Test

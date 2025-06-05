@@ -43,7 +43,8 @@ class RewriteRequestParameterGatewayFilterFactoryIntegrationTests extends BaseWe
 			.expectStatus()
 			.isOk()
 			.expectBody()
-			.jsonPath("$.args.size", "fall2023");
+			.jsonPath("$.args.size")
+			.isEqualTo("fall2023");
 	}
 
 	@EnableAutoConfiguration

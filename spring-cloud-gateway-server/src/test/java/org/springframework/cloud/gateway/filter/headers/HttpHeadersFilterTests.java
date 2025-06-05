@@ -46,7 +46,7 @@ public class HttpHeadersFilterTests {
 
 		HttpHeaders headers = HttpHeadersFilter.filterRequest(filters, MockServerWebExchange.from(request));
 
-		assertThat(headers).containsOnlyKeys("X-C");
+		assertThat(headers.headerNames()).containsOnly("X-C");
 	}
 
 	private HttpHeaders filter(HttpHeaders input, String keyToFilter) {

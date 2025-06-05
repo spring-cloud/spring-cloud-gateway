@@ -61,7 +61,7 @@ public final class MessageHeaderUtils {
 		for (String name : headers.keySet()) {
 			Object value = headers.get(name);
 			name = name.toLowerCase(Locale.ROOT);
-			if (!IGNORED.containsKey(name) && !ignoredHeders.contains(name)) {
+			if (!IGNORED.containsHeader(name) && !ignoredHeders.contains(name)) {
 				Collection<?> values = multi(value);
 				for (Object object : values) {
 					result.set(name, object.toString());
@@ -79,10 +79,10 @@ public final class MessageHeaderUtils {
 	public static HttpHeaders sanitize(HttpHeaders request, List<String> ignoredHeders,
 			List<String> requestOnlyHeaders) {
 		HttpHeaders result = new HttpHeaders();
-		for (String name : request.keySet()) {
+		for (String name : request.headerNames()) {
 			List<String> value = request.get(name);
 			name = name.toLowerCase(Locale.ROOT);
-			if (!IGNORED.containsKey(name) && !REQUEST_ONLY.containsKey(name) && !ignoredHeders.contains(name)
+			if (!IGNORED.containsHeader(name) && !REQUEST_ONLY.containsHeader(name) && !ignoredHeders.contains(name)
 					&& !requestOnlyHeaders.contains(name)) {
 				result.put(name, value);
 			}
@@ -97,7 +97,7 @@ public final class MessageHeaderUtils {
 
 	public static MessageHeaders fromHttp(HttpHeaders headers) {
 		Map<String, Object> map = new LinkedHashMap<>();
-		for (String name : headers.keySet()) {
+		for (String name : headers.headerNames()) {
 			Collection<?> values = multi(headers.get(name));
 			name = name.toLowerCase(Locale.ROOT);
 			Object value = values == null ? null : (values.size() == 1 ? values.iterator().next() : values);
