@@ -20,8 +20,8 @@ local allowed = filled_tokens >= requested
 local new_tokens = allowed and filled_tokens - requested or filled_tokens
 
 if ttl > 0 then
-  redis.call("setex", tokens_key, ttl, new_tokens)
-  redis.call("setex", timestamp_key, ttl, now)
+  redis.call("set", tokens_key, new_tokens, "ex", ttl)
+  redis.call("set", timestamp_key, now, "ex", ttl)
 end
 
 return { allowed and 1 or 0, new_tokens }
