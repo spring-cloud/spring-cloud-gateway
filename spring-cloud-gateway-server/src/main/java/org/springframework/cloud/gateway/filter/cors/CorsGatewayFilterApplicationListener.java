@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.cors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +65,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	public void onApplicationEvent(RefreshRoutesResultEvent event) {
 		routeLocator.getRoutes().collectList().subscribe(routes -> {
 			// pre-populate with pre-existing global cors configurations to combine with.
-			var corsConfigurations = new HashMap<>(globalCorsProperties.getCorsConfigurations());
+			var corsConfigurations = new LinkedHashMap<>(globalCorsProperties.getCorsConfigurations());
 
 			routes.forEach(route -> {
 				var corsConfiguration = getCorsConfiguration(route);
