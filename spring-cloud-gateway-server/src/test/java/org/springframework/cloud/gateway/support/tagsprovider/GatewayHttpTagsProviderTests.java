@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.support.tagsprovider;
 import io.micrometer.core.instrument.Tags;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
@@ -49,6 +50,16 @@ public class GatewayHttpTagsProviderTests {
 
 		Tags tags = tagsProvider.apply(exchange);
 		assertThat(tags).isEqualTo(DEFAULT_TAGS);
+	}
+
+	@Test
+	public void nonStandardStatusCode() {
+		ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(ROUTE_URI).build());
+		exchange.getResponse().setStatusCode(HttpStatusCode.valueOf(499));
+
+		Tags tags = tagsProvider.apply(exchange);
+		assertThat(tags)
+			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "499", "httpMethod", "GET", "httpStatusCode", "499"));
 	}
 
 	@Test

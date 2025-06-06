@@ -20,7 +20,6 @@ import io.micrometer.core.instrument.Tags;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -39,8 +38,10 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 		// a non standard HTTPS status could be used. Let's be defensive here
 		// it needs to be checked for first, otherwise the delegate response
 		// who's status DIDN'T change, will be used
-		if (exchange.getResponse() instanceof AbstractServerHttpResponse) {
-			Integer statusInt = ((AbstractServerHttpResponse) exchange.getResponse()).getStatusCode().value();
+		Integer statusInt = null;
+		HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
+		if (statusCode != null) {
+			statusInt = statusCode.value();
 			if (statusInt != null) {
 				status = String.valueOf(statusInt);
 				httpStatusCodeStr = status;
@@ -49,17 +50,6 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 					// this is not a CUSTOM status, so use series here.
 					outcome = resolved.series().name();
 					status = resolved.name();
-				}
-			}
-		}
-		else {
-			HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
-			if (statusCode != null) {
-				httpStatusCodeStr = String.valueOf(statusCode.value());
-				if (statusCode instanceof HttpStatus) {
-					HttpStatus httpStatus = (HttpStatus) statusCode;
-					outcome = httpStatus.series().name();
-					status = httpStatus.name();
 				}
 			}
 		}

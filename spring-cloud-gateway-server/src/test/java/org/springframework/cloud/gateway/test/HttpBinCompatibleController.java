@@ -95,7 +95,7 @@ public class HttpBinCompatibleController {
 			produces = MediaType.APPLICATION_JSON_VALUE)
 	public Map<String, Object> multiValueHeaders(ServerWebExchange exchange) {
 		Map<String, Object> result = new HashMap<>();
-		result.put("headers", exchange.getRequest().getHeaders());
+		result.put("headers", exchange.getRequest().getHeaders().asMultiValueMap());
 		return result;
 	}
 
