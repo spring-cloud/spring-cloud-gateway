@@ -42,6 +42,12 @@ public class LocalResponseCacheProperties {
 
 	private RequestOptions request = new RequestOptions();
 
+	private boolean enableCookiesKeyGenerator = true;
+
+	private boolean enableHeaderKeyGenerator = true;
+
+	private boolean enableUriKeyGenerator = true;
+
 	public DataSize getSize() {
 		return size;
 	}
@@ -74,10 +80,35 @@ public class LocalResponseCacheProperties {
 		this.request = request;
 	}
 
+	public boolean getEnableCookiesKeyGenerator() {
+		return enableCookiesKeyGenerator;
+	}
+
+	public void setEnableCookiesKeyGenerator(boolean enableCookiesKeyGenerator) {
+		this.enableCookiesKeyGenerator = enableCookiesKeyGenerator;
+	}
+
+	public boolean getEnableHeaderKeyGenerator() {
+		return enableHeaderKeyGenerator;
+	}
+
+	public void setEnableHeaderKeyGenerator(boolean enableHeaderKeyGenerator) {
+		this.enableHeaderKeyGenerator = enableHeaderKeyGenerator;
+	}
+
+	public boolean getEnableUriKeyGenerator() {
+		return enableUriKeyGenerator;
+	}
+
+	public void setEnableUriKeyGenerator(boolean enableUriKeyGenerator) {
+		this.enableUriKeyGenerator = enableUriKeyGenerator;
+	}
+
 	@Override
 	public String toString() {
 		return "LocalResponseCacheProperties{" + "size=" + size + ", timeToLive=" + timeToLive + ", request=" + request
-				+ '}';
+				+ ", enableCookiesKeyGenerator=" + enableCookiesKeyGenerator + ", enableHeaderKeyGenerator="
+				+ enableHeaderKeyGenerator + ", enableUriKeyGenerator=" + enableUriKeyGenerator + '}';
 	}
 
 	public static class RequestOptions {

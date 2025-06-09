@@ -28,12 +28,16 @@ import org.springframework.util.MultiValueMap;
 /**
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
-class CookiesKeyValueGenerator implements KeyValueGenerator {
+public class CookiesKeyValueGenerator implements KeyValueGenerator {
 
 	private final String valueSeparator;
 
-	CookiesKeyValueGenerator(String valueSeparator) {
+	private boolean enabled = true;
+
+	public CookiesKeyValueGenerator(boolean enabled, String valueSeparator) {
+		this.enabled = enabled;
 		this.valueSeparator = Objects.requireNonNull(valueSeparator);
 	}
 
@@ -51,4 +55,13 @@ class CookiesKeyValueGenerator implements KeyValueGenerator {
 		return cookiesData;
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 }
