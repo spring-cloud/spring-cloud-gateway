@@ -28,6 +28,8 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.gateway.support.config.KeyValue;
+import org.springframework.cloud.gateway.support.config.KeyValueConfig;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
@@ -41,8 +43,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Abel Salgado Romero
  */
-public class AddRequestHeadersIfNotPresentGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<AddRequestHeadersIfNotPresentGatewayFilterFactory.KeyValueConfig> {
+public class AddRequestHeadersIfNotPresentGatewayFilterFactory extends AbstractGatewayFilterFactory<KeyValueConfig> {
 
 	@Override
 	public GatewayFilter apply(KeyValueConfig config) {
@@ -124,56 +125,6 @@ public class AddRequestHeadersIfNotPresentGatewayFilterFactory
 	@Override
 	public Class<KeyValueConfig> getConfigClass() {
 		return KeyValueConfig.class;
-	}
-
-	/**
-	 * @deprecated in favour of
-	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConfig}
-	 */
-	@Deprecated
-	public static class KeyValueConfig {
-
-		private KeyValue[] keyValues;
-
-		public KeyValue[] getKeyValues() {
-			return keyValues;
-		}
-
-		public void setKeyValues(KeyValue[] keyValues) {
-			this.keyValues = keyValues;
-		}
-
-	}
-
-	/**
-	 * @deprecated in favour of
-	 * {@link org.springframework.cloud.gateway.support.config.KeyValue}
-	 */
-	@Deprecated
-	public static class KeyValue {
-
-		private final String key;
-
-		private final String value;
-
-		public KeyValue(String key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public String getKey() {
-			return key;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("name", key).append("value", value).toString();
-		}
-
 	}
 
 }

@@ -33,12 +33,6 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 
 	private final ClientHttpRequestFactory requestFactory;
 
-	@Deprecated
-	public ClientHttpRequestFactoryProxyExchange(ClientHttpRequestFactory requestFactory) {
-		super(new GatewayMvcProperties());
-		this.requestFactory = requestFactory;
-	}
-
 	public ClientHttpRequestFactoryProxyExchange(ClientHttpRequestFactory requestFactory,
 			GatewayMvcProperties properties) {
 		super(properties);

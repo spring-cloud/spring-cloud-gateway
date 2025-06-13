@@ -72,17 +72,6 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	private final GatewayLoadBalancerProperties properties;
 
-	/**
-	 * @deprecated in favour of
-	 * {@link ReactiveLoadBalancerClientFilter#ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory, GatewayLoadBalancerProperties)}
-	 */
-	@Deprecated
-	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
-			GatewayLoadBalancerProperties properties, LoadBalancerProperties loadBalancerProperties) {
-		this.clientFactory = clientFactory;
-		this.properties = properties;
-	}
-
 	public ReactiveLoadBalancerClientFilter(LoadBalancerClientFactory clientFactory,
 			GatewayLoadBalancerProperties properties) {
 		this.clientFactory = clientFactory;

@@ -64,11 +64,6 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
-	@Deprecated
-	public void setSensitive(Set<String> excluded) {
-		setExcluded(excluded);
-	}
-
 	public void setExcluded(Set<String> excluded) {
 		this.excluded = excluded;
 	}

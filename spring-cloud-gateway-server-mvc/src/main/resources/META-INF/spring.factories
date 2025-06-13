@@ -18,7 +18,3 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
   org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration.GatewayHttpClientEnvironmentPostProcessor,\
   org.springframework.cloud.gateway.server.mvc.common.MultipartEnvironmentPostProcessor
-
-# Application Listeners
-org.springframework.context.ApplicationListener=\
-  org.springframework.cloud.gateway.server.mvc.config.GatewayServerWebMvcPropertiesMigrationListener

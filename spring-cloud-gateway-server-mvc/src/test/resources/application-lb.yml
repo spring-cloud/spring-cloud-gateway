@@ -1,7 +1,7 @@
 spring:
   cloud:
     gateway:
-      mvc:
+      server.webmvc:
         routes:
           - id: test
             uri: lb://httpbin

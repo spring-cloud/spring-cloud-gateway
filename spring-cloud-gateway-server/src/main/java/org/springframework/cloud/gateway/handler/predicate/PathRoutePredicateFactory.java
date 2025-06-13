@@ -55,15 +55,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 	private final WebFluxProperties webFluxProperties;
 
-	/**
-	 * @deprecated {@link #PathRoutePredicateFactory(WebFluxProperties)}
-	 */
-	@Deprecated
-	public PathRoutePredicateFactory() {
-		super(Config.class);
-		this.webFluxProperties = new WebFluxProperties();
-	}
-
 	public PathRoutePredicateFactory(WebFluxProperties webFluxProperties) {
 		super(Config.class);
 		this.webFluxProperties = webFluxProperties;
@@ -170,23 +161,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 
 		public Config setPatterns(List<String> patterns) {
 			this.patterns = patterns;
-			return this;
-		}
-
-		/**
-		 * @deprecated use {@link #isMatchTrailingSlash()}
-		 */
-		@Deprecated
-		public boolean isMatchOptionalTrailingSeparator() {
-			return isMatchTrailingSlash();
-		}
-
-		/**
-		 * @deprecated use {@link #setMatchTrailingSlash(boolean)}
-		 */
-		@Deprecated
-		public Config setMatchOptionalTrailingSeparator(boolean matchOptionalTrailingSeparator) {
-			setMatchTrailingSlash(matchOptionalTrailingSeparator);
 			return this;
 		}
 

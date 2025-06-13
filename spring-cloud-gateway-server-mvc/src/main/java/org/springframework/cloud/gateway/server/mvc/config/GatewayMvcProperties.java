@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -26,7 +25,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.MediaType;
 
@@ -51,8 +49,6 @@ public class GatewayMvcProperties {
 	@NotNull
 	@Valid
 	private LinkedHashMap<String, RouteProperties> routesMap = new LinkedHashMap<>();
-
-	private HttpClient httpClient = new HttpClient();
 
 	/**
 	 * Mime-types that are streaming.
@@ -88,10 +84,6 @@ public class GatewayMvcProperties {
 		this.routesMap = routesMap;
 	}
 
-	public HttpClient getHttpClient() {
-		return httpClient;
-	}
-
 	public List<MediaType> getStreamingMediaTypes() {
 		return streamingMediaTypes;
 	}
@@ -118,95 +110,12 @@ public class GatewayMvcProperties {
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("httpClient", httpClient)
-			.append("routes", routes)
+		return new ToStringCreator(this).append("routes", routes)
 			.append("routesMap", routesMap)
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
 			.append("trustedProxies", trustedProxies)
 			.toString();
-	}
-
-	/**
-	 * @deprecated in favor of spring.http.client.
-	 */
-	@Deprecated
-	public static class HttpClient {
-
-		/** The HttpClient connect timeout. */
-		private Duration connectTimeout;
-
-		/** The HttpClient read timeout. */
-		private Duration readTimeout;
-
-		/** The name of the SSL bundle to use. */
-		private String sslBundle;
-
-		/** The HttpClient type. Defaults to JDK. */
-		private HttpClientType type = HttpClientType.JDK;
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.connect-timeout", since = "4.2.0")
-		public Duration getConnectTimeout() {
-			return connectTimeout;
-		}
-
-		public void setConnectTimeout(Duration connectTimeout) {
-			this.connectTimeout = connectTimeout;
-		}
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.read-timeout", since = "4.2.0")
-		public Duration getReadTimeout() {
-			return readTimeout;
-		}
-
-		public void setReadTimeout(Duration readTimeout) {
-			this.readTimeout = readTimeout;
-		}
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.ssl.bundle", since = "4.2.0")
-		public String getSslBundle() {
-			return sslBundle;
-		}
-
-		public void setSslBundle(String sslBundle) {
-			this.sslBundle = sslBundle;
-		}
-
-		@Deprecated
-		public HttpClientType getType() {
-			return type;
-		}
-
-		public void setType(HttpClientType type) {
-			this.type = type;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("connectTimeout", connectTimeout)
-				.append("readTimeout", readTimeout)
-				.append("sslBundle", sslBundle)
-				.append("type", type)
-				.toString();
-		}
-
-	}
-
-	public enum HttpClientType {
-
-		/**
-		 * Use JDK HttpClient.
-		 */
-		JDK,
-
-		/**
-		 * Auto-detect the HttpClient.
-		 */
-		AUTODETECT
-
 	}
 
 }

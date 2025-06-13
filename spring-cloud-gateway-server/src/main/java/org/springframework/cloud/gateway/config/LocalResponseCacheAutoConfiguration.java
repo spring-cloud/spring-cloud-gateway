@@ -89,15 +89,6 @@ public class LocalResponseCacheAutoConfiguration {
 		return new CacheKeyGenerator();
 	}
 
-	/**
-	 * @deprecated since 4.1.2 for removal in 4.2.0 in favor of
-	 * {@link LocalResponseCacheUtils#createGatewayCacheManager(LocalResponseCacheProperties)}
-	 */
-	@Deprecated(since = "4.1.2", forRemoval = true)
-	public static CaffeineCacheManager createGatewayCacheManager(LocalResponseCacheProperties cacheProperties) {
-		return LocalResponseCacheUtils.createGatewayCacheManager(cacheProperties);
-	}
-
 	Cache responseCache(CacheManager cacheManager) {
 		return cacheManager.getCache(RESPONSE_CACHE_NAME);
 	}

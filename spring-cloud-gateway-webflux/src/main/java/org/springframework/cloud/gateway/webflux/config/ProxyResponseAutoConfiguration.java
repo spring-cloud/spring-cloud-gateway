@@ -48,7 +48,7 @@ import org.springframework.web.reactive.result.method.annotation.ArgumentResolve
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class, WebClient.class })
-@EnableConfigurationProperties({ ProxyExchangeWebfluxProperties.class, ProxyProperties.class })
+@EnableConfigurationProperties({ ProxyExchangeWebfluxProperties.class })
 public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 
 	@Autowired

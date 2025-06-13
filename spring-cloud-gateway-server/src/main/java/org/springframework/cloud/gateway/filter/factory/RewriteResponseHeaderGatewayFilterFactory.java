@@ -73,11 +73,6 @@ public class RewriteResponseHeaderGatewayFilterFactory
 		};
 	}
 
-	@Deprecated
-	protected void rewriteHeader(ServerWebExchange exchange, Config config) {
-		rewriteHeaders(exchange, config);
-	}
-
 	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
 		final String name = config.getName();
 		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();

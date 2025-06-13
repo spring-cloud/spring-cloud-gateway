@@ -58,7 +58,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnWebApplication
 @ConditionalOnClass({ HandlerMethodReturnValueHandler.class })
-@EnableConfigurationProperties({ ProxyExchangeWebMvcProperties.class, ProxyProperties.class })
+@EnableConfigurationProperties({ ProxyExchangeWebMvcProperties.class })
 public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired

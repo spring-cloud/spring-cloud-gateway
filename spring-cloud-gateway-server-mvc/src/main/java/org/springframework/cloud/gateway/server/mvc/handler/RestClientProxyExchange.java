@@ -33,12 +33,6 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 
 	private final RestClient restClient;
 
-	@Deprecated
-	public RestClientProxyExchange(RestClient restClient) {
-		super(new GatewayMvcProperties());
-		this.restClient = restClient;
-	}
-
 	public RestClientProxyExchange(RestClient restClient, GatewayMvcProperties properties) {
 		super(properties);
 		this.restClient = restClient;

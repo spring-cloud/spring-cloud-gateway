@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -101,12 +100,6 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 
 	public void setOrder(int order) {
 		this.order = order;
-	}
-
-	@Deprecated
-	public void setRandom(Random random) {
-		Assert.notNull(random, "random may not be null");
-		this.randomFunction = exchange -> random.nextDouble();
 	}
 
 	public void setRandomSupplier(Supplier<Double> randomSupplier) {

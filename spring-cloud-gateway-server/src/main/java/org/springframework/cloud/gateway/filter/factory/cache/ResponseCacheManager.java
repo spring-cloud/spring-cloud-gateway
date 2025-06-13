@@ -69,11 +69,6 @@ public class ResponseCacheManager {
 
 	private final boolean ignoreNoCacheUpdate;
 
-	@Deprecated
-	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive) {
-		this(cacheKeyGenerator, cache, configuredTimeToLive, new RequestOptions());
-	}
-
 	public ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache cache, Duration configuredTimeToLive,
 			RequestOptions requestOptions) {
 		this.cacheKeyGenerator = cacheKeyGenerator;

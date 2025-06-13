@@ -46,7 +46,6 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
-import org.springframework.cloud.gateway.mvc.config.ProxyProperties;
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterizedTypeReference;
@@ -139,12 +138,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  */
 public class ProxyExchange<T> {
 
-	/**
-	 * Contains headers that are considered case-sensitive by default.
-	 * @deprecated {@link ProxyProperties#DEFAULT_SENSITIVE}
-	 */
-	public static Set<String> DEFAULT_SENSITIVE = ProxyProperties.DEFAULT_SENSITIVE;
-
 	private URI uri;
 
 	private RestTemplate rest;
@@ -209,17 +202,6 @@ public class ProxyExchange<T> {
 	public ProxyExchange<T> headers(HttpHeaders headers) {
 		this.headers.putAll(headers);
 		return this;
-	}
-
-	/**
-	 * Sets the names of sensitive headers that are not passed downstream to the backend
-	 * service.
-	 * @param names the names of sensitive headers
-	 * @return this for convenience
-	 * @deprecated {@link #excluded(String...)}
-	 */
-	public ProxyExchange<T> sensitive(String... names) {
-		return excluded(names);
 	}
 
 	/**

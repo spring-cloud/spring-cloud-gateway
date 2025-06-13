@@ -120,11 +120,6 @@ public class RouterFunctionHolderFactory {
 
 	private final ConversionService conversionService;
 
-	@Deprecated
-	public RouterFunctionHolderFactory(Environment env) {
-		this(env, null, null, null);
-	}
-
 	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory,
 			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
 			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {

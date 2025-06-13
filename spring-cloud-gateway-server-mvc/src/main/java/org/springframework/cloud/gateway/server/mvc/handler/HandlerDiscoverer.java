@@ -41,12 +41,6 @@ public class HandlerDiscoverer extends AbstractGatewayDiscoverer {
 
 		private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters;
 
-		@Deprecated
-		public Result(HandlerFunction<ServerResponse> handlerFunction,
-				List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters) {
-			this(handlerFunction, Collections.emptyList(), filters);
-		}
-
 		public Result(HandlerFunction<ServerResponse> handlerFunction,
 				List<HandlerFilterFunction<ServerResponse, ServerResponse>> lowerPrecedenceFilters,
 				List<HandlerFilterFunction<ServerResponse, ServerResponse>> higherPrecedenceFilters) {
@@ -57,11 +51,6 @@ public class HandlerDiscoverer extends AbstractGatewayDiscoverer {
 
 		public HandlerFunction<ServerResponse> getHandlerFunction() {
 			return handlerFunction;
-		}
-
-		@Deprecated
-		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getFilters() {
-			return getHigherPrecedenceFilters();
 		}
 
 		public List<HandlerFilterFunction<ServerResponse, ServerResponse>> getLowerPrecedenceFilters() {

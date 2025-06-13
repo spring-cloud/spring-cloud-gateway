@@ -4,7 +4,3 @@ org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
 # Failure Analyzers
 org.springframework.boot.diagnostics.FailureAnalyzer=\
 org.springframework.cloud.gateway.support.MvcFoundOnClasspathFailureAnalyzer
-
-# Application Listeners
-org.springframework.context.ApplicationListener=\
-  org.springframework.cloud.gateway.config.GatewayServerWebfluxPropertiesMigrationListener

@@ -17,9 +17,6 @@
 package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,23 +137,6 @@ public abstract class HandlerFunctions {
 		});
 	}
 
-	// TODO: current discovery only goes by method name
-	// so last one wins, so put parameterless last
-	@Deprecated
-	public static HandlerFunction<ServerResponse> http(String uri) {
-		return http(URI.create(uri));
-	}
-
-	@Deprecated
-	public static HandlerFunction<ServerResponse> http(URI uri) {
-		return new LookupProxyExchangeHandlerFunction(uri);
-	}
-
-	@Deprecated
-	public static HandlerFunction<ServerResponse> https(URI uri) {
-		return new LookupProxyExchangeHandlerFunction(uri);
-	}
-
 	public static HandlerFunction<ServerResponse> https() {
 		return http();
 	}
@@ -171,26 +151,10 @@ public abstract class HandlerFunctions {
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
-		@Deprecated
-		private final URI uri;
-
 		private AtomicReference<ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
-
-		LookupProxyExchangeHandlerFunction() {
-			this.uri = null;
-		}
-
-		@Deprecated
-		LookupProxyExchangeHandlerFunction(URI uri) {
-			this.uri = uri;
-		}
 
 		@Override
 		public ServerResponse handle(ServerRequest serverRequest) {
-			if (uri != null) {
-				// TODO: log warning of deprecated usage
-				MvcUtils.setRequestUrl(serverRequest, uri);
-			}
 			return proxyExchangeHandlerFunction.updateAndGet(function -> {
 				if (function == null) {
 					return lookup(serverRequest);
@@ -210,17 +174,6 @@ public abstract class HandlerFunctions {
 				return handlerFunction.toString();
 			}
 			return ProxyExchangeHandlerFunction.class.getSimpleName();
-		}
-
-	}
-
-	@Deprecated
-	public static class HandlerSupplier
-			implements org.springframework.cloud.gateway.server.mvc.handler.HandlerSupplier {
-
-		@Override
-		public Collection<Method> get() {
-			return Collections.emptyList();
 		}
 
 	}

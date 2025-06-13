@@ -62,11 +62,6 @@ public class FilteringWebHandler implements WebHandler, ApplicationListener<Refr
 
 	private final boolean routeFilterCacheEnabled;
 
-	@Deprecated
-	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
-		this(globalFilters, false);
-	}
-
 	public FilteringWebHandler(List<GlobalFilter> globalFilters, boolean routeFilterCacheEnabled) {
 		this.globalFilters = loadFilters(globalFilters);
 		this.routeFilterCacheEnabled = routeFilterCacheEnabled;

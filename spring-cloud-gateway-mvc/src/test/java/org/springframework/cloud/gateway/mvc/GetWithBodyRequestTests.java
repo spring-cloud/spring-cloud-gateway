@@ -33,7 +33,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.gateway.mvc.GetWithBodyRequestTests.TestApplication.Foo;
 import org.springframework.cloud.gateway.mvc.config.ProxyExchangeArgumentResolver;
-import org.springframework.cloud.gateway.mvc.config.ProxyProperties;
+import org.springframework.cloud.gateway.mvc.config.ProxyExchangeWebMvcProperties;
 import org.springframework.cloud.gateway.mvc.http.GetWithBodyRequestClientHttpRequestFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
@@ -108,7 +108,7 @@ public class GetWithBodyRequestTests {
 		}
 
 		@Bean
-		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(final ProxyProperties proxy) {
+		public ProxyExchangeArgumentResolver proxyExchangeArgumentResolver(final ProxyExchangeWebMvcProperties proxy) {
 			ProxyExchangeArgumentResolver resolver = new ProxyExchangeArgumentResolver(
 					generateConfiguredRestTemplate());
 			resolver.setHeaders(proxy.convertHeaders());

@@ -92,15 +92,6 @@ public class AbstractGatewayControllerEndpoint implements ApplicationEventPublis
 
 	private final SimpleMetadataReaderFactory simpleMetadataReaderFactory = new SimpleMetadataReaderFactory();
 
-	@Deprecated
-	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
-			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
-			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,
-			RouteLocator routeLocator) {
-		this(routeDefinitionLocator, globalFilters, gatewayFilters, routePredicates, routeDefinitionWriter,
-				routeLocator, new WebEndpointProperties());
-	}
-
 	public AbstractGatewayControllerEndpoint(RouteDefinitionLocator routeDefinitionLocator,
 			List<GlobalFilter> globalFilters, List<GatewayFilterFactory> gatewayFilters,
 			List<RoutePredicateFactory> routePredicates, RouteDefinitionWriter routeDefinitionWriter,

@@ -133,7 +133,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@Nested
 	@SpringBootTest(classes = CustomTagsProviderConfig.class,
-			properties = "spring.cloud.gateway.metrics.prefix=myprefix.")
+			properties = "spring.cloud.gateway.server.webflux.metrics.prefix=myprefix.")
 	public class AddCustomTagsProvider {
 
 		@Autowired(required = false)

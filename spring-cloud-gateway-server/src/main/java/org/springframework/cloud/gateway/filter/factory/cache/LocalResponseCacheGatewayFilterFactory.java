@@ -61,12 +61,6 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final CaffeineCacheManager caffeineCacheManager;
 
-	@Deprecated
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize) {
-		this(cacheManagerFactory, defaultTimeToLive, defaultSize, new RequestOptions());
-	}
-
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
 		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager());

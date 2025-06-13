@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.webflux.config.ProxyProperties;
+import org.springframework.cloud.gateway.webflux.config.ProxyExchangeWebfluxProperties;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -115,9 +115,9 @@ public class ProxyExchange<T> {
 
 	/**
 	 * Contains headers that are considered case-sensitive by default.
-	 * @deprecated {@link ProxyProperties#DEFAULT_SENSITIVE}
+	 * @deprecated {@link ProxyExchangeWebfluxProperties#DEFAULT_SENSITIVE}
 	 */
-	public static Set<String> DEFAULT_SENSITIVE = ProxyProperties.DEFAULT_SENSITIVE;
+	public static Set<String> DEFAULT_SENSITIVE = ProxyExchangeWebfluxProperties.DEFAULT_SENSITIVE;
 
 	private HttpMethod httpMethod;
 
@@ -196,17 +196,6 @@ public class ProxyExchange<T> {
 	public ProxyExchange<T> headers(HttpHeaders headers) {
 		this.headers.putAll(headers);
 		return this;
-	}
-
-	/**
-	 * Sets the names of sensitive headers that are not passed downstream to the backend
-	 * service.
-	 * @param names the names of sensitive headers
-	 * @return this for convenience
-	 * @deprecated {@link #excluded(String...)}
-	 */
-	public ProxyExchange<T> sensitive(String... names) {
-		return excluded(names);
 	}
 
 	/**

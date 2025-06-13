@@ -213,16 +213,6 @@ public class GatewayAutoConfiguration {
 		return new StringToZonedDateTimeConverter();
 	}
 
-	/**
-	 * @deprecated in favour of
-	 * {@link org.springframework.cloud.gateway.support.config.KeyValueConverter}
-	 */
-	@Deprecated
-	@Bean
-	public org.springframework.cloud.gateway.support.KeyValueConverter deprecatedKeyValueConverter() {
-		return new org.springframework.cloud.gateway.support.KeyValueConverter();
-	}
-
 	@Bean
 	public KeyValueConverter keyValueConverter() {
 		return new KeyValueConverter();
