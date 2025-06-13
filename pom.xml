@@ -58,7 +58,7 @@
 		<spring-cloud-circuitbreaker.version>5.0.0-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>5.0.0-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-function.version>5.0.0-SNAPSHOT</spring-cloud-function.version>
-		<spring-cloud-stream.version>4.3.1-SNAPSHOT</spring-cloud-stream.version>
+		<spring-cloud-stream.version>5.0.0-SNAPSHOT</spring-cloud-stream.version>
 	</properties>
 
 	<dependencyManagement>
