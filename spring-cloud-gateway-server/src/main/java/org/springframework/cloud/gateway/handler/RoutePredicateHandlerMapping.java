@@ -131,24 +131,18 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return this.routeLocator.getRoutes().filterWhen(route -> {
 			// add the current route we are testing
 			exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, route.getId());
-			try {
-				return route.getPredicate().apply(exchange);
-			}
-			catch (Exception e) {
-				logger.error("Error applying predicate for route: " + route.getId(), e);
-			}
-			return Mono.just(false);
-		})
-			.next()
-			// TODO: error handling
-			.map(route -> {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Route matched: " + route.getId());
-				}
-				validateRoute(route, exchange);
-				return route;
-			});
 
+			return Mono.defer(() -> Mono.from(route.getPredicate().apply(exchange))).onErrorResume(e -> {
+				logger.error("Error applying predicate for route: " + route.getId(), e);
+				return Mono.just(false);
+			});
+		}).next().map(route -> {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Route matched: " + route.getId());
+			}
+			validateRoute(route, exchange);
+			return route;
+		});
 		/*
 		 * TODO: trace logging if (logger.isTraceEnabled()) {
 		 * logger.trace("RouteDefinition did not match: " + routeDefinition.getId()); }
