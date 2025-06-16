@@ -55,7 +55,7 @@ build succeed, please raise a ticket to get the settings added to
 source control.
 
 The projects that require middleware (i.e. Redis) for testing generally
-require that a local instance of [Docker](https://www.docker.com/get-started) is installed and running.
+require that a local instance of https://www.docker.com/get-started[Docker] is installed and running.
 
 [[documentation]]
 == Documentation
@@ -228,7 +228,7 @@ Checkstyle rules are *disabled by default*. To add checkstyle to your project ju
 
 If you need to suppress some rules (e.g. line length needs to be longer), then it's enough for you to define a file under `${project.root}/src/checkstyle/checkstyle-suppressions.xml` with your suppressions. Example:
 
-.projectRoot/src/checkstyle/checkstyle-suppresions.xml
+.projectRoot/src/checkstyle/checkstyle-suppressions.xml
 ----
 <?xml version="1.0"?>
 <!DOCTYPE suppressions PUBLIC
@@ -242,10 +242,11 @@ If you need to suppress some rules (e.g. line length needs to be longer), then i
 
 It's advisable to copy the `${spring-cloud-build.rootFolder}/.editorconfig` and `${spring-cloud-build.rootFolder}/.springformat` to your project. That way, some default formatting rules will be applied. You can do so by running this script:
 
-```bash
+[source,bash]
+----
 $ curl https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/.editorconfig -o .editorconfig
 $ touch .springformat
-```
+----
 
 [[ide-setup]]
 == IDE setup
