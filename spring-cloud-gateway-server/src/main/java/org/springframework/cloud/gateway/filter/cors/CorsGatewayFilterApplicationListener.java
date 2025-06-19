@@ -64,16 +64,17 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	public void onApplicationEvent(RefreshRoutesResultEvent event) {
 		routeLocator.getRoutes().collectList().subscribe(routes -> {
 			// pre-populate with pre-existing global cors configurations to combine with.
-			var corsConfigurations = new LinkedHashMap<>(globalCorsProperties.getCorsConfigurations());
+			Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();
 
 			routes.forEach(route -> {
-				var corsConfiguration = getCorsConfiguration(route);
+				Optional<CorsConfiguration> corsConfiguration = getCorsConfiguration(route);
 				corsConfiguration.ifPresent(configuration -> {
 					var pathPredicate = getPathPredicate(route);
 					corsConfigurations.put(pathPredicate, configuration);
 				});
 			});
 
+			corsConfigurations.putAll(globalCorsProperties.getCorsConfigurations());
 			routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
 		});
 	}

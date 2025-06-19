@@ -46,8 +46,8 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link CorsGatewayFilterApplicationListener}.
  *
- * <p>This test verifies that the merged CORS configurations composed of global and
- * per-route metadata maintain insertion order as defined by the use of {@link LinkedHashMap}.
+ * <p>This test verifies that the merged CORS configurations - composed of per-route metadata
+ * and at the global level - maintain insertion order, as defined by the use of {@link LinkedHashMap}.
  * Preserving insertion order helps for predictable and deterministic CORS behavior
  * when resolving multiple matching path patterns.
  * </p>
@@ -56,8 +56,8 @@ import static org.mockito.Mockito.when;
  * that the resulting configuration map passed to {@link RoutePredicateHandlerMapping#setCorsConfigurations(Map)}
  * respects the declared order of:
  * <ul>
- *   <li>Global CORS configurations (in insertion order)</li>
  *   <li>Route-specific CORS configurations (in the order the routes are discovered)</li>
+ *   <li>Global CORS configurations (in insertion order)</li>
  * </ul>
  * </p>
  *
@@ -118,8 +118,8 @@ class CorsGatewayFilterApplicationListenerTests {
 			verify(handlerMapping).setCorsConfigurations(corsConfigurations.capture());
 
 			Map<String, CorsConfiguration> mergedCorsConfigurations = corsConfigurations.getValue();
-			assertThat(mergedCorsConfigurations.keySet()).containsExactly(GLOBAL_PATH_1,
-					GLOBAL_PATH_2, ROUTE_PATH_1, ROUTE_PATH_2);
+			assertThat(mergedCorsConfigurations.keySet())
+					.containsExactly(ROUTE_PATH_1, ROUTE_PATH_2, GLOBAL_PATH_1, GLOBAL_PATH_2);
 			assertThat(mergedCorsConfigurations.get(GLOBAL_PATH_1).getAllowedOrigins())
 					.containsExactly(ORIGIN_GLOBAL_1);
 			assertThat(mergedCorsConfigurations.get(GLOBAL_PATH_2).getAllowedOrigins())
