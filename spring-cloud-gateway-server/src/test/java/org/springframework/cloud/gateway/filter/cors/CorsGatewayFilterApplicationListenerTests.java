@@ -31,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -107,10 +106,8 @@ class CorsGatewayFilterApplicationListenerTests {
 		globalCorsProperties.getCorsConfigurations().put(GLOBAL_PATH_1, createCorsConfig(ORIGIN_GLOBAL_1));
 		globalCorsProperties.getCorsConfigurations().put(GLOBAL_PATH_2, createCorsConfig(ORIGIN_GLOBAL_2));
 
-		WebFluxProperties webFluxProperties = new WebFluxProperties();
-
-		Route route1 = buildRoute(ROUTE_ID_1, ROUTE_PATH_1, ORIGIN_ROUTE_1, webFluxProperties);
-		Route route2 = buildRoute(ROUTE_ID_2, ROUTE_PATH_2, ORIGIN_ROUTE_2, webFluxProperties);
+		Route route1 = buildRoute(ROUTE_ID_1, ROUTE_PATH_1, ORIGIN_ROUTE_1);
+		Route route2 = buildRoute(ROUTE_ID_2, ROUTE_PATH_2, ORIGIN_ROUTE_2);
 
 		when(routeLocator.getRoutes()).thenReturn(Flux.just(route1, route2));
 
@@ -141,12 +138,12 @@ class CorsGatewayFilterApplicationListenerTests {
 		return config;
 	}
 
-	private Route buildRoute(String id, String path, String allowedOrigin, WebFluxProperties webFluxProperties) {
+	private Route buildRoute(String id, String path, String allowedOrigin) {
 
 		return Route.async()
 				.id(id)
 				.uri(ROUTE_URI)
-				.predicate(new PathRoutePredicateFactory(webFluxProperties)
+				.predicate(new PathRoutePredicateFactory()
 						.apply(config -> config.setPatterns(List.of(path))))
 				.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
 				.build();
