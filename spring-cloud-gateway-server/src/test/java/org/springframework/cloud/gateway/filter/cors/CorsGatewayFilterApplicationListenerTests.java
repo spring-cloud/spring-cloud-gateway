@@ -46,18 +46,21 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link CorsGatewayFilterApplicationListener}.
  *
- * <p>This test verifies that the merged CORS configurations - composed of per-route metadata
- * and at the global level - maintain insertion order, as defined by the use of {@link LinkedHashMap}.
- * Preserving insertion order helps for predictable and deterministic CORS behavior
- * when resolving multiple matching path patterns.
+ * <p>
+ * This test verifies that the merged CORS configurations - composed of per-route metadata
+ * and at the global level - maintain insertion order, as defined by the use of
+ * {@link LinkedHashMap}. Preserving insertion order helps for predictable and
+ * deterministic CORS behavior when resolving multiple matching path patterns.
  * </p>
  *
- * <p>The test builds actual {@link Route} instances with {@code Path} predicates and verifies
- * that the resulting configuration map passed to {@link RoutePredicateHandlerMapping#setCorsConfigurations(Map)}
- * respects the declared order of:
+ * <p>
+ * The test builds actual {@link Route} instances with {@code Path} predicates and
+ * verifies that the resulting configuration map passed to
+ * {@link RoutePredicateHandlerMapping#setCorsConfigurations(Map)} respects the declared
+ * order of:
  * <ul>
- *   <li>Route-specific CORS configurations (in the order the routes are discovered)</li>
- *   <li>Global CORS configurations (in insertion order)</li>
+ * <li>Route-specific CORS configurations (in the order the routes are discovered)</li>
+ * <li>Global CORS configurations (in insertion order)</li>
  * </ul>
  * </p>
  *
@@ -67,17 +70,29 @@ import static org.mockito.Mockito.when;
 class CorsGatewayFilterApplicationListenerTests {
 
 	private static final String GLOBAL_PATH_1 = "/global1";
+
 	private static final String GLOBAL_PATH_2 = "/global2";
+
 	private static final String ROUTE_PATH_1 = "/route1";
+
 	private static final String ROUTE_PATH_2 = "/route2";
+
 	private static final String ORIGIN_GLOBAL_1 = "https://global1.com";
+
 	private static final String ORIGIN_GLOBAL_2 = "https://global2.com";
+
 	private static final String ORIGIN_ROUTE_1 = "https://route1.com";
+
 	private static final String ORIGIN_ROUTE_2 = "https://route2.com";
+
 	private static final String ROUTE_ID_1 = "route1";
+
 	private static final String ROUTE_ID_2 = "route2";
+
 	private static final String ROUTE_URI = "https://spring.io";
+
 	private static final String METADATA_KEY = "cors";
+
 	private static final String ALLOWED_ORIGINS_KEY = "allowedOrigins";
 
 	@Mock
@@ -96,8 +111,7 @@ class CorsGatewayFilterApplicationListenerTests {
 	@BeforeEach
 	void setUp() {
 		globalCorsProperties = new GlobalCorsProperties();
-		listener = new CorsGatewayFilterApplicationListener(globalCorsProperties,
-				handlerMapping, routeLocator);
+		listener = new CorsGatewayFilterApplicationListener(globalCorsProperties, handlerMapping, routeLocator);
 	}
 
 	@Test
@@ -118,16 +132,14 @@ class CorsGatewayFilterApplicationListenerTests {
 			verify(handlerMapping).setCorsConfigurations(corsConfigurations.capture());
 
 			Map<String, CorsConfiguration> mergedCorsConfigurations = corsConfigurations.getValue();
-			assertThat(mergedCorsConfigurations.keySet())
-					.containsExactly(ROUTE_PATH_1, ROUTE_PATH_2, GLOBAL_PATH_1, GLOBAL_PATH_2);
+			assertThat(mergedCorsConfigurations.keySet()).containsExactly(ROUTE_PATH_1, ROUTE_PATH_2, GLOBAL_PATH_1,
+					GLOBAL_PATH_2);
 			assertThat(mergedCorsConfigurations.get(GLOBAL_PATH_1).getAllowedOrigins())
-					.containsExactly(ORIGIN_GLOBAL_1);
+				.containsExactly(ORIGIN_GLOBAL_1);
 			assertThat(mergedCorsConfigurations.get(GLOBAL_PATH_2).getAllowedOrigins())
-					.containsExactly(ORIGIN_GLOBAL_2);
-			assertThat(mergedCorsConfigurations.get(ROUTE_PATH_1).getAllowedOrigins())
-					.containsExactly(ORIGIN_ROUTE_1);
-			assertThat(mergedCorsConfigurations.get(ROUTE_PATH_2).getAllowedOrigins())
-					.containsExactly(ORIGIN_ROUTE_2);
+				.containsExactly(ORIGIN_GLOBAL_2);
+			assertThat(mergedCorsConfigurations.get(ROUTE_PATH_1).getAllowedOrigins()).containsExactly(ORIGIN_ROUTE_1);
+			assertThat(mergedCorsConfigurations.get(ROUTE_PATH_2).getAllowedOrigins()).containsExactly(ORIGIN_ROUTE_2);
 		});
 	}
 
@@ -141,12 +153,11 @@ class CorsGatewayFilterApplicationListenerTests {
 	private Route buildRoute(String id, String path, String allowedOrigin) {
 
 		return Route.async()
-				.id(id)
-				.uri(ROUTE_URI)
-				.predicate(new PathRoutePredicateFactory()
-						.apply(config -> config.setPatterns(List.of(path))))
-				.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
-				.build();
+			.id(id)
+			.uri(ROUTE_URI)
+			.predicate(new PathRoutePredicateFactory().apply(config -> config.setPatterns(List.of(path))))
+			.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
+			.build();
 	}
 
 }

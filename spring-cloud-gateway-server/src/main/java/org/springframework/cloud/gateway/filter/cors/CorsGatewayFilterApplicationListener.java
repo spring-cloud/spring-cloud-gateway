@@ -34,12 +34,34 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
 
 /**
- * This class updates Cors configuration each time a {@link RefreshRoutesResultEvent} is
- * consumed. The {@link Route}'s predicates are inspected for a
- * {@link PathRoutePredicateFactory} and the first pattern is used.
+ * <p>
+ * For each {@link Route}, this listener inspects its predicates and looks for an instance
+ * of {@link PathRoutePredicateFactory}. If a path predicate is found, the first defined
+ * path pattern is extracted and used as the key for associating the route-specific
+ * {@link CorsConfiguration}.
+ * </p>
+ *
+ * <p>
+ * After collecting all route-level CORS configurations, the listener merges them with
+ * globally defined configurations from {@link GlobalCorsProperties}, ensuring that
+ * route-specific configurations take precedence over global ones in case of conflicts
+ * (e.g., both defining CORS rules for {@code /**}).
+ * </p>
+ *
+ * <p>
+ * The merged configuration map is then applied to the
+ * {@link RoutePredicateHandlerMapping} via {@code setCorsConfigurations}.
+ * </p>
+ *
+ * <p>
+ * Note: A {@link LinkedHashMap} is used to store the merged configurations to preserve
+ * insertion order, which ensures predictable CORS resolution when multiple path patterns
+ * could match a request.
+ * </p>
  *
  * @author Fredrich Ombico
  * @author Abel Salgado Romero
+ * @author Yavor Chamov
  */
 public class CorsGatewayFilterApplicationListener implements ApplicationListener<RefreshRoutesResultEvent> {
 
@@ -69,12 +91,16 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 			routes.forEach(route -> {
 				Optional<CorsConfiguration> corsConfiguration = getCorsConfiguration(route);
 				corsConfiguration.ifPresent(configuration -> {
-					var pathPredicate = getPathPredicate(route);
+					String pathPredicate = getPathPredicate(route);
 					corsConfigurations.put(pathPredicate, configuration);
 				});
 			});
 
-			corsConfigurations.putAll(globalCorsProperties.getCorsConfigurations());
+			globalCorsProperties.getCorsConfigurations().forEach((path, config) -> {
+				if (!corsConfigurations.containsKey(path)) {
+					corsConfigurations.put(path, config);
+				}
+			});
 			routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
 		});
 	}
