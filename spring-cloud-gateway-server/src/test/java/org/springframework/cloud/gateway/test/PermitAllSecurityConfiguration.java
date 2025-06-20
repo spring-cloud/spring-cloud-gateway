@@ -26,7 +26,9 @@ public class PermitAllSecurityConfiguration {
 
 	@Bean
 	SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) throws Exception {
-		return http.authorizeExchange().anyExchange().permitAll().and().csrf().disable().build();
+		return http.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.anyExchange().permitAll())
+			.csrf(ServerHttpSecurity.CsrfSpec::disable)
+			.build();
 	}
 
 }

@@ -124,15 +124,20 @@ public class PrincipalNameKeyResolverIntegrationTests {
 
 		@Bean
 		SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http) {
-			return http.httpBasic()
-				.and()
-				.authorizeExchange()
-				.pathMatchers("/myapi/**")
-				.authenticated()
-				.anyExchange()
-				.permitAll()
-				.and()
+			return http.httpBasic(httpBasicSpec -> {
+			})
+				.authorizeExchange(authorizeExchangeSpec -> authorizeExchangeSpec.pathMatchers("/myapi/**")
+					.authenticated()
+					.anyExchange()
+					.permitAll())
 				.build();
+
+			// .pathMatchers("/myapi/**")
+			// .authenticated()
+			// .anyExchange()
+			// .permitAll()
+			// .and()
+			// .build();
 		}
 
 		class MyRateLimiter implements RateLimiter<Object> {

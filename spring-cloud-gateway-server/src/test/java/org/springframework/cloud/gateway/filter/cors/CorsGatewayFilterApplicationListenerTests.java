@@ -31,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 
+import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
@@ -155,7 +156,8 @@ class CorsGatewayFilterApplicationListenerTests {
 		return Route.async()
 			.id(id)
 			.uri(ROUTE_URI)
-			.predicate(new PathRoutePredicateFactory().apply(config -> config.setPatterns(List.of(path))))
+			.predicate(new PathRoutePredicateFactory(new WebFluxProperties())
+				.apply(config -> config.setPatterns(List.of(path))))
 			.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
 			.build();
 	}
