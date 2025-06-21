@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.http.HttpCookie;
@@ -29,8 +30,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
 class DefaultKeyValueGeneratorTests {
+
+	@BeforeEach
+	void enableAllGenerators() {
+		CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.forEach(generator -> generator.setEnabled(true));
+	}
 
 	@Test
 	void uriAuthorizationAndCookiesArePresent() {
@@ -72,8 +79,33 @@ class DefaultKeyValueGeneratorTests {
 		assertThat(result).isEqualTo(uri + ";" + "" + ";" + "");
 	}
 
+	@Test
+	void isEnabledFalse() {
+		String uri = "http://myuri";
+		HttpHeaders headers = new HttpHeaders();
+		String authorization = "my-auth";
+		headers.set("Authorization", authorization);
+		String cookieName = "my-cookie";
+		String cookieValue = "cookie-value";
+		HttpCookie cookie = new HttpCookie(cookieName, cookieValue);
+		MockServerHttpRequest request = MockServerHttpRequest.get(uri).cookie(cookie).headers(headers).build();
+
+		String result = applyDisabled(request);
+
+		assertThat(result).isEqualTo("");
+	}
+
 	public String apply(ServerHttpRequest request) {
 		return CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.stream()
+			.filter(KeyValueGenerator::isEnabled)
+			.map(generator -> generator.apply(request))
+			.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
+	}
+
+	public String applyDisabled(ServerHttpRequest request) {
+		return CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.stream()
+			.peek(generator -> generator.setEnabled(false))
+			.filter(KeyValueGenerator::isEnabled)
 			.map(generator -> generator.apply(request))
 			.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
 	}

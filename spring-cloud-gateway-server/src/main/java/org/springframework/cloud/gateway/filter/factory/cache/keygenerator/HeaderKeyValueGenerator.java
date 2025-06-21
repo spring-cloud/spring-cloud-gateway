@@ -27,14 +27,18 @@ import org.springframework.util.StringUtils;
 /**
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
-class HeaderKeyValueGenerator implements KeyValueGenerator {
+public class HeaderKeyValueGenerator implements KeyValueGenerator {
 
 	private final String header;
 
 	private final String valueSeparator;
 
-	HeaderKeyValueGenerator(String header, String valueSeparator) {
+	private boolean enabled = true;
+
+	public HeaderKeyValueGenerator(boolean enabled, String header, String valueSeparator) {
+		this.enabled = enabled;
 		this.valueSeparator = valueSeparator;
 		if (!StringUtils.hasText(header)) {
 			throw new IllegalArgumentException("The parameter cannot be empty or null");
@@ -60,4 +64,13 @@ class HeaderKeyValueGenerator implements KeyValueGenerator {
 		return value == null ? Stream.empty() : value.stream();
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 }
