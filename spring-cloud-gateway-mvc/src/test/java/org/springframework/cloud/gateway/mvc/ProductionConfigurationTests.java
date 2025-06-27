@@ -24,7 +24,6 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -262,10 +261,6 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
-	@Disabled
-	// TODO This is broken due to a regression in Spring Framework 6.2.8,
-	// It will be fixed in 6.2.9
-	// See https://github.com/spring-projects/spring-framework/issues/35068
 	public void deleteWithBody() {
 		Foo foo = new Foo("to-be-deleted");
 		ParameterizedTypeReference<Map<String, Foo>> returnType = new ParameterizedTypeReference<Map<String, Foo>>() {
