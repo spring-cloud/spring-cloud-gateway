@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
@@ -182,9 +183,12 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private final ObjectNode objectNode;
 
+		private final ConcurrentHashMap<String, ManagedChannel> managedChannelContainer;
+
 		GRPCResponseDecorator(ServerWebExchange exchange, Config config) {
 			super(exchange.getResponse());
 			this.exchange = exchange;
+			this.managedChannelContainer = new ConcurrentHashMap<>();
 			try {
 				Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 				Resource protoFile = resourceLoader.getResource(config.getProtoFile());
@@ -312,15 +316,17 @@ public class JsonToGrpcGatewayFilterFactory
 			};
 		}
 
-		// We are creating this on every call, should optimize?
 		private ManagedChannel createChannelChannel(String host, int port) {
-			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
-			try {
-				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
-			}
-			catch (SSLException e) {
-				throw new RuntimeException(e);
-			}
+			String key = host + ":" + port;
+			return managedChannelContainer.computeIfAbsent(key, k -> {
+				try {
+					NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
+					return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
+				}
+				catch (SSLException e) {
+					throw new RuntimeException(e);
+				}
+			});
 		}
 
 	}
