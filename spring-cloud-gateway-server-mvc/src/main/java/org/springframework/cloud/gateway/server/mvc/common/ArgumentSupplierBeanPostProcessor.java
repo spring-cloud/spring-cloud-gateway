@@ -183,6 +183,11 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 
 		}
 
+		@Override
+		public void version(String version) {
+
+		}
+
 	}
 
 }

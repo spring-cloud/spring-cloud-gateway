@@ -309,6 +309,11 @@ public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {
 
 		}
 
+		@Override
+		public void version(String version) {
+
+		}
+
 	}
 
 	static abstract class AbstractRouterFunctionsVisitor implements RouterFunctions.Visitor {

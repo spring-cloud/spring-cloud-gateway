@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
+import org.springframework.boot.webflux.autoconfigure.WebFluxProperties;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.PathContainer;
 import org.springframework.util.StringUtils;

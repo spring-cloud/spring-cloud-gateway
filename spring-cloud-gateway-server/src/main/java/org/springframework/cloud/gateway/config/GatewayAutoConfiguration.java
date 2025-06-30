@@ -45,7 +45,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
-import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -53,17 +52,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
-import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.reactor.netty.NettyReactiveWebServerFactory;
+import org.springframework.boot.reactor.netty.NettyServerCustomizer;
+import org.springframework.boot.reactor.netty.autoconfigure.NettyReactiveWebServerFactoryCustomizer;
+import org.springframework.boot.reactor.netty.autoconfigure.NettyServerProperties;
+import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.boot.ssl.SslBundles;
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
+import org.springframework.boot.webflux.autoconfigure.HttpHandlerAutoConfiguration;
+import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
+import org.springframework.boot.webflux.autoconfigure.WebFluxProperties;
 import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
@@ -766,16 +766,16 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(HttpClient.class)
+	@ConditionalOnClass({ HttpClient.class, NettyServerProperties.class })
 	protected static class NettyConfiguration {
 
 		protected final Log logger = LogFactory.getLog(getClass());
 
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.httpserver.wiretap")
-		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
-				ServerProperties serverProperties) {
-			return new NettyWebServerFactoryCustomizer(environment, serverProperties) {
+		public NettyReactiveWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
+				ServerProperties serverProperties, NettyServerProperties nettyServerProperties) {
+			return new NettyReactiveWebServerFactoryCustomizer(environment, serverProperties, nettyServerProperties) {
 				@Override
 				public void customize(NettyReactiveWebServerFactory factory) {
 					factory.addServerCustomizers(httpServer -> httpServer.wiretap(true));
@@ -867,7 +867,7 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(Health.class)
+	@ConditionalOnClass(WebEndpointProperties.class)
 	protected static class GatewayActuatorConfiguration {
 
 		@Bean

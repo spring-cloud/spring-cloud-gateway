@@ -43,7 +43,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.codec.max-in-memory-size=40")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.http.codecs.max-in-memory-size=40")
 @DirtiesContext
 public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
