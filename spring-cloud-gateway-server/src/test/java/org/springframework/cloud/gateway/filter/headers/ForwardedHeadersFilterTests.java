@@ -31,9 +31,9 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerFactoryAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration;
+import org.springframework.boot.reactor.netty.autoconfigure.NettyReactiveWebServerAutoConfiguration;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
 import org.springframework.http.HttpHeaders;
@@ -263,7 +263,7 @@ public class ForwardedHeadersFilterTests {
 	public void trustedProxiesConditionMatches() {
 		new ReactiveWebApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, SslAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+					NettyReactiveWebServerAutoConfiguration.class, GatewayAutoConfiguration.class))
 			.withPropertyValues("spring.cloud.gateway.server.webflux.trusted-proxies=11\\.0\\.0\\..*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(ForwardedHeadersFilter.class);
@@ -274,7 +274,7 @@ public class ForwardedHeadersFilterTests {
 	public void trustedProxiesConditionDoesNotMatch() {
 		new ReactiveWebApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, SslAutoConfiguration.class,
-					ReactiveWebServerFactoryAutoConfiguration.class, GatewayAutoConfiguration.class))
+					NettyReactiveWebServerAutoConfiguration.class, GatewayAutoConfiguration.class))
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(ForwardedHeadersFilter.class);
 			});

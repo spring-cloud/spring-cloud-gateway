@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.server.mvc.test;
 import java.util.List;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.client.RestTemplateCustomizer;
+import org.springframework.boot.restclient.RestTemplateCustomizer;
+import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestClient;
 import org.springframework.context.annotation.Bean;

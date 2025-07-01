@@ -54,6 +54,7 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindException;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -416,6 +417,11 @@ public abstract class BodyFilterFunctions {
 		@Override
 		public Optional<ServerResponse> checkNotModified(Instant lastModified, String etag) {
 			return delegate.checkNotModified(lastModified, etag);
+		}
+
+		@Override
+		public ApiVersionStrategy apiVersionStrategy() {
+			return delegate.apiVersionStrategy();
 		}
 
 		public static ServerRequest create(HttpServletRequest servletRequest,

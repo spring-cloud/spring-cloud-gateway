@@ -69,7 +69,7 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 			TokenRelayGatewayFilterFactory.class,
 			Set.of("org.springframework.security.oauth2.client.OAuth2AuthorizedClient",
 					"org.springframework.security.web.server.SecurityWebFilterChain",
-					"org.springframework.boot.autoconfigure.security.SecurityProperties"),
+					"org.springframework.boot.security.autoconfigure.SecurityProperties"),
 			JsonToGrpcGatewayFilterFactory.class, Set.of("io.grpc.Channel"), RedisRateLimiter.class,
 			Set.of("org.springframework.data.redis.core.RedisTemplate",
 					"org.springframework.web.reactive.DispatcherHandler"),

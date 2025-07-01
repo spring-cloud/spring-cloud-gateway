@@ -24,9 +24,9 @@ import reactor.netty.http.Http2SslContextSpec;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
 
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
 
