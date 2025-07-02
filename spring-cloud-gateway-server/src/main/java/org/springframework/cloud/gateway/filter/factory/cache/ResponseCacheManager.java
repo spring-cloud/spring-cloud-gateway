@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +61,8 @@ public class ResponseCacheManager {
 	private static final List<String> forbiddenCacheControlValues = Arrays.asList("private", "no-store");
 
 	private static final String VARY_WILDCARD = "*";
+
+	private static final Pattern CACHE_CONTROL_SPLITTER = Pattern.compile("\\s*,\\s*");
 
 	final CacheKeyGenerator cacheKeyGenerator;
 
@@ -190,8 +193,8 @@ public class ResponseCacheManager {
 	private boolean isCacheControlAllowed(HttpMessage request) {
 		HttpHeaders headers = request.getHeaders();
 		List<String> cacheControlHeader = headers.getOrEmpty(HttpHeaders.CACHE_CONTROL);
-
-		return cacheControlHeader.stream().noneMatch(forbiddenCacheControlValues::contains);
+		return cacheControlHeader.stream().flatMap(CACHE_CONTROL_SPLITTER::splitAsStream)
+				.noneMatch(forbiddenCacheControlValues::contains);
 	}
 
 	private static boolean hasRequestBody(ServerHttpRequest request) {
