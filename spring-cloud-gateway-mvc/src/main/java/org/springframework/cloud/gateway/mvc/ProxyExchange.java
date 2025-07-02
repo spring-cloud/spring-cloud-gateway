@@ -56,6 +56,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -134,6 +135,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  * </p>
  *
  * @author Dave Syer
+ * @author Stefan Berger
  *
  */
 public class ProxyExchange<T> {
@@ -246,17 +248,37 @@ public class ProxyExchange<T> {
 		}
 	}
 
+	/**
+	 * Returns the request path without any query parameters.
+	 * @return the URI path
+	 * @see ProxyExchange#path(String)
+	 * @see ProxyExchange#queryParams
+	 */
 	public String path() {
-		return (String) this.webRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
-				WebRequest.SCOPE_REQUEST);
+		return exchange.getRequest().getPath().pathWithinApplication().value();
 	}
 
+    /**
+	 * Returns the request path without the provided path prefix and without any query parameters.
+	 * @param prefix the path prefix to remove
+	 * @return the URI path
+	 * @see ProxyExchange#path(String)
+	 * @see ProxyExchange#queryParams
+	 */
 	public String path(String prefix) {
 		String path = path();
 		if (!path.startsWith(prefix)) {
 			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
 		}
 		return path.substring(prefix.length());
+	}
+
+    /**
+	 * Returns the original query parameters.
+	 * @return the query parameters
+	 */
+	public MultiValueMap<String, String> queryParams() {
+		return exchange.getRequest().getQueryParams();
 	}
 
 	public void forward(String path) {
