@@ -191,7 +191,7 @@ Checkstyle rules are *disabled by default*. To add checkstyle to your project ju
 .pom.xml
 ----
 <properties>
-<maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError> <1>
+        <maven-checkstyle-plugin.failsOnError>true</maven-checkstyle-plugin.failsOnError> <1>
         <maven-checkstyle-plugin.failsOnViolation>true
         </maven-checkstyle-plugin.failsOnViolation> <2>
         <maven-checkstyle-plugin.includeTestSourceDirectory>true
