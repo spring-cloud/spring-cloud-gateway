@@ -168,6 +168,23 @@
 
 	<profiles>
 		<profile>
+			<id>central</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<configuration>
+							<excludeArtifacts>
+								<artifact>spring-cloud-gateway-integration-tests</artifact>
+								<artifact>spring-cloud-gateway-sample</artifact>
+							</excludeArtifacts>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<id>spring</id>
 			<repositories>
 				<repository>
