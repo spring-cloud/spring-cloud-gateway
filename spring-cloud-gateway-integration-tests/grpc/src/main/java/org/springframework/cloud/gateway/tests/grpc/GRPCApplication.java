@@ -119,6 +119,14 @@ public class GRPCApplication {
 				HelloResponse response = HelloResponse.newBuilder().setGreeting(greeting).build();
 
 				responseObserver.onNext(response);
+
+				if ("failWithRuntimeExceptionAfterData!".equals(request.getFirstName())) {
+					StatusRuntimeException exception = Status.RESOURCE_EXHAUSTED.withDescription("Too long firstNames?")
+							.asRuntimeException();
+					responseObserver.onError(exception);
+					return;
+				}
+
 				responseObserver.onCompleted();
 			}
 

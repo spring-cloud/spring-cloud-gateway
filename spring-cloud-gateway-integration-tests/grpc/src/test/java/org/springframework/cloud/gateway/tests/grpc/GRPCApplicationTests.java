@@ -30,22 +30,30 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.test.LocalServerPort;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static io.grpc.Status.FAILED_PRECONDITION;
+import static io.grpc.Status.RESOURCE_EXHAUSTED;
 import static io.grpc.netty.NegotiationType.TLS;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 /**
  * @author Alberto C. Ríos
  */
 @SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class,
 		webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class GRPCApplicationTests {
 
 	@LocalServerPort
 	private int gatewayPort;
+
+	public static void main(String[] args) {
+		SpringApplication.run(GRPCApplication.class, args);
+	}
 
 	@BeforeEach
 	void setUp() {
@@ -86,6 +94,23 @@ public class GRPCApplicationTests {
 			Assertions.assertThat(FAILED_PRECONDITION.getCode()).isEqualTo(e.getStatus().getCode());
 			Assertions.assertThat("Invalid firstName").isEqualTo(e.getStatus().getDescription());
 		}
+	}
+
+	@Test
+	public void gRPCUnaryCallShouldHandleRuntimeException2() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
+		boolean thrown = false;
+		try {
+			HelloServiceGrpc.newBlockingStub(channel)
+					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeExceptionAfterData!").build())
+					.getGreeting();
+		}
+		catch (StatusRuntimeException e) {
+			thrown = true;
+			Assertions.assertThat(e.getStatus().getCode()).isEqualTo(RESOURCE_EXHAUSTED.getCode());
+			Assertions.assertThat(e.getStatus().getDescription()).isEqualTo("Too long firstNames?");
+		}
+		Assertions.assertThat(thrown).withFailMessage("Expected exception not thrown!").isTrue();
 	}
 
 	private TrustManager[] createTrustAllTrustManager() {

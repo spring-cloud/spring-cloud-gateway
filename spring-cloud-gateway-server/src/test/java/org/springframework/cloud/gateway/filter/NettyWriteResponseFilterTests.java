@@ -46,7 +46,7 @@ public class NettyWriteResponseFilterTests {
 	}
 
 	private void doTestWrap(MockServerHttpResponse response) {
-		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>());
+		NettyWriteResponseFilter filter = new NettyWriteResponseFilter(new ArrayList<>(), null);
 
 		ByteBuf buffer = DEFAULT.buffer();
 		buffer.writeCharSequence("test", Charset.defaultCharset());
