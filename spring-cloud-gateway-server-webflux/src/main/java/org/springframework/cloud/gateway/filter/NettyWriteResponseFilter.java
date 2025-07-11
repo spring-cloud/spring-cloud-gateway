@@ -25,7 +25,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
 import reactor.netty.Connection;
+import reactor.netty.http.client.HttpClientResponse;
 
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.TrailerHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -36,6 +40,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.lang.Nullable;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 
 /**
@@ -52,8 +57,22 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
 	private final List<MediaType> streamingMediaTypes;
 
-	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes) {
+	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
+
+	// do not use this headersFilters directly, use getHeadersFilters() instead.
+	private volatile List<HttpHeadersFilter> headersFilters;
+
+	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes,
+			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.streamingMediaTypes = streamingMediaTypes;
+		this.headersFiltersProvider = headersFiltersProvider;
+	}
+
+	public List<HttpHeadersFilter> getHeadersFilters() {
+		if (headersFilters == null) {
+			headersFilters = headersFiltersProvider == null ? List.of() : headersFiltersProvider.getIfAvailable();
+		}
+		return headersFilters;
 	}
 
 	@Override
@@ -96,9 +115,12 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 							log.trace("invalid media type", e);
 						}
 					}
-					return (isStreamingMediaType(contentType)
+
+					HttpClientResponse httpClientResponse = exchange.getAttribute(CLIENT_RESPONSE_ATTR);
+					Mono<Void> write = (isStreamingMediaType(contentType)
 							? response.writeAndFlushWith(body.map(Flux::just))
 							: response.writeWith(body));
+					return write.then(TrailerHeadersFilter.filter(getHeadersFilters(), exchange, httpClientResponse)).then();
 				}))
 				.doFinally(signalType -> {
 					if (signalType == SignalType.CANCEL || signalType == SignalType.ON_ERROR) {

@@ -879,8 +879,9 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledGlobalFilter(NettyRoutingFilter.class)
-		public NettyWriteResponseFilter nettyWriteResponseFilter(GatewayProperties properties) {
-			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
+		public NettyWriteResponseFilter nettyWriteResponseFilter(GatewayProperties properties,
+				ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
+			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes(), headersFilters);
 		}
 
 		@Bean
