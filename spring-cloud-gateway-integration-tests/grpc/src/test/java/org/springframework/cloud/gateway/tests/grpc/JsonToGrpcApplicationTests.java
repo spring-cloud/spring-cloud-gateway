@@ -68,7 +68,7 @@ public class JsonToGrpcApplicationTests {
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
 		int grpcServerPort = gatewayPort + 1;
 		configurer.addRoute(grpcServerPort, "/json/hello",
-				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
+				"JsonToGrpc=file:src/main/proto/hello.pb,none:,HelloService,hello");
 
 		String response = restTemplate
 			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
