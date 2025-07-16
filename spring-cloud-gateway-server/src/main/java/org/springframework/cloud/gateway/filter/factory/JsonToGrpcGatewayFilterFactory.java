@@ -34,8 +34,13 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.DescriptorValidationException;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.ProtocolStringList;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -69,10 +74,12 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
- * This filter takes a JSON payload, transform it into a protobuf object, send it to a
+ * This filter takes a JSON payload, transform it into a protobuf object, send
+ * it to a
  * given gRPC channel, and transform the response back to JSON.
  *
- * Making it transparent for the consumer that the service under the gateway is a gRPC
+ * Making it transparent for the consumer that the service under the gateway is
+ * a gRPC
  * one.
  *
  * @author Alberto C. Ríos
@@ -104,7 +111,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 				ServerWebExchangeUtils.setAlreadyRouted(exchange);
 				return modifiedResponse.writeWith(exchange.getRequest().getBody())
-					.then(chain.filter(exchange.mutate().response(modifiedResponse).build()));
+						.then(chain.filter(exchange.mutate().response(modifiedResponse).build()));
 			}
 
 			@Override
@@ -193,8 +200,7 @@ public class JsonToGrpcGatewayFilterFactory
 				objectReader = objectMapper.readerFor(JsonNode.class);
 				objectNode = objectMapper.createObjectNode();
 
-			}
-			catch (IOException | Descriptors.DescriptorValidationException e) {
+			} catch (IOException | Descriptors.DescriptorValidationException e) {
 				throw new RuntimeException(e);
 			}
 		}
@@ -204,24 +210,25 @@ public class JsonToGrpcGatewayFilterFactory
 			exchange.getResponse().getHeaders().set("Content-Type", "application/json");
 
 			return getDelegate().writeWith(deserializeJSONRequest().map(callGRPCServer())
-				.map(serialiseGRPCResponse())
-				.map(wrapGRPCResponse())
-				.cast(DataBuffer.class)
-				.last());
+					.map(serialiseGRPCResponse())
+					.map(wrapGRPCResponse())
+					.cast(DataBuffer.class)
+					.last());
 		}
 
 		private ClientCall<DynamicMessage, DynamicMessage> createClientCallForType(Config config,
 				Descriptors.ServiceDescriptor serviceDescriptor, Descriptors.Descriptor outputType) {
 			MethodDescriptor.Marshaller<DynamicMessage> marshaller = ProtoUtils
-				.marshaller(DynamicMessage.newBuilder(outputType).build());
+					.marshaller(DynamicMessage.newBuilder(outputType).build());
 			MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor = MethodDescriptor
-				.<DynamicMessage, DynamicMessage>newBuilder()
-				.setType(MethodDescriptor.MethodType.UNKNOWN)
-				.setFullMethodName(
-						MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(), config.getMethod()))
-				.setRequestMarshaller(marshaller)
-				.setResponseMarshaller(marshaller)
-				.build();
+					.<DynamicMessage, DynamicMessage>newBuilder()
+					.setType(MethodDescriptor.MethodType.UNKNOWN)
+					.setFullMethodName(
+							MethodDescriptor.generateFullMethodName(serviceDescriptor.getFullName(),
+									config.getMethod()))
+					.setRequestMarshaller(marshaller)
+					.setResponseMarshaller(marshaller)
+					.build();
 			Channel channel = createChannel();
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
@@ -230,10 +237,10 @@ public class JsonToGrpcGatewayFilterFactory
 				throws IOException, Descriptors.DescriptorValidationException {
 			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
-				.parseFrom(descriptorFile.getInputStream());
+					.parseFrom(descriptorFile.getInputStream());
 			DescriptorProtos.FileDescriptorProto fileProto = fileDescriptorSet.getFile(0);
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
-					new Descriptors.FileDescriptor[0]);
+					dependencies(fileDescriptorSet, fileProto.getDependencyList()));
 
 			Descriptors.ServiceDescriptor serviceDescriptor = fileDescriptor.findServiceByName(config.getService());
 			if (serviceDescriptor == null) {
@@ -243,9 +250,35 @@ public class JsonToGrpcGatewayFilterFactory
 			List<Descriptors.MethodDescriptor> methods = serviceDescriptor.getMethods();
 
 			return methods.stream()
-				.filter(method -> method.getName().equals(config.getMethod()))
-				.findFirst()
-				.orElseThrow(() -> new NoSuchElementException("No Method found"));
+					.filter(method -> method.getName().equals(config.getMethod()))
+					.findFirst()
+					.orElseThrow(() -> new NoSuchElementException("No Method found"));
+		}
+
+		private FileDescriptor[] dependencies(FileDescriptorSet input, ProtocolStringList list) {
+			FileDescriptor[] deps = new FileDescriptor[list.size()];
+			for (int i = 0; i < list.size(); i++) {
+				String name = list.get(i);
+				FileDescriptorProto file = findFileByName(input, name);
+				if (file == null) {
+					throw new IllegalStateException("Missing dependency: " + name);
+				}
+				try {
+					deps[i] = FileDescriptor.buildFrom(file, dependencies(input, file.getDependencyList()));
+				} catch (DescriptorValidationException e) {
+					throw new IllegalStateException("Invalid descriptor: " + file.getName(), e);
+				}
+			}
+			return deps;
+		}
+
+		private FileDescriptorProto findFileByName(FileDescriptorSet input, String name) {
+			for (FileDescriptorProto file : input.getFileList()) {
+				if (file.getName().equals(name)) {
+					return file;
+				}
+			}
+			return null;
 		}
 
 		private ManagedChannel createChannel() {
@@ -259,8 +292,7 @@ public class JsonToGrpcGatewayFilterFactory
 					DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
 					JsonFormat.parser().merge(jsonRequest.toString(), builder);
 					return ClientCalls.blockingUnaryCall(clientCall, builder.build());
-				}
-				catch (IOException e) {
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			};
@@ -270,9 +302,8 @@ public class JsonToGrpcGatewayFilterFactory
 			return gRPCResponse -> {
 				try {
 					return objectReader
-						.readValue(JsonFormat.printer().omittingInsignificantWhitespace().print(gRPCResponse));
-				}
-				catch (IOException e) {
+							.readValue(JsonFormat.printer().omittingInsignificantWhitespace().print(gRPCResponse));
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			};
@@ -292,9 +323,8 @@ public class JsonToGrpcGatewayFilterFactory
 			return jsonResponse -> {
 				try {
 					return new NettyDataBufferFactory(new PooledByteBufAllocator())
-						.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
-				}
-				catch (JsonProcessingException e) {
+							.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
+				} catch (JsonProcessingException e) {
 					return new NettyDataBufferFactory(new PooledByteBufAllocator()).allocateBuffer();
 				}
 			};
@@ -305,8 +335,7 @@ public class JsonToGrpcGatewayFilterFactory
 			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
 			try {
 				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
-			}
-			catch (SSLException e) {
+			} catch (SSLException e) {
 				throw new RuntimeException(e);
 			}
 		}
