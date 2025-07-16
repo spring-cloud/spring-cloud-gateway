@@ -31,15 +31,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.protobuf.ProtobufFactory;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchema;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -174,8 +171,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private final Descriptors.Descriptor descriptor;
 
-		private final ObjectWriter objectWriter;
-
 		private final ObjectReader objectReader;
 
 		private final ClientCall<DynamicMessage, DynamicMessage> clientCall;
@@ -186,26 +181,16 @@ public class JsonToGrpcGatewayFilterFactory
 			super(exchange.getResponse());
 			this.exchange = exchange;
 			try {
-				Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
-				Resource protoFile = resourceLoader.getResource(config.getProtoFile());
-
-				descriptor = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorFile.getInputStream())
-					.getDescriptorForType();
-
-				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config,
-						descriptorFile.getInputStream());
+				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config);
 				Descriptors.ServiceDescriptor serviceDescriptor = methodDescriptor.getService();
 				Descriptors.Descriptor outputType = methodDescriptor.getOutputType();
+				this.descriptor = methodDescriptor.getInputType();
 
 				clientCall = createClientCallForType(config, serviceDescriptor, outputType);
 
-				ProtobufSchema schema = ProtobufSchemaLoader.std.load(protoFile.getInputStream());
-				ProtobufSchema responseType = schema.withRootType(outputType.getName());
-
-				ObjectMapper objectMapper = new ObjectMapper(new ProtobufFactory());
+				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-				objectWriter = objectMapper.writer(schema);
-				objectReader = objectMapper.readerFor(JsonNode.class).with(responseType);
+				objectReader = objectMapper.readerFor(JsonNode.class);
 				objectNode = objectMapper.createObjectNode();
 
 			}
@@ -241,10 +226,11 @@ public class JsonToGrpcGatewayFilterFactory
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
 
-		private Descriptors.MethodDescriptor getMethodDescriptor(Config config, InputStream descriptorFile)
+		private Descriptors.MethodDescriptor getMethodDescriptor(Config config)
 				throws IOException, Descriptors.DescriptorValidationException {
+			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
-				.parseFrom(descriptorFile);
+				.parseFrom(descriptorFile.getInputStream());
 			DescriptorProtos.FileDescriptorProto fileProto = fileDescriptorSet.getFile(0);
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
 					new Descriptors.FileDescriptor[0]);
@@ -270,8 +256,9 @@ public class JsonToGrpcGatewayFilterFactory
 		private Function<JsonNode, DynamicMessage> callGRPCServer() {
 			return jsonRequest -> {
 				try {
-					byte[] request = objectWriter.writeValueAsBytes(jsonRequest);
-					return ClientCalls.blockingUnaryCall(clientCall, DynamicMessage.parseFrom(descriptor, request));
+					DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
+					JsonFormat.parser().merge(jsonRequest.toString(), builder);
+					return ClientCalls.blockingUnaryCall(clientCall, builder.build());
 				}
 				catch (IOException e) {
 					throw new RuntimeException(e);
@@ -282,7 +269,8 @@ public class JsonToGrpcGatewayFilterFactory
 		private Function<DynamicMessage, Object> serialiseGRPCResponse() {
 			return gRPCResponse -> {
 				try {
-					return objectReader.readValue(gRPCResponse.toByteArray());
+					return objectReader
+						.readValue(JsonFormat.printer().omittingInsignificantWhitespace().print(gRPCResponse));
 				}
 				catch (IOException e) {
 					throw new RuntimeException(e);
