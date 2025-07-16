@@ -12,6 +12,7 @@
 
 	<properties>
 		<protoc.version>3.25.1</protoc.version>
+		<protobuf.version>4.31.1</protobuf.version>
 		<grpc.version>1.76.0</grpc.version>
 	</properties>
 
@@ -46,13 +47,14 @@
 			<version>${grpc.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java-util</artifactId>
+			<version>${protobuf.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-stub</artifactId>
 			<version>${grpc.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>tools.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-protobuf</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>tools.jackson.core</groupId>
@@ -129,4 +131,3 @@
 		</plugins>
 	</build>
 </project>
-
