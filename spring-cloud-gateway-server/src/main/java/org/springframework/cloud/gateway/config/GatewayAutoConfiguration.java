@@ -821,6 +821,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledGlobalFilter
+		@ConditionalOnMissingBean(NettyRoutingFilter.class)
 		public NettyRoutingFilter routingFilter(HttpClient httpClient,
 				ObjectProvider<List<HttpHeadersFilter>> headersFilters, HttpClientProperties properties) {
 			return new NettyRoutingFilter(httpClient, headersFilters, properties);
@@ -828,6 +829,7 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnEnabledGlobalFilter(NettyRoutingFilter.class)
+		@ConditionalOnMissingBean(NettyWriteResponseFilter.class)
 		public NettyWriteResponseFilter nettyWriteResponseFilter(GatewayProperties properties) {
 			return new NettyWriteResponseFilter(properties.getStreamingMediaTypes());
 		}
