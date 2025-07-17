@@ -16,8 +16,9 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -27,34 +28,7 @@ import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
-import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.Descriptors.DescriptorValidationException;
-import com.google.protobuf.Descriptors.FileDescriptor;
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.ProtocolStringList;
-import com.google.protobuf.util.JsonFormat;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.ClientCall;
-import io.grpc.ManagedChannel;
-import io.grpc.MethodDescriptor;
-import io.grpc.netty.NettyChannelBuilder;
-import io.grpc.protobuf.ProtoUtils;
-import io.grpc.stub.ClientCalls;
-import io.netty.buffer.PooledByteBufAllocator;
 import org.reactivestreams.Publisher;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -71,7 +45,33 @@ import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
+import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.DescriptorValidationException;
+import com.google.protobuf.Descriptors.FileDescriptor;
+import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.ProtocolStringList;
+import com.google.protobuf.util.JsonFormat;
+
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ManagedChannel;
+import io.grpc.MethodDescriptor;
+import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.protobuf.ProtoUtils;
+import io.grpc.stub.ClientCalls;
+import io.netty.buffer.PooledByteBufAllocator;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * This filter takes a JSON payload, transform it into a protobuf object, send
@@ -99,7 +99,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList("protoDescriptor", "protoFile", "service", "method");
+		return Arrays.asList("service", "method", "protoDescriptor");
 	}
 
 	@Override
@@ -128,8 +128,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private String protoDescriptor;
 
-		private String protoFile;
-
 		private String service;
 
 		private String method;
@@ -140,15 +138,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		public Config setProtoDescriptor(String protoDescriptor) {
 			this.protoDescriptor = protoDescriptor;
-			return this;
-		}
-
-		public String getProtoFile() {
-			return protoFile;
-		}
-
-		public Config setProtoFile(String protoFile) {
-			this.protoFile = protoFile;
 			return this;
 		}
 
