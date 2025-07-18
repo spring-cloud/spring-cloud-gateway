@@ -36,12 +36,12 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.client.RestTemplate;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -50,8 +50,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Alberto C. Ríos
  * @author Abel Salgado Romero
  */
-@Disabled
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
