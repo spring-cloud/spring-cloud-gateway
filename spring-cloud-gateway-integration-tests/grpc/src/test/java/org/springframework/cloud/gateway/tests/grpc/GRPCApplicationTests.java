@@ -31,17 +31,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.test.LocalServerPort;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.netty.NegotiationType.TLS;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 /**
  * @author Alberto C. Ríos
  */
 @SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class,
 		webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class GRPCApplicationTests {
 
 	@LocalServerPort

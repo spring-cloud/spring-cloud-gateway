@@ -17,7 +17,6 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -31,15 +30,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.protobuf.ProtobufFactory;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchema;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
 import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.FileDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FileDescriptorSet;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.DescriptorValidationException;
+import com.google.protobuf.Descriptors.FileDescriptor;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.ProtocolStringList;
+import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -95,7 +96,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList("protoDescriptor", "protoFile", "service", "method");
+		return Arrays.asList("service", "method", "protoDescriptor");
 	}
 
 	@Override
@@ -124,8 +125,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private String protoDescriptor;
 
-		private String protoFile;
-
 		private String service;
 
 		private String method;
@@ -136,15 +135,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		public Config setProtoDescriptor(String protoDescriptor) {
 			this.protoDescriptor = protoDescriptor;
-			return this;
-		}
-
-		public String getProtoFile() {
-			return protoFile;
-		}
-
-		public Config setProtoFile(String protoFile) {
-			this.protoFile = protoFile;
 			return this;
 		}
 
@@ -174,8 +164,6 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private final Descriptors.Descriptor descriptor;
 
-		private final ObjectWriter objectWriter;
-
 		private final ObjectReader objectReader;
 
 		private final ClientCall<DynamicMessage, DynamicMessage> clientCall;
@@ -186,26 +174,16 @@ public class JsonToGrpcGatewayFilterFactory
 			super(exchange.getResponse());
 			this.exchange = exchange;
 			try {
-				Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
-				Resource protoFile = resourceLoader.getResource(config.getProtoFile());
-
-				descriptor = DescriptorProtos.FileDescriptorProto.parseFrom(descriptorFile.getInputStream())
-					.getDescriptorForType();
-
-				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config,
-						descriptorFile.getInputStream());
+				Descriptors.MethodDescriptor methodDescriptor = getMethodDescriptor(config);
 				Descriptors.ServiceDescriptor serviceDescriptor = methodDescriptor.getService();
 				Descriptors.Descriptor outputType = methodDescriptor.getOutputType();
+				this.descriptor = methodDescriptor.getInputType();
 
 				clientCall = createClientCallForType(config, serviceDescriptor, outputType);
 
-				ProtobufSchema schema = ProtobufSchemaLoader.std.load(protoFile.getInputStream());
-				ProtobufSchema responseType = schema.withRootType(outputType.getName());
-
-				ObjectMapper objectMapper = new ObjectMapper(new ProtobufFactory());
+				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-				objectWriter = objectMapper.writer(schema);
-				objectReader = objectMapper.readerFor(JsonNode.class).with(responseType);
+				objectReader = objectMapper.readerFor(JsonNode.class);
 				objectNode = objectMapper.createObjectNode();
 
 			}
@@ -241,13 +219,14 @@ public class JsonToGrpcGatewayFilterFactory
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
 
-		private Descriptors.MethodDescriptor getMethodDescriptor(Config config, InputStream descriptorFile)
+		private Descriptors.MethodDescriptor getMethodDescriptor(Config config)
 				throws IOException, Descriptors.DescriptorValidationException {
+			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
-				.parseFrom(descriptorFile);
+				.parseFrom(descriptorFile.getInputStream());
 			DescriptorProtos.FileDescriptorProto fileProto = fileDescriptorSet.getFile(0);
 			Descriptors.FileDescriptor fileDescriptor = Descriptors.FileDescriptor.buildFrom(fileProto,
-					new Descriptors.FileDescriptor[0]);
+					dependencies(fileDescriptorSet, fileProto.getDependencyList()));
 
 			Descriptors.ServiceDescriptor serviceDescriptor = fileDescriptor.findServiceByName(config.getService());
 			if (serviceDescriptor == null) {
@@ -262,6 +241,33 @@ public class JsonToGrpcGatewayFilterFactory
 				.orElseThrow(() -> new NoSuchElementException("No Method found"));
 		}
 
+		private FileDescriptor[] dependencies(FileDescriptorSet input, ProtocolStringList list) {
+			FileDescriptor[] deps = new FileDescriptor[list.size()];
+			for (int i = 0; i < list.size(); i++) {
+				String name = list.get(i);
+				FileDescriptorProto file = findFileByName(input, name);
+				if (file == null) {
+					throw new IllegalStateException("Missing dependency: " + name);
+				}
+				try {
+					deps[i] = FileDescriptor.buildFrom(file, dependencies(input, file.getDependencyList()));
+				}
+				catch (DescriptorValidationException e) {
+					throw new IllegalStateException("Invalid descriptor: " + file.getName(), e);
+				}
+			}
+			return deps;
+		}
+
+		private FileDescriptorProto findFileByName(FileDescriptorSet input, String name) {
+			for (FileDescriptorProto file : input.getFileList()) {
+				if (file.getName().equals(name)) {
+					return file;
+				}
+			}
+			return null;
+		}
+
 		private ManagedChannel createChannel() {
 			URI requestURI = ((Route) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR)).getUri();
 			return createChannelChannel(requestURI.getHost(), requestURI.getPort());
@@ -270,8 +276,9 @@ public class JsonToGrpcGatewayFilterFactory
 		private Function<JsonNode, DynamicMessage> callGRPCServer() {
 			return jsonRequest -> {
 				try {
-					byte[] request = objectWriter.writeValueAsBytes(jsonRequest);
-					return ClientCalls.blockingUnaryCall(clientCall, DynamicMessage.parseFrom(descriptor, request));
+					DynamicMessage.Builder builder = DynamicMessage.newBuilder(descriptor);
+					JsonFormat.parser().merge(jsonRequest.toString(), builder);
+					return ClientCalls.blockingUnaryCall(clientCall, builder.build());
 				}
 				catch (IOException e) {
 					throw new RuntimeException(e);
@@ -282,7 +289,8 @@ public class JsonToGrpcGatewayFilterFactory
 		private Function<DynamicMessage, Object> serialiseGRPCResponse() {
 			return gRPCResponse -> {
 				try {
-					return objectReader.readValue(gRPCResponse.toByteArray());
+					return objectReader
+						.readValue(JsonFormat.printer().omittingInsignificantWhitespace().print(gRPCResponse));
 				}
 				catch (IOException e) {
 					throw new RuntimeException(e);

@@ -36,22 +36,21 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.client.RestTemplate;
-
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
 /**
  * @author Alberto C. Ríos
  * @author Abel Salgado Romero
  */
-@Disabled
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
@@ -72,7 +71,7 @@ public class JsonToGrpcApplicationTests {
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
 		int grpcServerPort = gatewayPort + 1;
 		configurer.addRoute(grpcServerPort, "/json/hello",
-				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
+				"JsonToGrpc=HelloService,hello,file:src/main/proto/hello.pb");
 
 		String response = restTemplate
 			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",

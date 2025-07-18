@@ -17,6 +17,7 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.72.0</grpc.version>
+		<protobuf.version>4.31.1</protobuf.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
@@ -104,11 +105,6 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-protobuf</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<optional>true</optional>
@@ -124,6 +120,12 @@
 			<artifactId>grpc-protobuf</artifactId>
 			<optional>true</optional>
 			<version>${grpc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java-util</artifactId>
+			<optional>true</optional>
+			<version>${protobuf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
