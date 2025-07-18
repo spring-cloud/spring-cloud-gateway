@@ -47,10 +47,10 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 				}
 				if (response instanceof AbstractServerHttpResponse) {
 					((HttpServerResponse) ((AbstractServerHttpResponse) response).getNativeResponse())
-							.trailerHeaders(h -> {
-								h.set(GRPC_STATUS_HEADER, grpcStatus);
-								h.set(GRPC_MESSAGE_HEADER, grpcMessage);
-							});
+						.trailerHeaders(h -> {
+							h.set(GRPC_STATUS_HEADER, grpcStatus);
+							h.set(GRPC_MESSAGE_HEADER, grpcMessage);
+						});
 				}
 			}
 

@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.tests.grpc;
 
 import java.security.cert.X509Certificate;
+import java.util.Iterator;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
@@ -72,6 +73,18 @@ public class GRPCApplicationTests {
 		Assertions.assertThat(response.getGreeting()).isEqualTo("Hello, Sir FromClient");
 	}
 
+	@Test
+	public void gRPCStreamingCallShouldReturnResponse() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
+
+		final Iterator<HelloResponse> response = StreamServiceGrpc.newBlockingStub(channel)
+			.more(HelloRequest.newBuilder().setFirstName("Sir").setLastName("FromClient").build());
+
+		Assertions.assertThat(response.next().getGreeting()).isEqualTo("Hello(0) ==> Sir");
+		Assertions.assertThat(response.next().getGreeting()).isEqualTo("Hello(1) ==> Sir");
+		Assertions.assertThat(response.next().getGreeting()).isEqualTo("Hello(2) ==> Sir");
+	}
+
 	private ManagedChannel createSecuredChannel(int port) throws SSLException {
 		TrustManager[] trustAllCerts = createTrustAllTrustManager();
 
@@ -97,13 +110,38 @@ public class GRPCApplicationTests {
 	}
 
 	@Test
-	public void gRPCUnaryCallShouldHandleRuntimeException2() throws SSLException {
+	public void gRPCUnaryCallShouldHandleRuntimeExceptionAfterData() throws SSLException {
 		ManagedChannel channel = createSecuredChannel(gatewayPort);
 		boolean thrown = false;
 		try {
 			HelloServiceGrpc.newBlockingStub(channel)
-					.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeExceptionAfterData!").build())
-					.getGreeting();
+				.hello(HelloRequest.newBuilder().setFirstName("failWithRuntimeExceptionAfterData!").build())
+				.getGreeting();
+		}
+		catch (StatusRuntimeException e) {
+			thrown = true;
+			Assertions.assertThat(e.getStatus().getCode()).isEqualTo(RESOURCE_EXHAUSTED.getCode());
+			Assertions.assertThat(e.getStatus().getDescription()).isEqualTo("Too long firstNames?");
+		}
+		Assertions.assertThat(thrown).withFailMessage("Expected exception not thrown!").isTrue();
+	}
+
+	@Test
+	public void gRPCStreamingCallShouldHandleRuntimeExceptionAfterData() throws SSLException {
+		ManagedChannel channel = createSecuredChannel(gatewayPort);
+		boolean thrown = false;
+		final Iterator<HelloResponse> response = StreamServiceGrpc.newBlockingStub(channel)
+			.more(HelloRequest.newBuilder()
+				.setFirstName("failWithRuntimeExceptionAfterData!")
+				.setLastName("FromClient")
+				.build());
+		Assertions.assertThat(response.next().getGreeting())
+			.isEqualTo("Hello(0) ==> failWithRuntimeExceptionAfterData!");
+		Assertions.assertThat(response.next().getGreeting())
+			.isEqualTo("Hello(1) ==> failWithRuntimeExceptionAfterData!");
+		try {
+			Assertions.assertThat(response.next().getGreeting())
+				.isEqualTo("Hello(2) ==> failWithRuntimeExceptionAfterData!");
 		}
 		catch (StatusRuntimeException e) {
 			thrown = true;
