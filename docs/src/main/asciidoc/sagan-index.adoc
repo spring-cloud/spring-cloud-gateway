@@ -55,7 +55,7 @@ public class DemogatewayApplication {
 }
 ```
 
-To run your own Gateway Server WebFlux use the `spring-cloud-starter-gateway` dependency.
+To run your own Gateway Server WebFlux use the `spring-cloud-starter-gateway-server-webflux` dependency.
 
 ## Getting Started with Spring Cloud Gateway Server Web MVC
 
@@ -100,4 +100,4 @@ public class DemogatewayApplication {
 }
 ```
 
-To run your own Gateway Server WebMVC use the `spring-cloud-starter-gateway-mvc` dependency.
+To run your own Gateway Server WebMVC use the `spring-cloud-starter-gateway-server-webmvc` dependency.
