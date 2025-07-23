@@ -9,5 +9,5 @@ spring:
     log-request-details: true
   cloud:
     gateway:
-      mvc:
+      server.webmvc:
         trusted-proxies: .*
