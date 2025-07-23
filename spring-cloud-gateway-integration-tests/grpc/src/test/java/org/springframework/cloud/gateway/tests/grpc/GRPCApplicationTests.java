@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static io.grpc.Status.FAILED_PRECONDITION;
 import static io.grpc.netty.NegotiationType.TLS;
@@ -42,6 +43,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  */
 @SpringBootTest(classes = org.springframework.cloud.gateway.tests.grpc.GRPCApplication.class,
 		webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class GRPCApplicationTests {
 
 	@LocalServerPort
