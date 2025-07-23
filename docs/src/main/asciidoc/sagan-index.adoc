@@ -1,19 +1,31 @@
-This project provides a library for building an API Gateway on top of Spring WebFlux. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross cutting concerns to them such as: security, monitoring/metrics, and resiliency.
+---
+title: Spring Cloud Gateway
+status: ACTIVE
+stackOverflow: https://stackoverflow.com/questions/tagged/spring-cloud
+github: https://github.com/spring-cloud/spring-cloud-gateway
+site: https://spring.io/projects/spring-cloud-gateway
+order: 255
+supportPolicy: DOWNSTREAM
+parent: spring-cloud
+---
+
+This project provides a library for building an API Gateway on top of Spring. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross-cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
 ## Features
 
 Spring Cloud Gateway features:
 
-* Built on Spring Framework 5, Project Reactor and Spring Boot 2.0
+* Built on Spring Framework and Spring Boot
+* Compatible with both Spring WebFlux and Spring Web MVC
 * Able to match routes on any request attribute.
 * Predicates and filters are specific to routes.
-* Hystrix Circuit Breaker integration.
+* Spring Cloud Circuit Breaker integration.
 * Spring Cloud DiscoveryClient integration
 * Easy to write Predicates and Filters
 * Request Rate Limiting
 * Path Rewriting
 
-## Getting Started
+## Getting Started with Spring Cloud Gateway Server WebFlux
 
 ```java
 @SpringBootApplication
@@ -22,25 +34,70 @@ public class DemogatewayApplication {
 	public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
 		return builder.routes()
 			.route("path_route", r -> r.path("/get")
-				.uri("http://httpbin.org"))
+				.uri("https://httpbin.org"))
 			.route("host_route", r -> r.host("*.myhost.org")
-				.uri("http://httpbin.org"))
+				.uri("https://httpbin.org"))
 			.route("rewrite_route", r -> r.host("*.rewrite.org")
 				.filters(f -> f.rewritePath("/foo/(?<segment>.*)", "/${segment}"))
-				.uri("http://httpbin.org"))
-			.route("hystrix_route", r -> r.host("*.hystrix.org")
-				.filters(f -> f.hystrix(c -> c.setName("slowcmd")))
-				.uri("http://httpbin.org"))
-			.route("hystrix_fallback_route", r -> r.host("*.hystrixfallback.org")
-				.filters(f -> f.hystrix(c -> c.setName("slowcmd").setFallbackUri("forward:/hystrixfallback")))
-				.uri("http://httpbin.org"))
+				.uri("https://httpbin.org"))
+			.route("circuit_breaker_route", r -> r.host("*.circuitbreaker.org")
+				.filters(f -> f.circuitBreaker(c -> c.setName("slowcmd")))
+				.uri("https://httpbin.org"))
+			.route("circuit_breaker_fallback_route", r -> r.host("*.circuitbreakerfallback.org")
+				.filters(f -> f.circuitBreaker(c -> c.setName("slowcmd").setFallbackUri("forward:/circuitbrekerfallback")))
+				.uri("https://httpbin.org"))
 			.route("limit_route", r -> r
 				.host("*.limited.org").and().path("/anything/**")
 				.filters(f -> f.requestRateLimiter(c -> c.setRateLimiter(redisRateLimiter())))
-				.uri("http://httpbin.org"))
+				.uri("https://httpbin.org"))
 			.build();
 	}
 }
 ```
 
-To run your own gateway use the `spring-cloud-starter-gateway` dependency.
+To run your own Gateway Server WebFlux use the `spring-cloud-starter-gateway` dependency.
+
+## Getting Started with Spring Cloud Gateway Server Web MVC
+
+```java
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.*;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.*;
+
+//...
+
+@SpringBootApplication
+public class DemogatewayApplication {
+    @Bean
+    public RouterFunction<ServerResponse> customRoutes() {
+        // @formatter:off
+        return route("path_route")
+                .GET("/get", http())
+                .before(uri("https://httpbin.orb"))
+            .build().and(route("host_route")
+                .route(host("*.myhost.org"), http())
+                .before(uri("https://httpbin.orb"))
+            .build().and(route("rewrite_route")
+                .route(host("*.rewrite.org"), http())
+                .before(uri("https://httpbin.orb"))
+                .before(rewritePath("/foo/(?<segment>.*)", "/${segment}"))
+            .build().and(route("circuitbreaker_route")
+                .route(host("*.circuitbreaker.org"), http())
+                .before(uri("https://httpbin.orb"))
+                .filter(circuitBreaker("slowcmd"))
+            .build().and(route("circuitbreaker_fallback_route")
+                .route(host("*.circuitbreakerfallback.org"), http())
+                .before(uri("https://httpbin.orb"))
+                .filter(circuitBreaker(c -> c.setId("slowcmd").setFallbackUri("forward:/fallback")))
+            .build().and(route("limit_route")
+                .route(host("*.limited.org").and(path("/anything/**")), http())
+                .before(uri("https://httpbin.orb"))
+                .filter(rateLimit(c -> c.setCapacity(10).setPeriod(Duration.ofSeconds(1)).setKeyResolver(request ->
+                        request.headers().firstHeader("X-TokenId"))))
+            .build())))));
+        // @formatter:on
+    }
+}
+```
+
+To run your own Gateway Server WebMVC use the `spring-cloud-starter-gateway-mvc` dependency.
