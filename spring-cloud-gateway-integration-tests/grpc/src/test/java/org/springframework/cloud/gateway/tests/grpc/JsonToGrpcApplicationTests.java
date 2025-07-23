@@ -40,7 +40,11 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.test.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.client.RestTemplate;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -50,6 +54,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Abel Salgado Romero
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 public class JsonToGrpcApplicationTests {
 
 	@LocalServerPort
@@ -72,9 +77,12 @@ public class JsonToGrpcApplicationTests {
 		configurer.addRoute(grpcServerPort, "/json/hello",
 				"JsonToGrpc=file:src/main/proto/hello.pb,file:src/main/proto/hello.proto,HelloService,hello");
 
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> request = new HttpEntity<>("{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", headers);
 		String response = restTemplate
 			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
-					"{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", String.class)
+					request, String.class)
 			.getBody();
 
 		Assertions.assertThat(response).isNotNull();
