@@ -76,18 +76,6 @@
 				<artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-gateway</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 

@@ -39,11 +39,11 @@
 			<dependencies>
 				<dependency>
 					<groupId>${project.groupId}</groupId>
-					<artifactId>spring-cloud-starter-gateway</artifactId>
+					<artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
 				</dependency>
 				<dependency>
 					<groupId>${project.groupId}</groupId>
-					<artifactId>spring-cloud-starter-gateway-mvc</artifactId>
+					<artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
 				</dependency>
 			</dependencies>
 		</profile>
