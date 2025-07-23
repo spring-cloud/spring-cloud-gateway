@@ -36,7 +36,6 @@ import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.test.context.SpringBootTest;
@@ -50,7 +49,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Alberto C. Ríos
  * @author Abel Salgado Romero
  */
-@Disabled
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class JsonToGrpcApplicationTests {
 
