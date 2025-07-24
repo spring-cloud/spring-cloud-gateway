@@ -26,15 +26,12 @@ import org.apache.commons.logging.LogFactory;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
@@ -70,7 +67,6 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
 				"logging.level.org.springframework.cloud.gateway.filter.headers=TRACE" })
 @DirtiesContext
 @SuppressWarnings("unchecked")
-@ExtendWith(OutputCaptureExtension.class)
 class GatewayIntegrationTests extends BaseWebClientTests {
 
 	@Autowired
@@ -217,11 +213,6 @@ class GatewayIntegrationTests extends BaseWebClientTests {
 	// gh-374 no content type/empty body causes NPR in NettyRoutingFilter
 	void noContentType() {
 		testClient.get().uri("/nocontenttype").exchange().expectStatus().is2xxSuccessful();
-	}
-
-	@Test
-	void logsArtifactDeprecatedWarning(CapturedOutput output) {
-		assertThat(output).contains("spring-cloud-gateway-server is deprecated");
 	}
 
 	@EnableAutoConfiguration

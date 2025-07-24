@@ -42,15 +42,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.system.CapturedOutput;
-import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -151,7 +148,6 @@ import static org.springframework.web.servlet.function.RequestPredicates.path;
 @SpringBootTest(properties = { "spring.http.client.factory=jdk", "spring.cloud.gateway.function.enabled=false",
 		"logging.level.org.springframework.security=TRACE" }, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
-@ExtendWith(OutputCaptureExtension.class)
 public class ServerMvcIntegrationTests {
 
 	static {
@@ -1027,11 +1023,6 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
 				assertThat(headers).containsEntry("X-Foo", "FOOVAL");
 			});
-	}
-
-	@Test
-	void logsArtifactDeprecatedWarning(CapturedOutput output) {
-		assertThat(output).contains("spring-cloud-gateway-server-mvc is deprecated");
 	}
 
 	@SpringBootConfiguration
