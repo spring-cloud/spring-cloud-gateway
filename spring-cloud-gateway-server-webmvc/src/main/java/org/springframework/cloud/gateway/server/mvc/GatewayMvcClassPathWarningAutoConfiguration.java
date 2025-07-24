@@ -46,16 +46,4 @@ public class GatewayMvcClassPathWarningAutoConfiguration {
 
 	}
 
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnMissingClass("org.springframework.cloud.gateway.server.webmvc.Marker")
-	protected static class NewModuleConfiguration {
-
-		public NewModuleConfiguration() {
-			log.warn(BORDER + "The artifact spring-cloud-gateway-server-mvc is deprecated. "
-					+ "It will be removed in the next major release. "
-					+ "Please add spring-cloud-gateway-server-webmvc dependency." + BORDER);
-		}
-
-	}
-
 }
