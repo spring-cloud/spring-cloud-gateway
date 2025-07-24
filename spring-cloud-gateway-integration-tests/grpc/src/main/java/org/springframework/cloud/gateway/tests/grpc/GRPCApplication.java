@@ -73,7 +73,11 @@ public class GRPCApplication {
 			Integer serverPort = environment.getProperty("local.server.port", Integer.class);
 			int grpcPort = serverPort + 1;
 			ServerCredentials creds = createServerCredentials();
-			server = Grpc.newServerBuilderForPort(grpcPort, creds).addService(new HelloService()).build().start();
+			server = Grpc.newServerBuilderForPort(grpcPort, creds)
+				.addService(new HelloService())
+				.addService(new StreamService())
+				.build()
+				.start();
 
 			log.info("Starting gRPC server in port " + grpcPort);
 
@@ -101,6 +105,38 @@ public class GRPCApplication {
 			log.info("gRPC server stopped");
 		}
 
+		static class StreamService extends StreamServiceGrpc.StreamServiceImplBase {
+
+			@Override
+			public void more(HelloRequest request, StreamObserver<HelloResponse> responseObserver) {
+				int count = 0;
+				while (count < 3) {
+					HelloResponse reply = HelloResponse.newBuilder()
+						.setGreeting("Hello(" + count + ") ==> " + request.getFirstName())
+						.build();
+					if ("failWithRuntimeExceptionAfterData!".equals(request.getFirstName()) && count == 2) {
+						StatusRuntimeException exception = Status.RESOURCE_EXHAUSTED
+							.withDescription("Too long firstNames?")
+							.asRuntimeException();
+						responseObserver.onError(exception);
+						return;
+					}
+					responseObserver.onNext(reply);
+					count++;
+					try {
+						Thread.sleep(200L);
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						responseObserver.onError(e);
+						return;
+					}
+				}
+				responseObserver.onCompleted();
+			}
+
+		}
+
 		static class HelloService extends HelloServiceGrpc.HelloServiceImplBase {
 
 			@Override
@@ -119,6 +155,14 @@ public class GRPCApplication {
 				HelloResponse response = HelloResponse.newBuilder().setGreeting(greeting).build();
 
 				responseObserver.onNext(response);
+
+				if ("failWithRuntimeExceptionAfterData!".equals(request.getFirstName())) {
+					StatusRuntimeException exception = Status.RESOURCE_EXHAUSTED.withDescription("Too long firstNames?")
+						.asRuntimeException();
+					responseObserver.onError(exception);
+					return;
+				}
+
 				responseObserver.onCompleted();
 			}
 
