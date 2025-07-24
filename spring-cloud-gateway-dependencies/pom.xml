@@ -22,30 +22,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-webflux</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-mvc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<!-- Deprecated -->
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-gateway-server-mvc</artifactId>
-				<version>${project.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-gateway-proxyexchange-webflux</artifactId>
