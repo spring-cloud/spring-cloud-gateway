@@ -23,12 +23,28 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  *
  * @author Marta Medio
  * @author Ignacio Lozano
+ * @author Dong Hyeon Lee
  */
 public class UriKeyValueGenerator implements KeyValueGenerator {
+
+	private boolean enabled = true;
+
+	public UriKeyValueGenerator(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	@Override
 	public String getKeyValue(ServerHttpRequest request) {
 		return request.getURI().toString();
 	}
 
+	@Override
+	public boolean isEnabled() {
+		return this.enabled;
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 }
