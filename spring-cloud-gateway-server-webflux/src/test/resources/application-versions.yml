@@ -7,31 +7,13 @@ spring:
         header-name: X-API-Version
       routes:
         # =====================================
-        - id: retry_test
+        - id: version_13
           uri: ${test.uri}
           predicates:
-            - Path=/retry
+            - Path=/anything/version13
+            - Version=1.3
           filters:
-            - Retry
-        # =====================================
-        - id: retry_post_once_test
-          uri: ${test.uri}
-          predicates:
-            - Host=**.retrypostonceconfig.org
-          filters:
-            - name: Retry
-              args:
-                methods: GET,POST
-        # =====================================
-        - id: retry_post_test
-          uri: ${test.uri}
-          predicates:
-            - Host=**.retrypostconfig.org
-          filters:
-            - name: Retry
-              args:
-                methods: GET,POST
-  #main.allow-bean-definition-overriding: true
+            - AddResponseHeader=X-Matched-Version,1.3
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
