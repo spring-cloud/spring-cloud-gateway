@@ -22,6 +22,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -31,6 +32,7 @@ import javax.net.ssl.TrustManagerFactory;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -40,9 +42,11 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -151,6 +155,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.VersionRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
@@ -165,6 +170,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.cloud.gateway.support.GatewayApiVersionStrategy;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
@@ -182,8 +188,12 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
+import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.reactive.accept.ApiVersionResolver;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
@@ -299,16 +309,21 @@ public class GatewayAutoConfiguration {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
+	// ConfigurationProperty beans
+
 	@Bean
 	public GatewayProperties gatewayProperties() {
 		return new GatewayProperties();
 	}
 
-	// ConfigurationProperty beans
-
 	@Bean
 	public SecureHeadersProperties secureHeadersProperties() {
 		return new SecureHeadersProperties();
+	}
+
+	@Bean
+	public VersionProperties versionProperties() {
+		return new VersionProperties();
 	}
 
 	@Bean
@@ -497,6 +512,13 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledPredicate
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledPredicate
+	public VersionRoutePredicateFactory versionRoutePredicateFactory(
+			@Qualifier("mvcApiVersionStrategy") @Nullable ApiVersionStrategy apiVersionStrategy) {
+		return new VersionRoutePredicateFactory(apiVersionStrategy);
 	}
 
 	@Bean
@@ -747,6 +769,12 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
+			VersionProperties versionProperties) {
+		return new GatewayServerWebfluxBeanPostProcessor(versionProperties);
+	}
+
+	@Bean
 	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
 		return new ConfigurableHintsRegistrationProcessor();
 	}
@@ -920,6 +948,35 @@ public class GatewayAutoConfiguration {
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
 				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
 			return new TokenRelayGatewayFilterFactory(clientManager);
+		}
+
+	}
+
+	public static class GatewayServerWebfluxBeanPostProcessor implements BeanPostProcessor {
+
+		private final VersionProperties versionProperties;
+
+		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties) {
+			this.versionProperties = versionProperties;
+		}
+
+		@Override
+		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+			if (bean instanceof ApiVersionStrategy && beanName.equals("mvcApiVersionStrategy")) {
+				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
+				String headerName = versionProperties.getHeaderName();
+				if (StringUtils.hasText(headerName)) {
+					versionResolvers.add(exchange -> exchange.getRequest().getHeaders().getFirst(headerName));
+				}
+
+				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers,
+						new SemanticApiVersionParser(), versionProperties.isRequired(), null, true, null);
+				if (!versionProperties.getSupportedVersions().isEmpty()) {
+					strategy.addSupportedVersion(versionProperties.getSupportedVersions().toArray(new String[0]));
+				}
+				return strategy;
+			}
+			return bean;
 		}
 
 	}

@@ -1,0 +1,37 @@
+spring:
+  cloud:
+    gateway.server.webflux:
+      default-filters:
+        - PrefixPath=/httpbin
+      version:
+        header-name: X-API-Version
+      routes:
+        # =====================================
+        - id: retry_test
+          uri: ${test.uri}
+          predicates:
+            - Path=/retry
+          filters:
+            - Retry
+        # =====================================
+        - id: retry_post_once_test
+          uri: ${test.uri}
+          predicates:
+            - Host=**.retrypostonceconfig.org
+          filters:
+            - name: Retry
+              args:
+                methods: GET,POST
+        # =====================================
+        - id: retry_post_test
+          uri: ${test.uri}
+          predicates:
+            - Host=**.retrypostconfig.org
+          filters:
+            - name: Retry
+              args:
+                methods: GET,POST
+  #main.allow-bean-definition-overriding: true
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
