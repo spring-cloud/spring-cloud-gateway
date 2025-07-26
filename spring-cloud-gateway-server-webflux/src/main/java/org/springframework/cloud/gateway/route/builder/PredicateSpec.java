@@ -34,6 +34,7 @@ import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFac
 import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.VersionRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
@@ -273,6 +274,16 @@ public class PredicateSpec extends UriSpec {
 				c.setRemoteAddressResolver(resolver);
 			}
 		}));
+	}
+
+	/**
+	 * A predicate that checks for the version specified. This uses the Spring Framework
+	 * ApiStrategry.
+	 * @param version the version to check.
+	 * @return a {@link BooleanSpec} to be used to add logical operators
+	 */
+	public BooleanSpec version(String version) {
+		return asyncPredicate(getBean(VersionRoutePredicateFactory.class).applyAsync(c -> c.setVersion(version)));
 	}
 
 	/**
