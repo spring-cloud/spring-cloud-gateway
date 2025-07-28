@@ -190,16 +190,23 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
+import org.springframework.web.accept.ApiVersionParser;
 import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.reactive.accept.ApiVersionDeprecationHandler;
 import org.springframework.web.reactive.accept.ApiVersionResolver;
 import org.springframework.web.reactive.accept.ApiVersionStrategy;
+import org.springframework.web.reactive.accept.MediaTypeParamApiVersionResolver;
+import org.springframework.web.reactive.accept.PathApiVersionResolver;
+import org.springframework.web.reactive.config.ApiVersionConfigurer;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
@@ -770,8 +777,11 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
-			VersionProperties versionProperties) {
-		return new GatewayServerWebfluxBeanPostProcessor(versionProperties);
+			VersionProperties versionProperties,
+			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
+			ObjectProvider<ApiVersionParser<?>> versionParserProvider) {
+		return new GatewayServerWebfluxBeanPostProcessor(versionProperties, deprecationHandlerProvider.getIfAvailable(),
+				versionParserProvider.getIfAvailable());
 	}
 
 	@Bean
@@ -952,25 +962,65 @@ public class GatewayAutoConfiguration {
 
 	}
 
-	public static class GatewayServerWebfluxBeanPostProcessor implements BeanPostProcessor {
+	// FIXME: without adding a version resolver, things fail until I can replace
+	// ApiVersionStrategy in a bean post processor
+	@Configuration(proxyBeanMethods = false)
+	protected static class ApiVersionConfiguration implements WebFluxConfigurer {
+
+		@Override
+		public void configureApiVersioning(ApiVersionConfigurer configurer) {
+			configurer.useVersionResolver(new ApiVersionResolver() {
+				@Override
+				public @Nullable String resolveVersion(ServerWebExchange exchange) {
+					return null;
+				}
+			});
+		}
+
+	}
+
+	protected static class GatewayServerWebfluxBeanPostProcessor implements BeanPostProcessor {
 
 		private final VersionProperties versionProperties;
 
-		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties) {
+		private final ApiVersionDeprecationHandler deprecationHandler;
+
+		private final ApiVersionParser<?> versionParser;
+
+		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties,
+				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser) {
 			this.versionProperties = versionProperties;
+			this.deprecationHandler = deprecationHandler;
+			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
 		}
 
 		@Override
 		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+
+			// TODO: Use custom ApiVersionConfigurer when able to
 			if (bean instanceof ApiVersionStrategy && beanName.equals("mvcApiVersionStrategy")) {
 				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
-				String headerName = versionProperties.getHeaderName();
-				if (StringUtils.hasText(headerName)) {
-					versionResolvers.add(exchange -> exchange.getRequest().getHeaders().getFirst(headerName));
+				if (StringUtils.hasText(versionProperties.getHeaderName())) {
+					versionResolvers.add(
+							exchange -> exchange.getRequest().getHeaders().getFirst(versionProperties.getHeaderName()));
+				}
+				if (versionProperties.getMediaType() != null
+						&& StringUtils.hasText(versionProperties.getMediaTypeParamName())) {
+					versionResolvers.add(new MediaTypeParamApiVersionResolver(versionProperties.getMediaType(),
+							versionProperties.getMediaTypeParamName()));
+				}
+				if (versionProperties.getPathSegment() != null) {
+					versionResolvers.add(new PathApiVersionResolver(versionProperties.getPathSegment()));
+				}
+				if (StringUtils.hasText(versionProperties.getRequestParamName())) {
+					versionResolvers.add(exchange -> exchange.getRequest()
+						.getQueryParams()
+						.getFirst(versionProperties.getRequestParamName()));
 				}
 
-				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers,
-						new SemanticApiVersionParser(), versionProperties.isRequired(), null, true, null);
+				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
+						versionProperties.isRequired(), versionProperties.getDefaultVersion(),
+						versionProperties.isDetectSupportedVersions(), deprecationHandler);
 				if (!versionProperties.getSupportedVersions().isEmpty()) {
 					strategy.addSupportedVersion(versionProperties.getSupportedVersions().toArray(new String[0]));
 				}

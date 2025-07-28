@@ -17,8 +17,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -35,15 +34,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.predicate.VersionRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
-import org.springframework.cloud.gateway.support.GatewayApiVersionStrategy;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.web.accept.SemanticApiVersionParser;
-import org.springframework.web.reactive.accept.ApiVersionResolver;
-import org.springframework.web.reactive.accept.ApiVersionStrategy;
-import org.springframework.web.reactive.config.ApiVersionConfigurer;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -55,7 +50,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientTests {
 
 	@Test
-	public void versionWorks() {
+	public void versionHeaderWorks() {
 		testClient.mutate()
 			.build()
 			.get()
@@ -96,6 +91,46 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 			.isOk()
 			.expectHeader()
 			.valueEquals("X-Matched-Version", "2.0+");
+	}
+
+	@Test
+	public void versionMediaTypeWorks() {
+		testClient.mutate()
+				.build()
+				.get()
+				.uri("/anything/version11plus")
+				.accept(new MediaType(MediaType.APPLICATION_JSON, Map.of("version", "1.1.0")))
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectHeader()
+				.valueEquals("X-Matched-Version", "1.1+");
+	}
+
+	@Test
+	public void versionRequestParamWorks() {
+		testClient.mutate()
+			.build()
+			.get()
+			.uri("/anything/version11plus?apiVersion=1.1.0")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "1.1+");
+	}
+
+	@Test
+	public void versionPathSegmentWorks() {
+		testClient.mutate()
+			.build()
+			.get()
+			.uri("/version14/1.4.0")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "1.4");
 	}
 
 	@Test
@@ -182,25 +217,14 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 							.version("2.0+")
 							.filters(f -> f.prefixPath("/httpbin").setResponseHeader("X-Matched-Version", "2.0+"))
 							.uri(uri))
+				.route("version14_dsl",
+						r -> r.path("/version14/{pathVersion}")
+							.and()
+							.version("1.4")
+							.filters(f -> f.setPath("/httpbin/anything/version14{pathVersion}")
+								.setResponseHeader("X-Matched-Version", "1.4"))
+							.uri(uri))
 				.build();
-		}
-
-		// @Bean
-		public ApiVersionStrategy xmvcApiVersionStrategy() {
-			List<ApiVersionResolver> versionResolvers = new ArrayList<>();
-			versionResolvers.add(exchange -> exchange.getRequest().getHeaders().getFirst("X-API-Version"));
-
-			GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers,
-					new SemanticApiVersionParser(), true, null, true, null);
-			strategy.addSupportedVersion("1.5");
-			return strategy;
-		}
-
-		// @Override
-		public void configureApiVersioning(ApiVersionConfigurer configurer) {
-			configurer.useRequestHeader("X-API-Version");
-			// TODO, shouldn't the 1.1+ in the predicate work?
-			// .addSupportedVersions("1.5");*/
 		}
 
 	}

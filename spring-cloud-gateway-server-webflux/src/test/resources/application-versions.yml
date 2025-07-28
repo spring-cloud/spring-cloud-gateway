@@ -5,6 +5,10 @@ spring:
         - PrefixPath=/httpbin
       version:
         header-name: X-API-Version
+        request-param-name: apiVersion
+        path-segment: 3
+        media-type: application/json
+        media-type-param-name: version
       routes:
         # =====================================
         - id: version_13

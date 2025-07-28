@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -30,11 +31,50 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class VersionProperties {
 
+	/** The defaultVersion. */
+	private String defaultVersion;
+
+	/**
+	 * Flag whether to use API versions that appear in mappings for supported version
+	 * validation (true), or use only explicitly configured versions (false). Defaults to
+	 * true.
+	 */
+	private boolean detectSupportedVersions = true;
+
+	/** The header name used to extract the API Version. */
 	private String headerName;
+
+	/** The media type name used to extract the API Version. */
+	private MediaType mediaType;
+
+	/** The media type parameter name used to extract the API Version. */
+	private String mediaTypeParamName;
+
+	/** The index of a path segment used to extract the API Version. */
+	private Integer pathSegment;
+
+	/** The request parameter name used to extract the API Version. */
+	private String requestParamName;
 
 	private boolean required;
 
 	private List<String> supportedVersions = new ArrayList<>();
+
+	public String getDefaultVersion() {
+		return defaultVersion;
+	}
+
+	public void setDefaultVersion(String defaultVersion) {
+		this.defaultVersion = defaultVersion;
+	}
+
+	public boolean isDetectSupportedVersions() {
+		return detectSupportedVersions;
+	}
+
+	public void setDetectSupportedVersions(boolean detectSupportedVersions) {
+		this.detectSupportedVersions = detectSupportedVersions;
+	}
 
 	public String getHeaderName() {
 		return headerName;
@@ -42,6 +82,38 @@ public class VersionProperties {
 
 	public void setHeaderName(String headerName) {
 		this.headerName = headerName;
+	}
+
+	public MediaType getMediaType() {
+		return mediaType;
+	}
+
+	public void setMediaType(MediaType mediaType) {
+		this.mediaType = mediaType;
+	}
+
+	public String getMediaTypeParamName() {
+		return mediaTypeParamName;
+	}
+
+	public void setMediaTypeParamName(String mediaTypeParamName) {
+		this.mediaTypeParamName = mediaTypeParamName;
+	}
+
+	public Integer getPathSegment() {
+		return pathSegment;
+	}
+
+	public void setPathSegment(Integer pathSegment) {
+		this.pathSegment = pathSegment;
+	}
+
+	public String getRequestParamName() {
+		return requestParamName;
+	}
+
+	public void setRequestParamName(String requestParamName) {
+		this.requestParamName = requestParamName;
 	}
 
 	public boolean isRequired() {
@@ -64,7 +136,13 @@ public class VersionProperties {
 	public String toString() {
 		// @formatter:off
 		return new ToStringCreator(this)
+				.append("defaultVersion", defaultVersion)
+				.append("detectSupportedVersions", detectSupportedVersions)
 				.append("headerName", headerName)
+				.append("mediaType", mediaType)
+				.append("mediaTypeParamName", mediaTypeParamName)
+				.append("pathSegment", pathSegment)
+				.append("requestParamName", requestParamName)
 				.append("required", required)
 				.append("supportedVersions", supportedVersions)
 				.toString();
