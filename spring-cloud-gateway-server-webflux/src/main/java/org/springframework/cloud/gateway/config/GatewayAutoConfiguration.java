@@ -779,9 +779,9 @@ public class GatewayAutoConfiguration {
 	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
 			VersionProperties versionProperties,
 			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
-			ObjectProvider<ApiVersionParser<?>> versionParserProvider) {
+			ObjectProvider<ApiVersionParser<?>> versionParserProvider, ObjectProvider<ApiVersionResolver> versionResolvers) {
 		return new GatewayServerWebfluxBeanPostProcessor(versionProperties, deprecationHandlerProvider.getIfAvailable(),
-				versionParserProvider.getIfAvailable());
+				versionParserProvider.getIfAvailable(), versionResolvers.orderedStream().toList());
 	}
 
 	@Bean
@@ -999,12 +999,14 @@ public class GatewayAutoConfiguration {
 		private final ApiVersionDeprecationHandler deprecationHandler;
 
 		private final ApiVersionParser<?> versionParser;
+		private final List<ApiVersionResolver> apiVersionResolvers;
 
 		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties,
-				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser) {
+													 ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser, List<ApiVersionResolver> apiVersionResolvers) {
 			this.versionProperties = versionProperties;
 			this.deprecationHandler = deprecationHandler;
 			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
+			this.apiVersionResolvers = apiVersionResolvers;
 		}
 
 		@Override
@@ -1029,6 +1031,10 @@ public class GatewayAutoConfiguration {
 					versionResolvers.add(exchange -> exchange.getRequest()
 						.getQueryParams()
 						.getFirst(versionProperties.getRequestParamName()));
+				}
+
+				if (apiVersionResolvers != null && !apiVersionResolvers.isEmpty()) {
+					versionResolvers.addAll(apiVersionResolvers);
 				}
 
 				if (versionResolvers.isEmpty()) {

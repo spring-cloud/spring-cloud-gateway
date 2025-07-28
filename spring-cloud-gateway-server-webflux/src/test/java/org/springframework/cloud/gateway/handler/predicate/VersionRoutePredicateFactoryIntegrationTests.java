@@ -25,6 +25,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.reactive.accept.ApiVersionResolver;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -118,6 +120,19 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 			.isOk()
 			.expectHeader()
 			.valueEquals("X-Matched-Version", "1.1+");
+	}
+
+	@Test
+	public void customVersionResolverBeanWorks() {
+		testClient.mutate()
+				.build()
+				.get()
+				.uri("/anything/version11plus?customApiVersionParam=1.1.0")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectHeader()
+				.valueEquals("X-Matched-Version", "1.1+");
 	}
 
 	@Test
@@ -201,6 +216,12 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 
 		@Value("${test.uri}")
 		String uri;
+
+		@Bean
+		ApiVersionResolver customApiVersionResolver() {
+			return exchange ->
+					exchange.getRequest().getQueryParams().getFirst("customApiVersionParam");
+		}
 
 		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
