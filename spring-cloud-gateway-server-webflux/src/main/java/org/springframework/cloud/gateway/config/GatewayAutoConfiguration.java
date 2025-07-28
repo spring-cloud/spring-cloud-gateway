@@ -779,7 +779,8 @@ public class GatewayAutoConfiguration {
 	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
 			VersionProperties versionProperties,
 			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
-			ObjectProvider<ApiVersionParser<?>> versionParserProvider, ObjectProvider<ApiVersionResolver> versionResolvers) {
+			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
+			ObjectProvider<ApiVersionResolver> versionResolvers) {
 		return new GatewayServerWebfluxBeanPostProcessor(versionProperties, deprecationHandlerProvider.getIfAvailable(),
 				versionParserProvider.getIfAvailable(), versionResolvers.orderedStream().toList());
 	}
@@ -999,10 +1000,12 @@ public class GatewayAutoConfiguration {
 		private final ApiVersionDeprecationHandler deprecationHandler;
 
 		private final ApiVersionParser<?> versionParser;
+
 		private final List<ApiVersionResolver> apiVersionResolvers;
 
 		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties,
-													 ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser, List<ApiVersionResolver> apiVersionResolvers) {
+				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser,
+				List<ApiVersionResolver> apiVersionResolvers) {
 			this.versionProperties = versionProperties;
 			this.deprecationHandler = deprecationHandler;
 			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();

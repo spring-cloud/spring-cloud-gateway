@@ -25,7 +25,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -125,14 +124,14 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 	@Test
 	public void customVersionResolverBeanWorks() {
 		testClient.mutate()
-				.build()
-				.get()
-				.uri("/anything/version11plus?customApiVersionParam=1.1.0")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectHeader()
-				.valueEquals("X-Matched-Version", "1.1+");
+			.build()
+			.get()
+			.uri("/anything/version11plus?customApiVersionParam=1.1.0")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "1.1+");
 	}
 
 	@Test
@@ -219,8 +218,7 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 
 		@Bean
 		ApiVersionResolver customApiVersionResolver() {
-			return exchange ->
-					exchange.getRequest().getQueryParams().getFirst("customApiVersionParam");
+			return exchange -> exchange.getRequest().getQueryParams().getFirst("customApiVersionParam");
 		}
 
 		@Bean
