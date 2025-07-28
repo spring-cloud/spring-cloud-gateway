@@ -86,6 +86,7 @@ public class DisableBuiltInPredicatesTests {
 					"spring.cloud.gateway.server.webflux.predicate.query.enabled=false",
 					"spring.cloud.gateway.server.webflux.predicate.read-body.enabled=false",
 					"spring.cloud.gateway.server.webflux.predicate.remote-addr.enabled=false",
+					"spring.cloud.gateway.server.webflux.predicate.version.enabled=false",
 					"spring.cloud.gateway.server.webflux.predicate.xforwarded-remote-addr.enabled=false",
 					"spring.cloud.gateway.server.webflux.predicate.weight.enabled=false",
 					"spring.cloud.gateway.server.webflux.predicate.cloud-foundry-route-service.enabled=false" })
