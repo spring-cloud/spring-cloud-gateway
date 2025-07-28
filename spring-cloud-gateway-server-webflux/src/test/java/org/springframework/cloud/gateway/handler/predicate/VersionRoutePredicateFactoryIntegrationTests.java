@@ -77,25 +77,25 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 			.expectHeader()
 			.valueEquals("X-Matched-Version", "1.1+");
 		testClient.mutate()
-				.build()
-				.get()
-				.uri("/anything/version13")
-				.header("X-API-Version", "1.3.0")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectHeader()
-				.valueEquals("X-Matched-Version", "1.3");
+			.build()
+			.get()
+			.uri("/anything/version13")
+			.header("X-API-Version", "1.3.0")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "1.3");
 		testClient.mutate()
-				.build()
-				.get()
-				.uri("/anything/version20plus")
-				.header("X-API-Version", "2.1.0")
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectHeader()
-				.valueEquals("X-Matched-Version", "2.0+");
+			.build()
+			.get()
+			.uri("/anything/version20plus")
+			.header("X-API-Version", "2.1.0")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "2.0+");
 	}
 
 	@Test
@@ -171,13 +171,13 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 				.route("version11plus_dsl",
-				r -> r.path("/anything/version11plus")
+						r -> r.path("/anything/version11plus")
 							.and()
 							.version("1.1+")
 							.filters(f -> f.prefixPath("/httpbin").setResponseHeader("X-Matched-Version", "1.1+"))
 							.uri(uri))
 				.route("version20plus_dsl",
-				r -> r.path("/anything/version20plus")
+						r -> r.path("/anything/version20plus")
 							.and()
 							.version("2.0+")
 							.filters(f -> f.prefixPath("/httpbin").setResponseHeader("X-Matched-Version", "2.0+"))
