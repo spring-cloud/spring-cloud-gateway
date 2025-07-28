@@ -96,15 +96,15 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 	@Test
 	public void versionMediaTypeWorks() {
 		testClient.mutate()
-				.build()
-				.get()
-				.uri("/anything/version11plus")
-				.accept(new MediaType(MediaType.APPLICATION_JSON, Map.of("version", "1.1.0")))
-				.exchange()
-				.expectStatus()
-				.isOk()
-				.expectHeader()
-				.valueEquals("X-Matched-Version", "1.1+");
+			.build()
+			.get()
+			.uri("/anything/version11plus")
+			.accept(new MediaType(MediaType.APPLICATION_JSON, Map.of("version", "1.1.0")))
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("X-Matched-Version", "1.1+");
 	}
 
 	@Test
