@@ -22,6 +22,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -31,6 +32,7 @@ import javax.net.ssl.TrustManagerFactory;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -40,9 +42,11 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -151,6 +155,7 @@ import org.springframework.cloud.gateway.handler.predicate.QueryRoutePredicateFa
 import org.springframework.cloud.gateway.handler.predicate.ReadBodyRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.VersionRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
@@ -165,6 +170,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.cloud.gateway.support.GatewayApiVersionStrategy;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
@@ -182,14 +188,25 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
+import org.springframework.web.accept.ApiVersionParser;
+import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.reactive.DispatcherHandler;
+import org.springframework.web.reactive.accept.ApiVersionDeprecationHandler;
+import org.springframework.web.reactive.accept.ApiVersionResolver;
+import org.springframework.web.reactive.accept.ApiVersionStrategy;
+import org.springframework.web.reactive.accept.MediaTypeParamApiVersionResolver;
+import org.springframework.web.reactive.accept.PathApiVersionResolver;
+import org.springframework.web.reactive.config.ApiVersionConfigurer;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
@@ -299,16 +316,21 @@ public class GatewayAutoConfiguration {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
+	// ConfigurationProperty beans
+
 	@Bean
 	public GatewayProperties gatewayProperties() {
 		return new GatewayProperties();
 	}
 
-	// ConfigurationProperty beans
-
 	@Bean
 	public SecureHeadersProperties secureHeadersProperties() {
 		return new SecureHeadersProperties();
+	}
+
+	@Bean
+	public VersionProperties versionProperties() {
+		return new VersionProperties();
 	}
 
 	@Bean
@@ -497,6 +519,13 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledPredicate
 	public RemoteAddrRoutePredicateFactory remoteAddrRoutePredicateFactory() {
 		return new RemoteAddrRoutePredicateFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledPredicate
+	public VersionRoutePredicateFactory versionRoutePredicateFactory(
+			@Qualifier("mvcApiVersionStrategy") @Nullable ApiVersionStrategy apiVersionStrategy) {
+		return new VersionRoutePredicateFactory(apiVersionStrategy);
 	}
 
 	@Bean
@@ -747,6 +776,16 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
+			VersionProperties versionProperties,
+			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
+			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
+			ObjectProvider<ApiVersionResolver> versionResolvers) {
+		return new GatewayServerWebfluxBeanPostProcessor(versionProperties, deprecationHandlerProvider.getIfAvailable(),
+				versionParserProvider.getIfAvailable(), versionResolvers.orderedStream().toList());
+	}
+
+	@Bean
 	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
 		return new ConfigurableHintsRegistrationProcessor();
 	}
@@ -920,6 +959,100 @@ public class GatewayAutoConfiguration {
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
 				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
 			return new TokenRelayGatewayFilterFactory(clientManager);
+		}
+
+	}
+
+	// FIXME: without adding a version resolver, things fail until I can replace
+	// ApiVersionStrategy in a bean post processor
+	@Configuration(proxyBeanMethods = false)
+	protected static class ApiVersionConfiguration implements WebFluxConfigurer {
+
+		private final VersionProperties versionProperties;
+
+		protected ApiVersionConfiguration(VersionProperties versionProperties) {
+			this.versionProperties = versionProperties;
+		}
+
+		@Override
+		public void configureApiVersioning(ApiVersionConfigurer configurer) {
+			if (StringUtils.hasText(versionProperties.getHeaderName())
+					|| (versionProperties.getMediaType() != null
+							&& StringUtils.hasText(versionProperties.getMediaTypeParamName()))
+					|| versionProperties.getPathSegment() != null
+					|| StringUtils.hasText(versionProperties.getRequestParamName())) {
+				// only add if version resolver configured
+				configurer.useVersionResolver(new ApiVersionResolver() {
+					@Override
+					public @Nullable String resolveVersion(ServerWebExchange exchange) {
+						return null;
+					}
+				});
+			}
+		}
+
+	}
+
+	protected static class GatewayServerWebfluxBeanPostProcessor implements BeanPostProcessor {
+
+		private final VersionProperties versionProperties;
+
+		private final ApiVersionDeprecationHandler deprecationHandler;
+
+		private final ApiVersionParser<?> versionParser;
+
+		private final List<ApiVersionResolver> apiVersionResolvers;
+
+		public GatewayServerWebfluxBeanPostProcessor(VersionProperties versionProperties,
+				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser,
+				List<ApiVersionResolver> apiVersionResolvers) {
+			this.versionProperties = versionProperties;
+			this.deprecationHandler = deprecationHandler;
+			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
+			this.apiVersionResolvers = apiVersionResolvers;
+		}
+
+		@Override
+		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+
+			// TODO: Use custom ApiVersionConfigurer when able to
+			if (bean instanceof ApiVersionStrategy && beanName.equals("mvcApiVersionStrategy")) {
+				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
+				if (StringUtils.hasText(versionProperties.getHeaderName())) {
+					versionResolvers.add(
+							exchange -> exchange.getRequest().getHeaders().getFirst(versionProperties.getHeaderName()));
+				}
+				if (versionProperties.getMediaType() != null
+						&& StringUtils.hasText(versionProperties.getMediaTypeParamName())) {
+					versionResolvers.add(new MediaTypeParamApiVersionResolver(versionProperties.getMediaType(),
+							versionProperties.getMediaTypeParamName()));
+				}
+				if (versionProperties.getPathSegment() != null) {
+					versionResolvers.add(new PathApiVersionResolver(versionProperties.getPathSegment()));
+				}
+				if (StringUtils.hasText(versionProperties.getRequestParamName())) {
+					versionResolvers.add(exchange -> exchange.getRequest()
+						.getQueryParams()
+						.getFirst(versionProperties.getRequestParamName()));
+				}
+
+				if (apiVersionResolvers != null && !apiVersionResolvers.isEmpty()) {
+					versionResolvers.addAll(apiVersionResolvers);
+				}
+
+				if (versionResolvers.isEmpty()) {
+					return bean;
+				}
+
+				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
+						versionProperties.isRequired(), versionProperties.getDefaultVersion(),
+						versionProperties.isDetectSupportedVersions(), deprecationHandler);
+				if (!versionProperties.getSupportedVersions().isEmpty()) {
+					strategy.addSupportedVersion(versionProperties.getSupportedVersions().toArray(new String[0]));
+				}
+				return strategy;
+			}
+			return bean;
 		}
 
 	}

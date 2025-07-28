@@ -1,0 +1,23 @@
+spring:
+  cloud:
+    gateway.server.webflux:
+      default-filters:
+        - PrefixPath=/httpbin
+      version:
+        header-name: X-API-Version
+        request-param-name: apiVersion
+        path-segment: 3
+        media-type: application/json
+        media-type-param-name: version
+      routes:
+        # =====================================
+        - id: version_13
+          uri: ${test.uri}
+          predicates:
+            - Path=/anything/version13
+            - Version=1.3
+          filters:
+            - AddResponseHeader=X-Matched-Version,1.3
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
