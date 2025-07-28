@@ -967,14 +967,27 @@ public class GatewayAutoConfiguration {
 	@Configuration(proxyBeanMethods = false)
 	protected static class ApiVersionConfiguration implements WebFluxConfigurer {
 
+		private final VersionProperties versionProperties;
+
+		protected ApiVersionConfiguration(VersionProperties versionProperties) {
+			this.versionProperties = versionProperties;
+		}
+
 		@Override
 		public void configureApiVersioning(ApiVersionConfigurer configurer) {
-			configurer.useVersionResolver(new ApiVersionResolver() {
-				@Override
-				public @Nullable String resolveVersion(ServerWebExchange exchange) {
-					return null;
-				}
-			});
+			if (StringUtils.hasText(versionProperties.getHeaderName())
+					|| (versionProperties.getMediaType() != null
+							&& StringUtils.hasText(versionProperties.getMediaTypeParamName()))
+					|| versionProperties.getPathSegment() != null
+					|| StringUtils.hasText(versionProperties.getRequestParamName())) {
+				// only add if version resolver configured
+				configurer.useVersionResolver(new ApiVersionResolver() {
+					@Override
+					public @Nullable String resolveVersion(ServerWebExchange exchange) {
+						return null;
+					}
+				});
+			}
 		}
 
 	}
@@ -1016,6 +1029,10 @@ public class GatewayAutoConfiguration {
 					versionResolvers.add(exchange -> exchange.getRequest()
 						.getQueryParams()
 						.getFirst(versionProperties.getRequestParamName()));
+				}
+
+				if (versionResolvers.isEmpty()) {
+					return bean;
 				}
 
 				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
