@@ -151,6 +151,15 @@
 |spring.cloud.gateway.server.webflux.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
 |spring.cloud.gateway.server.webflux.streaming-media-types |  | 
 |spring.cloud.gateway.server.webflux.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.
+|spring.cloud.gateway.server.webflux.version.default-version |  | The defaultVersion.
+|spring.cloud.gateway.server.webflux.version.detect-supported-versions | `+++true+++` | Flag whether to use API versions that appear in mappings for supported version validation (true), or use only explicitly configured versions (false). Defaults to true.
+|spring.cloud.gateway.server.webflux.version.header-name |  | The header name used to extract the API Version.
+|spring.cloud.gateway.server.webflux.version.media-type |  | The media type name used to extract the API Version.
+|spring.cloud.gateway.server.webflux.version.media-type-param-name |  | The media type parameter name used to extract the API Version.
+|spring.cloud.gateway.server.webflux.version.path-segment |  | The index of a path segment used to extract the API Version.
+|spring.cloud.gateway.server.webflux.version.request-param-name |  | The request parameter name used to extract the API Version.
+|spring.cloud.gateway.server.webflux.version.required | `+++false+++` | 
+|spring.cloud.gateway.server.webflux.version.supported-versions |  | 
 |spring.cloud.gateway.server.webflux.x-forwarded.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
 |spring.cloud.gateway.server.webflux.x-forwarded.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
 |spring.cloud.gateway.server.webflux.x-forwarded.for-enabled | `+++true+++` | If X-Forwarded-For is enabled.
