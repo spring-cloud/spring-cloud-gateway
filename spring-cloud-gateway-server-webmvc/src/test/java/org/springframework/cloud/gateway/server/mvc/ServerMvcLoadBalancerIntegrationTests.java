@@ -25,10 +25,10 @@ import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 /**
  * Integration tests for {@link FilterAutoConfiguration.LoadBalancerHandlerConfiguration}.
@@ -46,11 +46,11 @@ public class ServerMvcLoadBalancerIntegrationTests {
 	int port;
 
 	@Autowired
-	TestRestClient testRestClient;
+	RestTestClient restClient;
 
 	@Test
 	void shouldUseLbHandlerFunctionDefinitionToResolveHost() {
-		testRestClient.get().uri("http://localhost:" + port + "/test").exchange().expectStatus().isOk();
+		restClient.get().uri("http://localhost:" + port + "/test").exchange().expectStatus().isOk();
 	}
 
 	@SpringBootApplication

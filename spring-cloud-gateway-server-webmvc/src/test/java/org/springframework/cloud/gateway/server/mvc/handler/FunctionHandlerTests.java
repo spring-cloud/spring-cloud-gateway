@@ -27,10 +27,10 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -41,14 +41,14 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 public class FunctionHandlerTests {
 
 	@Autowired
-	private TestRestClient restClient;
+	private RestTestClient restClient;
 
 	@Test
 	public void testSimpleFunctionWorks() {
 		restClient.post()
 			.uri("/simplefunction")
 			.accept(MediaType.TEXT_PLAIN)
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -61,7 +61,7 @@ public class FunctionHandlerTests {
 		restClient.post()
 			.uri("/templatedfunction/upper")
 			.accept(MediaType.TEXT_PLAIN)
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isOk()
