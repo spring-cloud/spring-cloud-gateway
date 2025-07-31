@@ -137,7 +137,6 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 	@Test
 	public void invalidVersionNotFound() {
 		testClient.mutate()
-			.responseTimeout(Duration.ofMinutes(5))
 			.build()
 			.get()
 			.uri("/anything/version11plus")
