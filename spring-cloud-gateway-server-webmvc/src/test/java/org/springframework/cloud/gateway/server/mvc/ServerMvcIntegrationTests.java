@@ -52,6 +52,7 @@ import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -145,8 +146,9 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.http.client.factory=jdk", "spring.cloud.gateway.function.enabled=false",
-		"logging.level.org.springframework.security=TRACE" }, webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = { "spring.http.client.factory=jdk",
+		GatewayMvcProperties.PREFIX + ".function.enabled=false", "logging.level.org.springframework.security=TRACE" },
+		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class ServerMvcIntegrationTests {
 

@@ -1,0 +1,24 @@
+spring:
+  cloud:
+    gateway.server.webmvc:
+      routes:
+        # =====================================
+        - id: version_13
+          uri: https://example.com
+          predicates:
+            - Path=/anything/version13
+            - Version=1.3
+          filters:
+            - HttpbinUriResolver=
+            - AddResponseHeader=X-Matched-Version,1.3
+  mvc:
+    apiversion:
+      use:
+        header: X-API-Version
+        media-type-parameter:
+          "[application/json]": version
+        query-parameter: apiVersion
+      required: false
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE

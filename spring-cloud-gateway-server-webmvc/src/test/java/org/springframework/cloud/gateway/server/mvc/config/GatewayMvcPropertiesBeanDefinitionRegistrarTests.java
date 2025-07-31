@@ -56,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,
-		properties = { "spring.cloud.gateway.function.enabled=false" })
+		properties = { GatewayMvcProperties.PREFIX + ".function.enabled=false" })
 @ActiveProfiles("propertiesbeandefinitionregistrartests")
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 public class GatewayMvcPropertiesBeanDefinitionRegistrarTests {

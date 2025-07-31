@@ -46,6 +46,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
@@ -215,6 +216,28 @@ public abstract class GatewayRequestPredicates {
 
 	public static <T> RequestPredicate readBody(Class<T> inClass, Predicate<T> predicate) {
 		return new ReadBodyPredicate<>(inClass, predicate);
+	}
+
+	/**
+	 * {@code RequestPredicate} to match to the request API version extracted from and
+	 * parsed with the configured {@link ApiVersionStrategy}.
+	 * <p>
+	 * The version may be one of the following:
+	 * <ul>
+	 * <li>Fixed version ("1.2") -- match this version only.
+	 * <li>Baseline version ("1.2+") -- match this and subsequent versions.
+	 * </ul>
+	 * <p>
+	 * A baseline version allows n endpoint route to continue to work in subsequent
+	 * versions if it remains compatible until an incompatible change eventually leads to
+	 * the creation of a new route.
+	 * @param version the version to use
+	 * @return the created predicate instance
+	 * @since 5.0
+	 */
+	@Shortcut
+	public static RequestPredicate version(String version) {
+		return RequestPredicates.version(version);
 	}
 
 	/**

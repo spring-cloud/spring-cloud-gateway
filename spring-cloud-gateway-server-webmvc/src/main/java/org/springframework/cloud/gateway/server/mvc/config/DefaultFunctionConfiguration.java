@@ -28,7 +28,8 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 
 @Configuration
 @ConditionalOnClass(name = "org.springframework.cloud.function.context.FunctionCatalog")
-@ConditionalOnProperty(name = "spring.cloud.gateway.function.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayMvcProperties.PREFIX + ".function.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class DefaultFunctionConfiguration {
 
 	@Bean

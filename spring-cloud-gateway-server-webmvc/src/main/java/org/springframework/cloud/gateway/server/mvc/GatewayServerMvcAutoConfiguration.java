@@ -16,10 +16,17 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -31,6 +38,8 @@ import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfigur
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties.Apiversion;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
@@ -67,7 +76,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.accept.ApiVersionDeprecationHandler;
+import org.springframework.web.accept.ApiVersionParser;
+import org.springframework.web.accept.ApiVersionResolver;
+import org.springframework.web.accept.ApiVersionStrategy;
+import org.springframework.web.accept.DefaultApiVersionStrategy;
+import org.springframework.web.accept.InvalidApiVersionException;
+import org.springframework.web.accept.MediaTypeParamApiVersionResolver;
+import org.springframework.web.accept.MissingApiVersionException;
+import org.springframework.web.accept.PathApiVersionResolver;
+import org.springframework.web.accept.QueryApiVersionResolver;
+import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -214,6 +235,18 @@ public class GatewayServerMvcAutoConfiguration {
 		return new GatewayMvcRuntimeHintsProcessor();
 	}
 
+	@Bean
+	GatewayServerWebMvcBeanPostProcessor gatewayServerWebMvcBeanPostProcessor(
+			ObjectProvider<WebMvcProperties> properties,
+			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
+			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
+			ObjectProvider<ApiVersionResolver> versionResolvers) {
+		return new GatewayServerWebMvcBeanPostProcessor(
+				properties.getIfAvailable(WebMvcProperties::new).getApiversion(),
+				deprecationHandlerProvider.getIfAvailable(), versionParserProvider.getIfAvailable(),
+				versionResolvers.orderedStream().toList());
+	}
+
 	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
 		static final boolean APACHE = ClassUtils.isPresent("org.apache.hc.client5.http.impl.classic.HttpClients", null);
@@ -253,6 +286,107 @@ public class GatewayServerMvcAutoConfiguration {
 				else if (StringUtils.hasText(restrictedHeaders) && !restrictedHeaders.contains("host")) {
 					System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
 				}
+			}
+		}
+
+	}
+
+	protected static class GatewayServerWebMvcBeanPostProcessor implements BeanPostProcessor {
+
+		private final Apiversion versionProperties;
+
+		private final ApiVersionDeprecationHandler deprecationHandler;
+
+		private final ApiVersionParser<?> versionParser;
+
+		private final List<ApiVersionResolver> apiVersionResolvers;
+
+		public GatewayServerWebMvcBeanPostProcessor(Apiversion versionProperties,
+				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser,
+				List<ApiVersionResolver> apiVersionResolvers) {
+			this.versionProperties = versionProperties;
+			this.deprecationHandler = deprecationHandler;
+			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
+			this.apiVersionResolvers = apiVersionResolvers;
+		}
+
+		@Override
+		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+
+			// TODO: Use custom ApiVersionConfigurer when able to
+			if (bean instanceof ApiVersionStrategy && beanName.equals("mvcApiVersionStrategy")) {
+				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
+				if (StringUtils.hasText(versionProperties.getUse().getHeader())) {
+					versionResolvers.add(request -> request.getHeader(versionProperties.getUse().getHeader()));
+				}
+				if (!CollectionUtils.isEmpty(versionProperties.getUse().getMediaTypeParameter())) {
+					versionProperties.getUse().getMediaTypeParameter().forEach((mediaType, param) -> {
+						versionResolvers.add(new MediaTypeParamApiVersionResolver(mediaType, param));
+					});
+				}
+				if (versionProperties.getUse().getPathSegment() != null) {
+					versionResolvers.add(new PathApiVersionResolver(versionProperties.getUse().getPathSegment()));
+				}
+				if (StringUtils.hasText(versionProperties.getUse().getQueryParameter())) {
+					versionResolvers.add(new QueryApiVersionResolver(versionProperties.getUse().getQueryParameter()));
+				}
+
+				if (apiVersionResolvers != null && !apiVersionResolvers.isEmpty()) {
+					versionResolvers.addAll(apiVersionResolvers);
+				}
+
+				if (versionResolvers.isEmpty()) {
+					return bean;
+				}
+
+				Boolean required = versionProperties.getRequired();
+				if (required == null) {
+					required = false;
+				}
+				Boolean detectSupported = versionProperties.getDetectSupported();
+				if (detectSupported == null) {
+					detectSupported = true;
+				}
+				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
+						required, versionProperties.getDefaultVersion(), detectSupported, deprecationHandler);
+				if (!CollectionUtils.isEmpty(versionProperties.getSupported())) {
+					strategy.addSupportedVersion(versionProperties.getSupported().toArray(new String[0]));
+				}
+				return strategy;
+			}
+			return bean;
+		}
+
+	}
+
+	protected static class GatewayApiVersionStrategy extends DefaultApiVersionStrategy {
+
+		public GatewayApiVersionStrategy(List<ApiVersionResolver> versionResolvers, ApiVersionParser<?> versionParser,
+				boolean versionRequired, @Nullable String defaultVersion, boolean detectSupportedVersions,
+				@Nullable ApiVersionDeprecationHandler deprecationHandler) {
+			super(versionResolvers, versionParser, versionRequired, defaultVersion, detectSupportedVersions,
+					deprecationHandler);
+		}
+
+		@Override
+		public @Nullable Comparable<?> resolveParseAndValidateVersion(HttpServletRequest request) {
+			try {
+				return super.resolveParseAndValidateVersion(request);
+			}
+			catch (InvalidApiVersionException e) {
+				// ignore, so gateway will 404, not 400
+				return null;
+			}
+		}
+
+		@Override
+		public void validateVersion(@Nullable Comparable<?> requestVersion, HttpServletRequest request)
+				throws MissingApiVersionException, InvalidApiVersionException {
+			try {
+				super.validateVersion(requestVersion, request);
+			}
+			catch (InvalidApiVersionException e) {
+				// ignore, so gateway will 404, not 400
 			}
 		}
 
