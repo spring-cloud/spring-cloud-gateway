@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
