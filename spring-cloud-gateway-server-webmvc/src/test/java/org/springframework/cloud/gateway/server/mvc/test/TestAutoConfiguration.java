@@ -16,35 +16,21 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
-import java.util.List;
-
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.restclient.RestTemplateCustomizer;
-import org.springframework.boot.web.server.test.client.TestRestTemplate;
 import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
-import org.springframework.cloud.gateway.server.mvc.test.client.DefaultTestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 @AutoConfiguration(after = GatewayServerMvcAutoConfiguration.class)
 public class TestAutoConfiguration {
 
 	@Bean
-	RestTemplateCustomizer testRestClientRestTemplateCustomizer() {
-		return restTemplate -> restTemplate.setClientHttpRequestInitializers(List.of(request -> {
-			if (!request.getHeaders().containsHeader(HttpHeaders.ACCEPT)) {
-				request.getHeaders().setAccept(List.of(MediaType.ALL));
-			}
-		}));
-	}
-
-	@Bean
-	public DefaultTestRestClient testRestClient(@Lazy TestRestTemplate testRestTemplate, Environment env) {
-		return new DefaultTestRestClient(testRestTemplate, new LocalHostUriBuilderFactory(env), result -> {
-		});
+	@Lazy // so env has the chance to get local.server.port
+	public RestTestClient restTestClient(Environment env) {
+		String port = env.getProperty("local.server.port", "8080");
+		return RestTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
 	}
 
 	@Bean

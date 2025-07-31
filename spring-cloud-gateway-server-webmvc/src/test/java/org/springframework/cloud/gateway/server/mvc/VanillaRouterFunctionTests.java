@@ -31,11 +31,11 @@ import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -53,7 +53,7 @@ public class VanillaRouterFunctionTests {
 	int port;
 
 	@Autowired
-	TestRestClient restClient;
+	RestTestClient restClient;
 
 	@SuppressWarnings("rawtypes")
 	@Test
@@ -61,7 +61,7 @@ public class VanillaRouterFunctionTests {
 		restClient.post()
 			.uri("/anything/routerfunctionsroute")
 			.header("Host", "www.routerfunctionsroute.org")
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isOk()

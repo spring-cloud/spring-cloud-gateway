@@ -32,10 +32,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -55,7 +55,7 @@ public class StreamHandlerTests {
 	public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.7.25-management-alpine");
 
 	@Autowired
-	private TestRestClient restClient;
+	private RestTestClient restClient;
 
 	@Autowired
 	private AtomicBoolean helloConsumed;
@@ -66,7 +66,7 @@ public class StreamHandlerTests {
 		restClient.post()
 			.uri("/simplestream")
 			.accept(MediaType.TEXT_PLAIN)
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isAccepted();
@@ -81,7 +81,7 @@ public class StreamHandlerTests {
 		restClient.post()
 			.uri("/templatedstream/hello")
 			.accept(MediaType.TEXT_PLAIN)
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isAccepted();

@@ -28,10 +28,10 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DefaultRouteFunctionHandlerTests {
 
 	@Autowired
-	private TestRestClient restClient;
+	private RestTestClient restClient;
 
 	@Test
 	public void testSupplierWorks() {
@@ -70,7 +70,7 @@ public class DefaultRouteFunctionHandlerTests {
 		restClient.post()
 			.uri("/upper")
 			.accept(MediaType.APPLICATION_JSON)
-			.bodyValue("bob")
+			.body("bob")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -89,7 +89,7 @@ public class DefaultRouteFunctionHandlerTests {
 		restClient.post()
 			.uri("/consume")
 			.accept(MediaType.APPLICATION_JSON)
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isAccepted();

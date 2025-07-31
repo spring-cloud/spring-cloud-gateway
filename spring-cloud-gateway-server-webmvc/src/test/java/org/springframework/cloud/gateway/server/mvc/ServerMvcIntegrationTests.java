@@ -61,7 +61,6 @@ import org.springframework.cloud.gateway.server.mvc.test.HttpbinUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -77,6 +76,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
@@ -162,7 +162,7 @@ public class ServerMvcIntegrationTests {
 	TestRestTemplate restTemplate;
 
 	@Autowired
-	TestRestClient restClient;
+	RestTestClient restClient;
 
 	@Test
 	public void nonGatewayRouterFunctionWorks() {
@@ -227,7 +227,7 @@ public class ServerMvcIntegrationTests {
 	public void setPathPostWorks() {
 		restClient.post()
 			.uri("/mycustompathpost")
-			.bodyValue("hello")
+			.body("hello")
 			.header("Host", "www.setpathpost.org")
 			.exchange()
 			.expectStatus()
@@ -266,7 +266,7 @@ public class ServerMvcIntegrationTests {
 	public void stripPrefixPostWorks() {
 		restClient.post()
 			.uri("/long/path/to/post")
-			.bodyValue("hello")
+			.body("hello")
 			.header("Host", "www.stripprefixpost.org")
 			.exchange()
 			.expectStatus()
@@ -343,7 +343,7 @@ public class ServerMvcIntegrationTests {
 	public void postWorks() {
 		restClient.post()
 			.uri("/post")
-			.bodyValue("Post Value")
+			.body("Post Value")
 			.header("test", "post")
 			.exchange()
 			.expectStatus()
@@ -494,7 +494,7 @@ public class ServerMvcIntegrationTests {
 	public void rewritePathPostWorks() {
 		restClient.post()
 			.uri("/baz/post")
-			.bodyValue("hello")
+			.body("hello")
 			.header("Host", "www.rewritepathpost.org")
 			.exchange()
 			.expectStatus()
@@ -512,7 +512,7 @@ public class ServerMvcIntegrationTests {
 	public void rewritePathPostLocalWorks() {
 		restClient.post()
 			.uri("/baz/localpost")
-			.bodyValue("hello")
+			.body("hello")
 			.header("Host", "www.rewritepathpostlocal.org")
 			.exchange()
 			.expectStatus()
@@ -560,7 +560,7 @@ public class ServerMvcIntegrationTests {
 	public void requestSizeWorks() {
 		restClient.post()
 			.uri("/post")
-			.bodyValue("123456")
+			.body("123456")
 			.header("test", "requestsize")
 			.exchange()
 			.expectStatus()
@@ -602,7 +602,7 @@ public class ServerMvcIntegrationTests {
 
 		// @formatter:off
 		restClient.post().uri("/post?foo=fooquery").header("test", "formurlencoded").contentType(FORM_URL_ENCODED_CONTENT_TYPE)
-				.bodyValue(formData)
+				.body(formData)
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(Map.class).consumeWith(result -> {
@@ -622,7 +622,7 @@ public class ServerMvcIntegrationTests {
 		// @formatter:off
 		restClient.post().uri("/post").contentType(MULTIPART_FORM_DATA)
 				.header("Host", "www.testform.org")
-				.bodyValue(formData)
+				.body(formData)
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(Map.class)
@@ -783,7 +783,7 @@ public class ServerMvcIntegrationTests {
 	public void removeRequestParameterPostWorks() {
 		restClient.post()
 			.uri("/post?foo=bar")
-			.bodyValue("hello")
+			.body("hello")
 			.header("Host", "www.removerequestparampost.org")
 			.exchange()
 			.expectStatus()
@@ -903,7 +903,7 @@ public class ServerMvcIntegrationTests {
 
 		restClient.post()
 			.uri("/events")
-			.bodyValue(messageEvent)
+			.body(messageEvent)
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -916,7 +916,7 @@ public class ServerMvcIntegrationTests {
 
 		restClient.post()
 			.uri("/events")
-			.bodyValue(messageChannelEvent)
+			.body(messageChannelEvent)
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -933,7 +933,7 @@ public class ServerMvcIntegrationTests {
 		restClient.post()
 			.uri("/post")
 			.header("Host", "www.modifyrequestbodystring.org")
-			.bodyValue("hello")
+			.body("hello")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -947,7 +947,7 @@ public class ServerMvcIntegrationTests {
 		restClient.post()
 			.uri("/post")
 			.header("Host", "www.modifyrequestbodyobject.org")
-			.bodyValue("hello world")
+			.body("hello world")
 			.exchange()
 			.expectStatus()
 			.isOk()

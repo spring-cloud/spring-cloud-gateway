@@ -34,7 +34,6 @@ import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.LocalServerPortUriResolver;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
-import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -43,6 +42,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -67,7 +67,7 @@ public class RetryFilterFunctionTests {
 	int port;
 
 	@Autowired
-	TestRestClient restClient;
+	RestTestClient restClient;
 
 	@Test
 	public void retryWorks() {
@@ -87,7 +87,7 @@ public class RetryFilterFunctionTests {
 	public void retryBodyWorks() {
 		restClient.post()
 			.uri("/retrybody?key=post")
-			.bodyValue("thebody")
+			.body("thebody")
 			.exchange()
 			.expectStatus()
 			.isOk()
