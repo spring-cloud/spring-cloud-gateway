@@ -135,19 +135,6 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 	}
 
 	@Test
-	public void versionPathSegmentWorks() {
-		testClient.mutate()
-			.build()
-			.get()
-			.uri("/version14/1.4.0")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectHeader()
-			.valueEquals("X-Matched-Version", "1.4");
-	}
-
-	@Test
 	public void invalidVersionNotFound() {
 		testClient.mutate()
 			.responseTimeout(Duration.ofMinutes(5))
@@ -236,14 +223,8 @@ public class VersionRoutePredicateFactoryIntegrationTests extends BaseWebClientT
 							.version("2.0+")
 							.filters(f -> f.prefixPath("/httpbin").setResponseHeader("X-Matched-Version", "2.0+"))
 							.uri(uri))
-				.route("version14_dsl",
-						r -> r.path("/version14/{pathVersion}")
-							.and()
-							.version("1.4")
-							.filters(f -> f.setPath("/httpbin/anything/version14{pathVersion}")
-								.setResponseHeader("X-Matched-Version", "1.4"))
-							.uri(uri))
 				.build();
+
 		}
 
 	}

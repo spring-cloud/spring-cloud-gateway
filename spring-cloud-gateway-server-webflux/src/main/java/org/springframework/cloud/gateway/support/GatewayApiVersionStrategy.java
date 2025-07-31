@@ -58,6 +58,17 @@ public class GatewayApiVersionStrategy extends DefaultApiVersionStrategy {
 	}
 
 	@Override
+	public @Nullable Comparable<?> resolveParseAndValidateVersion(ServerWebExchange exchange) {
+		try {
+			return super.resolveParseAndValidateVersion(exchange);
+		}
+		catch (InvalidApiVersionException e) {
+			// ignore, so gateway will 404, not 400
+			return null;
+		}
+	}
+
+	@Override
 	public void validateVersion(@Nullable Comparable<?> requestVersion, ServerWebExchange exchange)
 			throws MissingApiVersionException, InvalidApiVersionException {
 		try {

@@ -1,0 +1,8 @@
+spring:
+  webflux:
+    apiversion:
+      use:
+        path-segment: 1
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE

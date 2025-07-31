@@ -79,8 +79,8 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 					.get(HandlerMapping.API_VERSION_ATTRIBUTE);
 
 				if (requestVersion == null) {
-					traceMatch("Version", config.version, null, true);
-					return true;
+					traceMatch("Version", config.version, null, false);
+					return false;
 				}
 
 				int result = compareVersions(config.parsedVersion, requestVersion);
