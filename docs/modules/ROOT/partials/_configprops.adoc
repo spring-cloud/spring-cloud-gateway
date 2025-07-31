@@ -29,7 +29,7 @@
 |spring.cloud.gateway.server.webflux.filter.preserve-host-header.enabled | `+++true+++` | Enables the preserve-host-header filter.
 |spring.cloud.gateway.server.webflux.filter.redirect-to.enabled | `+++true+++` | Enables the redirect-to filter.
 |spring.cloud.gateway.server.webflux.filter.remove-hop-by-hop.headers |  | 
-|spring.cloud.gateway.server.webflux.filter.remove-hop-by-hop.order | `+++0+++` | 
+|spring.cloud.gateway.server.webflux.filter.remove-hop-by-hop.order |  | 
 |spring.cloud.gateway.server.webflux.filter.remove-request-header.enabled | `+++true+++` | Enables the remove-request-header filter.
 |spring.cloud.gateway.server.webflux.filter.remove-request-parameter.enabled | `+++true+++` | Enables the remove-request-parameter filter.
 |spring.cloud.gateway.server.webflux.filter.remove-response-header.enabled | `+++true+++` | Enables the remove-response-header filter.
