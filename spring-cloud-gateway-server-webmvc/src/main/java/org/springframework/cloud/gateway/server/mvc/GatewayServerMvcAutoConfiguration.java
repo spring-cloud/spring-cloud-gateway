@@ -344,25 +344,15 @@ public class GatewayServerMvcAutoConfiguration {
 				if (detectSupported == null) {
 					detectSupported = true;
 				}
-				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
-						required, versionProperties.getDefaultVersion(), detectSupported, deprecationHandler);
+				DefaultApiVersionStrategy strategy = new DefaultApiVersionStrategy(versionResolvers, versionParser,
+						required, versionProperties.getDefaultVersion(), detectSupported, comparable -> true,
+						deprecationHandler);
 				if (!CollectionUtils.isEmpty(versionProperties.getSupported())) {
 					strategy.addSupportedVersion(versionProperties.getSupported().toArray(new String[0]));
 				}
 				return strategy;
 			}
 			return bean;
-		}
-
-	}
-
-	protected static class GatewayApiVersionStrategy extends DefaultApiVersionStrategy {
-
-		public GatewayApiVersionStrategy(List<ApiVersionResolver> versionResolvers, ApiVersionParser<?> versionParser,
-				boolean versionRequired, @Nullable String defaultVersion, boolean detectSupportedVersions,
-				@Nullable ApiVersionDeprecationHandler deprecationHandler) {
-			super(versionResolvers, versionParser, versionRequired, defaultVersion, detectSupportedVersions,
-					comparable -> true, deprecationHandler);
 		}
 
 	}
