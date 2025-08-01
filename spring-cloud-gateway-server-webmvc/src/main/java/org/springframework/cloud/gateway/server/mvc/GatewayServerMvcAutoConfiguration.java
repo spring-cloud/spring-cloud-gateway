@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
@@ -83,9 +82,7 @@ import org.springframework.web.accept.ApiVersionParser;
 import org.springframework.web.accept.ApiVersionResolver;
 import org.springframework.web.accept.ApiVersionStrategy;
 import org.springframework.web.accept.DefaultApiVersionStrategy;
-import org.springframework.web.accept.InvalidApiVersionException;
 import org.springframework.web.accept.MediaTypeParamApiVersionResolver;
-import org.springframework.web.accept.MissingApiVersionException;
 import org.springframework.web.accept.PathApiVersionResolver;
 import org.springframework.web.accept.QueryApiVersionResolver;
 import org.springframework.web.accept.SemanticApiVersionParser;
@@ -365,29 +362,7 @@ public class GatewayServerMvcAutoConfiguration {
 				boolean versionRequired, @Nullable String defaultVersion, boolean detectSupportedVersions,
 				@Nullable ApiVersionDeprecationHandler deprecationHandler) {
 			super(versionResolvers, versionParser, versionRequired, defaultVersion, detectSupportedVersions,
-					deprecationHandler);
-		}
-
-		@Override
-		public @Nullable Comparable<?> resolveParseAndValidateVersion(HttpServletRequest request) {
-			try {
-				return super.resolveParseAndValidateVersion(request);
-			}
-			catch (InvalidApiVersionException e) {
-				// ignore, so gateway will 404, not 400
-				return null;
-			}
-		}
-
-		@Override
-		public void validateVersion(@Nullable Comparable<?> requestVersion, HttpServletRequest request)
-				throws MissingApiVersionException, InvalidApiVersionException {
-			try {
-				super.validateVersion(requestVersion, request);
-			}
-			catch (InvalidApiVersionException e) {
-				// ignore, so gateway will 404, not 400
-			}
+					comparable -> true, deprecationHandler);
 		}
 
 	}

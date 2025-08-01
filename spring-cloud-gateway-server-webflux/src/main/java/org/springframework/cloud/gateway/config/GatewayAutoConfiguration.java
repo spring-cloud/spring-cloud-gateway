@@ -171,7 +171,6 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.cloud.gateway.support.GatewayApiVersionStrategy;
 import org.springframework.cloud.gateway.support.StringToZonedDateTimeConverter;
 import org.springframework.cloud.gateway.support.config.KeyValueConverter;
 import org.springframework.context.ApplicationEventPublisher;
@@ -198,6 +197,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.accept.ApiVersionDeprecationHandler;
 import org.springframework.web.reactive.accept.ApiVersionResolver;
 import org.springframework.web.reactive.accept.ApiVersionStrategy;
+import org.springframework.web.reactive.accept.DefaultApiVersionStrategy;
 import org.springframework.web.reactive.accept.MediaTypeParamApiVersionResolver;
 import org.springframework.web.reactive.accept.PathApiVersionResolver;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -775,11 +775,13 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(ObjectProvider<WebFluxProperties> properties,
+	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
+			ObjectProvider<WebFluxProperties> properties,
 			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
 			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
 			ObjectProvider<ApiVersionResolver> versionResolvers) {
-		return new GatewayServerWebfluxBeanPostProcessor(properties.getIfAvailable(WebFluxProperties::new).getApiversion(),
+		return new GatewayServerWebfluxBeanPostProcessor(
+				properties.getIfAvailable(WebFluxProperties::new).getApiversion(),
 				deprecationHandlerProvider.getIfAvailable(), versionParserProvider.getIfAvailable(),
 				versionResolvers.orderedStream().toList());
 	}
@@ -1022,8 +1024,9 @@ public class GatewayAutoConfiguration {
 				if (detectSupported == null) {
 					detectSupported = true;
 				}
-				GatewayApiVersionStrategy strategy = new GatewayApiVersionStrategy(versionResolvers, versionParser,
-						required, versionProperties.getDefaultVersion(), detectSupported, deprecationHandler);
+				DefaultApiVersionStrategy strategy = new DefaultApiVersionStrategy(versionResolvers, versionParser,
+						required, versionProperties.getDefaultVersion(), detectSupported, comparable -> true,
+						deprecationHandler);
 				if (!CollectionUtils.isEmpty(versionProperties.getSupported())) {
 					strategy.addSupportedVersion(versionProperties.getSupported().toArray(new String[0]));
 				}

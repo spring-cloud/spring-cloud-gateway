@@ -55,7 +55,7 @@ public class VersionRoutePredicateFactoryTests {
 
 	static DefaultApiVersionStrategy apiVersionStrategy() {
 		return new DefaultApiVersionStrategy(List.of(exchange -> null), new SemanticApiVersionParser(), true, null,
-				false, null);
+				false, null, null);
 	}
 
 }
