@@ -40,7 +40,7 @@ public class VersionRoutePredicateFactoryPathSegmentIntegrationTests extends Bas
 		testClient.mutate()
 			.build()
 			.get()
-			.uri("/version14/1.4.0")
+			.uri("/version14/sub/1.4.0")
 			.exchange()
 			.expectStatus()
 			.isOk()
@@ -60,10 +60,10 @@ public class VersionRoutePredicateFactoryPathSegmentIntegrationTests extends Bas
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 				.route("version14_dsl",
-						r -> r.path("/version14/{pathVersion}")
+						r -> r.path("/version14/sub/{pathVersion}")
 							.and()
 							.version("1.4")
-							.filters(f -> f.setPath("/httpbin/anything/version14{pathVersion}")
+							.filters(f -> f.setPath("/httpbin/anything/{pathVersion}")
 								.setResponseHeader("X-Matched-Version", "1.4"))
 							.uri(uri))
 				.build();

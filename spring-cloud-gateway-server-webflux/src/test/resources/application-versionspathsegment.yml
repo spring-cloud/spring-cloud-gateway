@@ -2,7 +2,7 @@ spring:
   webflux:
     apiversion:
       use:
-        path-segment: 1
+        path-segment: 2
 logging:
   level:
     org.springframework.cloud.gateway: TRACE
