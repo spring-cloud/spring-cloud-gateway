@@ -775,11 +775,11 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(WebFluxProperties properties,
+	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(ObjectProvider<WebFluxProperties> properties,
 			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
 			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
 			ObjectProvider<ApiVersionResolver> versionResolvers) {
-		return new GatewayServerWebfluxBeanPostProcessor(properties.getApiversion(),
+		return new GatewayServerWebfluxBeanPostProcessor(properties.getIfAvailable(WebFluxProperties::new).getApiversion(),
 				deprecationHandlerProvider.getIfAvailable(), versionParserProvider.getIfAvailable(),
 				versionResolvers.orderedStream().toList());
 	}
