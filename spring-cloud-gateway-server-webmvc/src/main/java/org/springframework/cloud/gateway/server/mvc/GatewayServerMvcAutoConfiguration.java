@@ -16,16 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -69,6 +63,7 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscovere
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -77,16 +72,9 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.accept.ApiVersionDeprecationHandler;
-import org.springframework.web.accept.ApiVersionParser;
-import org.springframework.web.accept.ApiVersionResolver;
-import org.springframework.web.accept.ApiVersionStrategy;
-import org.springframework.web.accept.DefaultApiVersionStrategy;
-import org.springframework.web.accept.MediaTypeParamApiVersionResolver;
-import org.springframework.web.accept.PathApiVersionResolver;
-import org.springframework.web.accept.QueryApiVersionResolver;
-import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.servlet.config.annotation.ApiVersionConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * AutoConfiguration for Spring Cloud Gateway MVC server.
@@ -232,16 +220,34 @@ public class GatewayServerMvcAutoConfiguration {
 		return new GatewayMvcRuntimeHintsProcessor();
 	}
 
-	@Bean
-	GatewayServerWebMvcBeanPostProcessor gatewayServerWebMvcBeanPostProcessor(
-			ObjectProvider<WebMvcProperties> properties,
-			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
-			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
-			ObjectProvider<ApiVersionResolver> versionResolvers) {
-		return new GatewayServerWebMvcBeanPostProcessor(
-				properties.getIfAvailable(WebMvcProperties::new).getApiversion(),
-				deprecationHandlerProvider.getIfAvailable(), versionParserProvider.getIfAvailable(),
-				versionResolvers.orderedStream().toList());
+	@Configuration(proxyBeanMethods = false)
+	static class GatewayMvcApiVersionConfig implements WebMvcConfigurer {
+
+		final Apiversion versionProperties;
+
+		GatewayMvcApiVersionConfig(ObjectProvider<WebMvcProperties> webMvcProperties) {
+			this.versionProperties = webMvcProperties.getIfAvailable(WebMvcProperties::new).getApiversion();
+		}
+
+		@Override
+		public void configureApiVersioning(ApiVersionConfigurer configurer) {
+			Boolean required = versionProperties.getRequired();
+			Boolean detectSupported = versionProperties.getDetectSupported();
+
+			Apiversion.Use use = versionProperties.getUse();
+			// only set defaults is one or more use options is set
+			if (StringUtils.hasText(use.getHeader()) || StringUtils.hasText(use.getQueryParameter())
+					|| use.getPathSegment() != null || !CollectionUtils.isEmpty(use.getMediaTypeParameter())) {
+				if (required == null) {
+					configurer.setVersionRequired(false);
+				}
+				if (detectSupported == null) {
+					configurer.detectSupportedVersions(true);
+				}
+				configurer.setSupportedVersionPredicate(comparable -> true);
+			}
+		}
+
 	}
 
 	static class GatewayHttpClientEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -284,75 +290,6 @@ public class GatewayServerMvcAutoConfiguration {
 					System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
 				}
 			}
-		}
-
-	}
-
-	protected static class GatewayServerWebMvcBeanPostProcessor implements BeanPostProcessor {
-
-		private final Apiversion versionProperties;
-
-		private final ApiVersionDeprecationHandler deprecationHandler;
-
-		private final ApiVersionParser<?> versionParser;
-
-		private final List<ApiVersionResolver> apiVersionResolvers;
-
-		public GatewayServerWebMvcBeanPostProcessor(Apiversion versionProperties,
-				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser,
-				List<ApiVersionResolver> apiVersionResolvers) {
-			this.versionProperties = versionProperties;
-			this.deprecationHandler = deprecationHandler;
-			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
-			this.apiVersionResolvers = apiVersionResolvers;
-		}
-
-		@Override
-		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-
-			// TODO: Use custom ApiVersionConfigurer when able to
-			if (bean instanceof ApiVersionStrategy && beanName.equals("mvcApiVersionStrategy")) {
-				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
-				if (StringUtils.hasText(versionProperties.getUse().getHeader())) {
-					versionResolvers.add(request -> request.getHeader(versionProperties.getUse().getHeader()));
-				}
-				if (!CollectionUtils.isEmpty(versionProperties.getUse().getMediaTypeParameter())) {
-					versionProperties.getUse().getMediaTypeParameter().forEach((mediaType, param) -> {
-						versionResolvers.add(new MediaTypeParamApiVersionResolver(mediaType, param));
-					});
-				}
-				if (versionProperties.getUse().getPathSegment() != null) {
-					versionResolvers.add(new PathApiVersionResolver(versionProperties.getUse().getPathSegment()));
-				}
-				if (StringUtils.hasText(versionProperties.getUse().getQueryParameter())) {
-					versionResolvers.add(new QueryApiVersionResolver(versionProperties.getUse().getQueryParameter()));
-				}
-
-				if (apiVersionResolvers != null && !apiVersionResolvers.isEmpty()) {
-					versionResolvers.addAll(apiVersionResolvers);
-				}
-
-				if (versionResolvers.isEmpty()) {
-					return bean;
-				}
-
-				Boolean required = versionProperties.getRequired();
-				if (required == null) {
-					required = false;
-				}
-				Boolean detectSupported = versionProperties.getDetectSupported();
-				if (detectSupported == null) {
-					detectSupported = true;
-				}
-				DefaultApiVersionStrategy strategy = new DefaultApiVersionStrategy(versionResolvers, versionParser,
-						required, versionProperties.getDefaultVersion(), detectSupported, comparable -> true,
-						deprecationHandler);
-				if (!CollectionUtils.isEmpty(versionProperties.getSupported())) {
-					strategy.addSupportedVersion(versionProperties.getSupported().toArray(new String[0]));
-				}
-				return strategy;
-			}
-			return bean;
 		}
 
 	}

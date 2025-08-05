@@ -22,7 +22,6 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -42,11 +41,9 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -191,15 +188,10 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
-import org.springframework.web.accept.ApiVersionParser;
-import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.reactive.DispatcherHandler;
-import org.springframework.web.reactive.accept.ApiVersionDeprecationHandler;
-import org.springframework.web.reactive.accept.ApiVersionResolver;
 import org.springframework.web.reactive.accept.ApiVersionStrategy;
-import org.springframework.web.reactive.accept.DefaultApiVersionStrategy;
-import org.springframework.web.reactive.accept.MediaTypeParamApiVersionResolver;
-import org.springframework.web.reactive.accept.PathApiVersionResolver;
+import org.springframework.web.reactive.config.ApiVersionConfigurer;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
 import org.springframework.web.reactive.socket.server.RequestUpgradeStrategy;
@@ -775,20 +767,38 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
-	public GatewayServerWebfluxBeanPostProcessor gatewayServerWebfluxBeanPostProcessor(
-			ObjectProvider<WebFluxProperties> properties,
-			ObjectProvider<ApiVersionDeprecationHandler> deprecationHandlerProvider,
-			ObjectProvider<ApiVersionParser<?>> versionParserProvider,
-			ObjectProvider<ApiVersionResolver> versionResolvers) {
-		return new GatewayServerWebfluxBeanPostProcessor(
-				properties.getIfAvailable(WebFluxProperties::new).getApiversion(),
-				deprecationHandlerProvider.getIfAvailable(), versionParserProvider.getIfAvailable(),
-				versionResolvers.orderedStream().toList());
-	}
-
-	@Bean
 	static ConfigurableHintsRegistrationProcessor configurableHintsRegistrationProcessor() {
 		return new ConfigurableHintsRegistrationProcessor();
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class GatewayWebFluxApiVersionConfig implements WebFluxConfigurer {
+
+		final Apiversion versionProperties;
+
+		GatewayWebFluxApiVersionConfig(ObjectProvider<WebFluxProperties> webFluxProperties) {
+			this.versionProperties = webFluxProperties.getIfAvailable(WebFluxProperties::new).getApiversion();
+		}
+
+		@Override
+		public void configureApiVersioning(ApiVersionConfigurer configurer) {
+			Boolean required = versionProperties.getRequired();
+			Boolean detectSupported = versionProperties.getDetectSupported();
+
+			Apiversion.Use use = versionProperties.getUse();
+			// only set defaults is one or more use options is set
+			if (StringUtils.hasText(use.getHeader()) || StringUtils.hasText(use.getQueryParameter())
+					|| use.getPathSegment() != null || !CollectionUtils.isEmpty(use.getMediaTypeParameter())) {
+				if (required == null) {
+					configurer.setVersionRequired(false);
+				}
+				if (detectSupported == null) {
+					configurer.detectSupportedVersions(true);
+				}
+				configurer.setSupportedVersionPredicate(comparable -> true);
+			}
+		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -960,79 +970,6 @@ public class GatewayAutoConfiguration {
 		public TokenRelayGatewayFilterFactory tokenRelayGatewayFilterFactory(
 				ObjectProvider<ReactiveOAuth2AuthorizedClientManager> clientManager) {
 			return new TokenRelayGatewayFilterFactory(clientManager);
-		}
-
-	}
-
-	protected static class GatewayServerWebfluxBeanPostProcessor implements BeanPostProcessor {
-
-		private final Apiversion versionProperties;
-
-		private final ApiVersionDeprecationHandler deprecationHandler;
-
-		private final ApiVersionParser<?> versionParser;
-
-		private final List<ApiVersionResolver> apiVersionResolvers;
-
-		public GatewayServerWebfluxBeanPostProcessor(Apiversion versionProperties,
-				ApiVersionDeprecationHandler deprecationHandler, ApiVersionParser<?> versionParser,
-				List<ApiVersionResolver> apiVersionResolvers) {
-			this.versionProperties = versionProperties;
-			this.deprecationHandler = deprecationHandler;
-			this.versionParser = (versionParser != null) ? versionParser : new SemanticApiVersionParser();
-			this.apiVersionResolvers = apiVersionResolvers;
-		}
-
-		@Override
-		public @Nullable Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-
-			// TODO: Use custom ApiVersionConfigurer when able to
-			if (bean instanceof ApiVersionStrategy && beanName.equals("webFluxApiVersionStrategy")) {
-				List<ApiVersionResolver> versionResolvers = new ArrayList<>();
-				if (StringUtils.hasText(versionProperties.getUse().getHeader())) {
-					versionResolvers.add(exchange -> exchange.getRequest()
-						.getHeaders()
-						.getFirst(versionProperties.getUse().getHeader()));
-				}
-				if (!CollectionUtils.isEmpty(versionProperties.getUse().getMediaTypeParameter())) {
-					versionProperties.getUse().getMediaTypeParameter().forEach((mediaType, param) -> {
-						versionResolvers.add(new MediaTypeParamApiVersionResolver(mediaType, param));
-					});
-				}
-				if (versionProperties.getUse().getPathSegment() != null) {
-					versionResolvers.add(new PathApiVersionResolver(versionProperties.getUse().getPathSegment()));
-				}
-				if (StringUtils.hasText(versionProperties.getUse().getQueryParameter())) {
-					versionResolvers.add(exchange -> exchange.getRequest()
-						.getQueryParams()
-						.getFirst(versionProperties.getUse().getQueryParameter()));
-				}
-
-				if (apiVersionResolvers != null && !apiVersionResolvers.isEmpty()) {
-					versionResolvers.addAll(apiVersionResolvers);
-				}
-
-				if (versionResolvers.isEmpty()) {
-					return bean;
-				}
-
-				Boolean required = versionProperties.getRequired();
-				if (required == null) {
-					required = false;
-				}
-				Boolean detectSupported = versionProperties.getDetectSupported();
-				if (detectSupported == null) {
-					detectSupported = true;
-				}
-				DefaultApiVersionStrategy strategy = new DefaultApiVersionStrategy(versionResolvers, versionParser,
-						required, versionProperties.getDefaultVersion(), detectSupported, comparable -> true,
-						deprecationHandler);
-				if (!CollectionUtils.isEmpty(versionProperties.getSupported())) {
-					strategy.addSupportedVersion(versionProperties.getSupported().toArray(new String[0]));
-				}
-				return strategy;
-			}
-			return bean;
 		}
 
 	}
