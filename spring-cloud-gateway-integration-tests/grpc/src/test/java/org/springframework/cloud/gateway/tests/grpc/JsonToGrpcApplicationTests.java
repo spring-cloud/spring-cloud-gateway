@@ -81,8 +81,7 @@ public class JsonToGrpcApplicationTests {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<String> request = new HttpEntity<>("{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", headers);
 		String response = restTemplate
-			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello",
-					request, String.class)
+			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello", request, String.class)
 			.getBody();
 
 		Assertions.assertThat(response).isNotNull();
