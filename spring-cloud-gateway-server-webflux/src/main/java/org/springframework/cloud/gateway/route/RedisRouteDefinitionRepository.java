@@ -36,18 +36,16 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	private static final Logger log = LoggerFactory.getLogger(RedisRouteDefinitionRepository.class);
 
-	/**
-	 * Key prefix for RouteDefinition queries to redis.
-	 */
-	private static final String ROUTEDEFINITION_REDIS_KEY_PREFIX_QUERY = "routedefinition_";
 
-	private ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate;
+	private final ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate;
+	private final ReactiveValueOperations<String, RouteDefinition> routeDefinitionReactiveValueOperations;
+	private final String redisKeyPrefix;
 
-	private ReactiveValueOperations<String, RouteDefinition> routeDefinitionReactiveValueOperations;
-
-	public RedisRouteDefinitionRepository(ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate) {
+	public RedisRouteDefinitionRepository(ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate,
+			String redisKeyPrefix) {
 		this.reactiveRedisTemplate = reactiveRedisTemplate;
 		this.routeDefinitionReactiveValueOperations = reactiveRedisTemplate.opsForValue();
+		this.redisKeyPrefix = redisKeyPrefix;
 	}
 
 	@Override
@@ -86,7 +84,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 	}
 
 	private String createKey(String routeId) {
-		return ROUTEDEFINITION_REDIS_KEY_PREFIX_QUERY + routeId;
+		return redisKeyPrefix + routeId;
 	}
 
 }
