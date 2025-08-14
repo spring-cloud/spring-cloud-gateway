@@ -161,6 +161,28 @@ public interface FilterFunctions {
 	}
 
 	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
+			String locationHeaderName) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(
+				config -> config.setStripVersion(stripVersion).setLocationHeaderName(locationHeaderName)));
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
+			String locationHeaderName, String hostValue) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
+				.setLocationHeaderName(locationHeaderName)
+				.setHostValue(hostValue)));
+	}
+
+	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(String stripVersion,
 			String locationHeaderName, String hostValue, String protocolsRegex) {
 		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions

@@ -124,6 +124,35 @@ public abstract class AfterFilterFunctions {
 	}
 
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			String stripVersion) {
+		return RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion));
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			String stripVersion, String locationHeaderName) {
+		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(
+				config -> config.setStripVersion(stripVersion).setLocationHeaderName(locationHeaderName));
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			String stripVersion, String locationHeaderName, String hostValue) {
+		return RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
+				.setLocationHeaderName(locationHeaderName)
+				.setHostValue(hostValue));
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			String stripVersion, String locationHeaderName, String hostValue, String protocolsRegex) {
+		return RewriteLocationResponseHeaderFilterFunctions
+			.rewriteLocationResponseHeader(config -> config.setStripVersion(stripVersion)
+				.setLocationHeaderName(locationHeaderName)
+				.setHostValue(hostValue)
+				.setProtocolsRegex(protocolsRegex));
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
 			Consumer<RewriteLocationResponseHeaderFilterFunctions.RewriteLocationResponseHeaderConfig> configConsumer) {
 		return RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(configConsumer);
 	}

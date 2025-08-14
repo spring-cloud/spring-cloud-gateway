@@ -900,6 +900,42 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void rewriteLocationResponseHeaderWithMinimalArgsWorks() {
+		restClient.get()
+			.uri("/anything/rewritelocationresponseheader-minimal")
+			.header("Host", "test2.rewritelocationresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Location", "https://test2.rewritelocationresponseheader.org/some/object/id");
+	}
+
+	@Test
+	public void rewriteLocationResponseHeaderWithTwoArgsWorks() {
+		restClient.get()
+			.uri("/anything/rewritelocationresponseheader-twoargs")
+			.header("Host", "test3.rewritelocationresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Location", "https://test3.rewritelocationresponseheader.org/some/object/id");
+	}
+
+	@Test
+	public void rewriteLocationResponseHeaderWithThreeArgsWorks() {
+		restClient.get()
+			.uri("/anything/rewritelocationresponseheader-threeargs")
+			.header("Host", "test4.rewritelocationresponseheader.org")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectHeader()
+			.valueEquals("Location", "https://custom.host.example.com/some/object/id");
+	}
+
+	@Test
 	public void readBodyWorks() {
 		Event messageEvent = new Event("message", "bar");
 
@@ -1573,6 +1609,45 @@ public class ServerMvcIntegrationTests {
 					// reverse order for "post" filters
 					.after(rewriteLocationResponseHeader())
 					//.after(rewriteLocationResponseHeader(config -> config.setLocationHeaderName("Location").setStripVersion(RewriteLocationResponseHeaderFilterFunctions.StripVersion.AS_IN_REQUEST)))
+					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteLocationResponseHeaderMinimal() {
+			// @formatter:off
+			return route("testrewritelocationresponseheaderminimal")
+					.GET("/anything/rewritelocationresponseheader-minimal", host("**.rewritelocationresponseheader.org"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(rewriteLocationResponseHeader("AS_IN_REQUEST"))
+					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteLocationResponseHeaderTwoArgs() {
+			// @formatter:off
+			return route("testrewritelocationresponseheadertwoargs")
+					.GET("/anything/rewritelocationresponseheader-twoargs", host("**.rewritelocationresponseheader.org"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(rewriteLocationResponseHeader("AS_IN_REQUEST", "Location"))
+					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRewriteLocationResponseHeaderThreeArgs() {
+			// @formatter:off
+			return route("testrewritelocationresponseheaderthreeargs")
+					.GET("/anything/rewritelocationresponseheader-threeargs", host("**.rewritelocationresponseheader.org"), http())
+					.before(new HttpbinUriResolver())
+					// reverse order for "post" filters
+					.after(rewriteLocationResponseHeader("AS_IN_REQUEST", "Location", "custom.host.example.com"))
 					.after(addResponseHeader("Location", "https://backend.org:443/v1/some/object/id"))
 					.build();
 			// @formatter:on
