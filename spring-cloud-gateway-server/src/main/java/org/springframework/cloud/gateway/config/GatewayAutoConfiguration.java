@@ -127,7 +127,9 @@ import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.RemoveHopByHopHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveXForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.TransferEncodingNormalizationHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.TrustedProxies;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
@@ -333,6 +335,12 @@ public class GatewayAutoConfiguration {
 		return forwardedHeadersFilter;
 	}
 
+	@Bean
+	@Conditional(TrustedProxies.NotForwardedTrustedProxiesCondition.class)
+	public RemoveForwardedHeadersFilter removeForwardedHeadersFilter() {
+		return new RemoveForwardedHeadersFilter();
+	}
+
 	// HttpHeaderFilter beans
 
 	@Bean
@@ -344,6 +352,12 @@ public class GatewayAutoConfiguration {
 	@Conditional(TrustedProxies.XForwardedTrustedProxiesCondition.class)
 	public XForwardedHeadersFilter xForwardedHeadersFilter(GatewayProperties properties) {
 		return new XForwardedHeadersFilter(properties.getTrustedProxies());
+	}
+
+	@Bean
+	@Conditional(TrustedProxies.NotXForwardedTrustedProxiesCondition.class)
+	public RemoveXForwardedHeadersFilter removeXForwardedHeadersFilter() {
+		return new RemoveXForwardedHeadersFilter();
 	}
 
 	@Bean
@@ -782,7 +796,7 @@ public class GatewayAutoConfiguration {
 		protected final Log logger = LogFactory.getLog(getClass());
 
 		@Bean
-		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.httpserver.wiretap")
+		@ConditionalOnProperty(name = HttpServerProperties.PREFIX + ".wiretap")
 		public NettyWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
 				ServerProperties serverProperties) {
 			return new NettyWebServerFactoryCustomizer(environment, serverProperties) {
@@ -795,7 +809,7 @@ public class GatewayAutoConfiguration {
 		}
 
 		@Bean
-		@TrustedProxies.ConditionalOnPropertyExists
+		@Conditional(TrustedProxies.NettyServerCustomizerEnabledCondition.class)
 		public NettyServerCustomizer gatewayNettyServerCustomizer(GatewayProperties gatewayProperties) {
 			TrustedProxies trustedProxies = TrustedProxies.from(gatewayProperties.getTrustedProxies());
 
@@ -827,6 +841,11 @@ public class GatewayAutoConfiguration {
 		@Bean
 		public HttpClientProperties httpClientProperties() {
 			return new HttpClientProperties();
+		}
+
+		@Bean
+		public HttpServerProperties httpServerProperties() {
+			return new HttpServerProperties();
 		}
 
 		@Bean

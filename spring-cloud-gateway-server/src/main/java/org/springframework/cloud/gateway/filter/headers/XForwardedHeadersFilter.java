@@ -35,6 +35,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.headers.RemoveXForwardedHeadersFilter.removeXForwardedHeaders;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
@@ -224,7 +225,7 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.getRemoteAddress()));
-			return input;
+			return removeXForwardedHeaders(input, exchange);
 		}
 
 		HttpHeaders original = input;

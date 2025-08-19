@@ -300,6 +300,21 @@ public class ForwardedHeadersFilterTests {
 		assertThat(headers).doesNotContainKeys(FORWARDED_HEADER);
 	}
 
+	@Test
+	public void forwardedHeadersNotTrustedForwardedNotAppended() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+				.header(HttpHeaders.HOST, "myhost")
+				.header(FORWARDED_HEADER, "proto=http;host=myhost;for=\"127.0.0.1:80\",for=10.0.0.11")
+				.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter("11\\.0\\.0\\..*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers).doesNotContainKeys(FORWARDED_HEADER);
+	}
+
 	// verify that existing forwarded header is not forwarded if not trusted
 	@Test
 	public void untrustedForwardedForNotAppended() throws Exception {

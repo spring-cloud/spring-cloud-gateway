@@ -35,6 +35,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.RemoveXForwardedRequestHeadersFilter.removeXForwardedHeaders;
+
 public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestHttpHeadersFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(XForwardedRequestHeadersFilter.class);
@@ -100,7 +102,7 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 				&& !trustedProxies.isTrusted(request.servletRequest().getRemoteAddr())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.servletRequest().getRemoteHost()));
-			return input;
+			return removeXForwardedHeaders(input, request);
 		}
 
 		HttpHeaders original = input;

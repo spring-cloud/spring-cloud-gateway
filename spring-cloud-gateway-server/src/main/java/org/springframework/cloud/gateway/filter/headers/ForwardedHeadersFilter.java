@@ -40,6 +40,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.filter.headers.RemoveForwardedHeadersFilter.removeForwardedHeaders;
+
 /**
  * @author Olga Maciaszek-Sharma
  * @author Tillmann Heigel
@@ -139,7 +141,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.getRemoteAddress()));
-			return input;
+			return removeForwardedHeaders(input, exchange);
 		}
 
 		HttpHeaders original = input;

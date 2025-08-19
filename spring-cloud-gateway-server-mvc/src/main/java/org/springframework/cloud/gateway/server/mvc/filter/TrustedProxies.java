@@ -21,23 +21,33 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.function.ServerRequest;
 
 @FunctionalInterface
 public interface TrustedProxies {
+	/**
+	 * Property name.
+	 */
+	String PROPERTY = GatewayMvcProperties.PREFIX + ".trusted-proxies";
 
 	boolean isTrusted(String host);
 
@@ -45,6 +55,26 @@ public interface TrustedProxies {
 		Assert.hasText(trustedProxies, "trustedProxies must not be empty");
 		Pattern pattern = Pattern.compile(trustedProxies);
 		return value -> pattern.matcher(value).matches();
+	}
+
+	/**
+	 * Utility method to filter headers based on a predicate.
+	 * @param input HttpHeaders to filter.
+	 * @param request ServerRequest.
+	 * @param inclusionPredicate the predicate to test for header inclusion.
+	 * @return filtered HttpHeaders.
+	 */
+	static HttpHeaders filterHeaders(HttpHeaders input, ServerRequest request, Predicate<String> inclusionPredicate) {
+		HttpHeaders updated = new HttpHeaders();
+
+		// copy all headers that match predicate
+		for (Map.Entry<String, List<String>> entry : input.headerSet()) {
+			if (inclusionPredicate.test(entry.getKey())) {
+				updated.addAll(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return updated;
 	}
 
 	class ForwardedTrustedProxiesCondition extends AllNestedConditions {
@@ -59,8 +89,21 @@ public interface TrustedProxies {
 
 		}
 
-		@ConditionalOnPropertyExists(GatewayMvcProperties.PREFIX + ".trusted-proxies")
+		@ConditionalOnPropertyExists
 		static class OnTrustedProxiesNotEmpty {
+
+		}
+
+	}
+
+	class NotForwardedTrustedProxiesCondition extends NoneNestedConditions {
+
+		public NotForwardedTrustedProxiesCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@Conditional(ForwardedTrustedProxiesCondition.class)
+		static class OnForwardedTrustedProxiesCondition {
 
 		}
 
@@ -78,8 +121,21 @@ public interface TrustedProxies {
 
 		}
 
-		@ConditionalOnPropertyExists(GatewayMvcProperties.PREFIX + ".trusted-proxies")
+		@ConditionalOnPropertyExists
 		static class OnTrustedProxiesNotEmpty {
+
+		}
+
+	}
+
+	class NotXForwardedTrustedProxiesCondition extends NoneNestedConditions {
+
+		public NotXForwardedTrustedProxiesCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@Conditional(XForwardedTrustedProxiesCondition.class)
+		static class OnXForwardedTrustedProxiesCondition {
 
 		}
 
@@ -90,15 +146,14 @@ public interface TrustedProxies {
 		@Override
 		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 			try {
-				String value = metadata.getAnnotations().get(ConditionalOnPropertyExists.class).getString("value");
-				String property = context.getEnvironment().getProperty(value);
+				String property = context.getEnvironment().getProperty(PROPERTY);
 				if (!StringUtils.hasText(property)) {
-					return ConditionOutcome.noMatch(value + " property is not set or is empty.");
+					return ConditionOutcome.noMatch(PROPERTY + " property is not set or is empty.");
 				}
-				return ConditionOutcome.match(value + " property is not empty.");
+				return ConditionOutcome.match(PROPERTY + " property is not empty.");
 			}
 			catch (NoSuchElementException e) {
-				return ConditionOutcome.noMatch("Missing required property 'value' of @ConditionalOnPropertyExists");
+				return ConditionOutcome.noMatch("Missing required property " + PROPERTY);
 			}
 		}
 
@@ -109,11 +164,6 @@ public interface TrustedProxies {
 	@Documented
 	@Conditional(OnPropertyExistsCondition.class)
 	@interface ConditionalOnPropertyExists {
-
-		/**
-		 * @return the property
-		 */
-		String value();
 
 	}
 

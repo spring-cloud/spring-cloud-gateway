@@ -21,20 +21,27 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
 import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.cloud.gateway.config.GatewayProperties;
+import org.springframework.cloud.gateway.config.HttpServerProperties;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.ServerWebExchange;
 
 @FunctionalInterface
 public interface TrustedProxies {
@@ -52,6 +59,27 @@ public interface TrustedProxies {
 		return value -> pattern.matcher(value).matches();
 	}
 
+	/**
+	 * Utility method to filter headers based on a predicate.
+	 * @param input HttpHeaders to filter.
+	 * @param exchange ServerWebExchange.
+	 * @param inclusionPredicate the predicate to test for header inclusion.
+	 * @return filtered HttpHeaders.
+	 */
+	static HttpHeaders filterHeaders(HttpHeaders input, ServerWebExchange exchange, Predicate<String> inclusionPredicate) {
+		HttpHeaders updated = new HttpHeaders();
+
+		// copy all headers that match predicate
+		for (Map.Entry<String, List<String>> entry : input.headerSet()) {
+			if (inclusionPredicate.test(entry.getKey())) {
+				updated.addAll(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return updated;
+	}
+
+
 	class ForwardedTrustedProxiesCondition extends AllNestedConditions {
 
 		public ForwardedTrustedProxiesCondition() {
@@ -65,6 +93,19 @@ public interface TrustedProxies {
 
 		@ConditionalOnPropertyExists
 		static class OnTrustedProxiesNotEmpty {
+
+		}
+
+	}
+
+	class NotForwardedTrustedProxiesCondition extends NoneNestedConditions {
+
+		public NotForwardedTrustedProxiesCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@Conditional(ForwardedTrustedProxiesCondition.class)
+		static class OnForwardedTrustedProxiesCondition {
 
 		}
 
@@ -88,6 +129,37 @@ public interface TrustedProxies {
 
 	}
 
+	class NotXForwardedTrustedProxiesCondition extends NoneNestedConditions {
+
+		public NotXForwardedTrustedProxiesCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@Conditional(XForwardedTrustedProxiesCondition.class)
+		static class OnXForwardedTrustedProxiesCondition {
+
+		}
+
+	}
+
+	class NettyServerCustomizerEnabledCondition extends AllNestedConditions {
+
+		public NettyServerCustomizerEnabledCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnProperty(value = HttpServerProperties.PREFIX + ".customizer-enabled")
+		static class OnPropertyEnabled {
+
+		}
+
+		@ConditionalOnPropertyExists
+		static class OnTrustedProxiesNotEmpty {
+
+		}
+
+	}
+
 	class OnPropertyExistsCondition extends SpringBootCondition {
 
 		@Override
@@ -100,7 +172,7 @@ public interface TrustedProxies {
 				return ConditionOutcome.match(PROPERTY + " property is not empty.");
 			}
 			catch (NoSuchElementException e) {
-				return ConditionOutcome.noMatch("Missing required property 'value' of @ConditionalOnPropertyExists");
+				return ConditionOutcome.noMatch("Missing required property " + PROPERTY);
 			}
 		}
 
