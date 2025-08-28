@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,7 @@ import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
+import reactor.util.function.Tuple2;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
@@ -88,9 +90,14 @@ public class CachingRouteLocator
 				final Mono<List<Route>> scopedRoutes = fetch(event.getMetadata()).collect(Collectors.toList())
 					.onErrorResume(s -> Mono.just(List.of()));
 
+				Map<String, Long> routeIdToIdxMap = getRoutes().index()
+						.collectMap(t -> t.getT2().getId(), Tuple2::getT1)
+						.block();
+
 				scopedRoutes.subscribe(scopedRoutesList -> {
 					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
-						.sort(AnnotationAwareOrderComparator.INSTANCE));
+							.sort(Comparator.comparing(r -> routeIdToIdxMap.getOrDefault(r.getId(), Long.MIN_VALUE)))
+							.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
 			else {
