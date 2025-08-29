@@ -150,12 +150,12 @@ public class CachingRouteLocatorTests {
 
 	Route route(int id, int order, Map<String, Object> metadata) {
 		return Route.async()
-				.id(String.valueOf(id))
-				.uri("http://localhost/" + id)
-				.order(order)
-				.predicate(exchange -> true)
-				.metadata(metadata)
-				.build();
+			.id(String.valueOf(id))
+			.uri("http://localhost/" + id)
+			.order(order)
+			.predicate(exchange -> true)
+			.metadata(metadata)
+			.build();
 	}
 
 	Route route(int id) {
