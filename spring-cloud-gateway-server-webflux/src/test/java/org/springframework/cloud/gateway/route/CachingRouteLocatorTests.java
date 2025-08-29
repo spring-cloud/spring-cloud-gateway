@@ -17,7 +17,9 @@
 package org.springframework.cloud.gateway.route;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -117,6 +119,23 @@ public class CachingRouteLocatorTests {
 
 	}
 
+	@Test
+	public void updateScopedRoutes() {
+		Map<String, Object> metadata = Map.of("metadata-key1", "metadata-value1");
+		int order = 0;
+		Route route1 = route(1, order, Collections.EMPTY_MAP);
+		Route route2 = route(2, order, metadata);
+		CachingRouteLocator locator = new CachingRouteLocator(() -> Flux.just(route1, route2));
+
+		List<Route> routes = locator.getRoutes().collectList().block();
+		assertThat(routes).containsExactly(route1, route2);
+
+		RefreshRoutesEvent event = new RefreshRoutesEvent(this, metadata);
+		locator.onApplicationEvent(event);
+		routes = locator.getRoutes().collectList().block();
+		assertThat(routes).containsExactly(route1, route2);
+	}
+
 	private void waitUntilRefreshFinished(CachingRouteLocator locator, List<RefreshRoutesResultEvent> resultEvents)
 			throws InterruptedException {
 		CountDownLatch cdl = new CountDownLatch(1);
@@ -127,6 +146,16 @@ public class CachingRouteLocatorTests {
 		locator.onApplicationEvent(new RefreshRoutesEvent(this));
 
 		assertThat(cdl.await(5, TimeUnit.SECONDS)).isTrue();
+	}
+
+	Route route(int id, int order, Map<String, Object> metadata) {
+		return Route.async()
+				.id(String.valueOf(id))
+				.uri("http://localhost/" + id)
+				.order(order)
+				.predicate(exchange -> true)
+				.metadata(metadata)
+				.build();
 	}
 
 	Route route(int id) {

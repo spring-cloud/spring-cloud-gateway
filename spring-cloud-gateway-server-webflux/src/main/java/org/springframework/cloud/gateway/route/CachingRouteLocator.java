@@ -91,13 +91,13 @@ public class CachingRouteLocator
 					.onErrorResume(s -> Mono.just(List.of()));
 
 				Map<String, Long> routeIdToIdxMap = getRoutes().index()
-						.collectMap(t -> t.getT2().getId(), Tuple2::getT1)
-						.block();
+					.collectMap(t -> t.getT2().getId(), Tuple2::getT1)
+					.block();
 
 				scopedRoutes.subscribe(scopedRoutesList -> {
 					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
-							.sort(Comparator.comparing(r -> routeIdToIdxMap.getOrDefault(r.getId(), Long.MIN_VALUE)))
-							.sort(AnnotationAwareOrderComparator.INSTANCE));
+						.sort(Comparator.comparing(r -> routeIdToIdxMap.getOrDefault(r.getId(), Long.MIN_VALUE)))
+						.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
 			else {
