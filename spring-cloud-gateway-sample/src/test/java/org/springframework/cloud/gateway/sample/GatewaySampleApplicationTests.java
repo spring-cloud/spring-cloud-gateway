@@ -16,16 +16,15 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -247,15 +246,10 @@ public class GatewaySampleApplicationTests {
 			.consumeWith(i -> {
 				String body = new String(i.getResponseBodyContent());
 				ObjectMapper mapper = new ObjectMapper();
-				try {
-					JsonNode actualObj = mapper.readTree(body);
-					JsonNode findValue = actualObj.findValue("name");
-					assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
-						.isEqualTo(metricName);
-				}
-				catch (IOException e) {
-					throw new IllegalStateException(e);
-				}
+				JsonNode actualObj = mapper.readTree(body);
+				JsonNode findValue = actualObj.findValue("name");
+				assertThat(findValue.asString()).as("Expected to find metric with name gateway.requests")
+					.isEqualTo(metricName);
 			});
 	}
 
