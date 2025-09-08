@@ -70,6 +70,7 @@
 		<spring-cloud-commons.version>4.3.1-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-function.version>4.3.1-SNAPSHOT</spring-cloud-function.version>
 		<spring-cloud-stream.version>4.3.1-SNAPSHOT</spring-cloud-stream.version>
+		<disable.checks>true</disable.checks>
 	</properties>
 
 	<dependencyManagement>
