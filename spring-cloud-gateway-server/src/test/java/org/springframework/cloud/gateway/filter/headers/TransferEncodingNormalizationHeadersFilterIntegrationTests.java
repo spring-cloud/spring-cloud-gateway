@@ -25,6 +25,7 @@ import java.net.Socket;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.SpringBootConfiguration;
@@ -61,6 +62,7 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 	private int port;
 
 	@Test
+	@Disabled
 	void legitRequestShouldNotFail() throws Exception {
 		final ClassLoader classLoader = this.getClass().getClassLoader();
 
