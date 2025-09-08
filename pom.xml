@@ -177,6 +177,10 @@
 						<configuration>
 							<excludeArtifacts>
 								<artifact>spring-cloud-gateway-integration-tests</artifact>
+								<artifact>grpc</artifact>
+								<artifact>http2</artifact>
+								<artifact>httpclient</artifact>
+								<artifact>mvc-failure-analyzer</artifact>
 								<artifact>spring-cloud-gateway-sample</artifact>
 							</excludeArtifacts>
 						</configuration>
