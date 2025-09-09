@@ -141,7 +141,7 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 
 		PropertyMapper map = PropertyMapper.get();
 
-		map.from(proxy::getPort).to(builder::port);
+		map.from(proxy::getPort).whenNonNull().to(builder::port);
 		map.from(proxy::getUsername).whenHasText().to(builder::username);
 		map.from(proxy::getPassword).whenHasText().to(password -> builder.password(s -> password));
 		map.from(proxy::getNonProxyHostsPattern).whenHasText().to(builder::nonProxyHosts);
