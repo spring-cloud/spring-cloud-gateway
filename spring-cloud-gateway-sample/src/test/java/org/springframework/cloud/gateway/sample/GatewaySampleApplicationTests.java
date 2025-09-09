@@ -23,8 +23,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -234,6 +232,7 @@ public class GatewaySampleApplicationTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void actuatorMetrics() {
 		contextLoads();
 		String metricName = metricsProperties.getPrefix() + ".requests";
@@ -242,14 +241,11 @@ public class GatewaySampleApplicationTests {
 			.exchange()
 			.expectStatus()
 			.isOk()
-			.expectBody()
-			.consumeWith(i -> {
-				String body = new String(i.getResponseBodyContent());
-				ObjectMapper mapper = new ObjectMapper();
-				JsonNode actualObj = mapper.readTree(body);
-				JsonNode findValue = actualObj.findValue("name");
-				assertThat(findValue.asString()).as("Expected to find metric with name gateway.requests")
-					.isEqualTo(metricName);
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> responseBody = res.getResponseBody();
+				assertThat(responseBody).as("Expected to find metric with name gateway.requests")
+					.containsEntry("name", metricName);
 			});
 	}
 
