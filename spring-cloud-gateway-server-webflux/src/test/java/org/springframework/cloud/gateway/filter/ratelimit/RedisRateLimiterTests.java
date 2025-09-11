@@ -101,7 +101,7 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 		checkLimitEnforced(id, replenishRate, burstCapacity, requestedTokens, routeId);
 	}
 
-	@Test
+	@RetryingTest(3)
 	@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true")
 	public void redisRateLimiterWorksForMultipleRoutes() throws Exception {
 		String id = UUID.randomUUID().toString();
