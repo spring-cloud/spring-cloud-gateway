@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -30,6 +31,7 @@ import org.springframework.expression.BeanResolver;
 import org.springframework.expression.ConstructorResolver;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
+import org.springframework.expression.IndexAccessor;
 import org.springframework.expression.MethodResolver;
 import org.springframework.expression.OperatorOverloader;
 import org.springframework.expression.PropertyAccessor;
@@ -188,6 +190,7 @@ public interface ShortcutConfigurable {
 			if (restrictive) {
 				delegate = SimpleEvaluationContext.forPropertyAccessors(new RestrictivePropertyAccessor())
 					.withMethodResolvers((context, targetObject, name, argumentTypes) -> null)
+					.withAssignmentDisabled()
 					.build();
 			}
 			else {
@@ -250,6 +253,21 @@ public interface ShortcutConfigurable {
 		@Nullable
 		public Object lookupVariable(String name) {
 			return delegate.lookupVariable(name);
+		}
+
+		@Override
+		public List<IndexAccessor> getIndexAccessors() {
+			return delegate.getIndexAccessors();
+		}
+
+		@Override
+		public TypedValue assignVariable(String name, Supplier<TypedValue> valueSupplier) {
+			return delegate.assignVariable(name, valueSupplier);
+		}
+
+		@Override
+		public boolean isAssignmentEnabled() {
+			return delegate.isAssignmentEnabled();
 		}
 
 	}

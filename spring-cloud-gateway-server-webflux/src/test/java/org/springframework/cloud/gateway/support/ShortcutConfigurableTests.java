@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,23 @@ public class ShortcutConfigurableTests {
 	ConfigurableEnvironment env;
 
 	private SpelExpressionParser parser;
+
+	@Test
+	public void testNormalizeDefaultTypeWithSpelAssignmentAndInvalidInputFails() {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("bean", "arg1");
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("bean", "#{ @myMap['my.flag'] = true}");
+		args.put("arg1", "val1");
+		assertThatThrownBy(() -> {
+			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		}).isInstanceOf(SpelEvaluationException.class);
+	}
 
 	@Test
 	public void testNormalizeDefaultTypeWithSpelAndInvalidInputFails() {
@@ -219,6 +236,11 @@ public class ShortcutConfigurableTests {
 		@Bean
 		public Bar bar() {
 			return new Bar();
+		}
+
+		@Bean
+		public Map<String, Object> myMap() {
+			return new HashMap<>();
 		}
 
 	}

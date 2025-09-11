@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@
 
 package org.springframework.cloud.gateway.sample;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -235,6 +232,7 @@ public class GatewaySampleApplicationTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void actuatorMetrics() {
 		contextLoads();
 		String metricName = metricsProperties.getPrefix() + ".requests";
@@ -243,19 +241,11 @@ public class GatewaySampleApplicationTests {
 			.exchange()
 			.expectStatus()
 			.isOk()
-			.expectBody()
-			.consumeWith(i -> {
-				String body = new String(i.getResponseBodyContent());
-				ObjectMapper mapper = new ObjectMapper();
-				try {
-					JsonNode actualObj = mapper.readTree(body);
-					JsonNode findValue = actualObj.findValue("name");
-					assertThat(findValue.asText()).as("Expected to find metric with name gateway.requests")
-						.isEqualTo(metricName);
-				}
-				catch (IOException e) {
-					throw new IllegalStateException(e);
-				}
+			.expectBody(Map.class)
+			.consumeWith(res -> {
+				Map<String, Object> responseBody = res.getResponseBody();
+				assertThat(responseBody).as("Expected to find metric with name gateway.requests")
+					.containsEntry("name", metricName);
 			});
 	}
 
