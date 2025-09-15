@@ -23,6 +23,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -906,7 +907,7 @@ public class GatewayAutoConfiguration {
 				WebsocketServerSpec.Builder builder = WebsocketServerSpec.builder();
 				HttpClientProperties.Websocket websocket = httpClientProperties.getWebsocket();
 				PropertyMapper map = PropertyMapper.get();
-				map.from(websocket::getMaxFramePayloadLength).whenNonNull().to(builder::maxFramePayloadLength);
+				map.from(websocket::getMaxFramePayloadLength).when(Objects::nonNull).to(builder::maxFramePayloadLength);
 				map.from(websocket::isProxyPing).to(builder::handlePing);
 				return builder;
 			};
