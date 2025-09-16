@@ -12,7 +12,7 @@
 
 	<properties>
 		<protoc.version>3.25.1</protoc.version>
-		<grpc.version>1.68.1</grpc.version>
+		<grpc.version>1.68.3</grpc.version>
 	</properties>
 
 	<parent>
