@@ -283,6 +283,17 @@ public abstract class MvcUtils {
 		return CollectionUtils.unmodifiableMultiValueMap(encodedQueryParams);
 	}
 
+	public static MultiValueMap<String, String> decodeQueryParams(MultiValueMap<String, String> params) {
+		MultiValueMap<String, String> decodedQueryParams = new LinkedMultiValueMap<>(params.size());
+		for (Map.Entry<String, List<String>> entry : params.entrySet()) {
+			for (String value : entry.getValue()) {
+				decodedQueryParams.add(UriUtils.decode(entry.getKey(), StandardCharsets.UTF_8),
+						UriUtils.decode(value, StandardCharsets.UTF_8));
+			}
+		}
+		return CollectionUtils.unmodifiableMultiValueMap(decodedQueryParams);
+	}
+
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {
 
 		@Override
