@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.data.redis.autoconfigure.RedisReactiveAutoConfiguration;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
@@ -50,15 +51,17 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
-@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".redis.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX
+		+ ".redis.enabled", matchIfMissing = true)
+@EnableConfigurationProperties(RedisRouteDefinitionRepositoryProperties.class)
 class GatewayRedisAutoConfiguration {
 
 	@Bean
 	@SuppressWarnings("unchecked")
 	public RedisScript redisRequestRateLimiterScript() {
 		DefaultRedisScript redisScript = new DefaultRedisScript<>();
-		redisScript.setScriptSource(
-				new ResourceScriptSource(new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
+		redisScript.setScriptSource(new ResourceScriptSource(
+				new ClassPathResource("META-INF/scripts/request_rate_limiter.lua")));
 		redisScript.setResultType(List.class);
 		return redisScript;
 	}
@@ -72,12 +75,15 @@ class GatewayRedisAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnProperty(value = GatewayProperties.PREFIX + ".redis-route-definition-repository.enabled",
-			havingValue = "true")
+	@ConditionalOnProperty(value = GatewayProperties.PREFIX
+			+ ".redis-route-definition-repository.enabled", havingValue = "true")
+	@ConditionalOnMissingBean
 	@ConditionalOnClass(ReactiveRedisTemplate.class)
 	public RedisRouteDefinitionRepository redisRouteDefinitionRepository(
-			ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate) {
-		return new RedisRouteDefinitionRepository(reactiveRedisTemplate);
+			ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisTemplate,
+			RedisRouteDefinitionRepositoryProperties properties) {
+		return new RedisRouteDefinitionRepository(reactiveRedisTemplate,
+				properties.getRedisKeyPrefix());
 	}
 
 	@Bean
@@ -87,8 +93,9 @@ class GatewayRedisAutoConfiguration {
 		Jackson2JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson2JsonRedisSerializer<>(
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
-			.newSerializationContext(keySerializer);
-		RedisSerializationContext<String, RouteDefinition> context = builder.value(valueSerializer).build();
+				.newSerializationContext(keySerializer);
+		RedisSerializationContext<String, RouteDefinition> context = builder
+				.value(valueSerializer).build();
 
 		return new ReactiveRedisTemplate<>(factory, context);
 	}
