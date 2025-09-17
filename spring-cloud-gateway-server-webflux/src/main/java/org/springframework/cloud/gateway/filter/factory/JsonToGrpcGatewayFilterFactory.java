@@ -27,16 +27,6 @@ import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.protobuf.ProtobufFactory;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchema;
-import com.fasterxml.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -52,6 +42,15 @@ import io.netty.buffer.PooledByteBufAllocator;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectWriter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.protobuf.ProtobufMapper;
+import tools.jackson.dataformat.protobuf.schema.ProtobufSchema;
+import tools.jackson.dataformat.protobuf.schema.ProtobufSchemaLoader;
 
 import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -65,7 +64,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.codec.json.JacksonJsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -202,8 +201,9 @@ public class JsonToGrpcGatewayFilterFactory
 				ProtobufSchema schema = ProtobufSchemaLoader.std.load(protoFile.getInputStream());
 				ProtobufSchema responseType = schema.withRootType(outputType.getName());
 
-				ObjectMapper objectMapper = new ObjectMapper(new ProtobufFactory());
-				objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+				ProtobufMapper objectMapper = ProtobufMapper.builder()
+					.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+					.build();
 				objectWriter = objectMapper.writer(schema);
 				objectReader = objectMapper.readerFor(JsonNode.class).with(responseType);
 				objectNode = objectMapper.createObjectNode();
@@ -280,14 +280,7 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private Function<DynamicMessage, Object> serialiseGRPCResponse() {
-			return gRPCResponse -> {
-				try {
-					return objectReader.readValue(gRPCResponse.toByteArray());
-				}
-				catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			};
+			return gRPCResponse -> objectReader.readValue(gRPCResponse.toByteArray());
 		}
 
 		private Flux<JsonNode> deserializeJSONRequest() {
@@ -296,20 +289,13 @@ public class JsonToGrpcGatewayFilterFactory
 					return objectNode;
 				}
 				ResolvableType targetType = ResolvableType.forType(JsonNode.class);
-				return new Jackson2JsonDecoder().decode(dataBufferBody, targetType, null, null);
+				return new JacksonJsonDecoder().decode(dataBufferBody, targetType, null, null);
 			}).cast(JsonNode.class);
 		}
 
 		private Function<Object, DataBuffer> wrapGRPCResponse() {
-			return jsonResponse -> {
-				try {
-					return new NettyDataBufferFactory(new PooledByteBufAllocator())
-						.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
-				}
-				catch (JsonProcessingException e) {
-					return new NettyDataBufferFactory(new PooledByteBufAllocator()).allocateBuffer();
-				}
-			};
+			return jsonResponse -> new NettyDataBufferFactory(new PooledByteBufAllocator())
+				.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
 		}
 
 		// We are creating this on every call, should optimize?

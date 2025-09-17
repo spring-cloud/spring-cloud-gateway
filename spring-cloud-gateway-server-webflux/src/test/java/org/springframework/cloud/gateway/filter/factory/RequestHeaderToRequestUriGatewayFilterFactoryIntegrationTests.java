@@ -19,8 +19,8 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

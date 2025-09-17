@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.logging.Log;
@@ -43,7 +44,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,43 +51,55 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(properties = {}, webEnvironment = RANDOM_PORT)
+@SpringBootTest(classes = TransferEncodingNormalizationHeadersFilterIntegrationTests.TestConfig.class,
+		webEnvironment = RANDOM_PORT)
 @ActiveProfiles("transferencoding")
 public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 
 	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
 
+	private static final String validRequest = "POST /route/echo HTTP/1.1\r\n" + "Host: localhost:8080\r\n"
+			+ "Content-Type: application/json\r\n" + "Content-Length: 15\r\n" + "Connection: close\r\n" + "\r\n"
+			+ "{\"message\":\"3\"}";
+
+	private static final String invalidRequest = "POST /route/echo HTTP/1.0\r\n" + "Host: localhost:8080\r\n"
+			+ "Content-Length: 19\r\n" + "Transfer-encoding: Chunked\r\n" + "Content-Type: application/json\r\n"
+			+ "Connection: close\r\n" + "\r\n" + "22\r\n" + "{\"message\":\"3\"}\r\n" + "\r\n"
+			+ "GET /nonexistantpath123 HTTP/1.0\r\n" + "0\r\n" + "\r\n";
+
 	@LocalServerPort
 	private int port;
 
 	@Test
-	void legitRequestShouldNotFail() throws Exception {
-		final ClassLoader classLoader = this.getClass().getClassLoader();
-
+	void invalidRequestShouldFail() throws Exception {
 		// Issue a crafted request with smuggling attempt
-		assert200With("Should Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/invalid-request.bin")));
-
-		// Issue a legit request, which should not fail
-		assert200With("Should Not Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
+		assertStatus("Should Fail", invalidRequest, "400 Bad Request");
 	}
 
-	private void assert200With(String name, byte[] payload) throws Exception {
-		final String response = execute("localhost", port, payload);
-		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
+	@Test
+	void legitRequestShouldNotFail() throws Exception {
+		// Issue a legit request, which should not fail
+		assertStatus("Should Not Fail", validRequest, "200 OK");
+	}
+
+	private void assertStatus(String name, String payloadString, String status) throws Exception {
+		// String payloadString = new String(payload);
+		payloadString = payloadString.replace("8080", "" + port);
+
+		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, payloadString));
+		final String response = execute("localhost", port, payloadString);
 		assertThat(response).isNotNull();
 		log.info(LogMessage.format("Response %s\n%s", name, response));
-		assertThat(response).matches("HTTP/1.\\d 200 OK");
+		assertThat(response).matches("HTTP/1.\\d " + status);
 	}
 
-	private String execute(String target, int port, byte[] payload) throws IOException {
+	private String execute(String target, int port, String payload) throws IOException {
 		final Socket socket = new Socket(target, port);
 
 		final OutputStream out = socket.getOutputStream();
 		final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-		out.write(payload);
+		out.write(payload.getBytes(StandardCharsets.UTF_8));
 
 		final String headResponse = in.readLine();
 

@@ -39,7 +39,7 @@ import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
@@ -84,7 +84,7 @@ class GatewayRedisAutoConfiguration {
 	public ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisRouteDefinitionTemplate(
 			ReactiveRedisConnectionFactory factory) {
 		StringRedisSerializer keySerializer = new StringRedisSerializer();
-		Jackson2JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson2JsonRedisSerializer<>(
+		Jackson3JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson3JsonRedisSerializer<>(
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
 			.newSerializationContext(keySerializer);

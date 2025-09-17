@@ -19,11 +19,11 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import reactor.core.publisher.Mono;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
@@ -78,7 +78,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 
 					body = mapper.writeValueAsString(jsonNode);
 				}
-				catch (JsonProcessingException e) {
+				catch (JacksonException e) {
 					return Mono.error(new IllegalStateException("Failed to process JSON of response body.", e));
 				}
 			}
