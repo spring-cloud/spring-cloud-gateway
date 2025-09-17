@@ -42,6 +42,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -120,6 +121,7 @@ public class FormFilter implements Filter, Ordered {
 		}
 		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestURL.toString());
 		MultiValueMap<String, String> queryParams = uriComponentsBuilder.build().getQueryParams();
+		queryParams = MvcUtils.decodeQueryParams(queryParams);
 		for (Iterator<Map.Entry<String, String[]>> entryIterator = form.entrySet().iterator(); entryIterator
 			.hasNext();) {
 			Map.Entry<String, String[]> entry = entryIterator.next();
