@@ -20,11 +20,11 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.http.client.autoconfigure.AbstractHttpRequestFactoryProperties.Factory;
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;

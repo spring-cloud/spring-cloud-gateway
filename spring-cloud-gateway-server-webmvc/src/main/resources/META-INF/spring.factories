@@ -15,6 +15,6 @@
 #
 #
 
-org.springframework.boot.env.EnvironmentPostProcessor=\
+org.springframework.boot.EnvironmentPostProcessor=\
   org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration.GatewayHttpClientEnvironmentPostProcessor,\
   org.springframework.cloud.gateway.server.mvc.common.MultipartEnvironmentPostProcessor

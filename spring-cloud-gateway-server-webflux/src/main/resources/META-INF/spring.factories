@@ -1,4 +1,4 @@
-org.springframework.boot.env.EnvironmentPostProcessor=\
+org.springframework.boot.EnvironmentPostProcessor=\
 org.springframework.cloud.gateway.config.GatewayEnvironmentPostProcessor
 
 # Failure Analyzers
