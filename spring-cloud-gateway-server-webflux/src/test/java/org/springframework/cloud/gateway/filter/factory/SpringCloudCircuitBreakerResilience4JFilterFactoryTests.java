@@ -25,7 +25,9 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4jBulkheadProvider;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigurationProperties;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
@@ -40,6 +42,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -102,7 +105,8 @@ public class SpringCloudCircuitBreakerResilience4JFilterFactoryTests
 			.setFallbackUri("forward:/myfallback");
 		GatewayFilter filter = new SpringCloudCircuitBreakerResilience4JFilterFactory(
 				new ReactiveResilience4JCircuitBreakerFactory(CircuitBreakerRegistry.ofDefaults(),
-						TimeLimiterRegistry.ofDefaults()),
+						TimeLimiterRegistry.ofDefaults(), mock(ReactiveResilience4jBulkheadProvider.class),
+						new Resilience4JConfigurationProperties()),
 				null)
 			.apply(config);
 		assertThat(filter.toString()).contains("myname").contains("forward:/myfallback");
