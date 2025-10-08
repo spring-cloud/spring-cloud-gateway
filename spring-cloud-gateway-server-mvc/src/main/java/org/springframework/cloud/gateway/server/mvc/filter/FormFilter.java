@@ -49,7 +49,6 @@ import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Filter that rebuilds the body for form urlencoded posts. Serlvets treat query
@@ -114,14 +113,7 @@ public class FormFilter implements Filter, Ordered {
 		Writer writer = new OutputStreamWriter(bos, FORM_CHARSET);
 
 		Map<String, String[]> form = request.getParameterMap();
-		String queryString = request.getQueryString();
-		StringBuffer requestURL = request.getRequestURL();
-		if (StringUtils.hasText(queryString)) {
-			requestURL.append('?').append(queryString);
-		}
-		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUriString(requestURL.toString());
-		MultiValueMap<String, String> queryParams = uriComponentsBuilder.build().getQueryParams();
-		queryParams = MvcUtils.decodeQueryParams(queryParams);
+		MultiValueMap<String, String> queryParams = MvcUtils.decodeQueryString(request.getQueryString(), FORM_CHARSET);
 		for (Iterator<Map.Entry<String, String[]>> entryIterator = form.entrySet().iterator(); entryIterator
 			.hasNext();) {
 			Map.Entry<String, String[]> entry = entryIterator.next();
