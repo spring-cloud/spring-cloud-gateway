@@ -289,9 +289,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param protoDescriptor relative path to the proto descriptor file.
 	 */
 	public GatewayFilterSpec jsonToGRPC(String service, String method, String protoDescriptor) {
-		return filter(getBean(JsonToGrpcGatewayFilterFactory.class).apply(c -> c.setMethod(method)
-			.setProtoDescriptor(protoDescriptor)
-			.setService(service)));
+		return filter(getBean(JsonToGrpcGatewayFilterFactory.class)
+			.apply(c -> c.setMethod(method).setProtoDescriptor(protoDescriptor).setService(service)));
 	}
 
 	/**

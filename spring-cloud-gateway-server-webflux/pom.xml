@@ -22,6 +22,7 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.76.0</grpc.version>
+		<protobuf.version>4.32.1</protobuf.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
@@ -129,6 +130,12 @@
 			<artifactId>grpc-protobuf</artifactId>
 			<optional>true</optional>
 			<version>${grpc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java-util</artifactId>
+			<optional>true</optional>
+			<version>${protobuf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
