@@ -24,9 +24,6 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.junit.runners.model.Statement;
 
-import org.springframework.cloud.gateway.filter.GatewayMetricsFilterTests;
-import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactoryTests;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assume.assumeThat;
@@ -63,7 +60,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.PrefixPathGatewayFilterFactoryTest.class,
 		org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactoryUnitTests.class,
-		RewriteLocationResponseHeaderGatewayFilterFactoryTests.class,
+		org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactoryTests.class,
 		org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactoryIntegrationTests.class,
 		org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactoryTests.class,
@@ -99,7 +96,8 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterConfigTests.class,
 		org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterTests.class,
 		org.springframework.cloud.gateway.filter.NettyRoutingFilterIntegrationTests.class,
-		GatewayMetricsFilterTests.class, org.springframework.cloud.gateway.filter.ForwardRoutingFilterTests.class,
+		org.springframework.cloud.gateway.filter.GatewayMetricsFilterTests.class,
+		org.springframework.cloud.gateway.filter.ForwardRoutingFilterTests.class,
 		org.springframework.cloud.gateway.route.RouteDefinitionRouteLocatorTests.class,
 		org.springframework.cloud.gateway.route.RouteTests.class,
 		org.springframework.cloud.gateway.route.CachingRouteLocatorTests.class,
