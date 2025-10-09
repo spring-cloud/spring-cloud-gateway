@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -267,7 +269,7 @@ public class PredicateSpec extends UriSpec {
 	 * strings.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
+	public BooleanSpec remoteAddr(@Nullable RemoteAddressResolver resolver, String... addrs) {
 		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
 			c.setSources(addrs);
 			if (resolver != null) {
