@@ -18,11 +18,14 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.NullMarked;
+
 import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
+@NullMarked
 public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfig {
 
 	@Override
