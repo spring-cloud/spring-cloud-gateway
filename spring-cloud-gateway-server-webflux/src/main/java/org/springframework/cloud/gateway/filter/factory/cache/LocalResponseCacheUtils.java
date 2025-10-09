@@ -33,6 +33,7 @@ public final class LocalResponseCacheUtils {
 	private LocalResponseCacheUtils() {
 	}
 
+	@SuppressWarnings("MisleadingEscapedSpace")
 	public static boolean isNoCacheRequest(ServerHttpRequest request) {
 		String cacheControl = request.getHeaders().getCacheControl();
 		return StringUtils.hasText(cacheControl) && cacheControl.matches(".*(\s|,|^)no-cache(\\s|,|$).*");

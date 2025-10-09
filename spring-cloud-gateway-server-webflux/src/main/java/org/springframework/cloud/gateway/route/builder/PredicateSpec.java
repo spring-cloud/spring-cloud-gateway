@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -129,7 +131,7 @@ public class PredicateSpec extends UriSpec {
 	 * @param regex the regular expression to check against
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec header(String header, String regex) {
+	public BooleanSpec header(String header, @Nullable String regex) {
 		return asyncPredicate(
 				getBean(HeaderRoutePredicateFactory.class).applyAsync(c -> c.setHeader(header).setRegexp(regex)));
 	}
@@ -223,7 +225,7 @@ public class PredicateSpec extends UriSpec {
 	 * @param regex the regular expression to evaluate the query parameter value against
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec query(String param, String regex) {
+	public BooleanSpec query(String param, @Nullable String regex) {
 		return asyncPredicate(
 				getBean(QueryRoutePredicateFactory.class).applyAsync(c -> c.setParam(param).setRegexp(regex)));
 	}
@@ -267,7 +269,7 @@ public class PredicateSpec extends UriSpec {
 	 * strings.
 	 * @return a {@link BooleanSpec} to be used to add logical operators
 	 */
-	public BooleanSpec remoteAddr(RemoteAddressResolver resolver, String... addrs) {
+	public BooleanSpec remoteAddr(@Nullable RemoteAddressResolver resolver, String... addrs) {
 		return asyncPredicate(getBean(RemoteAddrRoutePredicateFactory.class).applyAsync(c -> {
 			c.setSources(addrs);
 			if (resolver != null) {

@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.retry.Repeat;
 import reactor.retry.Retry;
 
@@ -199,7 +200,7 @@ public class GatewayFilterSpec extends UriSpec {
 			KeyValue[] values = Arrays.stream(headers)
 				.map(header -> header.split(":"))
 				.map(parts -> new KeyValue(parts[0], parts[1]))
-				.toArray(size -> new KeyValue[size]);
+				.toArray(KeyValue[]::new);
 			c.setKeyValues(values);
 		}));
 	}
@@ -253,7 +254,7 @@ public class GatewayFilterSpec extends UriSpec {
 	 * Default: {@code null} (no limit)
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec localResponseCache(Duration timeToLive, DataSize size) {
+	public GatewayFilterSpec localResponseCache(@Nullable Duration timeToLive, @Nullable DataSize size) {
 		return filter(getBean(LocalResponseCacheGatewayFilterFactory.class)
 			.apply(c -> c.setTimeToLive(timeToLive).setSize(size)));
 	}
@@ -347,8 +348,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param <R> the new request body class
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass, String newContentType,
-			RewriteFunction<T, R> rewriteFunction) {
+	public <T, R> GatewayFilterSpec modifyRequestBody(Class<T> inClass, Class<R> outClass,
+			@Nullable String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}
@@ -366,7 +367,8 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public <T, R> GatewayFilterSpec modifyRequestBody(ParameterizedTypeReference<T> inClass,
-			ParameterizedTypeReference<R> outClass, String newContentType, RewriteFunction<T, R> rewriteFunction) {
+			ParameterizedTypeReference<R> outClass, @Nullable String newContentType,
+			RewriteFunction<T, R> rewriteFunction) {
 		return filter(getBean(ModifyRequestBodyGatewayFilterFactory.class)
 			.apply(c -> c.setRewriteFunction(inClass, outClass, rewriteFunction).setContentType(newContentType)));
 	}

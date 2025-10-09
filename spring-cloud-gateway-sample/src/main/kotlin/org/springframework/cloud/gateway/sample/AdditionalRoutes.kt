@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration
 open class AdditionalRoutes {
 
     @Value("\${test.uri:http://httpbin.org:80}")
-    var uri: String? = null
+    var uri: String = ""
 
     @Bean
     open fun additionalRouteLocator(builder: RouteLocatorBuilder) = builder.routes {
