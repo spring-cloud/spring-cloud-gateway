@@ -88,6 +88,7 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 				"lambda$authenticate$4");
 
 		// Uses java.io.RandomAccessFile#readBytes
+		builder.allowBlockingCallsInside("org.springframework.http.codec.AbstractJacksonEncoder", "encodeValue");
 		builder.allowBlockingCallsInside("org.springframework.context.annotation.ConfigurationClassParser", "parse");
 		builder.allowBlockingCallsInside(
 				"org.springframework.context.annotation.ConfigurationClassBeanDefinitionReader", "loadBeanDefinitions");
