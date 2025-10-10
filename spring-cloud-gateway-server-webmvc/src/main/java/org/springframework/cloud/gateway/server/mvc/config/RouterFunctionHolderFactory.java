@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.config;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,12 +31,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import jakarta.annotation.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -351,10 +354,36 @@ public class RouterFunctionHolderFactory {
 		else {
 			args.putAll(operationArgs);
 		}
-		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(operationMethod,
-				this.parameterValueMapper);
+
+		ReflectiveOperationInvoker operationInvoker = new ReflectiveOperationInvoker(
+				resolveInvocationTargetBean(operationMethod), operationMethod, this.parameterValueMapper);
 		InvocationContext context = new InvocationContext(args, trueNullOperationArgumentResolver);
 		return operationInvoker.invoke(context);
+	}
+
+	@Nullable
+	private Object resolveInvocationTargetBean(OperationMethod operationMethod) {
+		// if the method is static, we don't have to find the invocation target bean
+		if (Modifier.isStatic(operationMethod.getMethod().getModifiers())) {
+			return null;
+		}
+
+		try {
+			if (beanFactory != null) {
+				return beanFactory.getBean(operationMethod.getMethod().getDeclaringClass());
+			}
+		}
+		catch (NoUniqueBeanDefinitionException e) {
+			log.warn(LogMessage.format(
+					"Multiple beans found for type [%s], this non-static operation method [%s] bean resolution failed; falling back to non-contextual invocation",
+					operationMethod.getMethod().getDeclaringClass().getName(), operationMethod.getMethod().getName()));
+		}
+		catch (NoSuchBeanDefinitionException e) {
+			log.debug(LogMessage.format(
+					"No bean registered for type [%s], this non-static operation method [%s] bean resolution failed; falling back to non-contextual invocation",
+					operationMethod.getMethod().getDeclaringClass().getName(), operationMethod.getMethod().getName()));
+		}
+		return null;
 	}
 
 	private Object bindConfigurable(OperationMethod operationMethod, Map<String, Object> args,
