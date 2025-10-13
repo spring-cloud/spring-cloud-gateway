@@ -24,6 +24,8 @@ import java.lang.annotation.Target;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.NullMarked;
+
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,11 +34,11 @@ import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @FunctionalInterface
+@NullMarked
 public interface TrustedProxies {
 
 	/**
@@ -46,7 +48,7 @@ public interface TrustedProxies {
 
 	boolean isTrusted(String host);
 
-	static TrustedProxies from(@NonNull String trustedProxies) {
+	static TrustedProxies from(String trustedProxies) {
 		Assert.hasText(trustedProxies, "trustedProxies must not be empty");
 		Pattern pattern = Pattern.compile(trustedProxies);
 		return value -> pattern.matcher(value).matches();

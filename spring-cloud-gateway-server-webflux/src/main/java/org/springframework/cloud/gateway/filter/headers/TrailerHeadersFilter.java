@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
 
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientResponse;
 import reactor.netty.http.server.HttpServerResponse;
@@ -28,10 +30,11 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
+@NullMarked
 public interface TrailerHeadersFilter {
 
-	static Mono<HttpHeaders> filter(List<HttpHeadersFilter> filters, ServerWebExchange exchange,
-			HttpClientResponse response) {
+	static Mono<HttpHeaders> filter(@Nullable List<HttpHeadersFilter> filters, ServerWebExchange exchange,
+			@Nullable HttpClientResponse response) {
 		if (response == null) {
 			return Mono.empty();
 		}
@@ -43,7 +46,7 @@ public interface TrailerHeadersFilter {
 		return filter(filters, headers, exchange);
 	}
 
-	private static Mono<HttpHeaders> filter(List<HttpHeadersFilter> filters, Mono<HttpHeaders> input,
+	private static Mono<HttpHeaders> filter(@Nullable List<HttpHeadersFilter> filters, Mono<HttpHeaders> input,
 			ServerWebExchange exchange) {
 
 		Mono<HttpHeaders> filtered = input;
@@ -84,6 +87,6 @@ public interface TrailerHeadersFilter {
 	 * @param exchange a {@link ServerWebExchange} that should be filtered
 	 * @return filtered Http Headers
 	 */
-	HttpHeaders trailers(HttpHeaders input, ServerWebExchange exchange);
+	HttpHeaders trailers(@Nullable HttpHeaders input, ServerWebExchange exchange);
 
 }

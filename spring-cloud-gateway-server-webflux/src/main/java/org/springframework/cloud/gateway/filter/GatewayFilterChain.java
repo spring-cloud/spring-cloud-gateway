@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import org.jspecify.annotations.NullMarked;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.server.ServerWebExchange;
@@ -28,6 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author Rossen Stoyanchev
  * @since 5.0
  */
+@NullMarked
 public interface GatewayFilterChain {
 
 	/**

@@ -18,9 +18,12 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
 
+import org.jspecify.annotations.NullMarked;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
+@NullMarked
 public interface HttpHeadersFilter {
 
 	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
