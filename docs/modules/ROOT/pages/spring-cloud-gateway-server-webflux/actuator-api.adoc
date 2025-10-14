@@ -2,15 +2,21 @@
 = Actuator API
 
 The `/gateway` actuator endpoint lets you monitor and interact with a Spring Cloud Gateway application.
-To be remotely accessible, the endpoint has to be https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-enabling-endpoints[enabled] and https://docs.spring.io/spring-boot/docs/current/reference/html/production-ready-endpoints.html#production-ready-endpoints-exposing-endpoints[exposed over HTTP or JMX] in the application properties.
+The `/gateway' actuator endpoint has its access disabled by default.  To enable the endpoint you need to set the access to https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.controlling-access['read-only' or 'unrestricted'] and https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.exposing[exposed it over HTTP or JMX] in the application properties.
 The following listing shows how to do so:
 
 .application.properties
 [source,properties]
 ----
-management.endpoint.gateway.enabled=true # default value
+management.endpoint.gateway.access=read-only
 management.endpoints.web.exposure.include=gateway
 ----
+
+WARNING: It is suggested that you set `management.endpoint.gateway.access` to `read-only`.  This will disable the ability
+to refresh, create, and delete routes.  If you need the ability to create, refresh, and delete routes using the actuator
+endpoint you need to set `management.endpoint.gateway.access` to `unrestricted` OR set `management.endpoint.gateway.enabled=true`.
+If you enable the ability to create, delete, and refresh routes via the actuator endpoint you should take the proper steps to
+make sure your actuator endpoints are https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.security[secured].
 
 This endpoint provides an overview of what is available on the child actuator endpoint and the available methods for each reference. The resulting response is similar to the following:
 
