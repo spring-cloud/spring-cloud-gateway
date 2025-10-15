@@ -82,6 +82,40 @@ public class ShortcutConfigurableTests {
 	}
 
 	@Test
+	public void testNormalizeDefaultTypeWithSpelSystemPropertiesFails() {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("bean", "arg1");
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("bean", "#{ @systemProperties['user.home'] ?: 'n.a' }");
+		args.put("arg1", "val1");
+		assertThatThrownBy(() -> {
+			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		}).isInstanceOf(SpelEvaluationException.class);
+	}
+
+	@Test
+	public void testNormalizeDefaultTypeWithSpelEnvironmentVariablesFails() {
+		parser = new SpelExpressionParser();
+		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
+			@Override
+			public List<String> shortcutFieldOrder() {
+				return Arrays.asList("bean", "arg1");
+			}
+		};
+		Map<String, String> args = new HashMap<>();
+		args.put("bean", "#{ @systemEnvironment['user.home'] ?: 'n.a' }");
+		args.put("arg1", "val1");
+		assertThatThrownBy(() -> {
+			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
+		}).isInstanceOf(SpelEvaluationException.class);
+	}
+
+	@Test
 	public void testNormalizeDefaultTypeWithSpelAndInvalidPropertyReferenceFails() {
 		parser = new SpelExpressionParser();
 		ShortcutConfigurable shortcutConfigurable = new ShortcutConfigurable() {
@@ -91,11 +125,11 @@ public class ShortcutConfigurableTests {
 			}
 		};
 		Map<String, String> args = new HashMap<>();
-		args.put("barproperty", "#{@bar.getInt}");
+		args.put("barproperty", "#{@bar.property}");
 		args.put("arg1", "val1");
 		assertThatThrownBy(() -> {
 			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		}).isInstanceOf(SpelEvaluationException.class);
+		}).isInstanceOf(SpelEvaluationException.class).hasMessageContaining("Property or field 'property' cannot be found");
 	}
 
 	@Test
@@ -246,6 +280,8 @@ public class ShortcutConfigurableTests {
 	}
 
 	protected static class Bar {
+
+		public int property = 42;
 
 		public int getInt() {
 			return 42;
