@@ -55,7 +55,7 @@ public class ShortcutConfigurableNonRestrictiveTests {
 			}
 		};
 		Map<String, String> args = new HashMap<>();
-		args.put("barproperty", "#{@bar.getInt}");
+		args.put("barproperty", "#{@bar.property}");
 		args.put("arg1", "val1");
 		Map<String, Object> map = ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
 		assertThat(map).isNotNull().containsEntry("barproperty", 42).containsEntry("arg1", "val1");
@@ -93,6 +93,8 @@ public class ShortcutConfigurableNonRestrictiveTests {
 	}
 
 	protected static class Bar {
+
+		public int property = 42;
 
 		public int getInt() {
 			return 42;
