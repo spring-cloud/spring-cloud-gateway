@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.env.Environment;
+import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.ConstructorResolver;
 import org.springframework.expression.EvaluationContext;
@@ -45,6 +46,9 @@ import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import static org.springframework.context.ConfigurableApplicationContext.SYSTEM_ENVIRONMENT_BEAN_NAME;
+import static org.springframework.context.ConfigurableApplicationContext.SYSTEM_PROPERTIES_BEAN_NAME;
 
 /**
  * @author Spencer Gibb
@@ -176,6 +180,23 @@ public interface ShortcutConfigurable {
 
 	}
 
+	class GatewayBeanFactoryResolver extends BeanFactoryResolver {
+
+		public GatewayBeanFactoryResolver(BeanFactory beanFactory) {
+			super(beanFactory);
+		}
+
+		@Override
+		public Object resolve(EvaluationContext context, String beanName) throws AccessException {
+			if (SYSTEM_ENVIRONMENT_BEAN_NAME.equals(beanName) || SYSTEM_PROPERTIES_BEAN_NAME.equals(beanName)) {
+				throw new AccessException(beanName
+						+ " is not accessible when spring.cloud.gateway.restrictive-property-accessor.enabled=true");
+			}
+			return super.resolve(context, beanName);
+		}
+
+	}
+
 	class GatewayEvaluationContext implements EvaluationContext {
 
 		private final BeanFactoryResolver beanFactoryResolver;
@@ -183,7 +204,7 @@ public interface ShortcutConfigurable {
 		private final SimpleEvaluationContext delegate;
 
 		public GatewayEvaluationContext(BeanFactory beanFactory) {
-			this.beanFactoryResolver = new BeanFactoryResolver(beanFactory);
+			this.beanFactoryResolver = new ShortcutConfigurable.GatewayBeanFactoryResolver(beanFactory);
 			Environment env = beanFactory.getBean(Environment.class);
 			boolean restrictive = env.getProperty("spring.cloud.gateway.restrictive-property-accessor.enabled",
 					Boolean.class, true);
