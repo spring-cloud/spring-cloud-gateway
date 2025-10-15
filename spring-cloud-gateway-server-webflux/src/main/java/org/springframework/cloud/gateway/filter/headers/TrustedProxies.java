@@ -24,8 +24,6 @@ import java.lang.annotation.Target;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
 
-import org.jspecify.annotations.NullMarked;
-
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +36,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @FunctionalInterface
-@NullMarked
 public interface TrustedProxies {
 
 	/**

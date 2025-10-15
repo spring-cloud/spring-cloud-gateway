@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
 
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClientResponse;
@@ -30,7 +29,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
-@NullMarked
 public interface TrailerHeadersFilter {
 
 	static Mono<HttpHeaders> filter(@Nullable List<HttpHeadersFilter> filters, ServerWebExchange exchange,
