@@ -32,7 +32,6 @@ import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,7 +45,7 @@ public interface TrustedProxies {
 
 	boolean isTrusted(String host);
 
-	static TrustedProxies from(@NonNull String trustedProxies) {
+	static TrustedProxies from(String trustedProxies) {
 		Assert.hasText(trustedProxies, "trustedProxies must not be empty");
 		Pattern pattern = Pattern.compile(trustedProxies);
 		return value -> pattern.matcher(value).matches();

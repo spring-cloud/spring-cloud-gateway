@@ -20,6 +20,8 @@ import java.net.URI;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.route.Route;
 
 /**
@@ -51,7 +53,7 @@ public class UriSpec {
 		return this;
 	}
 
-	public UriSpec metadata(String key, Object value) {
+	public UriSpec metadata(@Nullable String key, @Nullable Object value) {
 		this.routeBuilder.metadata(key, value);
 		return this;
 	}

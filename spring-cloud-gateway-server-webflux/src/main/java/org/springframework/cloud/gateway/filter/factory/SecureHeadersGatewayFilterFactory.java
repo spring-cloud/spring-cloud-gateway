@@ -334,7 +334,7 @@ public class SecureHeadersGatewayFilterFactory
 		}
 
 		public void setDownloadOptionsHeaderValue(String downloadOptionHeaderValue) {
-			this.downloadOptionsHeaderValue = downloadOptionsHeaderValue;
+			this.downloadOptionsHeaderValue = downloadOptionHeaderValue;
 		}
 
 		public String getPermittedCrossDomainPoliciesHeaderValue() {
