@@ -194,7 +194,7 @@ public class ForwardedRequestHeadersFilterTests {
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
-		assertThat(forwarded.getValues()).containsEntry("for", "\"2001:db8:cafe:0:0:0:0:17:80\"");
+		assertThat(forwarded.getValues()).containsEntry("for", "\"[2001:db8:cafe:0:0:0:0:17]:80\"");
 	}
 
 	@Test
@@ -298,7 +298,6 @@ public class ForwardedRequestHeadersFilterTests {
 	}
 
 	@Test
-	@Disabled("Change in Framework broke this test, see https://github.com/spring-projects/spring-framework/commit/2c831449464d677b2a865ad02718994b3c69a338")
 	public void remoteAddressIsNullUnTrustedProxyNotAppended() throws Exception {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
 			.header(HttpHeaders.HOST, "myhost")

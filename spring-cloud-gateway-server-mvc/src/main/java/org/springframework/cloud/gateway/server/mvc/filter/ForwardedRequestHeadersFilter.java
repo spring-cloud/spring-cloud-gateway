@@ -162,7 +162,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 				return;
 			}
 			int port = remoteAddress.getPort();
-			if (port >= 0 && !forValue.contains(":")) {
+			if (port >= 0) {
 				forValue = forValue + ":" + port;
 			}
 			forwarded.put("for", forValue);
