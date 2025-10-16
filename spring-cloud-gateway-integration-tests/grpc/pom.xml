@@ -12,7 +12,7 @@
 
 	<properties>
 		<protoc.version>3.25.1</protoc.version>
-		<protobuf.version>4.31.1</protobuf.version>
+		<protobuf.version>4.33.0</protobuf.version>
 		<grpc.version>1.76.0</grpc.version>
 	</properties>
 
