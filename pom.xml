@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.cloud</groupId>
 	<artifactId>spring-cloud-gateway</artifactId>
-	<version>4.2.7-SNAPSHOT</version>
+	<version>4.2.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Gateway</name>
@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.2.4-SNAPSHOT</version>
+		<version>4.2.3-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 	<scm>
