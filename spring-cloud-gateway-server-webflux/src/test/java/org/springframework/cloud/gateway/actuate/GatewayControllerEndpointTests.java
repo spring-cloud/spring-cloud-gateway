@@ -235,44 +235,39 @@ public class GatewayControllerEndpointTests {
 		testRouteDefinition.setUri(URI.create("http://example.org"));
 
 		FilterDefinition prefixPathFilterDefinition = new FilterDefinition("PrefixPath=/test-path");
-		FilterDefinition redirectToFilterDefinition = new FilterDefinition(
-				"AddResponseHeader=#{ @systemProperties['user.home'] ?: 'n.a' }");
-		testRouteDefinition.setFilters(Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition));
+		FilterDefinition redirectToFilterDefinition = new FilterDefinition("AddResponseHeader=#{ @systemProperties['user.home'] ?: 'n.a' }");
+		testRouteDefinition
+				.setFilters(Arrays.asList(prefixPathFilterDefinition, redirectToFilterDefinition));
 
 		PredicateDefinition hostRoutePredicateDefinition = new PredicateDefinition("Host=myhost.org");
 		PredicateDefinition methodRoutePredicateDefinition = new PredicateDefinition("Method=GET");
-		testRouteDefinition.setPredicates(Arrays.asList(hostRoutePredicateDefinition, methodRoutePredicateDefinition));
+		testRouteDefinition.setPredicates(
+				Arrays.asList(hostRoutePredicateDefinition, methodRoutePredicateDefinition));
 
 		testClient.post()
-			.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
-			.accept(MediaType.APPLICATION_JSON)
-			.body(BodyInserters.fromValue(testRouteDefinition))
-			.exchange()
-			.expectStatus()
-			.isCreated();
-		// The refresh will try and create the new route but this should fail with an
-		// exception due to
+				.uri("http://localhost:" + port + "/actuator/gateway/routes/test-route")
+				.accept(MediaType.APPLICATION_JSON)
+				.body(BodyInserters.fromValue(testRouteDefinition))
+				.exchange()
+				.expectStatus()
+				.isCreated();
+		// The refresh will try and create the new route but this should fail with an exception due to
 		// the invalid SpEL expression
-		// The HTTP request still returns a 200 because all this is doing is firing an
-		// event and it
+		// The HTTP request still returns a 200 because all this is doing is firing an event and it
 		// is a "fire and forget" operation
-		testClient.post()
-			.uri("http://localhost:" + port + "/actuator/gateway/refresh")
-			.exchange()
-			.expectStatus()
-			.isOk();
+		testClient.post().uri("http://localhost:" + port + "/actuator/gateway/refresh").exchange().expectStatus().isOk();
 
 		// Check to make sure the route was not actually created
 		testClient.get()
-			.uri("http://localhost:" + port + "/actuator/gateway/routes")
-			.exchange()
-			.expectStatus()
-			.isOk()
-			.expectBodyList(Map.class)
-			.consumeWith(result -> {
-				List<Map> responseBody = result.getResponseBody();
-				assertThat(responseBody).extracting("route_id").doesNotContain("test-route");
-			});
+				.uri("http://localhost:" + port + "/actuator/gateway/routes")
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBodyList(Map.class)
+				.consumeWith(result -> {
+					List<Map> responseBody = result.getResponseBody();
+					assertThat(responseBody).extracting("route_id").doesNotContain("test-route");
+				});
 	}
 
 	@Test

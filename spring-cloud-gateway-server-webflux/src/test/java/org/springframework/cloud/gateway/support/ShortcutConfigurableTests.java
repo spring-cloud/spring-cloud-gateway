@@ -129,8 +129,7 @@ public class ShortcutConfigurableTests {
 		args.put("arg1", "val1");
 		assertThatThrownBy(() -> {
 			ShortcutType.DEFAULT.normalize(args, shortcutConfigurable, parser, this.beanFactory);
-		}).isInstanceOf(SpelEvaluationException.class)
-			.hasMessageContaining("Property or field 'property' cannot be found");
+		}).isInstanceOf(SpelEvaluationException.class).hasMessageContaining("Property or field 'property' cannot be found");
 	}
 
 	@Test

@@ -197,6 +197,7 @@ public interface ShortcutConfigurable {
 
 	}
 
+
 	class GatewayEvaluationContext implements EvaluationContext {
 
 		private final BeanFactoryResolver beanFactoryResolver;
