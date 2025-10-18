@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -88,8 +90,12 @@ public class CachingRouteLocator
 				final Mono<List<Route>> scopedRoutes = fetch(event.getMetadata()).collect(Collectors.toList())
 					.onErrorResume(s -> Mono.just(List.of()));
 
+				Map<String, Long> routeIdToIdxMap = new HashMap<>();
+				getRoutes().index().subscribe(t -> routeIdToIdxMap.put(t.getT2().getId(), t.getT1()));
+
 				scopedRoutes.subscribe(scopedRoutesList -> {
 					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
+						.sort(Comparator.comparing(r -> routeIdToIdxMap.getOrDefault(r.getId(), Long.MIN_VALUE)))
 						.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
