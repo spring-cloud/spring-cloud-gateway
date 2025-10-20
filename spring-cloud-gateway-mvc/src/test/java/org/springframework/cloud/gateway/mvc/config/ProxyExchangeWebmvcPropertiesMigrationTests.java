@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.mvc.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -35,6 +37,7 @@ public class ProxyExchangeWebmvcPropertiesMigrationTests {
 	@Autowired
 	ProxyExchangeWebMvcProperties properties;
 
+	@DisabledForJreRange(min = JRE.JAVA_25)
 	@Test
 	public void deprecatedRoutePropertiesWork() {
 		assertThat(properties.getHeaders()).hasSize(2);
