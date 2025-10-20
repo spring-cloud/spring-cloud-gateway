@@ -69,7 +69,7 @@
 		<spring-cloud-circuitbreaker.version>3.3.1-SNAPSHOT</spring-cloud-circuitbreaker.version>
 		<spring-cloud-commons.version>4.3.1-SNAPSHOT</spring-cloud-commons.version>
 		<spring-cloud-function.version>4.3.1-SNAPSHOT</spring-cloud-function.version>
-		<spring-cloud-stream.version>4.3.0</spring-cloud-stream.version>
+		<spring-cloud-stream.version>4.3.1-SNAPSHOT</spring-cloud-stream.version>
 		<disable.checks>true</disable.checks>
 	</properties>
 
