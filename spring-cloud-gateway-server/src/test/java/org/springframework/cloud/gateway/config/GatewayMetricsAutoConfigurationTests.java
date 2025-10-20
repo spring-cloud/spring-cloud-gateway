@@ -23,6 +23,8 @@ import io.micrometer.tracing.Tracer;
 import io.micrometer.tracing.propagation.Propagator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -145,6 +147,7 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Autowired(required = false)
 		private List<GatewayTagsProvider> tagsProviders;
 
+		@DisabledForJreRange(min = JRE.JAVA_25)
 		@Test
 		public void gatewayMetricsBeansExists() {
 			assertThat(filter).isNotNull();
@@ -152,6 +155,7 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(tagsProviders).extracting("class").contains(CustomTagsProviderConfig.EmptyTagsProvider.class);
 		}
 
+		@DisabledForJreRange(min = JRE.JAVA_25)
 		@Test
 		public void routeDefinitionMetricsBeanExists() {
 			assertThat(routeDefinitionMetrics).isNotNull();

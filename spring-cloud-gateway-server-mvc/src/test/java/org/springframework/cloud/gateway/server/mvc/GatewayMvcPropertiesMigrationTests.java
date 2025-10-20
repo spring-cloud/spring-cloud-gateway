@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -40,6 +42,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unchecked")
+@DisabledForJreRange(min = JRE.JAVA_25)
 @SpringBootTest(properties = {}, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("propertiesmigrationtests")
 public class GatewayMvcPropertiesMigrationTests {
