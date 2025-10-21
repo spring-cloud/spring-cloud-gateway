@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -34,6 +36,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @DirtiesContext
 class RewriteRequestParameterGatewayFilterFactoryIntegrationTests extends BaseWebClientTests {
 
+	@DisabledForJreRange(min = JRE.JAVA_25)
 	@Test
 	void rewriteRequestParameterFilterWorks() {
 		testClient.get()

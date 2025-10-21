@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -297,7 +298,7 @@ public class ForwardedRequestHeadersFilterTests {
 	}
 
 	@Test
-	public void remoteAdddressIsNullUnTrustedProxyNotAppended() throws Exception {
+	public void remoteAddressIsNullUnTrustedProxyNotAppended() throws Exception {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
 			.header(HttpHeaders.HOST, "myhost")
 			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=127.0.0.1")
