@@ -31,7 +31,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.GatewayPropagatingSenderTracingObservationHandler;
@@ -166,7 +166,7 @@ public class GatewayMetricsAutoConfigurationTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@AutoConfigureObservability
+	@AutoConfigureTracing
 	protected static class Config {
 
 		@Bean

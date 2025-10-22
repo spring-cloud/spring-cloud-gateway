@@ -88,10 +88,10 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 			.body(BodyInserters.fromValue("request"))
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.isEqualTo(HttpStatus.CONTENT_TOO_LARGE)
 			.expectBody()
 			.jsonPath("error")
-			.isEqualTo("Payload Too Large");
+			.isEqualTo("Content Too Large");
 	}
 
 	@Test

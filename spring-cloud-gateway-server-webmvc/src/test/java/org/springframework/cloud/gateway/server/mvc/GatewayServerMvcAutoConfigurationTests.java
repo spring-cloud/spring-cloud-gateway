@@ -19,8 +19,6 @@ package org.springframework.cloud.gateway.server.mvc;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledForJreRange;
-import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -28,11 +26,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
-import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
-import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
-import org.springframework.boot.http.client.autoconfigure.HttpClientProperties;
+import org.springframework.boot.http.client.autoconfigure.HttpClientsProperties;
+import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientsProperties;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -141,27 +138,6 @@ public class GatewayServerMvcAutoConfigurationTests {
 			});
 	}
 
-	@DisabledForJreRange(min = JRE.JAVA_23)
-	@Test
-	void gatewayHttpClientPropertiesWork() {
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none", "spring.http.client.connect-timeout=1s",
-					"spring.http.client.read-timeout=2s", "spring.http.client.ssl.bundle=mybundle",
-					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
-					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
-			.run();
-		ClientHttpRequestFactorySettings settings = context.getBean(ClientHttpRequestFactorySettings.class);
-		HttpClientProperties properties = context.getBean(HttpClientProperties.class);
-		assertThat(properties.getConnectTimeout()).hasSeconds(1);
-		assertThat(properties.getReadTimeout()).hasSeconds(2);
-		assertThat(properties.getSsl().getBundle()).isEqualTo("mybundle");
-		assertThat(properties.getFactory()).isNull();
-		assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
-		assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
-		assertThat(settings.sslBundle()).isNotNull();
-		assertThat(settings.redirects()).isEqualTo(HttpRedirects.DONT_FOLLOW);
-	}
-
 	@Test
 	void bootHttpClientPropertiesWork() {
 		new ApplicationContextRunner()
@@ -169,39 +145,25 @@ public class GatewayServerMvcAutoConfigurationTests {
 					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-			.withPropertyValues("spring.http.client.connect-timeout=1s", "spring.http.client.read-timeout=2s",
-					"spring.http.client.ssl.bundle=mybundle",
+			.withPropertyValues("spring.http.clients.connect-timeout=1s", "spring.http.clients.read-timeout=2s",
+					"spring.http.clients.ssl.bundle=mybundle",
 					"spring.ssl.bundle.pem.mybundle.keystore.certificate=" + cert,
 					"spring.ssl.bundle.pem.mybundle.keystore.key=" + key)
 			.run(context -> {
-				assertThat(context).hasSingleBean(ClientHttpRequestFactorySettings.class)
-					.hasSingleBean(HttpClientProperties.class);
-				HttpClientProperties httpClient = context.getBean(HttpClientProperties.class);
-				assertThat(httpClient.getConnectTimeout()).hasSeconds(1);
-				assertThat(httpClient.getReadTimeout()).hasSeconds(2);
-				assertThat(httpClient.getSsl().getBundle()).isEqualTo("mybundle");
-				assertThat(httpClient.getFactory()).isNull();
-				ClientHttpRequestFactorySettings settings = context.getBean(ClientHttpRequestFactorySettings.class);
-				assertThat(settings.readTimeout()).isEqualTo(Duration.ofSeconds(2));
-				assertThat(settings.connectTimeout()).isEqualTo(Duration.ofSeconds(1));
-				assertThat(settings.sslBundle()).isNotNull();
+				assertThat(context).hasSingleBean(HttpClientsProperties.class)
+					.doesNotHaveBean(ImperativeHttpClientsProperties.class);
+				HttpClientsProperties properties = context.getBean(HttpClientsProperties.class);
+				assertThat(properties.getReadTimeout()).isEqualTo(Duration.ofSeconds(2));
+				assertThat(properties.getConnectTimeout()).isEqualTo(Duration.ofSeconds(1));
+				assertThat(properties.getSsl().getBundle()).isNotNull();
 				// cant test redirects because EnvironmentPostProcessor is not run
 			});
 	}
 
 	@Test
-	void settingHttpClientFactoryOldPropertyWorks() {
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
-			.run();
-		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
-		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
-	}
-
-	@Test
 	void settingHttpClientFactoryWorks() {
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
-			.properties("spring.main.web-application-type=none", "spring.http.client.factory=simple")
+			.properties("spring.main.web-application-type=none", "spring.http.clients.imperative.factory=simple")
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);

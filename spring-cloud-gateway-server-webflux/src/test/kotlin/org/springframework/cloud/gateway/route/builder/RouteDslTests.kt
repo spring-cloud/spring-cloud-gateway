@@ -72,7 +72,7 @@ class RouteDslTests {
 
 		val filteredRoutes = routeLocator.routes.filter({
 			sampleExchange.attributes.put(ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR, it.id)
-			it.predicate.apply(sampleExchange).toMono().block()
+            it.predicate.apply(sampleExchange).toMono().block() == true
 		})
 
 		StepVerifier.create(filteredRoutes)
@@ -100,19 +100,19 @@ class RouteDslTests {
 					it.id == "test1" &&
 							it.uri == URI.create("http://httpbin.org:80") &&
 							it.order == 10 &&
-							it.predicate.apply(MockServerWebExchange
-									.from(MockServerHttpRequest
-											.get("/someuri").header("Host", "test.abc.org")))
-									.toMono().block()
+                            it.predicate.apply(MockServerWebExchange
+                                .from(MockServerHttpRequest
+                                    .get("/someuri").header("Host", "test.abc.org")))
+                                .toMono().block() == true
 				})
 				.expectNextMatches({
 					it.id == "test2" &&
 							it.uri == URI.create("http://override-url:80") &&
 							it.order == 10 &&
-							it.predicate.apply(MockServerWebExchange
-									.from(MockServerHttpRequest
-											.get("/someuri").header("Host", "test.abc.org")))
-									.toMono().block()
+                            it.predicate.apply(MockServerWebExchange
+                                .from(MockServerHttpRequest
+                                    .get("/someuri").header("Host", "test.abc.org")))
+                                .toMono().block() == true
 				})
 				.expectComplete()
 				.verify()

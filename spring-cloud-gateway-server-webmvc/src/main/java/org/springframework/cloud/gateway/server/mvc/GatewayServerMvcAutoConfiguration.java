@@ -26,8 +26,8 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.http.client.HttpRedirects;
-import org.springframework.boot.http.client.autoconfigure.AbstractHttpRequestFactoryProperties.Factory;
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
+import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientsProperties.Factory;
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
@@ -257,8 +257,8 @@ public class GatewayServerMvcAutoConfiguration {
 		static final boolean REACTOR_NETTY = ClassUtils.isPresent("reactor.netty.http.client.HttpClient", null);
 		static final boolean JDK = ClassUtils.isPresent("java.net.http.HttpClient", null);
 		static final boolean HIGHER_PRIORITY = APACHE || JETTY || REACTOR_NETTY;
-		static final String SPRING_REDIRECTS_PROPERTY = "spring.http.client.redirects";
-		static final String SPRING_HTTP_FACTORY_PROPERTY = "spring.http.client.factory";
+		static final String SPRING_REDIRECTS_PROPERTY = "spring.http.clients.redirects";
+		static final String SPRING_HTTP_FACTORY_PROPERTY = "spring.http.clients.imperative.factory";
 
 		@Override
 		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {

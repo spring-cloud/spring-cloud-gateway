@@ -29,10 +29,11 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.web.server.test.LocalServerPort;
-import org.springframework.boot.web.server.test.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Bar;
 import org.springframework.cloud.gateway.mvc.ProductionConfigurationTests.TestApplication.Foo;
@@ -60,6 +61,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(classes = TestApplication.class)
+@AutoConfigureTestRestTemplate
 public class ProductionConfigurationTests {
 
 	@Autowired
@@ -284,7 +286,7 @@ public class ProductionConfigurationTests {
 		Map<String, List<String>> headers = rest.exchange(request, Map.class).getBody();
 		assertThat(headers).doesNotContainKey("foo").doesNotContainKey("hello").containsKeys("bar", "abc");
 
-		assertThat(headers.get("cookie")).containsOnly("monster");
+		assertThat(headers.get("Cookie")).containsOnly("monster");
 	}
 
 	@Test
@@ -297,7 +299,7 @@ public class ProductionConfigurationTests {
 				.build(), Map.class)
 			.getBody();
 
-		assertThat(headers).doesNotContainKey("cookie");
+		assertThat(headers).doesNotContainKey("Cookie");
 	}
 
 	@Test

@@ -46,7 +46,7 @@ import org.springframework.boot.autoconfigure.ssl.SslBundleRegistrar;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.micrometer.metrics.autoconfigure.MetricsAutoConfiguration;
 import org.springframework.boot.micrometer.metrics.autoconfigure.export.simple.SimpleMetricsExportAutoConfiguration;
-import org.springframework.boot.security.autoconfigure.reactive.ReactiveSecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.web.reactive.ReactiveWebSecurityAutoConfiguration;
 import org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientAutoConfiguration;
 import org.springframework.boot.ssl.DefaultSslBundleRegistry;
 import org.springframework.boot.ssl.SslBundles;
@@ -197,7 +197,7 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void tokenRelayBeansAreCreated() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(ReactiveWebSecurityAutoConfiguration.class,
 					ReactiveOAuth2ClientAutoConfiguration.class,
 					GatewayAutoConfiguration.TokenRelayConfiguration.class))
 			.withPropertyValues(
@@ -216,7 +216,7 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void reactiveOAuth2AuthorizedClientManagerBacksOffForCustomBean() {
 		new ReactiveWebApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(ReactiveSecurityAutoConfiguration.class,
+			.withConfiguration(AutoConfigurations.of(ReactiveWebSecurityAutoConfiguration.class,
 					ReactiveOAuth2ClientAutoConfiguration.class))
 			.withUserConfiguration(TestReactiveOAuth2AuthorizedClientManagerConfig.class)
 			.withPropertyValues(

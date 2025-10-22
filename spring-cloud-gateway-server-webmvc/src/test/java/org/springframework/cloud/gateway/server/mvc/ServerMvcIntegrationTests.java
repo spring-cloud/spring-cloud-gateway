@@ -46,10 +46,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.web.server.test.LocalServerPort;
-import org.springframework.boot.web.server.test.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
@@ -146,7 +146,7 @@ import static org.springframework.web.servlet.function.RequestPredicates.POST;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 @SuppressWarnings("unchecked")
-@SpringBootTest(properties = { "spring.http.client.factory=jdk",
+@SpringBootTest(properties = { "spring.http.clients.imperative.factory=jdk",
 		GatewayMvcProperties.PREFIX + ".function.enabled=false", "logging.level.org.springframework.security=TRACE" },
 		webEnvironment = WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
@@ -524,7 +524,7 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> map = res.getResponseBody();
 				assertThat(map).containsEntry("data", "hello");
 				Map<String, Object> headers = getMap(map, "headers");
-				assertThat(headers).containsEntry("x-test", "rewritepathpostlocal");
+				assertThat(headers).containsEntry("X-Test", "rewritepathpostlocal");
 			});
 	}
 
@@ -566,7 +566,7 @@ public class ServerMvcIntegrationTests {
 			.header("test", "requestsize")
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.isEqualTo(HttpStatus.CONTENT_TOO_LARGE)
 			.expectHeader()
 			.valueMatches("errormessage",
 					"Request size is larger than permissible limit. Request size is .* where permissible limit is .*");
@@ -583,7 +583,7 @@ public class ServerMvcIntegrationTests {
 			.isEqualTo(HttpStatus.REQUEST_HEADER_FIELDS_TOO_LARGE)
 			.expectHeader()
 			.valueMatches("errormessage",
-					"Request Header/s size is larger than permissible limit (.*). Request Header/s size for 'x-anyheader' is .*");
+					"Request Header/s size is larger than permissible limit (.*). Request Header/s size for 'X-AnyHeader' is .*");
 		restClient.get()
 			.uri("/headers")
 			.header("test", "requestheadersize")

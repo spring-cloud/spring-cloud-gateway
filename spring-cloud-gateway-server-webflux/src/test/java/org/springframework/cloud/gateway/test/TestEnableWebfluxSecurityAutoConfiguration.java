@@ -26,8 +26,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.security.autoconfigure.ReactiveUserDetailsServiceAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.SecurityProperties;
-import org.springframework.boot.security.autoconfigure.reactive.ReactiveSecurityAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
@@ -42,7 +42,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  Because gateway has normal spring security and spring security oauth 2
  we need an explicit @EnableWebFluxSecurity and a ReactiveUserDetailsService
  */
-@AutoConfiguration(before = ReactiveSecurityAutoConfiguration.class)
+@AutoConfiguration(before = ReactiveUserDetailsServiceAutoConfiguration.class)
 @ConditionalOnClass({ DispatcherHandler.class, MapReactiveUserDetailsService.class })
 @EnableWebFluxSecurity
 public class TestEnableWebfluxSecurityAutoConfiguration {

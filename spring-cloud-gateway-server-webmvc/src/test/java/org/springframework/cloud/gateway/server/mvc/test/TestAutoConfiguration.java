@@ -16,9 +16,17 @@
 
 package org.springframework.cloud.gateway.server.mvc.test;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.restclient.RestTemplateBuilder;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.test.http.server.LocalTestWebServer;
 import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.test.web.servlet.client.RestTestClient;
@@ -36,6 +44,31 @@ public class TestAutoConfiguration {
 	@Bean
 	public TestController testController() {
 		return new TestController();
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+	static class TestRestTemplateConfig {
+
+		@Bean(name = "org.springframework.boot.resttestclient.TestRestTemplate")
+		@ConditionalOnMissingBean
+		TestRestTemplate testRestTemplate(ObjectProvider<RestTemplateBuilder> builderProvider,
+				ApplicationContext applicationContext) {
+			RestTemplateBuilder builder = builderProvider.getIfAvailable(RestTemplateBuilder::new);
+			LocalTestWebServer localTestWebServer = LocalTestWebServer.obtain(applicationContext);
+			TestRestTemplate template = new TestRestTemplate(builder, null, null,
+					httpClientOptions(localTestWebServer.scheme()));
+			template.setUriTemplateHandler(localTestWebServer.uriBuilderFactory());
+			return template;
+		}
+
+		private TestRestTemplate.HttpClientOption[] httpClientOptions(LocalTestWebServer.Scheme scheme) {
+			return switch (scheme) {
+				case HTTP -> new TestRestTemplate.HttpClientOption[] {};
+				case HTTPS -> new TestRestTemplate.HttpClientOption[] { TestRestTemplate.HttpClientOption.SSL };
+			};
+		}
+
 	}
 
 }

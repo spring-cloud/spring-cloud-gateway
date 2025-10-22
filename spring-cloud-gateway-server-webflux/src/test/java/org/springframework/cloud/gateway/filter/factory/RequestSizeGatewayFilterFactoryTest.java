@@ -56,7 +56,7 @@ public class RequestSizeGatewayFilterFactoryTest extends BaseWebClientTests {
 			.bodyValue("123456")
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.PAYLOAD_TOO_LARGE)
+			.isEqualTo(HttpStatus.CONTENT_TOO_LARGE)
 			.expectHeader()
 			.valueMatches("errorMessage", responseMesssage);
 	}

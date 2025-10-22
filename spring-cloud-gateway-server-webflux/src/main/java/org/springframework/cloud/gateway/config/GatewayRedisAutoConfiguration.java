@@ -25,7 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.data.redis.autoconfigure.RedisReactiveAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinition;
@@ -39,14 +39,14 @@ import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.data.redis.serializer.Jackson3JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.web.reactive.DispatcherHandler;
 
 @Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter(RedisReactiveAutoConfiguration.class)
+@AutoConfigureAfter(DataRedisReactiveAutoConfiguration.class)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
@@ -84,7 +84,7 @@ class GatewayRedisAutoConfiguration {
 	public ReactiveRedisTemplate<String, RouteDefinition> reactiveRedisRouteDefinitionTemplate(
 			ReactiveRedisConnectionFactory factory) {
 		StringRedisSerializer keySerializer = new StringRedisSerializer();
-		Jackson3JsonRedisSerializer<RouteDefinition> valueSerializer = new Jackson3JsonRedisSerializer<>(
+		JacksonJsonRedisSerializer<RouteDefinition> valueSerializer = new JacksonJsonRedisSerializer<>(
 				RouteDefinition.class);
 		RedisSerializationContext.RedisSerializationContextBuilder<String, RouteDefinition> builder = RedisSerializationContext
 			.newSerializationContext(keySerializer);

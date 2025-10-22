@@ -19,11 +19,9 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junitpioneer.jupiter.RetryingTest;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -41,9 +39,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assume.assumeThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -72,11 +67,6 @@ public class RedisRateLimiterTests extends BaseWebClientTests {
 	static void containerProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.data.redis.host", redis::getHost);
 		registry.add("spring.data.redis.port", redis::getFirstMappedPort);
-	}
-
-	@BeforeEach
-	public void setUp() {
-		assumeThat("Ignore on Circle", System.getenv("CIRCLECI"), is(nullValue()));
 	}
 
 	@AfterEach
