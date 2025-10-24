@@ -177,7 +177,7 @@ public class ForwardedRequestHeadersFilterTests {
 	@Test
 	public void correctIPv6RemoteAddressMapping() throws UnknownHostException {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
-			.remoteAddress("2001:db8:cafe:0:0:0:0:17:80")
+			.remoteAddress("2001:db8:cafe:0:0:0:0:17")
 			.header(HttpHeaders.HOST, "myhost")
 			.buildRequest(null);
 		servletRequest.setRemoteHost("2001:db8:cafe:0:0:0:0:17");
