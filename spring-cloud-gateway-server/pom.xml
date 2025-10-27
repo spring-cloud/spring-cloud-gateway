@@ -273,12 +273,8 @@
 	<build>
 		<plugins>
 			<plugin>
-				<!-- Based on instructions here - https://kotlinlang.org/docs/reference/using-maven.html -->
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<groupId>org.jetbrains.kotlin</groupId>
-				<configuration>
-					<jvmTarget>17</jvmTarget>
-				</configuration>
 				<executions>
 					<execution>
 						<id>compile</id>
