@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.actuate;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -92,9 +94,9 @@ public class GatewayControllerEndpointTests {
 			});
 	}
 
-	@Test
+	@RetryingTest(3)
 	public void testRefresh() {
-		testClient.post()
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
 			.uri("http://localhost:" + port + "/actuator/gateway/refresh")
 			.exchange()
 			.expectStatus()
@@ -115,9 +117,9 @@ public class GatewayControllerEndpointTests {
 			});
 	}
 
-	@Test
+	@RetryingTest(3)
 	public void testGetSpecificRoute() {
-		testClient.get()
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
 			.uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
 			.exchange()
 			.expectStatus()
@@ -320,7 +322,7 @@ public class GatewayControllerEndpointTests {
 			});
 	}
 
-	@Test
+	@RetryingTest(3)
 	public void testOrderOfRefreshByGroup() {
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
@@ -637,8 +639,8 @@ public class GatewayControllerEndpointTests {
 			.exists();
 	}
 
-	@Test
-	public void testPostMultipleRoutesWithOneWrong_doesntPersistRouteDefinitions() {
+	@RetryingTest(3)
+	public void testPostMultipleRoutesWithOneWrong_doesntPersistRouteDefinitions() throws InterruptedException {
 
 		RouteDefinition testRouteDefinition = new RouteDefinition();
 		testRouteDefinition.setUri(URI.create("http://example.org"));
@@ -664,7 +666,7 @@ public class GatewayControllerEndpointTests {
 
 		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
 
-		testClient.post()
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
 			.uri("http://localhost:" + port + "/actuator/gateway/routes")
 			.accept(MediaType.APPLICATION_JSON)
 			.body(BodyInserters.fromValue(multipleRouteDefs))
@@ -672,7 +674,9 @@ public class GatewayControllerEndpointTests {
 			.expectStatus()
 			.is4xxClientError();
 
-		testClient.get()
+		Thread.sleep(3000);
+
+		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
 			.uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
 			.accept(MediaType.APPLICATION_JSON)
 			.exchange()

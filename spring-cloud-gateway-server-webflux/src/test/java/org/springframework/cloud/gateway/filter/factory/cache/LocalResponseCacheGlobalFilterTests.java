@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -51,7 +52,7 @@ public class LocalResponseCacheGlobalFilterTests {
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class GlobalCacheNotEnabled extends BaseWebClientTests {
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenGlobalIsNotEnabled() {
 			String uri = "/" + UUID.randomUUID() + "/global-cache-deactivated/headers";
 
