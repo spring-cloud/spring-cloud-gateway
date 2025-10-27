@@ -100,12 +100,6 @@
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
-				<configuration>
-					<args>
-						<arg>-Xjsr305=strict</arg>
-					</args>
-					<jvmTarget>17</jvmTarget>
-				</configuration>
 				<executions>
 					<execution>
 						<id>compile</id>
