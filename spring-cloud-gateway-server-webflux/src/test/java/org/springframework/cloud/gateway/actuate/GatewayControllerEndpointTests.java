@@ -96,7 +96,10 @@ public class GatewayControllerEndpointTests {
 
 	@RetryingTest(3)
 	public void testRefresh() {
-		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
+		testClient.mutate()
+			.responseTimeout(Duration.ofSeconds(10))
+			.build()
+			.post()
 			.uri("http://localhost:" + port + "/actuator/gateway/refresh")
 			.exchange()
 			.expectStatus()
@@ -119,7 +122,10 @@ public class GatewayControllerEndpointTests {
 
 	@RetryingTest(3)
 	public void testGetSpecificRoute() {
-		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+		testClient.mutate()
+			.responseTimeout(Duration.ofSeconds(10))
+			.build()
+			.get()
 			.uri("http://localhost:" + port + "/actuator/gateway/routes/test-service")
 			.exchange()
 			.expectStatus()
@@ -666,7 +672,10 @@ public class GatewayControllerEndpointTests {
 
 		List<RouteDefinition> multipleRouteDefs = List.of(testRouteDefinition, testRouteDefinition2);
 
-		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().post()
+		testClient.mutate()
+			.responseTimeout(Duration.ofSeconds(10))
+			.build()
+			.post()
 			.uri("http://localhost:" + port + "/actuator/gateway/routes")
 			.accept(MediaType.APPLICATION_JSON)
 			.body(BodyInserters.fromValue(multipleRouteDefs))
@@ -676,7 +685,10 @@ public class GatewayControllerEndpointTests {
 
 		Thread.sleep(3000);
 
-		testClient.mutate().responseTimeout(Duration.ofSeconds(10)).build().get()
+		testClient.mutate()
+			.responseTimeout(Duration.ofSeconds(10))
+			.build()
+			.get()
 			.uri("http://localhost:" + port + "/actuator/gateway/routedefinitions")
 			.accept(MediaType.APPLICATION_JSON)
 			.exchange()
