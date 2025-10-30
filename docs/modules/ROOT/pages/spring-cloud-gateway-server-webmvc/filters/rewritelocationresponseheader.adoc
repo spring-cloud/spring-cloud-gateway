@@ -18,7 +18,14 @@ spring:
           predicates:
           - Path=/**
           filters:
-          - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+          # Minimal configuration - only stripVersion
+          - RewriteLocationResponseHeader=AS_IN_REQUEST
+          # Specify header name
+          - RewriteLocationResponseHeader=AS_IN_REQUEST, Location
+          # Specify custom host value
+          - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, api.example.com
+          # Full configuration with protocols regex
+          - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, api.example.com, https?|ftps?
 ----
 
 .GatewaySampleApplication.java
@@ -61,4 +68,15 @@ If it is not provided, the value of the `Host` request header is used.
 The `protocolsRegex` parameter must be a valid regex `String`, against which the protocol name is matched.
 If it is not matched, the filter does nothing.
 The default is `http|https|ftp|ftps`.
+
+== Multiple Configuration Options
+
+The `RewriteLocationResponseHeader` filter supports multiple configuration formats for different use cases:
+
+* **Minimal configuration**: `RewriteLocationResponseHeader=AS_IN_REQUEST` - Uses default values for all other parameters
+* **With header name**: `RewriteLocationResponseHeader=AS_IN_REQUEST, Location` - Specifies custom header name (default is `Location`)  
+* **With host value**: `RewriteLocationResponseHeader=AS_IN_REQUEST, Location, api.example.com` - Uses custom host instead of request Host header
+* **Full configuration**: `RewriteLocationResponseHeader=AS_IN_REQUEST, Location, api.example.com, https?|ftps?` - Specifies all parameters including protocols regex
+
+All parameters after `stripVersionMode` are optional and use sensible defaults when not provided.
 
