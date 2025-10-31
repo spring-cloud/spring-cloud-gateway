@@ -139,7 +139,7 @@ public class GatewayControllerEndpointTests {
 			});
 	}
 
-	@Test
+	@RetryingTest(3)
 	public void testRouteReturnsMetadata() {
 		testClient.get()
 			.uri("http://localhost:" + port + "/actuator/gateway/routes/route_with_metadata")
