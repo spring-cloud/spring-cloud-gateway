@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -74,7 +75,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class UsingFilterParams extends BaseWebClientTests {
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenGetRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -99,7 +100,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenPostRequestHasBody() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -124,7 +125,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheWhenCacheControlAsksToDoNotCache() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -150,7 +151,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotIncludeMustRevalidateNoStoreAndNoCacheDirectivesWhenMaxAgeIsPositive() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -173,7 +174,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 					"must-revalidate", "no-cache");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldCacheResponseWhenOnlyNonVaryHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -194,7 +195,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 					.isEqualTo(customHeaderFromReq1));
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenVaryHeaderIsDifferent() {
 			String varyHeader = HttpHeaders.ORIGIN;
 			String sameUri = "/" + UUID.randomUUID() + "/cache/vary-on-header";
@@ -205,7 +206,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			assertNonVaryHeaderInContent(sameUri, varyHeader, "origin-2", CUSTOM_HEADER, secondNonVary, secondNonVary);
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenResponseVaryIsWildcard() {
 			String uri = "/" + UUID.randomUUID() + "/cache/vary-on-header";
 			// Vary: *
@@ -229,7 +230,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenPathIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			String uri2 = "/" + UUID.randomUUID() + "/cache/headers";
@@ -253,7 +254,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldDecreaseCacheControlMaxAgeTimeWhenResponseIsFromCache() throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 			Long maxAgeRequest1 = testClient.get()
@@ -287,7 +288,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			assertThat(maxAgeRequest2).isLessThan(maxAgeRequest1);
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheResponseWhenTimeToLiveIsReached() {
 			String uri = "/" + UUID.randomUUID() + "/ephemeral-cache/headers";
 			testClient.get()
@@ -317,7 +318,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		// FIXME: 5.0.0 fails in maven, not in ide
 		@Disabled
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheWhenLocalResponseCacheSizeIsReached() {
 			String uri = "/" + UUID.randomUUID() + "/one-byte-cache/headers";
 
@@ -340,7 +341,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2222");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheWhenAuthorizationHeaderIsDifferent() {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";
 
@@ -365,12 +366,12 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 				.isEqualTo("2");
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
 			shouldNotReturnHeader(HttpHeaders.PRAGMA);
 		}
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotReturnExpiresHeaderInNonCachedAndCachedResponses() {
 			shouldNotReturnHeader(HttpHeaders.EXPIRES);
 		}

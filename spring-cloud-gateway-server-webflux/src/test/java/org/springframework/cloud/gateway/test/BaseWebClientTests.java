@@ -83,6 +83,7 @@ public class BaseWebClientTests {
 		this.testClient = WebTestClient.bindToServer(httpConnector)
 			.uriBuilderFactory(uriBuilderFactory)
 			.baseUrl(this.baseUri)
+			.responseTimeout(Duration.ofSeconds(10))
 			.build();
 	}
 

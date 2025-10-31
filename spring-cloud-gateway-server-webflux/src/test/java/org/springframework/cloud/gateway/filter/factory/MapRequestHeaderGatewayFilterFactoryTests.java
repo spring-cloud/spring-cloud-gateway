@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.RetryingTest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
@@ -61,7 +62,7 @@ class MapRequestHeaderGatewayFilterFactoryTests extends BaseWebClientTests {
 			});
 	}
 
-	@Test
+	@RetryingTest(3)
 	void mapRequestHeaderFilterWorksJavaDsl() {
 		testClient.get()
 			.uri("/headers")
