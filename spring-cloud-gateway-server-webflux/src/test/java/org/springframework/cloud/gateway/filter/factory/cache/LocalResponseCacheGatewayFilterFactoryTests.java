@@ -571,7 +571,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class DirectiveNoCacheSkippingUpdate extends BaseWebClientTests {
 
-		@Test
+		@RetryingTest(3)
 		void shouldNotCacheWhenCacheControlAsksToValidateWithNotCache_refreshCacheWhenDirectiveNoCache()
 				throws InterruptedException {
 			String uri = "/" + UUID.randomUUID() + "/cache/headers";

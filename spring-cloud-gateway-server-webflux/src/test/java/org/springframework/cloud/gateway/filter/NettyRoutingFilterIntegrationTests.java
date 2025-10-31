@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -151,7 +153,7 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	@Test
 	public void shouldNotApplyResponseTimeoutPerRouteWhenNegativeValue() {
 		assertThatThrownBy(() -> {
-			testClient.get().uri("/disabledRoute/delay/10").exchange();
+			testClient.mutate().responseTimeout(Duration.ofSeconds(5)).build().get().uri("/disabledRoute/delay/10").exchange();
 		}).isInstanceOf(IllegalStateException.class)
 			.hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
 	}
@@ -169,7 +171,7 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	@Test
 	public void shouldApplyGlobalResponseTimeoutForInvalidRouteTimeoutValue() {
 		testClient.get()
-			.uri("/invalidRoute/delay/5")
+			.uri("/invalidRoute/delay/11")
 			.exchange()
 			.expectStatus()
 			.isEqualTo(HttpStatus.GATEWAY_TIMEOUT)
