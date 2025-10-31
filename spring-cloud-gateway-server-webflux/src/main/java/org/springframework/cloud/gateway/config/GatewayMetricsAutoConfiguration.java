@@ -130,8 +130,8 @@ public class GatewayMetricsAutoConfiguration {
 		}
 
 		@Configuration(proxyBeanMethods = false)
-		@ConditionalOnClass(Tracer.class)
-		@ConditionalOnBean(Tracer.class)
+		@ConditionalOnClass({ Tracer.class, TracingProperties.class })
+		@ConditionalOnBean({ Tracer.class, TracingProperties.class })
 		static class GatewayTracingConfiguration {
 
 			@Bean
