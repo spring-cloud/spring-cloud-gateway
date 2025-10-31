@@ -1,2 +1,2 @@
 org.springframework.cloud.gateway.test.TestEnableWebfluxSecurityAutoConfiguration
-org.springframework.boot.webtestclient.WebTestClientAutoConfiguration
+org.springframework.boot.webtestclient.autoconfigure.WebTestClientAutoConfiguration
