@@ -19,60 +19,71 @@ package org.springframework.cloud.gateway.server.mvc.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
 public abstract class AbstractProxyExchange implements ProxyExchange {
 
-	private final GatewayMvcProperties properties;
+    private final GatewayMvcProperties properties;
 
-	protected AbstractProxyExchange(GatewayMvcProperties properties) {
-		this.properties = properties;
-	}
+    protected AbstractProxyExchange(GatewayMvcProperties properties) {
+        this.properties = properties;
+    }
 
-	protected int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
-			OutputStream outputStream) throws IOException {
-		Assert.notNull(clientResponse, "No ClientResponse specified");
-		Assert.notNull(inputStream, "No InputStream specified");
-		Assert.notNull(outputStream, "No OutputStream specified");
+    protected int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
+            OutputStream outputStream) throws IOException {
+        Assert.notNull(clientResponse, "No ClientResponse specified");
+        Assert.notNull(inputStream, "No InputStream specified");
+        Assert.notNull(outputStream, "No OutputStream specified");
 
-		int transferredBytes;
+        int transferredBytes;
 
-		if (properties.getStreamingMediaTypes().contains(clientResponse.getHeaders().getContentType())) {
-			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
-		}
-		else {
-			transferredBytes = StreamUtils.copy(inputStream, outputStream);
-		}
+        if (isStreamingMediaType(properties.getStreamingMediaTypes(), clientResponse.getHeaders().getContentType())) {
+            transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
+        }
+        else {
+            transferredBytes = StreamUtils.copy(inputStream, outputStream);
+        }
 
-		return transferredBytes;
-	}
+        return transferredBytes;
+    }
 
-	private int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream) throws IOException {
-		int readBytes;
-		var totalReadBytes = 0;
-		var buffer = new byte[properties.getStreamingBufferSize()];
+    private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, MediaType mediaType) {
+        for (var streamingMediaType : streamingMediaTypes) {
+            if (streamingMediaType.equalsTypeAndSubtype(mediaType)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-		while ((readBytes = inputStream.read(buffer)) != -1) {
-			outputStream.write(buffer, 0, readBytes);
-			outputStream.flush();
-			if (totalReadBytes < Integer.MAX_VALUE) {
-				try {
-					totalReadBytes = Math.addExact(totalReadBytes, readBytes);
-				}
-				catch (ArithmeticException e) {
-					totalReadBytes = Integer.MAX_VALUE;
-				}
-			}
-		}
+    private int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream) throws IOException {
+        int readBytes;
+        var totalReadBytes = 0;
+        var buffer = new byte[properties.getStreamingBufferSize()];
 
-		outputStream.flush();
+        while ((readBytes = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, readBytes);
+            outputStream.flush();
+            if (totalReadBytes < Integer.MAX_VALUE) {
+                try {
+                    totalReadBytes = Math.addExact(totalReadBytes, readBytes);
+                }
+                catch (ArithmeticException e) {
+                    totalReadBytes = Integer.MAX_VALUE;
+                }
+            }
+        }
 
-		return totalReadBytes;
-	}
+        outputStream.flush();
+
+        return totalReadBytes;
+    }
 
 }

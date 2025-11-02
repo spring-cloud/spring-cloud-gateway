@@ -69,6 +69,22 @@ public class AbstractProxyExchangeTests {
 		verify(outputStream, times(4)).flush();
 	}
 
+    @Test
+    public void copyResponseBodyForTextEventStreamWithParameter() throws IOException {
+        MockClientHttpResponse mockResponse = new MockClientHttpResponse(new byte[0], 200);
+        MediaType mediaType = MediaType.parseMediaType(MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8");
+        mockResponse.getHeaders().setContentType(mediaType);
+
+        InputStream inputStream = mock(InputStream.class);
+        when(inputStream.read(any())).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(-1);
+        OutputStream outputStream = mock(OutputStream.class);
+
+        int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
+
+        assertThat(result).isEqualTo(3);
+        verify(outputStream, times(4)).flush();
+    }
+
 	@Test
 	public void copyResponseBodyWithoutContentType() throws IOException {
 		MockClientHttpResponse mockResponse = new MockClientHttpResponse(new byte[0], 200);
