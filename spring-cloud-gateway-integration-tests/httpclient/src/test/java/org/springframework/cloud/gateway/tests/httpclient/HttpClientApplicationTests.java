@@ -39,4 +39,16 @@ public class HttpClientApplicationTests {
 		client.get().uri("/retry?key=get").exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("3");
 	}
 
+	@Test
+	public void frameworkRetryWorks() {
+		WebTestClient client = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
+		client.get()
+			.uri("/frameworkretry?key=get")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("3");
+	}
+
 }

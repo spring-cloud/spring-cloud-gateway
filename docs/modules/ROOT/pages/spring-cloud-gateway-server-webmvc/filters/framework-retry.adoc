@@ -1,25 +1,19 @@
-[[retry-filter]]
-= `Retry` Filter
+[[framework-retry-filter]]
+= Framework `Retry` Filter
 
-WARNING: This filter is based upon https://github.com/spring-projects/spring-retry[Spring Retry] which has been placed in maintenance-only mode.  If/when
-Spring Retry is no longer being maintained, this filter will be removed.  You should instead xref:spring-cloud-gateway-server-webmvc/filters/framework-retry.adoc[use the new
-filter] based on the retry functionality in Spring Framework.
+The `FrameworkRetry` filter is based on the retry functionality in https://docs.spring.io/spring-framework/reference/7.0-SNAPSHOT/core/resilience.html[Spring Framework 7], which provides built-in retry support in the core framework.
 
-The `Retry` filter supports the following parameters:
+This filter is the recommended alternative to the legacy `Retry` filter which is based on https://github.com/spring-projects/spring-retry[Spring Retry] (now in maintenance-only mode).
+
+The `FrameworkRetry` filter supports the following parameters:
 
 * `retries`: The number of retries that should be attempted.
-//TODO: implement statuses
-//* `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
 * `methods`: The HTTP methods that should be retried, represented by using `org.springframework.http.HttpMethod`.
 * `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
 * `exceptions`: A list of thrown exceptions that should be retried.
 * `cacheBody`: A flag to signal if the request body should be cached. If set to `true`, the `adaptCacheBody` filter must be used to send the cached body downstream.
-//* `backoff`: The configured exponential backoff for the retries.
-//Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
-//If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
-//If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
 
-The following defaults are configured for `Retry` filter, if enabled:
+The following defaults are configured for `FrameworkRetry` filter, if enabled:
 
 * `retries`: Three times
 * `series`: 5XX series
@@ -30,7 +24,7 @@ The following defaults are configured for `Retry` filter, if enabled:
 
 WARNING: Setting `cacheBody` to `true` causes the gateway to read the whole body into memory. This should be used with caution.
 
-The following listing configures a Retry  filter:
+The following listing configures a FrameworkRetry filter:
 
 .application.yml
 [source,yaml]
@@ -45,7 +39,7 @@ spring:
           predicates:
           - Host=*.retry.com
           filters:
-          - name: Retry
+          - name: FrameworkRetry
             args:
               retries: 3
               series: SERVER_ERROR
@@ -59,7 +53,7 @@ spring:
 ----
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.adaptCachedBody;
-import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
+import static org.springframework.cloud.gateway.server.mvc.filter.FrameworkRetryFilterFunctions.frameworkRetry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.host;
@@ -72,7 +66,7 @@ class RouteConfiguration {
         return route("retry_route")
             .route(host("*.retry.com"), http())
             .before(uri("http://localhost:8080/flakey"))
-            .filter(retry(config -> config.setRetries(3)
+            .filter(frameworkRetry(config -> config.setRetries(3)
                     .setSeries(Set.of(HttpStatus.Series.SERVER_ERROR))
                     .setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))
                     .setCacheBody(true)))
@@ -90,7 +84,7 @@ NOTE: When using the retry filter, it will retry all filters that come after it.
 
 WARNING: When using the retry filter with any HTTP method with a body and `cacheBody=true`, the body will be cached and the gateway will become memory constrained. The body is cached in a request attribute defined by `MvcUtils.CACHED_REQUEST_BODY_ATT`. The type of the object is `ByteArrayInputStream`.
 
-A simplified "shortcut" notation can be added with a single `status` and `method`.
+A simplified "shortcut" notation can be added with a single `retries` value.
 
 The following two example routes are equivalent:
 
@@ -105,14 +99,11 @@ spring:
         - id: retry_route
           uri: https://example.org
           filters:
-          - name: Retry
+          - name: FrameworkRetry
             args:
               retries: 3
-              statuses: INTERNAL_SERVER_ERROR
-              methods: GET
         - id: retryshortcut_route
           uri: https://example.org
           filters:
-          - Retry=3,INTERNAL_SERVER_ERROR,GET
+          - FrameworkRetry=3
 ----
-

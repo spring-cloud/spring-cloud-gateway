@@ -153,7 +153,12 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 	@Test
 	public void shouldNotApplyResponseTimeoutPerRouteWhenNegativeValue() {
 		assertThatThrownBy(() -> {
-			testClient.mutate().responseTimeout(Duration.ofSeconds(5)).build().get().uri("/disabledRoute/delay/10").exchange();
+			testClient.mutate()
+				.responseTimeout(Duration.ofSeconds(5))
+				.build()
+				.get()
+				.uri("/disabledRoute/delay/10")
+				.exchange();
 		}).isInstanceOf(IllegalStateException.class)
 			.hasMessageContaining("Timeout on blocking read for 5000000000 NANOSECONDS");
 	}

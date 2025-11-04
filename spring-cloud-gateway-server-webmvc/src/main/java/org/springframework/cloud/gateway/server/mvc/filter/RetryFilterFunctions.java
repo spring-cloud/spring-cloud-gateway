@@ -19,17 +19,14 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
-import org.springframework.core.NestedRuntimeException;
+import org.springframework.cloud.gateway.server.mvc.filter.FrameworkRetryFilterFunctions.RetryConfig;
+import org.springframework.cloud.gateway.server.mvc.filter.FrameworkRetryFilterFunctions.RetryException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -45,6 +42,13 @@ import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+/**
+ * @deprecated This filter is based on
+ * <a href="https://github.com/spring-projects/spring-retry">Spring Retry</a> which has
+ * been placed in maintenance-only mode. If/when Spring Retry is no longer maintained,
+ * this filter will be removed. It is suggested you use
+ * {@link FrameworkRetryFilterFunctions} instead.
+ */
 public abstract class RetryFilterFunctions {
 
 	private RetryFilterFunctions() {
@@ -55,7 +59,8 @@ public abstract class RetryFilterFunctions {
 		return retry(config -> config.setRetries(retries));
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(Consumer<RetryConfig> configConsumer) {
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(
+			Consumer<FrameworkRetryFilterFunctions.RetryConfig> configConsumer) {
 		RetryConfig config = new RetryConfig();
 		configConsumer.accept(config);
 		return retry(config);
@@ -101,7 +106,7 @@ public abstract class RetryFilterFunctions {
 	}
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryConfig config) {
-		return config.methods.contains(method);
+		return config.getMethods().contains(method);
 	}
 
 	public static class HttpRetryPolicy extends NeverRetryPolicy {
@@ -120,107 +125,6 @@ public abstract class RetryFilterFunctions {
 						&& isRetryableMethod(e.getRequest().method(), config);
 			}
 			return super.canRetry(context);
-		}
-
-	}
-
-	public static class RetryConfig {
-
-		private int retries = 3;
-
-		private Set<HttpStatus.Series> series = new HashSet<>(List.of(HttpStatus.Series.SERVER_ERROR));
-
-		private Set<Class<? extends Throwable>> exceptions = new HashSet<>(
-				List.of(IOException.class, TimeoutException.class, RetryException.class));
-
-		private Set<HttpMethod> methods = new HashSet<>(List.of(HttpMethod.GET));
-
-		private boolean cacheBody = false;
-
-		// TODO: individual statuses
-		// TODO: backoff
-		// TODO: support more Spring Retry policies
-
-		public int getRetries() {
-			return retries;
-		}
-
-		public RetryConfig setRetries(int retries) {
-			this.retries = retries;
-			return this;
-		}
-
-		public Set<HttpStatus.Series> getSeries() {
-			return series;
-		}
-
-		public RetryConfig setSeries(Set<HttpStatus.Series> series) {
-			this.series = series;
-			return this;
-		}
-
-		public RetryConfig addSeries(HttpStatus.Series... series) {
-			this.series.addAll(Arrays.asList(series));
-			return this;
-		}
-
-		public Set<Class<? extends Throwable>> getExceptions() {
-			return exceptions;
-		}
-
-		public RetryConfig setExceptions(Set<Class<? extends Throwable>> exceptions) {
-			this.exceptions = exceptions;
-			return this;
-		}
-
-		public RetryConfig addExceptions(Class<? extends Throwable>... exceptions) {
-			this.exceptions.addAll(Arrays.asList(exceptions));
-			return this;
-		}
-
-		public Set<HttpMethod> getMethods() {
-			return methods;
-		}
-
-		public RetryConfig setMethods(Set<HttpMethod> methods) {
-			this.methods = methods;
-			return this;
-		}
-
-		public RetryConfig addMethods(HttpMethod... methods) {
-			this.methods.addAll(Arrays.asList(methods));
-			return this;
-		}
-
-		public boolean isCacheBody() {
-			return cacheBody;
-		}
-
-		public RetryConfig setCacheBody(boolean cacheBody) {
-			this.cacheBody = cacheBody;
-			return this;
-		}
-
-	}
-
-	private static class RetryException extends NestedRuntimeException {
-
-		private final ServerRequest request;
-
-		private final ServerResponse response;
-
-		RetryException(ServerRequest request, ServerResponse response) {
-			super(null);
-			this.request = request;
-			this.response = response;
-		}
-
-		public ServerRequest getRequest() {
-			return request;
-		}
-
-		public ServerResponse getResponse() {
-			return response;
 		}
 
 	}
