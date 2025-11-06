@@ -47,8 +47,9 @@ import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FrameworkRetryFilterFunctions.frameworkRetry;
+import static org.springframework.cloud.gateway.server.mvc.filter.GatewayRetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
-import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 
@@ -89,12 +90,28 @@ public class HttpClientApplication {
 			.build();
 	}
 
+	@Bean
+	public RouterFunction<ServerResponse> gatewayRouterFunctionsFrameworkRetry() {
+		return route("test-retry").GET("/frameworkretry", http())
+			.filter(lb("myservice"))
+			.filter(prefixPath("/do"))
+			.filter(frameworkRetry(3))
+			.build();
+	}
+
 	@RestController
 	protected static class RetryController {
 
 		Log log = LogFactory.getLog(getClass());
 
 		ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
+
+		@GetMapping("/do/frameworkretry")
+		public ResponseEntity<String> frameworkRetry(@RequestParam("key") String key,
+				@RequestParam(name = "count", defaultValue = "3") int count,
+				@RequestParam(name = "failStatus", required = false) Integer failStatus) {
+			return retry(key, count, failStatus);
+		}
 
 		@GetMapping("/do/retry")
 		public ResponseEntity<String> retry(@RequestParam("key") String key,
@@ -111,6 +128,7 @@ public class HttpClientApplication {
 				}
 				return ResponseEntity.status(httpStatus).header("X-Retry-Count", body).body("temporarily broken");
 			}
+			map = new ConcurrentHashMap<>();
 			return ResponseEntity.status(HttpStatus.OK).header("X-Retry-Count", body).body(body);
 		}
 

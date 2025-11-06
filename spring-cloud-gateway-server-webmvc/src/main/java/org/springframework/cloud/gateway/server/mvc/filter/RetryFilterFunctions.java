@@ -18,108 +18,79 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
-import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.RetryPolicy;
-import org.springframework.retry.policy.CompositeRetryPolicy;
-import org.springframework.retry.policy.NeverRetryPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
-import org.springframework.retry.support.RetryTemplateBuilder;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 public abstract class RetryFilterFunctions {
 
+	private static final Log log = LogFactory.getLog(RetryFilterFunctions.class);
+
+	private static final boolean USE_SPRING_RETRY = ClassUtils
+		.isPresent("org.springframework.retry.annotation.Retryable", ClassUtils.getDefaultClassLoader());
+
+	private static boolean useFrameworkRetry = false;
+
 	private RetryFilterFunctions() {
 	}
 
 	@Shortcut
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
-		return retry(config -> config.setRetries(retries));
+		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(retries)
+				: FrameworkRetryFilterFunctions.frameworkRetry(retries);
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(Consumer<RetryConfig> configConsumer) {
-		RetryConfig config = new RetryConfig();
-		configConsumer.accept(config);
-		return retry(config);
+		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(configConsumer)
+				: FrameworkRetryFilterFunctions.frameworkRetry(configConsumer);
 	}
 
 	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
-		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
-		CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
-		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
-		config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
-		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
-		compositeRetryPolicy
-			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
-		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
-		return (request, next) -> retryTemplate.execute(context -> {
-			if (config.isCacheBody()) {
-				MvcUtils.getOrCacheBody(request);
-			}
-			reset(request);
-			ServerResponse serverResponse = next.handle(request);
-
-			if (isRetryableStatusCode(serverResponse.statusCode(), config)
-					&& isRetryableMethod(request.method(), config)) {
-				// use this to transfer information to HttpStatusRetryPolicy
-				throw new RetryException(request, serverResponse);
-			}
-			return serverResponse;
-		});
+		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(config)
+				: FrameworkRetryFilterFunctions.frameworkRetry(config);
 	}
 
-	private static void reset(ServerRequest request) throws IOException {
-		ClientHttpResponse clientHttpResponse = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR);
-		if (clientHttpResponse != null) {
-			clientHttpResponse.close();
-			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR, null);
+	static void setUseFrameworkRetry(boolean useFrameworkRetry) {
+		RetryFilterFunctions.useFrameworkRetry = useFrameworkRetry;
+	}
+
+	/**
+	 * If spring retry is on the classpath and we do not force the use of Framework retry
+	 * then we will use Spring Retry.
+	 */
+	private static boolean useSpringRetry() {
+		boolean useSpringRetry = USE_SPRING_RETRY && !useFrameworkRetry;
+		if (log.isDebugEnabled()) {
+			log.debug(LogMessage.format(
+					"Retry filter selection: Spring Retry on classpath=%s, useFrameworkRetry=%s, selected filter=%s",
+					USE_SPRING_RETRY, useFrameworkRetry,
+					useSpringRetry ? "GatewayRetryFilterFunctions" : "FrameworkRetryFilterFunctions"));
 		}
+		return useSpringRetry;
 	}
 
-	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
-		return config.getSeries().stream().anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
-	}
+	public static class FilterSupplier extends SimpleFilterSupplier {
 
-	private static boolean isRetryableMethod(HttpMethod method, RetryConfig config) {
-		return config.methods.contains(method);
-	}
-
-	public static class HttpRetryPolicy extends NeverRetryPolicy {
-
-		private final RetryConfig config;
-
-		public HttpRetryPolicy(RetryConfig config) {
-			this.config = config;
-		}
-
-		@Override
-		public boolean canRetry(RetryContext context) {
-			// TODO: custom exception
-			if (context.getLastThrowable() instanceof RetryException e) {
-				return isRetryableStatusCode(e.getResponse().statusCode(), config)
-						&& isRetryableMethod(e.getRequest().method(), config);
-			}
-			return super.canRetry(context);
+		public FilterSupplier() {
+			super(RetryFilterFunctions.class);
 		}
 
 	}
@@ -136,10 +107,6 @@ public abstract class RetryFilterFunctions {
 		private Set<HttpMethod> methods = new HashSet<>(List.of(HttpMethod.GET));
 
 		private boolean cacheBody = false;
-
-		// TODO: individual statuses
-		// TODO: backoff
-		// TODO: support more Spring Retry policies
 
 		public int getRetries() {
 			return retries;
@@ -203,7 +170,7 @@ public abstract class RetryFilterFunctions {
 
 	}
 
-	private static class RetryException extends NestedRuntimeException {
+	public static class RetryException extends NestedRuntimeException {
 
 		private final ServerRequest request;
 
@@ -221,14 +188,6 @@ public abstract class RetryFilterFunctions {
 
 		public ServerResponse getResponse() {
 			return response;
-		}
-
-	}
-
-	public static class FilterSupplier extends SimpleFilterSupplier {
-
-		public FilterSupplier() {
-			super(RetryFilterFunctions.class);
 		}
 
 	}

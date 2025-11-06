@@ -25,13 +25,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 
 @AutoConfiguration
@@ -83,11 +83,17 @@ public class FilterAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(RetryTemplate.class)
 	static class RetryFilterConfiguration {
+
+		private final GatewayMvcProperties properties;
+
+		RetryFilterConfiguration(GatewayMvcProperties properties) {
+			this.properties = properties;
+		}
 
 		@Bean
 		public RetryFilterFunctions.FilterSupplier retryFilterFunctionsSupplier() {
+			RetryFilterFunctions.setUseFrameworkRetry(properties.isUseFrameworkRetryFilter());
 			return new RetryFilterFunctions.FilterSupplier();
 		}
 
