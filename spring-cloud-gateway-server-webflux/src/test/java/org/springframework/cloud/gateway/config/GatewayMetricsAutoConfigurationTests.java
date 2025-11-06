@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.micrometer.tracing.autoconfigure.TracingProperties;
 import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
@@ -173,6 +174,11 @@ public class GatewayMetricsAutoConfigurationTests {
 		@Bean
 		Propagator propagator() {
 			return Mockito.mock(Propagator.class);
+		}
+
+		@Bean
+		TracingProperties tracingProperties() {
+			return new TracingProperties();
 		}
 
 	}
