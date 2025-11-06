@@ -106,7 +106,6 @@
 *** xref:spring-cloud-gateway-server-webmvc/filters/setstatus.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/stripprefix.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/retry.adoc[]
-*** xref:spring-cloud-gateway-server-webmvc/filters/framework-retry.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/requestsize.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/setrequesthostheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/tokenrelay.adoc[]

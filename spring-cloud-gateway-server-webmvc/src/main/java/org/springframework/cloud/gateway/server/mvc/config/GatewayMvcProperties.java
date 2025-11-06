@@ -68,6 +68,12 @@ public class GatewayMvcProperties {
 	 */
 	private String trustedProxies;
 
+	/**
+	 * In the case where Spring Retry is on the classpath but you still want to use Spring
+	 * Framework retry as your retry filter, set this property to true.
+	 */
+	private boolean useFrameworkRetryFilter = false;
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -90,6 +96,14 @@ public class GatewayMvcProperties {
 
 	public void setStreamingMediaTypes(List<MediaType> streamingMediaTypes) {
 		this.streamingMediaTypes = streamingMediaTypes;
+	}
+
+	public boolean isUseFrameworkRetryFilter() {
+		return useFrameworkRetryFilter;
+	}
+
+	public void setUseFrameworkRetryFilter(boolean useFrameworkRetryFilter) {
+		this.useFrameworkRetryFilter = useFrameworkRetryFilter;
 	}
 
 	public int getStreamingBufferSize() {

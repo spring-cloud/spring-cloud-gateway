@@ -48,8 +48,8 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.FrameworkRetryFilterFunctions.frameworkRetry;
+import static org.springframework.cloud.gateway.server.mvc.filter.GatewayRetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
-import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
 

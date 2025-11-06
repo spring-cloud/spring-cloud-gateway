@@ -1,9 +1,14 @@
 [[retry-filter]]
 = `Retry` Filter
 
-WARNING: This filter is based upon https://github.com/spring-projects/spring-retry[Spring Retry] which has been placed in maintenance-only mode.  If/when
-Spring Retry is no longer being maintained, this filter will be removed.  You should instead xref:spring-cloud-gateway-server-webmvc/filters/framework-retry.adoc[use the new
-filter] based on the retry functionality in Spring Framework.
+The `Retry` filter automatically selects the appropriate retry implementation based on what is available on the classpath:
+
+* If https://github.com/spring-projects/spring-retry[Spring Retry] is on the classpath, the filter uses `GatewayRetryFilterFunctions` (based on Spring Retry) by default.
+* If Spring Retry is not on the classpath, the filter automatically uses `FrameworkRetryFilterFunctions` (based on the retry functionality in https://docs.spring.io/spring-framework/reference/7.0-SNAPSHOT/core/resilience.html[Spring Framework 7]).
+
+WARNING: Spring Retry has been placed in maintenance-only mode. Once Spring Retry is no longer being maintained, the `Retry` filter will exclusively use the Framework retry implementation (`FrameworkRetryFilterFunctions`), and the Spring Retry-based implementation will be removed.
+
+TIP: You can force the use of the Framework retry filter even when Spring Retry is on the classpath by setting `spring.cloud.gateway.server.webmvc.use-framework-retry-filter=true` in your configuration.
 
 The `Retry` filter supports the following parameters:
 
@@ -114,5 +119,26 @@ spring:
           uri: https://example.org
           filters:
           - Retry=3,INTERNAL_SERVER_ERROR,GET
+----
+
+== Forcing Framework Retry Filter
+
+When Spring Retry is on the classpath, the `Retry` filter uses the Spring Retry-based implementation by default. To force the use of the Framework retry filter instead, set the following property:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          use-framework-retry-filter: true
+----
+
+.application.properties
+[source,properties]
+----
+spring.cloud.gateway.server.webmvc.use-framework-retry-filter=true
 ----
 
