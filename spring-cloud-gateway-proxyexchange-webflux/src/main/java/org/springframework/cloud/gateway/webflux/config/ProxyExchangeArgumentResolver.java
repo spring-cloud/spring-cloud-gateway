@@ -22,11 +22,13 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.result.method.HandlerMethodArgumentResolver;
@@ -38,13 +40,13 @@ import org.springframework.web.server.ServerWebExchange;
  */
 public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private WebClient rest;
+	private final WebClient rest;
 
-	private HttpHeaders headers;
+	private @Nullable HttpHeaders headers;
 
-	private Set<String> autoForwardedHeaders;
+	private @Nullable Set<String> autoForwardedHeaders;
 
-	private Set<String> excluded;
+	private @Nullable Set<String> excluded;
 
 	public ProxyExchangeArgumentResolver(WebClient builder) {
 		this.rest = builder;
@@ -58,7 +60,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		this.autoForwardedHeaders = autoForwardedHeaders;
 	}
 
-	public void setExcluded(Set<String> excluded) {
+	public void setExcluded(@Nullable Set<String> excluded) {
 		this.excluded = excluded;
 	}
 
@@ -82,11 +84,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext,
 			ServerWebExchange exchange) {
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, exchange, bindingContext, type(parameter));
-		proxy.headers(headers);
-		if (this.autoForwardedHeaders.size() > 0) {
+		if (this.headers != null) {
+			proxy.headers(headers);
+		}
+		if (!CollectionUtils.isEmpty(this.autoForwardedHeaders)) {
 			proxy.headers(extractAutoForwardedHeaders(exchange));
 		}
-		if (excluded != null) {
+		if (!CollectionUtils.isEmpty(excluded)) {
 			proxy.excluded(excluded.toArray(new String[0]));
 		}
 		return Mono.just(proxy);
@@ -95,7 +99,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	private HttpHeaders extractAutoForwardedHeaders(ServerWebExchange exchange) {
 		HttpHeaders headers = new HttpHeaders();
 		exchange.getRequest().getHeaders().forEach((header, values) -> {
-			if (this.autoForwardedHeaders.contains(header)) {
+			if (this.autoForwardedHeaders != null && this.autoForwardedHeaders.contains(header)) {
 				headers.addAll(header, values);
 			}
 		});

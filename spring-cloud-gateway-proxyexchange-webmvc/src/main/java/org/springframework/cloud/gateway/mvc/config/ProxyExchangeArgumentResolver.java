@@ -24,11 +24,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -45,11 +46,11 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private final RestTemplate rest;
 
-	private HttpHeaders headers;
+	private @Nullable HttpHeaders headers;
 
-	private Set<String> autoForwardedHeaders;
+	private @Nullable Set<String> autoForwardedHeaders;
 
-	private Set<String> excluded;
+	private @Nullable Set<String> excluded;
 
 	public ProxyExchangeArgumentResolver(RestTemplate builder) {
 		this.rest = builder;
@@ -59,12 +60,12 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 		this.headers = headers;
 	}
 
-	public void setAutoForwardedHeaders(Set<String> autoForwardedHeaders) {
+	public void setAutoForwardedHeaders(@Nullable Set<String> autoForwardedHeaders) {
 		this.autoForwardedHeaders = autoForwardedHeaders == null ? null
 				: autoForwardedHeaders.stream().map(String::toLowerCase).collect(toSet());
 	}
 
-	public void setExcluded(Set<String> excluded) {
+	public void setExcluded(@Nullable Set<String> excluded) {
 		this.excluded = excluded;
 	}
 
@@ -111,13 +112,13 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	private void configureAutoForwardedHeaders(final ProxyExchange<?> proxy, final NativeWebRequest webRequest) {
-		if (!ObjectUtils.isEmpty(autoForwardedHeaders)) {
+		if (!CollectionUtils.isEmpty(this.autoForwardedHeaders)) {
 			proxy.headers(extractAutoForwardedHeaders(webRequest));
 		}
 	}
 
 	private void configureExcluded(final ProxyExchange<?> proxy) {
-		if (excluded != null) {
+		if (!CollectionUtils.isEmpty(excluded)) {
 			proxy.excluded(excluded.toArray(new String[0]));
 		}
 	}

@@ -39,6 +39,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -78,10 +79,10 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		resolver.setHeaders(properties.convertHeaders());
 		resolver.setAutoForwardedHeaders(properties.getAutoForward());
 		Set<String> excludedHeaderNames = new HashSet<>();
-		if (properties.getSensitive() != null) {
+		if (!CollectionUtils.isEmpty(properties.getSensitive())) {
 			excludedHeaderNames.addAll(properties.getSensitive());
 		}
-		if (properties.getSkipped() != null) {
+		if (!CollectionUtils.isEmpty(properties.getSkipped())) {
 			excludedHeaderNames.addAll(properties.getSkipped());
 		}
 		resolver.setExcluded(excludedHeaderNames);

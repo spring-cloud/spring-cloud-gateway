@@ -29,6 +29,7 @@ import org.springframework.cloud.gateway.webflux.ProxyExchange;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -60,10 +61,10 @@ public class ProxyResponseAutoConfiguration implements WebFluxConfigurer {
 		resolver.setHeaders(properties.convertHeaders());
 		resolver.setAutoForwardedHeaders(properties.getAutoForward());
 		Set<String> excludedHeaderNames = new HashSet<>();
-		if (properties.getSensitive() != null) {
+		if (!CollectionUtils.isEmpty(properties.getSensitive())) {
 			excludedHeaderNames.addAll(properties.getSensitive());
 		}
-		if (properties.getSkipped() != null) {
+		if (!CollectionUtils.isEmpty(properties.getSkipped())) {
 			excludedHeaderNames.addAll(properties.getSkipped());
 		}
 		resolver.setExcluded(excludedHeaderNames);

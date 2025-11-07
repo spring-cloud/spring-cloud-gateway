@@ -35,6 +35,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.protocol.HttpContext;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.HttpMethod;
@@ -99,7 +100,7 @@ public class GetWithBodyRequestClientHttpRequestFactory implements ClientHttpReq
 		throw new IllegalArgumentException("Invalid HTTP method: " + httpMethod);
 	}
 
-	private RequestConfig createRequestConfig(final HttpClient client) {
+	private @Nullable RequestConfig createRequestConfig(final HttpClient client) {
 		if (client instanceof Configurable) {
 			return ((Configurable) client).getConfig();
 		}

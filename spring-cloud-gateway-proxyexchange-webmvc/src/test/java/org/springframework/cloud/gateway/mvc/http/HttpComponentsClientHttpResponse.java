@@ -24,19 +24,17 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.lang.Nullable;
-import org.springframework.util.StreamUtils;
 
 final class HttpComponentsClientHttpResponse implements ClientHttpResponse {
 
 	private final HttpResponse response;
 
-	@Nullable
-	private HttpHeaders headers;
+	private @Nullable HttpHeaders headers;
 
 	HttpComponentsClientHttpResponse(final HttpResponse response) {
 		this.response = response;
@@ -67,7 +65,7 @@ final class HttpComponentsClientHttpResponse implements ClientHttpResponse {
 	@Override
 	public InputStream getBody() throws IOException {
 		final HttpEntity entity = response.getEntity();
-		return entity != null ? entity.getContent() : StreamUtils.emptyInput();
+		return entity != null ? entity.getContent() : InputStream.nullInputStream();
 	}
 
 	@Override
