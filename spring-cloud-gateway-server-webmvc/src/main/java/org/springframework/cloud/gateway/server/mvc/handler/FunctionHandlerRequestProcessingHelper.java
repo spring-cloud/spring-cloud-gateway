@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
 import org.springframework.http.HttpHeaders;
@@ -51,15 +52,16 @@ final class FunctionHandlerRequestProcessingHelper {
 
 	}
 
-	static ServerResponse processRequest(ServerRequest request, FunctionInvocationWrapper function, Object argument,
-			boolean eventStream, List<String> ignoredHeaders, List<String> requestOnlyHeaders) {
+	static ServerResponse processRequest(ServerRequest request, @Nullable FunctionInvocationWrapper function,
+			@Nullable Object argument, boolean eventStream, List<String> ignoredHeaders,
+			List<String> requestOnlyHeaders) {
 		return processRequest(request, function, argument, eventStream, ignoredHeaders, requestOnlyHeaders, null);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	static ServerResponse processRequest(ServerRequest request, FunctionInvocationWrapper function, Object argument,
-			boolean eventStream, List<String> ignoredHeaders, List<String> requestOnlyHeaders,
-			Map<String, String> additionalHeaders) {
+	static ServerResponse processRequest(ServerRequest request, @Nullable FunctionInvocationWrapper function,
+			@Nullable Object argument, boolean eventStream, List<String> ignoredHeaders,
+			List<String> requestOnlyHeaders, @Nullable Map<String, String> additionalHeaders) {
 
 		if (argument == null) {
 			argument = "";

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
@@ -40,7 +42,8 @@ public abstract class TokenRelayFilterFunctions {
 	}
 
 	@Shortcut
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay(String defaultClientRegistrationId) {
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> tokenRelay(
+			@Nullable String defaultClientRegistrationId) {
 		return (request, next) -> {
 			Authentication principal = (Authentication) request.servletRequest().getUserPrincipal();
 

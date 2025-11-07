@@ -33,6 +33,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.InputStreamResource;
@@ -49,7 +50,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -293,8 +293,7 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 			throw new HttpMediaTypeNotAcceptableException(producibleMediaTypes);
 		}
 
-		@Nullable
-		private static MediaType getContentType(HttpServletResponse response) {
+		private static @Nullable MediaType getContentType(HttpServletResponse response) {
 			try {
 				return MediaType.parseMediaType(response.getContentType()).removeQualityValue();
 			}

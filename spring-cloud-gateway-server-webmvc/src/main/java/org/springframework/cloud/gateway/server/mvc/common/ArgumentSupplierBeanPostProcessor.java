@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier.ArgumentSuppliedEvent;
@@ -63,7 +65,7 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 		return bean;
 	}
 
-	class RouterFunctionVisitor implements RouterFunctions.Visitor {
+	static class RouterFunctionVisitor implements RouterFunctions.Visitor {
 
 		private final PredicateVisitor predicateVisitor;
 
@@ -102,18 +104,19 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 
 	}
 
-	class PredicateVisitor implements RequestPredicates.Visitor {
+	static class PredicateVisitor implements RequestPredicates.Visitor {
 
-		private final AtomicReference<Map<String, Object>> attributesRef = new AtomicReference<>();
+		private final AtomicReference<@Nullable Map<String, Object>> attributesRef = new AtomicReference<>();
 
-		private ArgumentSupplier argumentSupplier;
+		private @Nullable ArgumentSupplier<?> argumentSupplier;
 
-		private Map<String, Object> attributes;
+		private @Nullable Map<String, Object> attributes;
 
 		@Override
+		@SuppressWarnings("rawtypes")
 		public void unknown(RequestPredicate predicate) {
-			if (predicate instanceof ArgumentSupplier argumentSupplier) {
-				this.argumentSupplier = argumentSupplier;
+			if (predicate instanceof ArgumentSupplier argSupplier) {
+				this.argumentSupplier = argSupplier;
 				this.attributes = attributesRef.get();
 			}
 		}
@@ -129,6 +132,7 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 		}
 
 		@Override
+		@SuppressWarnings("removal")
 		public void pathExtension(String extension) {
 
 		}

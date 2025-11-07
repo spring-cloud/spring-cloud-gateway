@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
@@ -168,7 +169,8 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		return updated;
 	}
 
-	private void updateRequest(HttpHeaders updated, URI originalUri, String originalUriPath, String requestUriPath) {
+	private void updateRequest(HttpHeaders updated, URI originalUri, String originalUriPath,
+			@Nullable String requestUriPath) {
 		String prefix;
 		if (requestUriPath != null && (originalUriPath.endsWith(requestUriPath))) {
 			prefix = substringBeforeLast(originalUriPath, requestUriPath);
@@ -178,7 +180,7 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		}
 	}
 
-	private static String substringBeforeLast(String str, String separator) {
+	private static @Nullable String substringBeforeLast(String str, String separator) {
 		if (ObjectUtils.isEmpty(str) || ObjectUtils.isEmpty(separator)) {
 			return str;
 		}
@@ -189,11 +191,12 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 		return str.substring(0, pos);
 	}
 
-	private void write(HttpHeaders headers, String name, String value, boolean append) {
+	private void write(HttpHeaders headers, String name, @Nullable String value, boolean append) {
 		write(headers, name, value, append, s -> true);
 	}
 
-	private void write(HttpHeaders headers, String name, String value, boolean append, Predicate<String> shouldWrite) {
+	private void write(HttpHeaders headers, String name, @Nullable String value, boolean append,
+			Predicate<String> shouldWrite) {
 		if (append) {
 			if (value != null) {
 				headers.add(name, value);

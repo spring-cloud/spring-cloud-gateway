@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.ServletException;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
@@ -137,7 +138,7 @@ public abstract class CircuitBreakerFilterFunctions {
 
 		private String id;
 
-		private String fallbackPath;
+		private @Nullable String fallbackPath;
 
 		private Set<String> statusCodes = new HashSet<>();
 
@@ -150,7 +151,7 @@ public abstract class CircuitBreakerFilterFunctions {
 			return this;
 		}
 
-		public String getFallbackPath() {
+		public @Nullable String getFallbackPath() {
 			return fallbackPath;
 		}
 
@@ -160,7 +161,7 @@ public abstract class CircuitBreakerFilterFunctions {
 			return this;
 		}
 
-		public CircuitBreakerConfig setFallbackUri(URI fallbackUri) {
+		public CircuitBreakerConfig setFallbackUri(@Nullable URI fallbackUri) {
 			if (fallbackUri != null) {
 				Assert.isTrue(fallbackUri.getScheme().equalsIgnoreCase("forward"),
 						() -> "Scheme must be forward, but is " + fallbackUri.getScheme());

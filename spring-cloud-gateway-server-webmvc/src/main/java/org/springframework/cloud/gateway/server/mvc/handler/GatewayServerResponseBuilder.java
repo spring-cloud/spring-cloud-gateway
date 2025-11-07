@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.CacheControl;
@@ -68,7 +69,7 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 	}
 
 	@Override
-	public ServerResponse.BodyBuilder header(String headerName, String... headerValues) {
+	public ServerResponse.BodyBuilder header(String headerName, @Nullable String... headerValues) {
 		for (String headerValue : headerValues) {
 			this.headers.add(headerName, headerValue);
 		}
@@ -225,7 +226,7 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 		}
 
 		@Override
-		protected ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
 				Context context) throws Exception {
 
 			return this.writeFunction.write(request, response);

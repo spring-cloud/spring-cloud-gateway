@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import jakarta.servlet.http.Cookie;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier;
 import org.springframework.cloud.gateway.server.mvc.common.DefaultArgumentSuppliedEvent;
@@ -42,7 +43,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -108,7 +108,7 @@ public abstract class GatewayRequestPredicates {
 	}
 
 	@Shortcut
-	public static RequestPredicate cookie(String name, String regexp) {
+	public static RequestPredicate cookie(String name, @Nullable String regexp) {
 		return new CookieRequestPredicate(name, regexp);
 	}
 
@@ -117,7 +117,7 @@ public abstract class GatewayRequestPredicates {
 	}
 
 	@Shortcut
-	public static RequestPredicate header(String header, String regexp) {
+	public static RequestPredicate header(String header, @Nullable String regexp) {
 		return new HeaderRequestPredicate(header, regexp);
 	}
 
@@ -207,7 +207,7 @@ public abstract class GatewayRequestPredicates {
 	 * @return a predicate that tests for the given param and regexp.
 	 */
 	@Shortcut
-	public static RequestPredicate query(String param, String regexp) {
+	public static RequestPredicate query(String param, @Nullable String regexp) {
 		if (!StringUtils.hasText(regexp)) {
 			return request -> request.param(param).isPresent();
 		}
@@ -262,9 +262,9 @@ public abstract class GatewayRequestPredicates {
 
 		private final String name;
 
-		private final Pattern pattern;
+		private final @Nullable Pattern pattern;
 
-		CookieRequestPredicate(String name, String regexp) {
+		CookieRequestPredicate(String name, @Nullable String regexp) {
 			this.name = name;
 			this.pattern = (StringUtils.hasText(regexp)) ? Pattern.compile(regexp) : null;
 		}
@@ -314,9 +314,9 @@ public abstract class GatewayRequestPredicates {
 
 		private final String header;
 
-		private final Pattern pattern;
+		private final @Nullable Pattern pattern;
 
-		HeaderRequestPredicate(String header, String regexp) {
+		HeaderRequestPredicate(String header, @Nullable String regexp) {
 			this.header = header;
 			this.pattern = (StringUtils.hasText(regexp)) ? Pattern.compile(regexp) : null;
 		}

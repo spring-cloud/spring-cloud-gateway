@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -75,7 +76,8 @@ public abstract class AfterFilterFunctions {
 		};
 	}
 
-	private static void dedupeHeaders(HttpHeaders headers, String names, DedupeStrategy strategy) {
+	private static void dedupeHeaders(@Nullable HttpHeaders headers, @Nullable String names,
+			@Nullable DedupeStrategy strategy) {
 		if (headers == null || names == null || strategy == null) {
 			return;
 		}

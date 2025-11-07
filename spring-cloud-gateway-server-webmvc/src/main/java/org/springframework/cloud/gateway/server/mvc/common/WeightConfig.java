@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.common;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +34,7 @@ public class WeightConfig {
 	@NotEmpty
 	private String group;
 
-	private String routeId;
+	private @Nullable String routeId;
 
 	@Min(0)
 	private int weight;
@@ -41,7 +42,7 @@ public class WeightConfig {
 	private WeightConfig() {
 	}
 
-	public WeightConfig(String routeId, String group, int weight) {
+	public WeightConfig(@Nullable String routeId, String group, int weight) {
 		this.routeId = routeId;
 		this.group = group;
 		this.weight = weight;
@@ -60,7 +61,7 @@ public class WeightConfig {
 		return this;
 	}
 
-	public String getRouteId() {
+	public @Nullable String getRouteId() {
 		return routeId;
 	}
 

@@ -24,11 +24,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -80,7 +80,7 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 	}
 
 	@Override
-	public ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+	public @Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
 			throws ServletException, IOException {
 
 		try {
@@ -129,8 +129,7 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 		this.cookies.values().stream().flatMap(Collection::stream).forEach(servletResponse::addCookie);
 	}
 
-	@Nullable
-	protected abstract ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
+	protected abstract @Nullable ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
 			Context context) throws Exception;
 
 }

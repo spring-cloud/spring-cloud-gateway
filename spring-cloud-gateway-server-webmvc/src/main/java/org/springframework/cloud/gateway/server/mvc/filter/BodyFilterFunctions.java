@@ -41,6 +41,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.ParameterizedTypeReference;
@@ -102,7 +103,7 @@ public abstract class BodyFilterFunctions {
 
 	@SuppressWarnings("unchecked")
 	public static <T, R> Function<ServerRequest, ServerRequest> modifyRequestBody(Class<T> inClass, Class<R> outClass,
-			String newContentType, RewriteFunction<T, R> rewriteFunction) {
+			@Nullable String newContentType, RewriteFunction<T, R> rewriteFunction) {
 		return request -> cacheAndReadBody(request, inClass).map(body -> {
 			R convertedBody = rewriteFunction.apply(request, body);
 			// TODO: cache converted body
@@ -146,7 +147,7 @@ public abstract class BodyFilterFunctions {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T, R> BiFunction<ServerRequest, ServerResponse, ServerResponse> modifyResponseBody(Class<T> inClass,
-			Class<R> outClass, String newContentType, RewriteResponseFunction<T, R> rewriteFunction) {
+			Class<R> outClass, @Nullable String newContentType, RewriteResponseFunction<T, R> rewriteFunction) {
 		return (request, response) -> {
 			Object o = request.attributes().get(MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
 			if (o instanceof InputStream inputStream) {

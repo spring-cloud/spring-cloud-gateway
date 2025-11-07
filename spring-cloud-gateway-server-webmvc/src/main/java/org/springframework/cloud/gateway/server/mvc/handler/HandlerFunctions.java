@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.servlet.ServletException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.function.context.FunctionProperties;
@@ -151,7 +152,7 @@ public abstract class HandlerFunctions {
 
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
-		private AtomicReference<ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
+		private AtomicReference<@Nullable ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
 
 		@Override
 		public ServerResponse handle(ServerRequest serverRequest) {

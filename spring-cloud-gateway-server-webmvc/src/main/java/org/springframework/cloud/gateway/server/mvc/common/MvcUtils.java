@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.log.LogMessage;
@@ -123,7 +124,7 @@ public abstract class MvcUtils {
 		try {
 			byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
 			ByteArrayInputStream body = new ByteArrayInputStream(bytes);
-			putAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR, body);
+			putAttribute(request, CACHED_REQUEST_BODY_ATTR, body);
 			return body;
 		}
 		catch (IOException e) {
@@ -132,7 +133,7 @@ public abstract class MvcUtils {
 	}
 
 	public static ByteArrayInputStream getOrCacheBody(ServerRequest request) {
-		ByteArrayInputStream body = getAttribute(request, MvcUtils.CACHED_REQUEST_BODY_ATTR);
+		ByteArrayInputStream body = getAttribute(request, CACHED_REQUEST_BODY_ATTR);
 		if (body != null) {
 			return body;
 		}
@@ -157,11 +158,11 @@ public abstract class MvcUtils {
 	}
 
 	public static List<String> expandMultiple(ServerRequest request, Collection<String> templates) {
-		return templates.stream().map(value -> MvcUtils.expand(request, value)).toList();
+		return templates.stream().map(value -> expand(request, value)).toList();
 	}
 
 	public static String[] expandMultiple(ServerRequest request, String... templates) {
-		List<String> expanded = Arrays.stream(templates).map(value -> MvcUtils.expand(request, value)).toList();
+		List<String> expanded = Arrays.stream(templates).map(value -> expand(request, value)).toList();
 		return expanded.toArray(new String[0]);
 	}
 
@@ -175,7 +176,7 @@ public abstract class MvcUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T getAttribute(ServerRequest request, String key) {
+	public static <T> @Nullable T getAttribute(ServerRequest request, String key) {
 		if (request.attributes().containsKey(key)) {
 			return (T) request.attributes().get(key);
 		}
@@ -202,7 +203,7 @@ public abstract class MvcUtils {
 		return merged;
 	}
 
-	public static void putAttribute(ServerRequest request, String key, Object value) {
+	public static void putAttribute(ServerRequest request, String key, @Nullable Object value) {
 		request.attributes().put(key, value);
 		getGatewayAttributes(request).put(key, value);
 	}
@@ -237,7 +238,7 @@ public abstract class MvcUtils {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> Optional<T> readBody(ServerRequest request, ByteArrayInputStream body, Class<T> toClass) {
 		try {
 			HttpInputMessage inputMessage = new ByteArrayInputMessage(request, body);

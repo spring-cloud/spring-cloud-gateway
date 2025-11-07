@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.core.Ordered;
@@ -76,7 +77,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 	}
 
 	/* for testing */
-	static Forwarded parse(String value) {
+	static @Nullable Forwarded parse(String value) {
 		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
 
 		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
@@ -89,7 +90,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 		return forwarded;
 	}
 
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
+	/* for testing */ static @Nullable LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
 		if (ObjectUtils.isEmpty(pairs)) {
 			return null;
 		}

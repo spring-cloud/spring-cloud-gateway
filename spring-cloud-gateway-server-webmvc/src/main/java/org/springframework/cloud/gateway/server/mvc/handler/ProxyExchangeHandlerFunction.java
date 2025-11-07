@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -31,6 +32,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.Res
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -51,9 +53,9 @@ public class ProxyExchangeHandlerFunction
 
 	private final ObjectProvider<ResponseHttpHeadersFilter> responseHttpHeadersFiltersProvider;
 
-	private List<RequestHttpHeadersFilter> requestHttpHeadersFilters;
+	private @Nullable List<RequestHttpHeadersFilter> requestHttpHeadersFilters;
 
-	private List<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
+	private @Nullable List<ResponseHttpHeadersFilter> responseHttpHeadersFilters;
 
 	private final URIResolver uriResolver;
 
@@ -123,9 +125,12 @@ public class ProxyExchangeHandlerFunction
 		return proxyExchange.exchange(proxyRequest);
 	}
 
-	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(List<?> filters, HttpHeaders original,
+	private <REQUEST_OR_RESPONSE> HttpHeaders filterHeaders(@Nullable List<?> filters, HttpHeaders original,
 			REQUEST_OR_RESPONSE requestOrResponse) {
 		HttpHeaders filtered = original;
+		if (CollectionUtils.isEmpty(filters)) {
+			return filtered;
+		}
 		for (Object filter : filters) {
 			@SuppressWarnings("unchecked")
 			HttpHeadersFilter<REQUEST_OR_RESPONSE> typed = ((HttpHeadersFilter<REQUEST_OR_RESPONSE>) filter);

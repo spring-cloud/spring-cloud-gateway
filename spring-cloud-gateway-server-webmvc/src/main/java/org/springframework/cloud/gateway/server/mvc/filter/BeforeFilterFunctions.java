@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues.KeyValue;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -155,7 +156,7 @@ public abstract class BeforeFilterFunctions {
 			.orElse(request);
 	}
 
-	private static Throwable getRootCause(Throwable throwable) {
+	private static @Nullable Throwable getRootCause(Throwable throwable) {
 		List<Throwable> list = getThrowableList(throwable);
 		return list.isEmpty() ? null : list.get(list.size() - 1);
 	}
@@ -307,7 +308,7 @@ public abstract class BeforeFilterFunctions {
 				if (contentLength > maxSize.toBytes()) {
 					String errorMessage = String.format(REQUEST_SIZE_ERROR_MSG, DataSize.ofBytes(contentLength),
 							maxSize);
-					throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, errorMessage) {
+					throw new ResponseStatusException(HttpStatus.CONTENT_TOO_LARGE, errorMessage) {
 						@Override
 						public HttpHeaders getHeaders() {
 							HttpHeaders httpHeaders = new HttpHeaders();

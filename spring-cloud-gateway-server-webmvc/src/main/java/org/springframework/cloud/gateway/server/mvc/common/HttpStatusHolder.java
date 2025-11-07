@@ -18,11 +18,14 @@ package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.util.Locale;
 
+import org.jspecify.annotations.NullUnmarked;
+
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 
+@NullUnmarked
 public class HttpStatusHolder {
 
 	private final HttpStatusCode httpStatus;

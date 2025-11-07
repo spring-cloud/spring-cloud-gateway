@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -33,7 +34,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.DelegatingServerHttpResponse;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -49,8 +49,7 @@ final class GatewayStreamingServerResponse extends AbstractGatewayServerResponse
 
 	private final Consumer<StreamBuilder> streamConsumer;
 
-	@Nullable
-	private final Duration timeout;
+	private final @Nullable Duration timeout;
 
 	private GatewayStreamingServerResponse(HttpStatusCode statusCode, HttpHeaders headers,
 			MultiValueMap<String, Cookie> cookies, Consumer<StreamBuilder> streamConsumer, @Nullable Duration timeout) {
@@ -68,10 +67,9 @@ final class GatewayStreamingServerResponse extends AbstractGatewayServerResponse
 		return new GatewayStreamingServerResponse(statusCode, headers, cookies, streamConsumer, timeout);
 	}
 
-	@Nullable
 	@Override
-	protected ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response, Context context)
-			throws Exception {
+	protected @Nullable ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
+			Context context) throws Exception {
 		DeferredResult<?> result;
 		if (this.timeout != null) {
 			result = new DeferredResult<>(this.timeout.toMillis());

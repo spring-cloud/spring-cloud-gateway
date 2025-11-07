@@ -29,10 +29,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
@@ -57,8 +57,7 @@ final class GatewayAsyncServerResponse extends GatewayErrorHandlingServerRespons
 
 	private final CompletableFuture<ServerResponse> futureResponse;
 
-	@Nullable
-	private final Duration timeout;
+	private final @Nullable Duration timeout;
 
 	private GatewayAsyncServerResponse(CompletableFuture<ServerResponse> futureResponse, @Nullable Duration timeout) {
 		this.futureResponse = futureResponse;
