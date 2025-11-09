@@ -40,7 +40,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -63,20 +63,20 @@ class FormFilterTests {
 		ArgumentCaptor<ServletRequest> captor = ArgumentCaptor.forClass(ServletRequest.class);
 		verify(chain).doFilter(captor.capture(), Mockito.eq(response));
 		HttpServletRequest servletRequest = (HttpServletRequest) captor.getValue();
-		assertEquals("foo", servletRequest.getParameter("queryArg1"));
-		assertArrayEquals(new String[]{"foo"}, servletRequest.getParameterValues("queryArg1"));
+		assertThat(servletRequest.getParameter("queryArg1")).isEqualTo("foo");
+		assertThat(servletRequest.getParameterValues("queryArg1")).containsExactly("foo");
 		// "你好" is hello in Chinese
-		assertEquals("你好", servletRequest.getParameter("queryArg2"));
-		assertArrayEquals(new String[]{"你好"}, servletRequest.getParameterValues("queryArg2"));
-		assertNull(servletRequest.getParameter("formArg1"));
-		assertNull(servletRequest.getParameter("formArg2"));
-		assertEquals(2, servletRequest.getParameterMap().size());
-		assertEquals(List.of("queryArg1", "queryArg2"), toList(servletRequest.getParameterNames()));
-		assertEquals("application/x-www-form-urlencoded", servletRequest.getHeader("Content-Type"));
+		assertThat(servletRequest.getParameterValues("queryArg2")).containsExactly("你好");
+		assertThat(servletRequest.getParameter("queryArg2")).isEqualTo("你好");
+		assertThat(servletRequest.getParameter("formArg1")).isNull();
+		assertThat(servletRequest.getParameter("formArg2")).isNull();
+		assertThat(servletRequest.getParameterMap().size()).isEqualTo(2);
+		assertThat(toList(servletRequest.getParameterNames())).containsExactly("queryArg1", "queryArg2");
+		assertThat(servletRequest.getHeader("Content-Type")).isEqualTo("application/x-www-form-urlencoded");
 		MultiValueMap<String, String> form = readForm(servletRequest);
-		assertEquals(2, form.size());
-		assertEquals(List.of("bar"), form.get("formArg1"));
-		assertEquals(List.of("{}"), form.get("formArg2"));
+		assertThat(form.size()).isEqualTo(2);
+		assertThat(form.get("formArg1")).containsExactly("bar");
+		assertThat(form.get("formArg2")).containsExactly("{}");
 	}
 
 	static MultiValueMap<String, String> readForm(HttpServletRequest request) {
