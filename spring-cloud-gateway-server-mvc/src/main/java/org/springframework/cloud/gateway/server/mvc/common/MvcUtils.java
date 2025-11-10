@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,11 +41,13 @@ import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.support.RequestContextUtils;
@@ -281,6 +285,23 @@ public abstract class MvcUtils {
 			}
 		}
 		return CollectionUtils.unmodifiableMultiValueMap(encodedQueryParams);
+	}
+
+	public static MultiValueMap<String, String> decodeQueryString(@Nullable String queryString, Charset charset) {
+		String[] pairs = StringUtils.tokenizeToStringArray(queryString, "&");
+		MultiValueMap<String, String> result = new LinkedMultiValueMap<>(pairs.length);
+		for (String pair : pairs) {
+			int idx = pair.indexOf('=');
+			if (idx == -1) {
+				result.add(URLDecoder.decode(pair, charset), null);
+			}
+			else {
+				String name = URLDecoder.decode(pair.substring(0, idx), charset);
+				String value = URLDecoder.decode(pair.substring(idx + 1), charset);
+				result.add(name, value);
+			}
+		}
+		return result;
 	}
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {
