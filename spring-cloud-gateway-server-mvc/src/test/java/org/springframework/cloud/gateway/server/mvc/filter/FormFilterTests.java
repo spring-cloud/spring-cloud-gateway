@@ -52,10 +52,10 @@ class FormFilterTests {
 	void hideFormParameterFromParameterMap() throws ServletException, IOException {
 		FormFilter filter = new FormFilter();
 		MockHttpServletRequest request = MockMvcRequestBuilders
-				.post(URI.create("http://localhost/test?queryArg1=foo&queryArg2=%E4%BD%A0%E5%A5%BD"))
-				.contentType("application/x-www-form-urlencoded")
-				.content("formArg1=bar&formArg2=%7B%7D")
-				.buildRequest(null);
+			.post(URI.create("http://localhost/test?queryArg1=foo&queryArg2=%E4%BD%A0%E5%A5%BD"))
+			.contentType("application/x-www-form-urlencoded")
+			.content("formArg1=bar&formArg2=%7B%7D")
+			.buildRequest(null);
 		HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
 		FilterChain chain = Mockito.mock(FilterChain.class);
 		filter.doFilter(request, response, chain);
@@ -109,4 +109,5 @@ class FormFilterTests {
 		}
 		return list;
 	}
+
 }
