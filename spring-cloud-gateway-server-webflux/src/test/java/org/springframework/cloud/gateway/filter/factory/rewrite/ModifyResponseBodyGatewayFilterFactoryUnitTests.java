@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory.Config;
 import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +38,33 @@ public class ModifyResponseBodyGatewayFilterFactoryUnitTests {
 				new DefaultServerCodecConfigurer().getReaders(), emptySet(), emptySet())
 			.apply(config);
 		assertThat(filter.toString()).contains("String").contains("Integer").contains("mycontenttype");
+	}
+
+	@Test
+	public void configShouldAllowExchangeStrategiesConfiguration() {
+		// Create custom ExchangeStrategies with larger buffer size
+		ExchangeStrategies customStrategies = ExchangeStrategies.builder()
+			.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024)) // 1MB
+			.build();
+
+		Config config = new Config();
+		config.setInClass(String.class);
+		config.setOutClass(String.class);
+		config.setExchangeStrategies(customStrategies);
+
+		// Verify that the ExchangeStrategies can be set and retrieved
+		assertThat(config.getExchangeStrategies()).isNotNull();
+		assertThat(config.getExchangeStrategies()).isEqualTo(customStrategies);
+	}
+
+	@Test
+	public void configShouldHaveNullExchangeStrategiesByDefault() {
+		Config config = new Config();
+		config.setInClass(String.class);
+		config.setOutClass(String.class);
+
+		// Verify that ExchangeStrategies is null by default
+		assertThat(config.getExchangeStrategies()).isNull();
 	}
 
 }
