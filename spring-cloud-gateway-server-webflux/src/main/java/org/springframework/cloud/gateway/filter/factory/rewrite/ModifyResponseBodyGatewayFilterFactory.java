@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.function.Function.identity;
@@ -92,6 +94,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 		private String newContentType;
 
 		private RewriteFunction rewriteFunction;
+
+		private ExchangeStrategies exchangeStrategies;
 
 		public Class getInClass() {
 			return inClass;
@@ -152,6 +156,15 @@ public class ModifyResponseBodyGatewayFilterFactory
 			setInClass(inClass);
 			setOutClass(outClass);
 			setRewriteFunction(rewriteFunction);
+			return this;
+		}
+
+		public ExchangeStrategies getExchangeStrategies() {
+			return exchangeStrategies;
+		}
+
+		public Config setExchangeStrategies(ExchangeStrategies exchangeStrategies) {
+			this.exchangeStrategies = exchangeStrategies;
 			return this;
 		}
 
@@ -229,7 +242,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getResponse().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+			BodyInserterContext bodyInserterContext = Objects.isNull(config.getExchangeStrategies())
+					? new BodyInserterContext() : new BodyInserterContext(config.getExchangeStrategies());
+			return bodyInserter.insert(outputMessage, bodyInserterContext).then(Mono.defer(() -> {
 				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
 				HttpHeaders headers = getDelegate().getHeaders();
 				if (!headers.containsHeader(HttpHeaders.TRANSFER_ENCODING)

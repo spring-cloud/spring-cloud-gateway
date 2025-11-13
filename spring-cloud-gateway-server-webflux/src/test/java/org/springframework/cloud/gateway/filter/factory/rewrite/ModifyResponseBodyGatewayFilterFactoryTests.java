@@ -37,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -101,6 +102,27 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 			.isEqualTo("Content Too Large");
 	}
 
+	@Test
+	public void modifyResponseBodyWithCustomExchangeStrategies() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/post").build(true).toUri();
+
+		// This route uses custom ExchangeStrategies with larger buffer
+		// so it can handle the large response body without error
+		testClient.post()
+			.uri(uri)
+			.header("Host", "www.modifyresponsebodycustomstrategies.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.body(BodyInserters.fromValue(toLarge))
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody()
+			.consumeWith(result -> {
+				String responseBody = new String(result.getResponseBody(), UTF_8);
+				assertThat(responseBody).contains("MODIFIED");
+			});
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -143,6 +165,21 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 											return Mono.just("Modified response");
 										}))
 							.uri(uri))
+				.route("modify_response_custom_strategies",
+						r -> r.path("/post").and().host("www.modifyresponsebodycustomstrategies.org").filters(f -> {
+							// Create custom ExchangeStrategies with larger buffer size
+							// (10MB)
+							ExchangeStrategies customStrategies = ExchangeStrategies.builder()
+								.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+								.build();
+
+							f.prefixPath("/httpbin")
+								.modifyResponseBody(String.class, String.class,
+										config -> config.setExchangeStrategies(customStrategies),
+										(webExchange, originalResponse) -> {
+											return Mono.just("MODIFIED: " + originalResponse);
+										});
+						}).uri(uri))
 				.build();
 		}
 
