@@ -56,189 +56,199 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder GET(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder GET(HandlerFunction<T> handlerFunction) {
 		builder.GET(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder GET(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder GET(String pattern, HandlerFunction<T> handlerFunction) {
 		builder.GET(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder GET(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder GET(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.GET(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder GET(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder GET(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.GET(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder HEAD(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder HEAD(HandlerFunction<T> handlerFunction) {
 		builder.HEAD(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder HEAD(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder HEAD(String pattern, HandlerFunction<T> handlerFunction) {
 		builder.HEAD(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder HEAD(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder HEAD(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.HEAD(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder HEAD(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder HEAD(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.HEAD(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder POST(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder POST(HandlerFunction<T> handlerFunction) {
 		builder.POST(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder POST(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder POST(String pattern, HandlerFunction<T> handlerFunction) {
 		builder.POST(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder POST(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder POST(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.POST(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder POST(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder POST(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.POST(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PUT(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PUT(HandlerFunction<T> handlerFunction) {
 		builder.PUT(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PUT(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PUT(String pattern, HandlerFunction<T> handlerFunction) {
 		builder.PUT(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PUT(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PUT(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.PUT(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PUT(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PUT(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.PUT(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PATCH(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PATCH(HandlerFunction<T> handlerFunction) {
 		builder.PATCH(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PATCH(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PATCH(String pattern,
+			HandlerFunction<T> handlerFunction) {
 		builder.PATCH(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PATCH(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PATCH(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.PATCH(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder PATCH(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder PATCH(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.PATCH(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder DELETE(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder DELETE(HandlerFunction<T> handlerFunction) {
 		builder.DELETE(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder DELETE(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder DELETE(String pattern,
+			HandlerFunction<T> handlerFunction) {
 		builder.DELETE(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder DELETE(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder DELETE(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.DELETE(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder DELETE(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder DELETE(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.DELETE(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder OPTIONS(HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder OPTIONS(HandlerFunction<T> handlerFunction) {
 		builder.OPTIONS(handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder OPTIONS(String pattern, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder OPTIONS(String pattern,
+			HandlerFunction<T> handlerFunction) {
 		builder.OPTIONS(pattern, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder OPTIONS(RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder OPTIONS(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.OPTIONS(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder OPTIONS(String pattern, RequestPredicate predicate,
-			HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder OPTIONS(String pattern, RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.OPTIONS(pattern, predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder route(RequestPredicate predicate, HandlerFunction<ServerResponse> handlerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder route(RequestPredicate predicate,
+			HandlerFunction<T> handlerFunction) {
 		builder.route(predicate, handlerFunction);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder add(RouterFunction<ServerResponse> routerFunction) {
+	public <T extends ServerResponse> RouterFunctions.Builder add(RouterFunction<T> routerFunction) {
 		builder.add(routerFunction);
 		return this;
 	}
@@ -281,8 +291,8 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder nest(RequestPredicate predicate,
-			Supplier<RouterFunction<ServerResponse>> routerFunctionSupplier) {
+	public <T extends ServerResponse> RouterFunctions.Builder nest(RequestPredicate predicate,
+			Supplier<RouterFunction<T>> routerFunctionSupplier) {
 		builder.nest(predicate, routerFunctionSupplier);
 		return this;
 	}
@@ -294,8 +304,8 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder path(String pattern,
-			Supplier<RouterFunction<ServerResponse>> routerFunctionSupplier) {
+	public <T extends ServerResponse> RouterFunctions.Builder path(String pattern,
+			Supplier<RouterFunction<T>> routerFunctionSupplier) {
 		builder.path(pattern, routerFunctionSupplier);
 		return this;
 	}
@@ -307,7 +317,8 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder filter(HandlerFilterFunction<ServerResponse, ServerResponse> filterFunction) {
+	public <T extends ServerResponse, R extends ServerResponse> RouterFunctions.Builder filter(
+			HandlerFilterFunction<T, R> filterFunction) {
 		builder.filter(filterFunction);
 		return this;
 	}
@@ -319,21 +330,22 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	}
 
 	@Override
-	public RouterFunctions.Builder after(BiFunction<ServerRequest, ServerResponse, ServerResponse> responseProcessor) {
+	public <T extends ServerResponse, R extends ServerResponse> RouterFunctions.Builder after(
+			BiFunction<ServerRequest, T, R> responseProcessor) {
 		builder.after(responseProcessor);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder onError(Predicate<Throwable> predicate,
-			BiFunction<Throwable, ServerRequest, ServerResponse> responseProvider) {
+	public <T extends ServerResponse> RouterFunctions.Builder onError(Predicate<Throwable> predicate,
+			BiFunction<Throwable, ServerRequest, T> responseProvider) {
 		builder.onError(predicate, responseProvider);
 		return this;
 	}
 
 	@Override
-	public RouterFunctions.Builder onError(Class<? extends Throwable> exceptionType,
-			BiFunction<Throwable, ServerRequest, ServerResponse> responseProvider) {
+	public <T extends ServerResponse> RouterFunctions.Builder onError(Class<? extends Throwable> exceptionType,
+			BiFunction<Throwable, ServerRequest, T> responseProvider) {
 		builder.onError(exceptionType, responseProvider);
 		return this;
 	}
