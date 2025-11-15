@@ -65,7 +65,6 @@ public abstract class Bucket4jFilterFunctions {
 			Consumer<RateLimitConfig> configConsumer) {
 		RateLimitConfig config = new RateLimitConfig();
 		configConsumer.accept(config);
-		BucketConfiguration bucketConfiguration = config.getConfigurationBuilder().apply(config);
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
 			String key = config.getKeyResolver().apply(request);
@@ -73,7 +72,7 @@ public abstract class Bucket4jFilterFunctions {
 				// TODO: configurable empty key status code
 				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
 			}
-			AsyncBucketProxy bucket = proxyManager.builder().build(key, bucketConfiguration);
+			AsyncBucketProxy bucket = proxyManager.builder().build(key, () -> config.configurationBuilder.apply(config));
 			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(config.getTokens());
 			ConsumptionProbe consumptionProbe;
 			if (config.getTimeout() != null) {

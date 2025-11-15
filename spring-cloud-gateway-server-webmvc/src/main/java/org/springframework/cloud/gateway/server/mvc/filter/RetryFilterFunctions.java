@@ -51,11 +51,13 @@ public abstract class RetryFilterFunctions {
 	}
 
 	@Shortcut
+	@SuppressWarnings("deprecation")
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(int retries) {
 		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(retries)
 				: FrameworkRetryFilterFunctions.frameworkRetry(retries);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(Consumer<RetryConfig> configConsumer) {
 		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(configConsumer)
 				: FrameworkRetryFilterFunctions.frameworkRetry(configConsumer);
@@ -63,6 +65,7 @@ public abstract class RetryFilterFunctions {
 
 	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
+	@SuppressWarnings("deprecation")
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
 		return useSpringRetry() ? GatewayRetryFilterFunctions.retry(config)
 				: FrameworkRetryFilterFunctions.frameworkRetry(config);
