@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
@@ -65,6 +66,9 @@ public abstract class Bucket4jFilterFunctions {
 			Consumer<RateLimitConfig> configConsumer) {
 		RateLimitConfig config = new RateLimitConfig();
 		configConsumer.accept(config);
+		Supplier<CompletableFuture<BucketConfiguration>> configSupplier = () -> CompletableFuture
+			.supplyAsync(() -> config.configurationBuilder.apply(config));
+
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
 			String key = config.getKeyResolver().apply(request);
@@ -72,7 +76,7 @@ public abstract class Bucket4jFilterFunctions {
 				// TODO: configurable empty key status code
 				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
 			}
-			AsyncBucketProxy bucket = proxyManager.builder().build(key, () -> config.configurationBuilder.apply(config));
+			AsyncBucketProxy bucket = proxyManager.builder().build(key, configSupplier);
 			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(config.getTokens());
 			ConsumptionProbe consumptionProbe;
 			if (config.getTimeout() != null) {
