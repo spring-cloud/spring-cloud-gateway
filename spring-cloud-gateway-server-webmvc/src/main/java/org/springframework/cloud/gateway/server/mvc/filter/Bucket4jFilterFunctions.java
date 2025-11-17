@@ -33,7 +33,6 @@ import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -79,9 +78,10 @@ public abstract class Bucket4jFilterFunctions {
 				// TODO: configurable empty key status code
 				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
 			}
-			TaskExecutor taskExecutor = MvcUtils.getApplicationContext(request).getBean(APPLICATION_TASK_EXECUTOR_BEAN_NAME, TaskExecutor.class);
+			TaskExecutor taskExecutor = MvcUtils.getApplicationContext(request)
+				.getBean(APPLICATION_TASK_EXECUTOR_BEAN_NAME, TaskExecutor.class);
 			Supplier<CompletableFuture<BucketConfiguration>> configSupplier = () -> CompletableFuture
-					.supplyAsync(bucketConfigurationSupplier, taskExecutor);
+				.supplyAsync(bucketConfigurationSupplier, taskExecutor);
 			AsyncBucketProxy bucket = proxyManager.builder().build(key, configSupplier);
 			CompletableFuture<ConsumptionProbe> bucketFuture = bucket.tryConsumeAndReturnRemaining(config.getTokens());
 			ConsumptionProbe consumptionProbe;
