@@ -117,6 +117,8 @@ public class GatewayAutoConfigurationTests {
 	@Test
 	public void nettyHttpClientConfigured() {
 		new ReactiveWebApplicationContextRunner()
+			.withClassLoader(new org.springframework.boot.test.context.FilteredClassLoader(
+					org.springframework.cloud.gateway.test.TestEnableWebfluxSecurityAutoConfiguration.class))
 			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
 					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
 					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
