@@ -184,6 +184,7 @@
 |spring.cloud.gateway.server.webmvc.streaming-media-types |  | Mime-types that are streaming.
 |spring.cloud.gateway.server.webmvc.transfer-encoding-normalization-request-headers-filter.enabled | `+++true+++` | Enables the transfer-encoding-normalization-request-headers-filter.
 |spring.cloud.gateway.server.webmvc.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded of X-Forwarded header.
+|spring.cloud.gateway.server.webmvc.use-framework-retry-filter | `+++false+++` | In the case where Spring Retry is on the classpath but you still want to use Spring Framework retry as your retry filter, set this property to true.
 |spring.cloud.gateway.server.webmvc.weight-calculator-filter.enabled | `+++true+++` | Enables the weight-calculator-filter.
 |spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled | `+++true+++` | If the XForwardedHeadersFilter is enabled.
 |spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-append | `+++true+++` | If appending X-Forwarded-For as a list is enabled.
