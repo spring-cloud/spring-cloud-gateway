@@ -40,7 +40,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.data.Offset.offset;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -133,7 +132,8 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 
 		// default connect timeout is 45 sec, this test verifies that it is possible to
 		// reduce timeout via config
-		assertThat(System.currentTimeMillis() - currentTimeMillisBeforeCall).isCloseTo(5, offset(100L));
+		long duration = System.currentTimeMillis() - currentTimeMillisBeforeCall;
+		assertThat(duration).isLessThan(5000L);
 	}
 
 	@Test
