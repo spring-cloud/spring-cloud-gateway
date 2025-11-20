@@ -33,8 +33,6 @@ import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.data.MapEntry.entry;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -84,7 +82,6 @@ public class RedisRateLimiterUnitTests {
 
 	@Test
 	public void shouldAllowRequestWhenRedisIssueOccurs() {
-		when(redisTemplate.execute(any(), anyList(), anyList())).thenThrow(REDIS_EXCEPTION);
 		redisRateLimiter.setApplicationContext(applicationContext);
 		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
 		assertThat(response.block()).extracting(RateLimiter.Response::isAllowed).isEqualTo(true);
@@ -92,7 +89,6 @@ public class RedisRateLimiterUnitTests {
 
 	@Test
 	public void shouldReturnHeadersWhenRedisIssueOccurs() {
-		when(redisTemplate.execute(any(), anyList(), anyList())).thenThrow(REDIS_EXCEPTION);
 		redisRateLimiter.setApplicationContext(applicationContext);
 		Mono<RateLimiter.Response> response = redisRateLimiter.isAllowed(ROUTE_ID, REQUEST_ID);
 		assertThat(response.block().getHeaders()).containsOnly(entry(redisRateLimiter.getRemainingHeader(), "-1"),

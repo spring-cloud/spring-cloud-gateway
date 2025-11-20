@@ -17,8 +17,10 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -65,15 +67,20 @@ public class ModifyRequestBodyGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				ParameterizedTypeReference inClass = config.getInClass();
+				ParameterizedTypeReference inClass = Objects.requireNonNull(config.getInClass(),
+						"inClass must not be null");
+				RewriteFunction rewriteFunction = Objects.requireNonNull(config.getRewriteFunction(),
+						"rewriteFunction must not be null");
+				ParameterizedTypeReference outClass = Objects.requireNonNull(config.getOutClass(),
+						"outClass must not be null");
 				ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
 
 				// TODO: flux or mono
 				Mono<?> modifiedBody = serverRequest.bodyToMono(inClass)
-					.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-					.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+					.flatMap(originalBody -> rewriteFunction.apply(exchange, originalBody))
+					.switchIfEmpty(Mono.defer(() -> (Mono) rewriteFunction.apply(exchange, null)));
 
-				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, config.getOutClass());
+				BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 				HttpHeaders headers = new HttpHeaders();
 				headers.putAll(exchange.getRequest().getHeaders());
 
@@ -144,15 +151,15 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 	public static class Config {
 
-		private ParameterizedTypeReference inClass;
+		private @Nullable ParameterizedTypeReference inClass;
 
-		private ParameterizedTypeReference outClass;
+		private @Nullable ParameterizedTypeReference outClass;
 
-		private String contentType;
+		private @Nullable String contentType;
 
-		private RewriteFunction rewriteFunction;
+		private @Nullable RewriteFunction rewriteFunction;
 
-		public ParameterizedTypeReference getInClass() {
+		public @Nullable ParameterizedTypeReference getInClass() {
 			return inClass;
 		}
 
@@ -165,7 +172,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 			return this;
 		}
 
-		public ParameterizedTypeReference getOutClass() {
+		public @Nullable ParameterizedTypeReference getOutClass() {
 			return outClass;
 		}
 
@@ -178,7 +185,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 			return this;
 		}
 
-		public RewriteFunction getRewriteFunction() {
+		public @Nullable RewriteFunction getRewriteFunction() {
 			return rewriteFunction;
 		}
 
@@ -203,11 +210,11 @@ public class ModifyRequestBodyGatewayFilterFactory
 			return this;
 		}
 
-		public String getContentType() {
+		public @Nullable String getContentType() {
 			return contentType;
 		}
 
-		public Config setContentType(String contentType) {
+		public Config setContentType(@Nullable String contentType) {
 			this.contentType = contentType;
 			return this;
 		}

@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.filter.headers;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.StringUtils;
@@ -44,7 +46,7 @@ public class GRPCRequestHeadersFilter implements HttpHeadersFilter, Ordered {
 		return updated;
 	}
 
-	private boolean isGRPC(String contentTypeValue) {
+	private boolean isGRPC(@Nullable String contentTypeValue) {
 		return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
 	}
 

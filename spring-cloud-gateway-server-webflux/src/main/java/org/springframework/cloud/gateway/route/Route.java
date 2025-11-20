@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.builder.Buildable;
@@ -71,10 +73,15 @@ public class Route implements Ordered {
 
 	public static Builder builder(RouteDefinition routeDefinition) {
 		// @formatter:off
-		return new Builder().id(routeDefinition.getId())
-				.uri(routeDefinition.getUri())
-				.order(routeDefinition.getOrder())
+		Builder builder = new Builder().order(routeDefinition.getOrder())
 				.metadata(routeDefinition.getMetadata());
+		if (routeDefinition.getUri() != null) {
+			builder.uri(routeDefinition.getUri());
+		}
+		if (routeDefinition.getId() != null) {
+			builder.id(routeDefinition.getId());
+		}
+		return builder;
 		// @formatter:on
 	}
 
@@ -84,10 +91,16 @@ public class Route implements Ordered {
 
 	public static AsyncBuilder async(RouteDefinition routeDefinition) {
 		// @formatter:off
-		return new AsyncBuilder().id(routeDefinition.getId())
-				.uri(routeDefinition.getUri())
+		AsyncBuilder asyncBuilder = new AsyncBuilder()
 				.order(routeDefinition.getOrder())
 				.metadata(routeDefinition.getMetadata());
+		if (routeDefinition.getUri() != null) {
+			asyncBuilder.uri(routeDefinition.getUri());
+		}
+		if (routeDefinition.getId() != null) {
+			asyncBuilder.id(routeDefinition.getId());
+		}
+		return asyncBuilder;
 		// @formatter:on
 	}
 
@@ -150,9 +163,9 @@ public class Route implements Ordered {
 
 	public abstract static class AbstractBuilder<B extends AbstractBuilder<B>> implements Buildable<Route> {
 
-		protected String id;
+		protected @Nullable String id;
 
-		protected URI uri;
+		protected @Nullable URI uri;
 
 		protected int order = 0;
 
@@ -170,7 +183,7 @@ public class Route implements Ordered {
 			return getThis();
 		}
 
-		public String getId() {
+		public @Nullable String getId() {
 			return id;
 		}
 
@@ -211,7 +224,7 @@ public class Route implements Ordered {
 			return getThis();
 		}
 
-		public B metadata(String key, Object value) {
+		public B metadata(@Nullable String key, @Nullable Object value) {
 			this.metadata.put(key, value);
 			return getThis();
 		}
@@ -250,7 +263,7 @@ public class Route implements Ordered {
 
 	public static class AsyncBuilder extends AbstractBuilder<AsyncBuilder> {
 
-		protected AsyncPredicate<ServerWebExchange> predicate;
+		protected @Nullable AsyncPredicate<ServerWebExchange> predicate;
 
 		@Override
 		protected AsyncBuilder getThis() {
@@ -259,6 +272,7 @@ public class Route implements Ordered {
 
 		@Override
 		public AsyncPredicate<ServerWebExchange> getPredicate() {
+			Assert.notNull(this.predicate, "predicate can not be null");
 			return this.predicate;
 		}
 
@@ -293,7 +307,7 @@ public class Route implements Ordered {
 
 	public static class Builder extends AbstractBuilder<Builder> {
 
-		protected Predicate<ServerWebExchange> predicate;
+		protected @Nullable Predicate<ServerWebExchange> predicate;
 
 		@Override
 		protected Builder getThis() {

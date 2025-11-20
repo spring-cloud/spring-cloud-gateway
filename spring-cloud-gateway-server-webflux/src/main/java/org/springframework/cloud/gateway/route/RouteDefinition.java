@@ -26,7 +26,7 @@ import java.util.Objects;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
@@ -40,7 +40,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 @Validated
 public class RouteDefinition {
 
-	private String id;
+	private @Nullable String id;
 
 	@NotEmpty
 	@Valid
@@ -49,8 +49,7 @@ public class RouteDefinition {
 	@Valid
 	private List<FilterDefinition> filters = new ArrayList<>();
 
-	@NotNull
-	private URI uri;
+	private @Nullable URI uri;
 
 	private Map<String, Object> metadata = new HashMap<>();
 
@@ -79,7 +78,7 @@ public class RouteDefinition {
 		}
 	}
 
-	public String getId() {
+	public @Nullable String getId() {
 		return id;
 	}
 
@@ -103,7 +102,7 @@ public class RouteDefinition {
 		this.filters = filters;
 	}
 
-	public URI getUri() {
+	public @Nullable URI getUri() {
 		return uri;
 	}
 

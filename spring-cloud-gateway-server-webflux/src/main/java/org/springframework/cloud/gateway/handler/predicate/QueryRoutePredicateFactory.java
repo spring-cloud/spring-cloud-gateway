@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -75,7 +76,7 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 					predicate = value -> value.matches(config.regexp);
 				}
 				for (String value : values) {
-					if (value != null && predicate.test(value)) {
+					if (value != null && predicate != null && predicate.test(value)) {
 						return true;
 					}
 				}
@@ -97,13 +98,13 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 	public static class Config {
 
 		@NotEmpty
-		private String param;
+		private @Nullable String param;
 
-		private String regexp;
+		private @Nullable String regexp;
 
-		private Predicate<String> predicate;
+		private @Nullable Predicate<String> predicate;
 
-		public String getParam() {
+		public @Nullable String getParam() {
 			return this.param;
 		}
 
@@ -112,16 +113,16 @@ public class QueryRoutePredicateFactory extends AbstractRoutePredicateFactory<Qu
 			return this;
 		}
 
-		public String getRegexp() {
+		public @Nullable String getRegexp() {
 			return this.regexp;
 		}
 
-		public Config setRegexp(String regexp) {
+		public Config setRegexp(@Nullable String regexp) {
 			this.regexp = regexp;
 			return this;
 		}
 
-		public Predicate<String> getPredicate() {
+		public @Nullable Predicate<String> getPredicate() {
 			return this.predicate;
 		}
 

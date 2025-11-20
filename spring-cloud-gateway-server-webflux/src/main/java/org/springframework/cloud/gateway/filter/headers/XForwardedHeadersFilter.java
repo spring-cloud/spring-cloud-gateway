@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.config.GatewayProperties;
@@ -319,14 +320,16 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		write(headers, name, value, append, s -> true);
 	}
 
-	private void write(HttpHeaders headers, String name, String value, boolean append, Predicate<String> shouldWrite) {
+	private void write(HttpHeaders headers, String name, @Nullable String value, boolean append,
+			Predicate<String> shouldWrite) {
 		if (append) {
 			if (value != null) {
 				headers.add(name, value);
 			}
 			// these headers should be treated as a single comma separated header
-			if (headers.containsHeader(name)) {
-				List<String> values = headers.get(name).stream().filter(shouldWrite).toList();
+			List<String> headerValues = headers.get(name);
+			if (headerValues != null) {
+				List<String> values = headerValues.stream().filter(shouldWrite).toList();
 				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
 				headers.set(name, delimitedValue);
 			}
@@ -354,11 +357,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	private String stripTrailingSlash(URI uri) {
-		if (uri.getPath().endsWith("/")) {
-			return uri.getPath().substring(0, uri.getPath().length() - 1);
+		String path = uri.getPath();
+		if (path != null && path.endsWith("/")) {
+			return path.substring(0, path.length() - 1);
 		}
 		else {
-			return uri.getPath();
+			return path;
 		}
 	}
 

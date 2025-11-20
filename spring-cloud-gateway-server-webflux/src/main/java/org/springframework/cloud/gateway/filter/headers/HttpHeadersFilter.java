@@ -18,17 +18,19 @@ package org.springframework.cloud.gateway.filter.headers;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 public interface HttpHeadersFilter {
 
-	static HttpHeaders filterRequest(List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
+	static HttpHeaders filterRequest(@Nullable List<HttpHeadersFilter> filters, ServerWebExchange exchange) {
 		HttpHeaders headers = exchange.getRequest().getHeaders();
 		return filter(filters, headers, exchange, Type.REQUEST);
 	}
 
-	static HttpHeaders filter(List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange,
+	static HttpHeaders filter(@Nullable List<HttpHeadersFilter> filters, HttpHeaders input, ServerWebExchange exchange,
 			Type type) {
 		if (filters != null) {
 			HttpHeaders filtered = input;

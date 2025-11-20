@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -52,6 +53,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
+		Assert.notNull(config.getDatetime1(), DATETIME1_KEY + " must not be null");
 		Assert.isTrue(config.getDatetime1().isBefore(config.getDatetime2()),
 				config.getDatetime1() + " must be before " + config.getDatetime2());
 
@@ -77,12 +79,12 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 	public static class Config {
 
 		@NotNull
-		private ZonedDateTime datetime1;
+		private @Nullable ZonedDateTime datetime1;
 
 		@NotNull
-		private ZonedDateTime datetime2;
+		private @Nullable ZonedDateTime datetime2;
 
-		public ZonedDateTime getDatetime1() {
+		public @Nullable ZonedDateTime getDatetime1() {
 			return datetime1;
 		}
 
@@ -91,7 +93,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			return this;
 		}
 
-		public ZonedDateTime getDatetime2() {
+		public @Nullable ZonedDateTime getDatetime2() {
 			return datetime2;
 		}
 

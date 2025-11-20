@@ -34,6 +34,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.FileCopyUtils;
@@ -120,7 +122,7 @@ public final class CachedResponse implements Serializable {
 
 		private final List<ByteBuffer> body = new ArrayList<>();
 
-		private Instant timestamp;
+		private @Nullable Instant timestamp;
 
 		public Builder(HttpStatusCode statusCode) {
 			this.statusCode = statusCode;

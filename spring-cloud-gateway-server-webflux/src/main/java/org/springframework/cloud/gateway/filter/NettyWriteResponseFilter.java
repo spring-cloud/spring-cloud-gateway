@@ -21,6 +21,7 @@ import java.util.List;
 import io.netty.buffer.ByteBuf;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SignalType;
@@ -37,7 +38,6 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR;
@@ -60,7 +60,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
 
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
-	private volatile List<HttpHeadersFilter> headersFilters;
+	private volatile @Nullable List<HttpHeadersFilter> headersFilters;
 
 	public NettyWriteResponseFilter(List<MediaType> streamingMediaTypes,
 			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
@@ -68,7 +68,7 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 		this.headersFiltersProvider = headersFiltersProvider;
 	}
 
-	public List<HttpHeadersFilter> getHeadersFilters() {
+	public @Nullable List<HttpHeadersFilter> getHeadersFilters() {
 		if (headersFilters == null) {
 			headersFilters = headersFiltersProvider == null ? List.of() : headersFiltersProvider.getIfAvailable();
 		}

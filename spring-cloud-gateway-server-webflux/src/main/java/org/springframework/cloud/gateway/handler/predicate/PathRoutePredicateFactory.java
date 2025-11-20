@@ -121,7 +121,9 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 				if (match != null) {
 					traceMatch("Pattern", match.getPatternString(), path, true);
 					PathMatchInfo pathMatchInfo = match.matchAndExtract(path);
-					putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
+					if (pathMatchInfo != null) {
+						putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
+					}
 					exchange.getAttributes().put(GATEWAY_PREDICATE_MATCHED_PATH_ATTR, match.getPatternString());
 					String routeId = (String) exchange.getAttributes().get(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (routeId != null) {

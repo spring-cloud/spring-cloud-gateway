@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -125,7 +126,7 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	}
 
 	@Override
-	public boolean supportsSourceType(Class<?> sourceType) {
+	public boolean supportsSourceType(@Nullable Class<?> sourceType) {
 		return true;
 	}
 

@@ -84,6 +84,10 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 					}
 				}
 
+				if (host == null) {
+					return false;
+				}
+
 				String match = null;
 				for (int i = 0; i < config.getPatterns().size(); i++) {
 					String pattern = config.getPatterns().get(i);

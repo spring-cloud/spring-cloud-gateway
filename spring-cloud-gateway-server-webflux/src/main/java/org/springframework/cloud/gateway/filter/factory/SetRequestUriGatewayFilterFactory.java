@@ -20,8 +20,10 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,15 +62,15 @@ public class SetRequestUriGatewayFilterFactory
 		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
 			public String toString() {
-				return filterToStringCreator(SetRequestUriGatewayFilterFactory.this)
-					.append("template", config.getTemplate())
+				String template = Objects.requireNonNull(config.getTemplate(), "template must not be null");
+				return filterToStringCreator(SetRequestUriGatewayFilterFactory.this).append("template", template)
 					.toString();
 			}
 		};
 	}
 
 	String getUri(ServerWebExchange exchange, Config config) {
-		String template = config.getTemplate();
+		String template = Objects.requireNonNull(config.getTemplate(), "template must not be null");
 
 		if (template.indexOf('{') == -1) {
 			return template;
@@ -97,9 +99,9 @@ public class SetRequestUriGatewayFilterFactory
 
 	public static class Config {
 
-		private String template;
+		private @Nullable String template;
 
-		public String getTemplate() {
+		public @Nullable String getTemplate() {
 			return template;
 		}
 

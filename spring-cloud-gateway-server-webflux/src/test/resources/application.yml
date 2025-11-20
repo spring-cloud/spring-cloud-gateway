@@ -4,11 +4,10 @@ test:
   #  uri: http://${test.hostport}
   uri: lb://testservice
 
-server:
-  error:
-    include-message: always
-
 spring:
+  web:
+    error:
+      include-message: always
   profiles:
     group:
       - logging

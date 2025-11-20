@@ -1,8 +1,8 @@
-server:
-  error:
-    include-message: always
 
 spring:
+  web:
+    error:
+      include-message: always
   config:
     import: classpath:application-logging.yml
 

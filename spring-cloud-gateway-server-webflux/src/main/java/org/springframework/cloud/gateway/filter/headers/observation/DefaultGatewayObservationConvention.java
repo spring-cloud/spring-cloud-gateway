@@ -17,8 +17,7 @@
 package org.springframework.cloud.gateway.filter.headers.observation;
 
 import io.micrometer.common.KeyValues;
-import io.micrometer.common.lang.NonNull;
-import io.micrometer.common.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -50,10 +49,12 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 			return keyValues;
 		}
 		Route route = context.getServerWebExchange().getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-		keyValues = keyValues
-			.and(ROUTE_URI.withValue(route.getUri().toString()),
-					METHOD.withValue(context.getRequest().getMethod().name()))
-			.and(ROUTE_ID.withValue(route.getId()));
+		if (route != null) {
+			keyValues = keyValues
+				.and(ROUTE_URI.withValue(route.getUri().toString()),
+						METHOD.withValue(context.getRequest().getMethod().name()))
+				.and(ROUTE_ID.withValue(route.getId()));
+		}
 		ServerHttpResponse response = context.getResponse();
 		if (response != null && response.getStatusCode() != null) {
 			keyValues = keyValues.and(STATUS.withValue(String.valueOf(response.getStatusCode().value())));
@@ -70,14 +71,12 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 	}
 
 	@Override
-	@NonNull
 	public String getName() {
 		return "http.client.requests";
 	}
 
-	@Nullable
 	@Override
-	public String getContextualName(GatewayContext context) {
+	public @Nullable String getContextualName(GatewayContext context) {
 		if (context.getRequest() == null) {
 			return null;
 		}

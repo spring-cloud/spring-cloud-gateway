@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
@@ -250,7 +251,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		ServerWebExchangeUtils.reset(exchange);
 	}
 
-	public GatewayFilter apply(String routeId, Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
+	public GatewayFilter apply(@Nullable String routeId, @Nullable Repeat<ServerWebExchange> repeat,
+			@Nullable Retry<ServerWebExchange> retry) {
 		enableBodyCaching(routeId);
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
@@ -300,7 +302,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	@SuppressWarnings("unchecked")
 	public static class RetryConfig implements HasRouteId {
 
-		private String routeId;
+		private @Nullable String routeId;
 
 		private int retries = 3;
 
@@ -312,11 +314,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private List<Class<? extends Throwable>> exceptions = toList(IOException.class, TimeoutException.class);
 
-		private BackoffConfig backoff;
+		private @Nullable BackoffConfig backoff;
 
-		private JitterConfig jitter;
+		private @Nullable JitterConfig jitter;
 
-		private Duration timeout;
+		private @Nullable Duration timeout;
 
 		public RetryConfig allMethods() {
 			return setMethods(HttpMethod.values());
@@ -338,7 +340,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			}
 		}
 
-		public Duration getTimeout() {
+		public @Nullable Duration getTimeout() {
 			return timeout;
 		}
 
@@ -347,7 +349,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return this;
 		}
 
-		public JitterConfig getJitter() {
+		public @Nullable JitterConfig getJitter() {
 			return jitter;
 		}
 
@@ -361,7 +363,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return this;
 		}
 
-		public BackoffConfig getBackoff() {
+		public @Nullable BackoffConfig getBackoff() {
 			return backoff;
 		}
 
@@ -382,7 +384,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 
 		@Override
-		public String getRouteId() {
+		public @Nullable String getRouteId() {
 			return this.routeId;
 		}
 
@@ -437,7 +439,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private Duration firstBackoff = Duration.ofMillis(5);
 
-		private Duration maxBackoff;
+		private @Nullable Duration maxBackoff;
 
 		private int factor = 2;
 
@@ -465,7 +467,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			this.firstBackoff = firstBackoff;
 		}
 
-		public Duration getMaxBackoff() {
+		public @Nullable Duration getMaxBackoff() {
 			return maxBackoff;
 		}
 

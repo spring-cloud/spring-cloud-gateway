@@ -18,11 +18,13 @@ package org.springframework.cloud.gateway.route;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -52,7 +54,7 @@ public class CachingRouteLocator
 
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
-	private ApplicationEventPublisher applicationEventPublisher;
+	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
@@ -111,6 +113,7 @@ public class CachingRouteLocator
 
 	private void publishRefreshEvent(List<Signal<Route>> signals) {
 		cache.put(CACHE_KEY, signals);
+		Objects.requireNonNull(applicationEventPublisher, "ApplicationEventPublisher is required");
 		applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 	}
 
@@ -123,6 +126,7 @@ public class CachingRouteLocator
 		if (log.isErrorEnabled()) {
 			log.error("Refresh routes error !!!", throwable);
 		}
+		Objects.requireNonNull(applicationEventPublisher, "ApplicationEventPublisher is required");
 		applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this, throwable));
 	}
 

@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -46,7 +48,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	/**
 	 * The name of the header which contains http code of the proxied request.
 	 */
-	private String originalStatusHeaderName;
+	private @Nullable String originalStatusHeaderName;
 
 	public SetStatusGatewayFilterFactory() {
 		super(Config.class);
@@ -59,7 +61,8 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		HttpStatusHolder statusHolder = HttpStatusHolder.parse(config.status);
+		String status = Objects.requireNonNull(config.status, "status must not be null");
+		HttpStatusHolder statusHolder = HttpStatusHolder.parse(status);
 
 		return new GatewayFilter() {
 			@Override
@@ -77,7 +80,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 					// but it's a good example
 					HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
 					boolean isStatusCodeUpdated = setResponseStatus(exchange, statusHolder);
-					if (isStatusCodeUpdated && originalStatusHeaderName != null) {
+					if (isStatusCodeUpdated && originalStatusHeaderName != null && statusCode != null) {
 						exchange.getResponse()
 							.getHeaders()
 							.set(originalStatusHeaderName, singletonList(statusCode.value()).toString());
@@ -93,7 +96,7 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 		};
 	}
 
-	public String getOriginalStatusHeaderName() {
+	public @Nullable String getOriginalStatusHeaderName() {
 		return originalStatusHeaderName;
 	}
 
@@ -104,9 +107,9 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	public static class Config {
 
 		// TODO: relaxed HttpStatus converter
-		private String status;
+		private @Nullable String status;
 
-		public String getStatus() {
+		public @Nullable String getStatus() {
 			return status;
 		}
 

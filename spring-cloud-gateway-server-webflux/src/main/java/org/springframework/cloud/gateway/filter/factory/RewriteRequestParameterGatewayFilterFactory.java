@@ -19,14 +19,15 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
@@ -60,14 +61,17 @@ public class RewriteRequestParameterGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				String name = Objects.requireNonNull(config.getName(), "name must not be null");
+				String replacement = Objects.requireNonNull(config.getReplacement(), "replacement must not be null");
+
 				ServerHttpRequest req = exchange.getRequest();
 
 				UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(req.getURI());
 
 				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(req.getQueryParams());
-				if (queryParams.containsKey(config.getName())) {
-					queryParams.remove(config.getName());
-					queryParams.add(config.getName(), config.getReplacement());
+				if (queryParams.containsKey(name)) {
+					queryParams.remove(name);
+					queryParams.add(name, replacement);
 				}
 
 				try {
@@ -87,8 +91,9 @@ public class RewriteRequestParameterGatewayFilterFactory
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(RewriteRequestParameterGatewayFilterFactory.this)
-					.append(config.getName(), config.replacement)
+				String name = Objects.requireNonNull(config.getName(), "name must not be null");
+				String replacement = Objects.requireNonNull(config.getReplacement(), "replacement must not be null");
+				return filterToStringCreator(RewriteRequestParameterGatewayFilterFactory.this).append(name, replacement)
 					.toString();
 			}
 		};
@@ -96,14 +101,13 @@ public class RewriteRequestParameterGatewayFilterFactory
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-		private String replacement;
+		private @Nullable String replacement;
 
-		public String getReplacement() {
+		public @Nullable String getReplacement() {
 			return replacement;
 		}
 
 		public Config setReplacement(String replacement) {
-			Assert.notNull(replacement, "replacement must not be null");
 			this.replacement = replacement;
 			return this;
 		}

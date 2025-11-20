@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -37,9 +39,10 @@ public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+				String name = Objects.requireNonNull(config.name, "name must not be null");
 				ServerHttpRequest request = exchange.getRequest()
 					.mutate()
-					.headers(httpHeaders -> httpHeaders.set(config.name, value))
+					.headers(httpHeaders -> httpHeaders.set(name, value))
 					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
@@ -47,8 +50,10 @@ public class SetRequestHeaderGatewayFilterFactory extends AbstractNameValueGatew
 
 			@Override
 			public String toString() {
+				String name = config.getName();
+				String value = config.getValue();
 				return filterToStringCreator(SetRequestHeaderGatewayFilterFactory.this)
-					.append(config.getName(), config.getValue())
+					.append(name != null ? name : "", value != null ? value : "")
 					.toString();
 			}
 		};

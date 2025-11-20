@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -44,9 +46,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
  */
 public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Ordered {
 
-	private LoadBalancerProperties loadBalancerProperties;
+	private @Nullable LoadBalancerProperties loadBalancerProperties;
 
-	private ReactiveLoadBalancer.Factory<ServiceInstance> loadBalancerClientFactory;
+	private ReactiveLoadBalancer.@Nullable Factory<ServiceInstance> loadBalancerClientFactory;
 
 	LoadBalancerServiceInstanceCookieFilter(LoadBalancerProperties loadBalancerProperties) {
 		this.loadBalancerProperties = loadBalancerProperties;
@@ -66,7 +68,8 @@ public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Or
 		LoadBalancerProperties properties = loadBalancerClientFactory != null
 				? loadBalancerClientFactory.getProperties(serviceInstanceResponse.getServer().getServiceId())
 				: loadBalancerProperties;
-		if (!properties.getStickySession().isAddServiceInstanceCookie()) {
+		Objects.requireNonNull(properties, "LoadBalancerProperties must not be null");
+		if (properties.getStickySession() != null && !properties.getStickySession().isAddServiceInstanceCookie()) {
 			return chain.filter(exchange);
 		}
 		String instanceIdCookieName = properties.getStickySession().getInstanceIdCookieName();

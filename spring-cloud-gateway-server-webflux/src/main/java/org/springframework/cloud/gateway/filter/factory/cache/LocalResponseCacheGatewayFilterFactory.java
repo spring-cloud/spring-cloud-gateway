@@ -18,8 +18,10 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.Cache;
@@ -86,6 +88,7 @@ public class LocalResponseCacheGatewayFilterFactory
 		String cacheName = config.getRouteId() + "-cache";
 		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
 		Cache routeCache = caffeineCacheManager.getCache(cacheName);
+		Objects.requireNonNull(routeCache, "Cache " + cacheName + " not found");
 		return new ResponseCacheGatewayFilter(
 				cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive(), requestOptions));
 
@@ -109,26 +112,26 @@ public class LocalResponseCacheGatewayFilterFactory
 	@Validated
 	public static class RouteCacheConfiguration implements HasRouteId {
 
-		private DataSize size;
+		private @Nullable DataSize size;
 
-		private Duration timeToLive;
+		private @Nullable Duration timeToLive;
 
-		private String routeId;
+		private @Nullable String routeId;
 
-		public DataSize getSize() {
+		public @Nullable DataSize getSize() {
 			return size;
 		}
 
-		public RouteCacheConfiguration setSize(DataSize size) {
+		public RouteCacheConfiguration setSize(@Nullable DataSize size) {
 			this.size = size;
 			return this;
 		}
 
-		public Duration getTimeToLive() {
+		public @Nullable Duration getTimeToLive() {
 			return timeToLive;
 		}
 
-		public RouteCacheConfiguration setTimeToLive(Duration timeToLive) {
+		public RouteCacheConfiguration setTimeToLive(@Nullable Duration timeToLive) {
 			this.timeToLive = timeToLive;
 			return this;
 		}
@@ -139,7 +142,7 @@ public class LocalResponseCacheGatewayFilterFactory
 		}
 
 		@Override
-		public String getRouteId() {
+		public @Nullable String getRouteId() {
 			return this.routeId;
 		}
 

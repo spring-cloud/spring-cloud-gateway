@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import reactor.core.publisher.Mono;
 
@@ -48,9 +49,10 @@ public class RemoveRequestHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				String name = Objects.requireNonNull(config.getName(), "name must not be null");
 				ServerHttpRequest request = exchange.getRequest()
 					.mutate()
-					.headers(httpHeaders -> httpHeaders.remove(config.getName()))
+					.headers(httpHeaders -> httpHeaders.remove(name))
 					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
@@ -58,8 +60,9 @@ public class RemoveRequestHeaderGatewayFilterFactory
 
 			@Override
 			public String toString() {
+				String name = config.getName();
 				return filterToStringCreator(RemoveRequestHeaderGatewayFilterFactory.this)
-					.append("name", config.getName())
+					.append("name", name != null ? name : "")
 					.toString();
 			}
 		};

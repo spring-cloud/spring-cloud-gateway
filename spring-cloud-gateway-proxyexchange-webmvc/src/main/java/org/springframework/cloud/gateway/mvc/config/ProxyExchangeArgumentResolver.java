@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.client.RestTemplate;
@@ -75,8 +76,10 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+		Assert.notNull(binderFactory, "WebDataBinderFactory is required");
+		Assert.notNull(mavContainer, "ModelAndViewContainer is required");
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
@@ -94,12 +97,15 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
 		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+		Assert.notNull(nativeRequest, "HttpServletRequest is required");
 		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
 		HttpHeaders headers = new HttpHeaders();
-		while (headerNames.hasMoreElements()) {
-			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
-				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+		if (headerNames != null && autoForwardedHeaders != null) {
+			while (headerNames.hasMoreElements()) {
+				String header = headerNames.nextElement();
+				if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
+					headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+				}
 			}
 		}
 		return headers;

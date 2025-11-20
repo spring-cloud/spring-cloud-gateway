@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -179,7 +180,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
 		List<GatewayFilter> filters = new ArrayList<>();
-
+		Objects.requireNonNull(routeDefinition.getId(), "Route id must be set");
 		// TODO: support option to apply defaults after route specific filters?
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
 			filters.addAll(loadGatewayFilters(routeDefinition.getId(),
@@ -222,8 +223,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		Object config = this.configurationService.with(factory)
 				.name(predicate.getName())
 				.properties(predicate.getArgs())
-				.eventFunction((bound, properties) -> new PredicateArgsEvent(
-						RouteDefinitionRouteLocator.this, route.getId(), properties))
+				.eventFunction((bound, properties) -> {
+					Objects.requireNonNull(route.getId(), "Route id must be set");
+					return new PredicateArgsEvent(RouteDefinitionRouteLocator.this, route.getId(), properties);
+						}
+				)
 				.bind();
 		// @formatter:on
 

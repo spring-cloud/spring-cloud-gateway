@@ -98,8 +98,9 @@ public class DedupeResponseHeaderGatewayFilterFactory
 
 			@Override
 			public String toString() {
+				String name = config.getName();
 				return filterToStringCreator(DedupeResponseHeaderGatewayFilterFactory.this)
-					.append(config.getName(), config.getStrategy())
+					.append(name != null ? name : "", config.getStrategy())
 					.toString();
 			}
 		};

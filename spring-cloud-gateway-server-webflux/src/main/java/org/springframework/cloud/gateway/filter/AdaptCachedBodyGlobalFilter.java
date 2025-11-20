@@ -48,18 +48,17 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered, Appli
 		// the cached ServerHttpRequest is used when the ServerWebExchange can not be
 		// mutated, for example, during a predicate where the body is read, but still
 		// needs to be cached.
-		ServerHttpRequest cachedRequest = exchange.getAttributeOrDefault(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR,
-				null);
+		ServerHttpRequest cachedRequest = exchange.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 		if (cachedRequest != null) {
 			exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 			return chain.filter(exchange.mutate().request(cachedRequest).build());
 		}
 
 		//
-		DataBuffer body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null);
+		DataBuffer body = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		if (body != null || !this.routesToCache.containsKey(route.getId())) {
+		if (body != null || route == null || !this.routesToCache.containsKey(route.getId())) {
 			return chain.filter(exchange);
 		}
 

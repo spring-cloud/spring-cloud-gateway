@@ -18,9 +18,11 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -81,19 +83,19 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 	public static class Config {
 
-		private Class inClass;
+		private @Nullable Class inClass;
 
-		private Class outClass;
+		private @Nullable Class outClass;
 
-		private Map<String, Object> inHints;
+		private @Nullable Map<String, Object> inHints;
 
-		private Map<String, Object> outHints;
+		private @Nullable Map<String, Object> outHints;
 
-		private String newContentType;
+		private @Nullable String newContentType;
 
-		private RewriteFunction rewriteFunction;
+		private @Nullable RewriteFunction rewriteFunction;
 
-		public Class getInClass() {
+		public @Nullable Class getInClass() {
 			return inClass;
 		}
 
@@ -102,7 +104,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
-		public Class getOutClass() {
+		public @Nullable Class getOutClass() {
 			return outClass;
 		}
 
@@ -111,7 +113,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
-		public Map<String, Object> getInHints() {
+		public @Nullable Map<String, Object> getInHints() {
 			return inHints;
 		}
 
@@ -120,7 +122,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
-		public Map<String, Object> getOutHints() {
+		public @Nullable Map<String, Object> getOutHints() {
 			return outHints;
 		}
 
@@ -129,16 +131,16 @@ public class ModifyResponseBodyGatewayFilterFactory
 			return this;
 		}
 
-		public String getNewContentType() {
+		public @Nullable String getNewContentType() {
 			return newContentType;
 		}
 
-		public Config setNewContentType(String newContentType) {
+		public Config setNewContentType(@Nullable String newContentType) {
 			this.newContentType = newContentType;
 			return this;
 		}
 
-		public RewriteFunction getRewriteFunction() {
+		public @Nullable RewriteFunction getRewriteFunction() {
 			return rewriteFunction;
 		}
 
@@ -161,7 +163,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 		private final Config config;
 
-		private GatewayFilterFactory<Config> gatewayFilterFactory;
+		private @Nullable GatewayFilterFactory<Config> gatewayFilterFactory;
 
 		public ModifyResponseGatewayFilter(Config config) {
 			this.config = config;
@@ -208,8 +210,10 @@ public class ModifyResponseBodyGatewayFilterFactory
 		@Override
 		public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
 
-			Class inClass = config.getInClass();
-			Class outClass = config.getOutClass();
+			Class inClass = Objects.requireNonNull(config.getInClass(), "inClass must not be null");
+			Class outClass = Objects.requireNonNull(config.getOutClass(), "outClass must not be null");
+			RewriteFunction rewriteFunction = Objects.requireNonNull(config.getRewriteFunction(),
+					"rewriteFunction must not be null");
 
 			String originalResponseContentType = exchange.getAttribute(ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR);
 			HttpHeaders httpHeaders = new HttpHeaders();
@@ -223,8 +227,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 			// TODO: flux or mono
 			Mono modifiedBody = extractBody(exchange, clientResponse, inClass)
-				.flatMap(originalBody -> config.getRewriteFunction().apply(exchange, originalBody))
-				.switchIfEmpty(Mono.defer(() -> (Mono) config.getRewriteFunction().apply(exchange, null)));
+				.flatMap(originalBody -> rewriteFunction.apply(exchange, originalBody))
+				.switchIfEmpty(Mono.defer(() -> (Mono) rewriteFunction.apply(exchange, null)));
 
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
@@ -253,7 +257,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 		private ClientResponse prepareClientResponse(Publisher<? extends DataBuffer> body, HttpHeaders httpHeaders) {
 			ClientResponse.Builder builder;
-			builder = ClientResponse.create(exchange.getResponse().getStatusCode(), messageReaders);
+			builder = ClientResponse.create(
+					Objects.requireNonNull(exchange.getResponse().getStatusCode(), "Status code must not be null"),
+					messageReaders);
 			return builder.headers(headers -> headers.putAll(httpHeaders)).body(Flux.from(body)).build();
 		}
 

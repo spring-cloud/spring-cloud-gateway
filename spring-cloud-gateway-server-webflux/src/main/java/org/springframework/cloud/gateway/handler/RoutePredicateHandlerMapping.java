@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
@@ -47,7 +48,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final RouteLocator routeLocator;
 
-	private final Integer managementPort;
+	private final @Nullable Integer managementPort;
 
 	private final ManagementPortType managementPortType;
 
@@ -71,7 +72,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 				|| (this.managementPort != 0 && this.managementPort.equals(serverPort))) ? SAME : DIFFERENT);
 	}
 
-	private static Integer getPortProperty(Environment environment, String prefix) {
+	private static @Nullable Integer getPortProperty(Environment environment, String prefix) {
 		return environment.getProperty(prefix + "port", Integer.class);
 	}
 
@@ -109,7 +110,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	@Override
-	protected CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
+	protected @Nullable CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
 		// TODO: support cors configuration via properties on a route see gh-229
 		// see RequestMappingHandlerMapping.initCorsConfiguration()
 		// also see

@@ -90,6 +90,7 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 	 * @param exchange server web exchange
 	 * @return parent observation or {@code null} when there is none
 	 */
+	@Nullable
 	private Observation getParentObservation(ServerWebExchange exchange) {
 		ContextView contextView = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR);
 		if (contextView == null) {

@@ -33,6 +33,7 @@ import io.github.bucket4j.distributed.AsyncBucketProxy;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
@@ -130,20 +131,20 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		Function<Config, BucketConfiguration> configurationBuilder = DEFAULT_CONFIGURATION_BUILDER;
 
-		Supplier<CompletableFuture<BucketConfiguration>> configurationSupplier;
+		protected @Nullable Supplier<CompletableFuture<BucketConfiguration>> configurationSupplier;
 
 		String headerName = DEFAULT_HEADER_NAME;
 
-		Duration refillPeriod;
+		protected @Nullable Duration refillPeriod;
 
 		RefillStyle refillStyle = RefillStyle.GREEDY;
 
-		Long refillTokens;
+		protected @Nullable Long refillTokens;
 
 		long requestedTokens = 1;
 
 		// for RefillStyle.INTERVALLY_ALIGNED
-		Instant timeOfFirstRefill;
+		protected @Nullable Instant timeOfFirstRefill;
 
 		public long getCapacity() {
 			return capacity;
@@ -185,7 +186,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Duration getRefillPeriod() {
+		public @Nullable Duration getRefillPeriod() {
 			return refillPeriod;
 		}
 
@@ -203,7 +204,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Long getRefillTokens() {
+		public @Nullable Long getRefillTokens() {
 			return refillTokens;
 		}
 
@@ -221,7 +222,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Instant getTimeOfFirstRefill() {
+		public @Nullable Instant getTimeOfFirstRefill() {
 			return timeOfFirstRefill;
 		}
 

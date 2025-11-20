@@ -38,12 +38,17 @@ public class ForwardPathFilter implements GlobalFilter, Ordered {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-		URI routeUri = route.getUri();
-		String scheme = routeUri.getScheme();
-		if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
-			return chain.filter(exchange);
+		if (route != null) {
+			URI routeUri = route.getUri();
+			String scheme = routeUri.getScheme();
+			if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
+				return chain.filter(exchange);
+			}
+			exchange = exchange.mutate()
+				.request(exchange.getRequest().mutate().path(routeUri.getPath()).build())
+				.build();
+
 		}
-		exchange = exchange.mutate().request(exchange.getRequest().mutate().path(routeUri.getPath()).build()).build();
 		return chain.filter(exchange);
 	}
 

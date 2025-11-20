@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import org.jspecify.annotations.Nullable;
 import reactor.netty.http.server.HttpServerResponse;
 
 import org.springframework.core.Ordered;
@@ -63,7 +64,7 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 		return StringUtils.startsWithIgnoreCase(contentTypeValue, "application/grpc");
 	}
 
-	private String getGrpcStatus(HttpHeaders headers) {
+	private @Nullable String getGrpcStatus(HttpHeaders headers) {
 		final String grpcStatusValue = headers.getFirst(GRPC_STATUS_HEADER);
 		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : null;
 	}

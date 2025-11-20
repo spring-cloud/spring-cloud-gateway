@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.event.FilterArgsEvent;
 import org.springframework.cloud.gateway.support.AbstractStatefulConfigurable;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -29,10 +31,10 @@ public abstract class AbstractRateLimiter<C> extends AbstractStatefulConfigurabl
 
 	private String configurationPropertyName;
 
-	private ConfigurationService configurationService;
+	private @Nullable ConfigurationService configurationService;
 
 	protected AbstractRateLimiter(Class<C> configClass, String configurationPropertyName,
-			ConfigurationService configurationService) {
+			@Nullable ConfigurationService configurationService) {
 		super(configClass);
 		this.configurationPropertyName = configurationPropertyName;
 		this.configurationService = configurationService;

@@ -19,7 +19,9 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -67,7 +69,9 @@ public class RedirectToGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		return apply(config.status, config.url, config.includeRequestParams);
+		String status = Objects.requireNonNull(config.status, "status must not be null");
+		String url = Objects.requireNonNull(config.url, "url must not be null");
+		return apply(status, url, config.includeRequestParams);
 	}
 
 	public GatewayFilter apply(String statusString, String urlString) {
@@ -137,13 +141,13 @@ public class RedirectToGatewayFilterFactory
 
 	public static class Config {
 
-		String status;
+		private @Nullable String status;
 
-		String url;
+		private @Nullable String url;
 
 		boolean includeRequestParams;
 
-		public String getStatus() {
+		public @Nullable String getStatus() {
 			return status;
 		}
 
@@ -151,7 +155,7 @@ public class RedirectToGatewayFilterFactory
 			this.status = status;
 		}
 
-		public String getUrl() {
+		public @Nullable String getUrl() {
 			return url;
 		}
 

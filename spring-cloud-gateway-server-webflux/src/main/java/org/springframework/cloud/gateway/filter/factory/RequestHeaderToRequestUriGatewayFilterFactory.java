@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -58,8 +59,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactory
 		return new OrderedGatewayFilter(gatewayFilter, gatewayFilter.getOrder()) {
 			@Override
 			public String toString() {
-				return filterToStringCreator(RequestHeaderToRequestUriGatewayFilterFactory.this)
-					.append("name", config.getName())
+				String name = Objects.requireNonNull(config.getName(), "name must not be null");
+				return filterToStringCreator(RequestHeaderToRequestUriGatewayFilterFactory.this).append("name", name)
 					.toString();
 			}
 		};
@@ -67,7 +68,8 @@ public class RequestHeaderToRequestUriGatewayFilterFactory
 
 	@Override
 	protected Optional<URI> determineRequestUri(ServerWebExchange exchange, NameConfig config) {
-		String requestUrl = exchange.getRequest().getHeaders().getFirst(config.getName());
+		String name = Objects.requireNonNull(config.getName(), "name must not be null");
+		String requestUrl = exchange.getRequest().getHeaders().getFirst(name);
 		return Optional.ofNullable(requestUrl).map(url -> {
 			try {
 				URI uri = URI.create(url);

@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -74,7 +76,9 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 				try {
 					JsonNode jsonNode = mapper.readValue(body, JsonNode.class);
 
-					removeJsonAttributes(jsonNode, config.getFieldList(), config.isDeleteRecursively());
+					List<String> fieldList = Objects.requireNonNull(config.getFieldList(),
+							"fieldList must not be null");
+					removeJsonAttributes(jsonNode, fieldList, config.isDeleteRecursively());
 
 					body = mapper.writeValueAsString(jsonNode);
 				}
@@ -104,7 +108,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 
 	public static class FieldListConfiguration {
 
-		private List<String> fieldList;
+		private @Nullable List<String> fieldList;
 
 		private boolean deleteRecursively;
 
@@ -117,7 +121,7 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 			return this;
 		}
 
-		List<String> getFieldList() {
+		public @Nullable List<String> getFieldList() {
 			return fieldList;
 		}
 

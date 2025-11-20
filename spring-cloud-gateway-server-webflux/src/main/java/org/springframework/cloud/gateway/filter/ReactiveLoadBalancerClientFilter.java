@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -84,6 +85,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
+	// TODO remove this suppress warnings once the commons changes are merged in for CompletionContext
+	@SuppressWarnings("NullAway")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
@@ -98,6 +101,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 		}
 
 		URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+		Objects.requireNonNull(requestUri, "requestUri can not be null");
 		String serviceId = requestUri.getHost();
 		Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
 			.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),

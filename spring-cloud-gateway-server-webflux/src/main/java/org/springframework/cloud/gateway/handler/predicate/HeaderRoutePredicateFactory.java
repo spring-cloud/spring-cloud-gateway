@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import jakarta.validation.constraints.NotEmpty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -57,6 +58,9 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
+				if (!StringUtils.hasText(config.header)) {
+					return false;
+				}
 				List<String> values = exchange.getRequest().getHeaders().getValuesAsList(config.header);
 				if (values.isEmpty()) {
 					return false;
@@ -92,11 +96,11 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 	public static class Config {
 
 		@NotEmpty
-		private String header;
+		private @Nullable String header;
 
-		private String regexp;
+		private @Nullable String regexp;
 
-		public String getHeader() {
+		public @Nullable String getHeader() {
 			return header;
 		}
 
@@ -105,11 +109,11 @@ public class HeaderRoutePredicateFactory extends AbstractRoutePredicateFactory<H
 			return this;
 		}
 
-		public String getRegexp() {
+		public @Nullable String getRegexp() {
 			return regexp;
 		}
 
-		public Config setRegexp(String regexp) {
+		public Config setRegexp(@Nullable String regexp) {
 			this.regexp = regexp;
 			return this;
 		}

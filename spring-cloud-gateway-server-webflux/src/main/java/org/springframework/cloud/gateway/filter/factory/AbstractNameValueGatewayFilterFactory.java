@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import jakarta.validation.constraints.NotEmpty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.core.style.ToStringCreator;
@@ -41,12 +42,12 @@ public abstract class AbstractNameValueGatewayFilterFactory
 	public static class NameValueConfig {
 
 		@NotEmpty
-		protected String name;
+		protected @Nullable String name;
 
 		@NotEmpty
-		protected String value;
+		protected @Nullable String value;
 
-		public String getName() {
+		public @Nullable String getName() {
 			return name;
 		}
 
@@ -55,7 +56,7 @@ public abstract class AbstractNameValueGatewayFilterFactory
 			return this;
 		}
 
-		public String getValue() {
+		public @Nullable String getValue() {
 			return value;
 		}
 

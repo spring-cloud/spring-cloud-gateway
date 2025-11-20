@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -60,12 +61,12 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
-	private ReactiveCircuitBreaker cb;
+	private @Nullable ReactiveCircuitBreaker cb;
 
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
-	private volatile DispatcherHandler dispatcherHandler;
+	private volatile @Nullable DispatcherHandler dispatcherHandler;
 
 	public SpringCloudCircuitBreakerFilterFactory(ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory,
 			ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
@@ -74,7 +75,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
 
-	private DispatcherHandler getDispatcherHandler() {
+	private @Nullable DispatcherHandler getDispatcherHandler() {
 		if (dispatcherHandler == null) {
 			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
 		}
@@ -105,7 +106,8 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return cb.run(chain.filter(exchange).doOnSuccess(v -> {
 					if (statuses.contains(exchange.getResponse().getStatusCode())) {
-						HttpStatusCode status = exchange.getResponse().getStatusCode();
+						HttpStatusCode status = java.util.Objects.requireNonNull(exchange.getResponse().getStatusCode(),
+								"statusCode must not be null");
 						throw new CircuitBreakerStatusCodeException(status);
 					}
 				}), t -> {
@@ -145,9 +147,11 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 			@Override
 			public String toString() {
+				String name = config.getName();
+				URI fallbackUri = config.getFallbackUri();
 				return filterToStringCreator(SpringCloudCircuitBreakerFilterFactory.this)
-					.append("name", config.getName())
-					.append("fallback", config.fallbackUri)
+					.append("name", name != null ? name : "")
+					.append("fallback", fallbackUri != null ? fallbackUri : "")
 					.toString();
 			}
 		};
@@ -168,11 +172,11 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	public static class Config implements HasRouteId {
 
-		private String name;
+		private @Nullable String name;
 
-		private URI fallbackUri;
+		private @Nullable URI fallbackUri;
 
-		private String routeId;
+		private @Nullable String routeId;
 
 		private Set<String> statusCodes = new HashSet<>();
 
@@ -183,11 +187,11 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 			this.routeId = routeId;
 		}
 
-		public String getRouteId() {
+		public @Nullable String getRouteId() {
 			return routeId;
 		}
 
-		public URI getFallbackUri() {
+		public @Nullable URI getFallbackUri() {
 			return fallbackUri;
 		}
 
@@ -200,7 +204,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 			return setFallbackUri(URI.create(fallbackUri));
 		}
 
-		public String getName() {
+		public @Nullable String getName() {
 			return name;
 		}
 
@@ -209,7 +213,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 			return this;
 		}
 
-		public String getId() {
+		public @Nullable String getId() {
 			if (!StringUtils.hasText(name) && StringUtils.hasText(routeId)) {
 				return routeId;
 			}

@@ -19,7 +19,9 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -74,10 +76,10 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	}
 
 	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
-		final String name = config.getName();
+		final String name = Objects.requireNonNull(config.getName(), "name must not be null");
 		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
 		if (responseHeaders.get(name) != null) {
-			List<String> oldValue = responseHeaders.get(name);
+			List<String> oldValue = Objects.requireNonNull(responseHeaders.get(name), "oldValue must not be null");
 			List<String> newValue = rewriteHeaders(config, oldValue);
 			if (newValue != null) {
 				responseHeaders.put(name, newValue);
@@ -89,9 +91,11 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	}
 
 	protected List<String> rewriteHeaders(Config config, List<String> headers) {
+		String regexp = Objects.requireNonNull(config.getRegexp(), "regexp must not be null");
+		String replacement = Objects.requireNonNull(config.getReplacement(), "replacement must not be null");
 		ArrayList<String> rewrittenHeaders = new ArrayList<>();
 		for (int i = 0; i < headers.size(); i++) {
-			String rewriten = rewrite(headers.get(i), config.getRegexp(), config.getReplacement());
+			String rewriten = rewrite(headers.get(i), regexp, replacement);
 			rewrittenHeaders.add(rewriten);
 		}
 		return rewrittenHeaders;
@@ -103,11 +107,11 @@ public class RewriteResponseHeaderGatewayFilterFactory
 
 	public static class Config extends AbstractGatewayFilterFactory.NameConfig {
 
-		private String regexp;
+		private @Nullable String regexp;
 
-		private String replacement;
+		private @Nullable String replacement;
 
-		public String getRegexp() {
+		public @Nullable String getRegexp() {
 			return regexp;
 		}
 
@@ -116,7 +120,7 @@ public class RewriteResponseHeaderGatewayFilterFactory
 			return this;
 		}
 
-		public String getReplacement() {
+		public @Nullable String getReplacement() {
 			return replacement;
 		}
 
