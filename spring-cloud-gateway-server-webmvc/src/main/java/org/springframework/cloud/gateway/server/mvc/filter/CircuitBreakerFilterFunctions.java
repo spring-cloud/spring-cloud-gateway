@@ -106,8 +106,8 @@ public abstract class CircuitBreakerFilterFunctions {
 					}
 					// TODO: if not permitted (like circuit open), SERVICE_UNAVAILABLE
 					// TODO: if resume without error, return ok response?
-					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, throwable.getMessage(),
-							throwable);
+					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+							throwable != null ? throwable.getMessage() : null, throwable);
 				}
 
 				// add the throwable as an attribute. That way, if the fallback is a
@@ -119,7 +119,8 @@ public abstract class CircuitBreakerFilterFunctions {
 				// ok() is wrong, but will be overwritten by the forwarded request
 				return GatewayServerResponse.ok().build((httpServletRequest, httpServletResponse) -> {
 					try {
-						String expandedFallback = MvcUtils.expand(request, config.getFallbackPath());
+						String expandedFallback = MvcUtils.expand(request,
+								config.getFallbackPath() != null ? config.getFallbackPath() : "");
 						request.servletRequest()
 							.getServletContext()
 							.getRequestDispatcher(expandedFallback)
@@ -136,13 +137,13 @@ public abstract class CircuitBreakerFilterFunctions {
 
 	public static class CircuitBreakerConfig {
 
-		private String id;
+		private @Nullable String id;
 
 		private @Nullable String fallbackPath;
 
 		private Set<String> statusCodes = new HashSet<>();
 
-		public String getId() {
+		public @Nullable String getId() {
 			return id;
 		}
 

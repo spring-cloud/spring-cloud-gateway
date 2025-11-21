@@ -59,11 +59,13 @@ public abstract class TokenRelayFilterFunctions {
 				OAuth2AuthorizedClientManager clientManager = getApplicationContext(request)
 					.getBean(OAuth2AuthorizedClientManager.class);
 				OAuth2AuthorizedClient authorizedClient = clientManager.authorize(authorizeRequest);
-				OAuth2AccessToken accessToken = authorizedClient.getAccessToken();
-				ServerRequest modified = ServerRequest.from(request)
-					.headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken.getTokenValue()))
-					.build();
-				return next.handle(modified);
+				if (authorizedClient != null) {
+					OAuth2AccessToken accessToken = authorizedClient.getAccessToken();
+					ServerRequest modified = ServerRequest.from(request)
+						.headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken.getTokenValue()))
+						.build();
+					return next.handle(modified);
+				}
 			}
 			return next.handle(request);
 		};

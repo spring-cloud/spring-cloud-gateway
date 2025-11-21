@@ -85,7 +85,8 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
-	// TODO remove this suppress warnings once the commons changes are merged in for CompletionContext
+	// TODO remove this suppress warnings once the commons changes are merged in for
+	// CompletionContext
 	@SuppressWarnings("NullAway")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);

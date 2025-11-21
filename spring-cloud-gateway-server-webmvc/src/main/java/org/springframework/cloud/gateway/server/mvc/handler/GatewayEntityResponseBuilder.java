@@ -239,8 +239,8 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 		}
 
 		@Override
-		protected ModelAndView writeToInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-				Context context) throws ServletException, IOException {
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest servletRequest,
+				HttpServletResponse servletResponse, Context context) throws ServletException, IOException {
 
 			writeEntityWithMessageConverters(this.entity, servletRequest, servletResponse, context);
 			return null;
@@ -336,8 +336,8 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 		}
 
 		@Override
-		protected ModelAndView writeToInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-				Context context) throws ServletException, IOException {
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest servletRequest,
+				HttpServletResponse servletResponse, Context context) throws ServletException, IOException {
 
 			DeferredResult<ServerResponse> deferredResult = createDeferredResult(servletRequest, servletResponse,
 					context);

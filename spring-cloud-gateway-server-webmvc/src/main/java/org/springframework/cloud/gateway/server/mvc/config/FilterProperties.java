@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.NameUtils;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +35,7 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
 public class FilterProperties {
 
 	@NotNull
-	private String name;
+	private @Nullable String name;
 
 	private Map<String, String> args = new LinkedHashMap<>();
 
@@ -56,7 +57,7 @@ public class FilterProperties {
 		}
 	}
 
-	public String getName() {
+	public @Nullable String getName() {
 		return name;
 	}
 

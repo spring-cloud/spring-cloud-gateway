@@ -22,7 +22,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
@@ -46,16 +49,19 @@ class OperationMethodParameters implements OperationParameters {
 	OperationMethodParameters(Method method, ParameterNameDiscoverer parameterNameDiscoverer) {
 		Assert.notNull(method, "Method must not be null");
 		Assert.notNull(parameterNameDiscoverer, "ParameterNameDiscoverer must not be null");
-		String[] parameterNames = parameterNameDiscoverer.getParameterNames(method);
+		@Nullable String @Nullable [] parameterNames = parameterNameDiscoverer.getParameterNames(method);
 		Parameter[] parameters = method.getParameters();
-		Assert.state(parameterNames != null, () -> "Failed to extract parameter names for " + method);
 		this.operationParameters = getOperationParameters(parameters, parameterNames);
 	}
 
-	private List<OperationParameter> getOperationParameters(Parameter[] parameters, String[] names) {
+	private List<OperationParameter> getOperationParameters(Parameter[] parameters,
+			@Nullable String @Nullable [] names) {
 		List<OperationParameter> operationParameters = new ArrayList<>(parameters.length);
+		Objects.requireNonNull(names, "Parameter names must not be null");
 		for (int i = 0; i < names.length; i++) {
-			operationParameters.add(new OperationMethodParameter(names[i], parameters[i]));
+			String name = names[i];
+			Objects.requireNonNull(name, "Parameter name must not be null");
+			operationParameters.add(new OperationMethodParameter(name, parameters[i]));
 		}
 		return Collections.unmodifiableList(operationParameters);
 	}

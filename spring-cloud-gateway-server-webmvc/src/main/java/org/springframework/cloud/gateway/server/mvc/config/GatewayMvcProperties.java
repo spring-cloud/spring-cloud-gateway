@@ -23,6 +23,7 @@ import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.style.ToStringCreator;
@@ -66,7 +67,7 @@ public class GatewayMvcProperties {
 	 * Regular expression defining proxies that are trusted when they appear in a
 	 * Forwarded of X-Forwarded header.
 	 */
-	private String trustedProxies;
+	private @Nullable String trustedProxies;
 
 	/**
 	 * In the case where Spring Retry is on the classpath but you still want to use Spring
@@ -114,7 +115,7 @@ public class GatewayMvcProperties {
 		this.streamingBufferSize = streamingBufferSize;
 	}
 
-	public String getTrustedProxies() {
+	public @Nullable String getTrustedProxies() {
 		return trustedProxies;
 	}
 

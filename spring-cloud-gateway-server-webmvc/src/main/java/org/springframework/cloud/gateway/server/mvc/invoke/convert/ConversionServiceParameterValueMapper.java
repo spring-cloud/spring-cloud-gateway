@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.invoke.convert;
 
+import java.util.Objects;
+
 import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterMappingException;
@@ -54,7 +56,9 @@ public class ConversionServiceParameterValueMapper implements ParameterValueMapp
 	@Override
 	public Object mapParameterValue(OperationParameter parameter, Object value) throws ParameterMappingException {
 		try {
-			return this.conversionService.convert(value, parameter.getType());
+			Object toReturn = this.conversionService.convert(value, parameter.getType());
+			Objects.requireNonNull(toReturn, "ConversionService returned null");
+			return toReturn;
 		}
 		catch (Exception ex) {
 			throw new ParameterMappingException(parameter, value, ex);

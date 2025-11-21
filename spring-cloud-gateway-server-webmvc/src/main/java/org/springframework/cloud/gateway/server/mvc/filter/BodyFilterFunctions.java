@@ -421,7 +421,7 @@ public abstract class BodyFilterFunctions {
 		}
 
 		@Override
-		public ApiVersionStrategy apiVersionStrategy() {
+		public @Nullable ApiVersionStrategy apiVersionStrategy() {
 			return delegate.apiVersionStrategy();
 		}
 

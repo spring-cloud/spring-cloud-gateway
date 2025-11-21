@@ -17,8 +17,11 @@
 package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
 import org.springframework.cloud.gateway.server.mvc.invoke.MissingParametersException;
@@ -39,7 +42,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ReflectiveOperationInvoker implements OperationInvoker {
 
-	private final Object target;
+	private final @Nullable Object target;
 
 	private final OperationMethod operationMethod;
 
@@ -66,7 +69,7 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 	 * @param operationMethod the method info
 	 * @param parameterValueMapper the parameter mapper
 	 */
-	public ReflectiveOperationInvoker(Object target, OperationMethod operationMethod,
+	public ReflectiveOperationInvoker(@Nullable Object target, OperationMethod operationMethod,
 			ParameterValueMapper parameterValueMapper) {
 		// Assert.notNull(target, "Target must not be null");
 		Assert.notNull(operationMethod, "OperationMethod must not be null");
@@ -84,7 +87,9 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 		Method method = this.operationMethod.getMethod();
 		Object[] resolvedArguments = resolveArguments(context);
 		ReflectionUtils.makeAccessible(method);
-		return (T) ReflectionUtils.invokeMethod(method, this.target, resolvedArguments);
+		T result = (T) ReflectionUtils.invokeMethod(method, this.target, resolvedArguments);
+		Objects.requireNonNull(result, "Operation method returned null");
+		return result;
 	}
 
 	private void validateRequiredParameters(InvocationContext context) {
@@ -120,6 +125,7 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 			return resolvedByType;
 		}
 		Object value = context.getArguments().get(parameter.getName());
+		Objects.requireNonNull(value, "Missing value for parameter " + parameter.getName());
 		return this.parameterValueMapper.mapParameterValue(parameter, value);
 	}
 

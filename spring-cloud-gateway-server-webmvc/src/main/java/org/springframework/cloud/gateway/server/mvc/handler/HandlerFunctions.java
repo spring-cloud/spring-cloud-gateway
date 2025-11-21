@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.servlet.ServletException;
@@ -118,6 +119,7 @@ public abstract class HandlerFunctions {
 
 	// for properties
 	public static HandlerFunction<ServerResponse> forward(RouteProperties routeProperties) {
+		Objects.requireNonNull(routeProperties.getUri(), "routeProperties uri must not be null");
 		return forward(routeProperties.getUri().getPath());
 	}
 
@@ -156,12 +158,14 @@ public abstract class HandlerFunctions {
 
 		@Override
 		public ServerResponse handle(ServerRequest serverRequest) {
-			return proxyExchangeHandlerFunction.updateAndGet(function -> {
+			ProxyExchangeHandlerFunction proxyFunction = proxyExchangeHandlerFunction.updateAndGet(function -> {
 				if (function == null) {
 					return lookup(serverRequest);
 				}
 				return function;
-			}).handle(serverRequest);
+			});
+			Objects.requireNonNull(proxyFunction, "No ProxyExchangeHandlerFunction found");
+			return proxyFunction.handle(serverRequest);
 		}
 
 		private static ProxyExchangeHandlerFunction lookup(ServerRequest request) {

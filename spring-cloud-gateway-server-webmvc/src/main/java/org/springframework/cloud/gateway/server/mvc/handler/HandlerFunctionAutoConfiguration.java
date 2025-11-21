@@ -19,7 +19,10 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Function;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -34,14 +37,21 @@ public class HandlerFunctionAutoConfiguration {
 
 	@Bean
 	public Function<RouteProperties, HandlerFunctionDefinition> fnHandlerFunctionDefinition() {
-		return routeProperties -> new HandlerFunctionDefinition.Default("fn",
-				HandlerFunctions.fn(routeProperties.getUri().getSchemeSpecificPart()));
+		return routeProperties -> {
+			Objects.requireNonNull(routeProperties.getUri(), "routeProperties.uri must not be null");
+			return new HandlerFunctionDefinition.Default("fn",
+					HandlerFunctions.fn(routeProperties.getUri().getSchemeSpecificPart()));
+		};
 	}
 
 	@Bean
 	public Function<RouteProperties, HandlerFunctionDefinition> forwardHandlerFunctionDefinition() {
-		return routeProperties -> new HandlerFunctionDefinition.Default("forward",
-				HandlerFunctions.forward(routeProperties.getUri().getPath()));
+		return routeProperties -> {
+			Objects.requireNonNull(routeProperties.getUri(), "routeProperties.uri must not be null");
+			Objects.requireNonNull(routeProperties.getUri().getPath(), "routeProperties.uri.path must not be null");
+			return new HandlerFunctionDefinition.Default("forward",
+					HandlerFunctions.forward(routeProperties.getUri().getPath()));
+		};
 	}
 
 	@Bean
@@ -64,11 +74,14 @@ public class HandlerFunctionAutoConfiguration {
 
 	@Bean
 	public Function<RouteProperties, HandlerFunctionDefinition> streamHandlerFunctionDefinition() {
-		return routeProperties -> new HandlerFunctionDefinition.Default("stream",
-				HandlerFunctions.stream(routeProperties.getUri().getSchemeSpecificPart()));
+		return routeProperties -> {
+			Objects.requireNonNull(routeProperties.getUri(), "routeProperties.uri must not be null");
+			return new HandlerFunctionDefinition.Default("stream",
+					HandlerFunctions.stream(routeProperties.getUri().getSchemeSpecificPart()));
+		};
 	}
 
-	private static HandlerFunctionDefinition getResult(String scheme, String id, URI uri,
+	private static HandlerFunctionDefinition getResult(String scheme, @Nullable String id, @Nullable URI uri,
 			HandlerFunction<ServerResponse> handlerFunction) {
 		HandlerFilterFunction<ServerResponse, ServerResponse> setId = setIdFilter(id);
 		HandlerFilterFunction<ServerResponse, ServerResponse> setRequest = setRequestUrlFilter(uri);
@@ -76,15 +89,16 @@ public class HandlerFunctionAutoConfiguration {
 				Collections.emptyList());
 	}
 
-	private static HandlerFilterFunction<ServerResponse, ServerResponse> setIdFilter(String id) {
+	private static HandlerFilterFunction<ServerResponse, ServerResponse> setIdFilter(@Nullable String id) {
 		return (request, next) -> {
 			MvcUtils.setRouteId(request, id);
 			return next.handle(request);
 		};
 	}
 
-	private static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestUrlFilter(URI uri) {
+	private static HandlerFilterFunction<ServerResponse, ServerResponse> setRequestUrlFilter(@Nullable URI uri) {
 		return (request, next) -> {
+			Objects.requireNonNull(uri, "uri must not be null");
 			MvcUtils.setRequestUrl(request, uri);
 			return next.handle(request);
 		};

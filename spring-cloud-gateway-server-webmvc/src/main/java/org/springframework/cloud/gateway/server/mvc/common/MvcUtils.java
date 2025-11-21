@@ -152,7 +152,11 @@ public abstract class MvcUtils {
 		}
 		Map<String, Object> variables = getUriTemplateVariables(request);
 		try {
-			return UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+			String path = UriComponentsBuilder.fromPath(template).build().expand(variables).getPath();
+			if (path == null) {
+				return template;
+			}
+			return path;
 		}
 		catch (IllegalArgumentException e) {
 			log.trace(LogMessage.format("unable to find substitution for %s", template), e);
@@ -207,8 +211,15 @@ public abstract class MvcUtils {
 	}
 
 	public static void putAttribute(ServerRequest request, String key, @Nullable Object value) {
-		request.attributes().put(key, value);
-		getGatewayAttributes(request).put(key, value);
+		if (value == null) {
+			request.attributes().remove(key);
+			getGatewayAttributes(request).remove(key);
+		}
+		else {
+			request.attributes().put(key, value);
+			getGatewayAttributes(request).put(key, value);
+		}
+
 	}
 
 	@SuppressWarnings("unchecked")
@@ -219,7 +230,7 @@ public abstract class MvcUtils {
 	}
 
 	// TODO: replace with CollectionUtils.compositeMap in 4.2.x (Framework 6.2, boot 3.4)
-	public static <K, V> Map<K, V> mergeMaps(Map<K, V> left, Map<K, V> right) {
+	public static <K, V> Map<K, V> mergeMaps(@Nullable Map<K, V> left, @Nullable Map<K, V> right) {
 		if (CollectionUtils.isEmpty(left)) {
 			if (CollectionUtils.isEmpty(right)) {
 				return Collections.emptyMap();
@@ -259,9 +270,15 @@ public abstract class MvcUtils {
 		return Optional.empty();
 	}
 
-	public static void setRouteId(ServerRequest request, String routeId) {
-		request.attributes().put(GATEWAY_ROUTE_ID_ATTR, routeId);
-		request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, routeId);
+	public static void setRouteId(ServerRequest request, @Nullable String routeId) {
+		if (routeId == null) {
+			request.attributes().remove(GATEWAY_ROUTE_ID_ATTR);
+			request.servletRequest().removeAttribute(GATEWAY_ROUTE_ID_ATTR);
+		}
+		else {
+			request.attributes().put(GATEWAY_ROUTE_ID_ATTR, routeId);
+			request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, routeId);
+		}
 	}
 
 	public static void setRequestUrl(ServerRequest request, URI url) {

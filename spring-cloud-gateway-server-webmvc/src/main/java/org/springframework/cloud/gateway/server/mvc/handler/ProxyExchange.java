@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMessage;
 import org.springframework.http.HttpMethod;
@@ -40,6 +42,7 @@ public interface ProxyExchange {
 
 		HttpMethod getMethod();
 
+		@org.jspecify.annotations.Nullable
 		URI getUri();
 
 		ServerRequest getServerRequest();
@@ -80,13 +83,14 @@ public interface ProxyExchange {
 
 		private HttpMethod method;
 
-		private URI uri;
+		private @Nullable URI uri;
 
 		private ArrayList<ResponseConsumer> responseConsumers = new ArrayList<>();
 
 		DefaultRequestBuilder(ServerRequest serverRequest) {
 			this.serverRequest = serverRequest;
 			this.method = serverRequest.method();
+			this.httpHeaders = serverRequest.headers().asHttpHeaders();
 		}
 
 		@Override
@@ -130,7 +134,7 @@ public interface ProxyExchange {
 		}
 
 		@Override
-		public URI getUri() {
+		public @Nullable URI getUri() {
 			return uri;
 		}
 

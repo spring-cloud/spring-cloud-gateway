@@ -130,51 +130,57 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 			}
 		}
 
-		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
+		List<String> forwardedHeader = original.get(FORWARDED_HEADER);
+		if (forwardedHeader != null) {
+			List<Forwarded> forwardeds = parse(forwardedHeader);
 
-		for (Forwarded f : forwardeds) {
-			// only add if "for" value matches trustedProxies
-			if (trustedProxies.isTrusted(f.get("for"))) {
-				updated.add(FORWARDED_HEADER, f.toHeaderValue());
+			for (Forwarded f : forwardeds) {
+				// only add if "for" value matches trustedProxies
+				if (trustedProxies.isTrusted(f.get("for"))) {
+					updated.add(FORWARDED_HEADER, f.toHeaderValue());
+				}
 			}
 		}
 
 		// TODO: add new forwarded
 		URI uri = request.uri();
 		String host = original.getFirst(HttpHeaders.HOST);
-		Forwarded forwarded = new Forwarded().put("host", host).put("proto", uri.getScheme());
+		if (host != null) {
+			Forwarded forwarded = new Forwarded().put("host", host).put("proto", uri.getScheme());
 
-		request.remoteAddress().ifPresent(remoteAddress -> {
-			// If remoteAddress is unresolved, calling getHostAddress() would cause a
-			// NullPointerException.
-			String forValue;
-			if (remoteAddress.isUnresolved()) {
-				forValue = remoteAddress.getHostName();
-			}
-			else {
-				InetAddress address = remoteAddress.getAddress();
-				forValue = remoteAddress.getAddress().getHostAddress();
-				if (address instanceof Inet6Address) {
-					forValue = "[" + forValue + "]";
+			request.remoteAddress().ifPresent(remoteAddress -> {
+				// If remoteAddress is unresolved, calling getHostAddress() would cause a
+				// NullPointerException.
+				String forValue;
+				if (remoteAddress.isUnresolved()) {
+					forValue = remoteAddress.getHostName();
 				}
-			}
-			if (!trustedProxies.isTrusted(forValue)) {
-				// don't add for value
-				return;
-			}
-			int port = remoteAddress.getPort();
-			if (port >= 0 && !forValue.endsWith(":" + port)) {
-				forValue = forValue + ":" + port;
-			}
-			forwarded.put("for", forValue);
-		});
-		// TODO: support by?
+				else {
+					InetAddress address = remoteAddress.getAddress();
+					forValue = remoteAddress.getAddress().getHostAddress();
+					if (address instanceof Inet6Address) {
+						forValue = "[" + forValue + "]";
+					}
+				}
+				if (!trustedProxies.isTrusted(forValue)) {
+					// don't add for value
+					return;
+				}
+				int port = remoteAddress.getPort();
+				if (port >= 0 && !forValue.endsWith(":" + port)) {
+					forValue = forValue + ":" + port;
+				}
+				forwarded.put("for", forValue);
+			});
+			// TODO: support by?
 
-		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
+			updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
+		}
 
 		return updated;
 	}
 
+	@SuppressWarnings("NullAway")
 	/* for testing */ static class Forwarded {
 
 		private static final char EQUALS = '=';

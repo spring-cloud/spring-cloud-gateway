@@ -28,6 +28,7 @@ import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.AsyncBucketProxy;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.task.TaskExecutor;
@@ -73,7 +74,7 @@ public abstract class Bucket4jFilterFunctions {
 
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
-			String key = config.getKeyResolver().apply(request);
+			String key = config.getKeyResolver() != null ? config.getKeyResolver().apply(request) : "";
 			if (!StringUtils.hasText(key)) {
 				// TODO: configurable empty key status code
 				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
@@ -110,12 +111,15 @@ public abstract class Bucket4jFilterFunctions {
 
 		long capacity;
 
+		@org.jspecify.annotations.Nullable
 		Duration period;
 
+		@org.jspecify.annotations.Nullable
 		Function<ServerRequest, String> keyResolver;
 
 		HttpStatusCode statusCode = HttpStatus.TOO_MANY_REQUESTS;
 
+		@org.jspecify.annotations.Nullable
 		Duration timeout;
 
 		int tokens = 1;
@@ -140,7 +144,7 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Duration getPeriod() {
+		public @Nullable Duration getPeriod() {
 			return period;
 		}
 
@@ -149,7 +153,7 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Function<ServerRequest, String> getKeyResolver() {
+		public @Nullable Function<ServerRequest, String> getKeyResolver() {
 			return keyResolver;
 		}
 
@@ -168,7 +172,7 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Duration getTimeout() {
+		public @Nullable Duration getTimeout() {
 			return timeout;
 		}
 

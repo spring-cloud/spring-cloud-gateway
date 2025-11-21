@@ -32,7 +32,7 @@ public class WeightConfig {
 	public static final String CONFIG_PREFIX = "weight";
 
 	@NotEmpty
-	private String group;
+	private @Nullable String group;
 
 	private @Nullable String routeId;
 
@@ -52,7 +52,7 @@ public class WeightConfig {
 		this.routeId = routeId;
 	}
 
-	public String getGroup() {
+	public @Nullable String getGroup() {
 		return group;
 	}
 
