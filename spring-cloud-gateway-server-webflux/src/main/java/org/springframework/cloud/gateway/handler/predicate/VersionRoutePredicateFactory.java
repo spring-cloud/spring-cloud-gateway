@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotBlank;
@@ -39,14 +40,14 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	private static final Log log = LogFactory.getLog(VersionRoutePredicateFactory.class);
 
-	private final ApiVersionStrategy apiVersionStrategy;
+	private final @Nullable ApiVersionStrategy apiVersionStrategy;
 
 	public VersionRoutePredicateFactory(@Nullable ApiVersionStrategy apiVersionStrategy) {
 		super(Config.class);
 		this.apiVersionStrategy = apiVersionStrategy;
 	}
 
-	private static void traceMatch(String prefix, Object desired, Object actual, boolean match) {
+	private static void traceMatch(String prefix, @Nullable Object desired, @Nullable Object actual, boolean match) {
 		if (log.isTraceEnabled()) {
 			log.trace(String.format("%s \"%s\" %s against value \"%s\"", prefix, desired,
 					match ? "matches" : "does not match", actual));
@@ -62,8 +63,11 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 	public Predicate<ServerWebExchange> apply(Config config) {
 
 		if (apiVersionStrategy instanceof DefaultApiVersionStrategy strategy) {
-			strategy.addMappedVersion((config.version.endsWith("+")
-					? config.version.substring(0, config.version.length() - 1) : config.version));
+			String version = config.version;
+			if (version != null) {
+				strategy
+					.addMappedVersion((version.endsWith("+") ? version.substring(0, version.length() - 1) : version));
+			}
 		}
 
 		return new GatewayPredicate() {
@@ -72,7 +76,9 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 				ServerHttpRequest request = exchange.getRequest();
 				if (config.parsedVersion == null) {
 					Assert.state(apiVersionStrategy != null, "No ApiVersionStrategy to parse version with");
-					config.parsedVersion = apiVersionStrategy.parseVersion(config.version);
+					String version = config.version;
+					Objects.requireNonNull(version, "version must not be null");
+					config.parsedVersion = apiVersionStrategy.parseVersion(version);
 				}
 
 				Comparable<?> requestVersion = (Comparable<?>) request.getAttributes()
@@ -110,9 +116,9 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 		private boolean baselineVersion;
 
 		@NotBlank
-		private String version;
+		private @Nullable String version;
 
-		private String originalVersion;
+		private @Nullable String originalVersion;
 
 		private @Nullable Comparable<?> parsedVersion;
 
@@ -120,7 +126,7 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			return baselineVersion;
 		}
 
-		public String getOriginalVersion() {
+		public @Nullable String getOriginalVersion() {
 			return originalVersion;
 		}
 
@@ -128,7 +134,7 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 			return parsedVersion;
 		}
 
-		public String getVersion() {
+		public @Nullable String getVersion() {
 			return version;
 		}
 

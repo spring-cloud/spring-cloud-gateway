@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -186,8 +187,8 @@ public class SecureHeadersGatewayFilterFactory
 	}
 
 	private void addHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd, String headerName,
-			String headerValue) {
-		if (headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
+			@Nullable String headerValue) {
+		if (headerValue != null && headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
 			if (!headers.containsHeader(headerName)) {
 				headers.add(headerName, headerValue);
 			}
@@ -203,27 +204,27 @@ public class SecureHeadersGatewayFilterFactory
 
 		private Set<String> routeDisabledHeaders = new HashSet<>();
 
-		private String routePermissionsPolicyHeaderValue;
+		private @Nullable String routePermissionsPolicyHeaderValue;
 
 		private boolean routeFilterConfigProvided;
 
-		private String xssProtectionHeaderValue;
+		private @Nullable String xssProtectionHeaderValue;
 
-		private String strictTransportSecurityHeaderValue;
+		private @Nullable String strictTransportSecurityHeaderValue;
 
-		private String frameOptionsHeaderValue;
+		private @Nullable String frameOptionsHeaderValue;
 
-		private String contentTypeOptionsHeaderValue;
+		private @Nullable String contentTypeOptionsHeaderValue;
 
-		private String referrerPolicyHeaderValue;
+		private @Nullable String referrerPolicyHeaderValue;
 
-		private String contentSecurityPolicyHeaderValue;
+		private @Nullable String contentSecurityPolicyHeaderValue;
 
-		private String downloadOptionsHeaderValue;
+		private @Nullable String downloadOptionsHeaderValue;
 
-		private String permittedCrossDomainPoliciesHeaderValue;
+		private @Nullable String permittedCrossDomainPoliciesHeaderValue;
 
-		private String permissionPolicyHeaderValue;
+		private @Nullable String permissionPolicyHeaderValue;
 
 		public Config withDefaults(SecureHeadersProperties properties) {
 			Config config = new Config();
@@ -281,75 +282,76 @@ public class SecureHeadersGatewayFilterFactory
 			return config;
 		}
 
-		public String getXssProtectionHeaderValue() {
+		public @Nullable String getXssProtectionHeaderValue() {
 			return xssProtectionHeaderValue;
 		}
 
-		public void setXssProtectionHeaderValue(String xssProtectionHeaderHeaderValue) {
+		public void setXssProtectionHeaderValue(@Nullable String xssProtectionHeaderHeaderValue) {
 			this.xssProtectionHeaderValue = xssProtectionHeaderHeaderValue;
 		}
 
-		public String getStrictTransportSecurityHeaderValue() {
+		public @Nullable String getStrictTransportSecurityHeaderValue() {
 			return strictTransportSecurityHeaderValue;
 		}
 
-		public void setStrictTransportSecurityHeaderValue(String strictTransportSecurityHeaderValue) {
+		public void setStrictTransportSecurityHeaderValue(@Nullable String strictTransportSecurityHeaderValue) {
 			this.strictTransportSecurityHeaderValue = strictTransportSecurityHeaderValue;
 		}
 
-		public String getFrameOptionsHeaderValue() {
+		public @Nullable String getFrameOptionsHeaderValue() {
 			return frameOptionsHeaderValue;
 		}
 
-		public void setFrameOptionsHeaderValue(String frameOptionsHeaderValue) {
+		public void setFrameOptionsHeaderValue(@Nullable String frameOptionsHeaderValue) {
 			this.frameOptionsHeaderValue = frameOptionsHeaderValue;
 		}
 
-		public String getContentTypeOptionsHeaderValue() {
+		public @Nullable String getContentTypeOptionsHeaderValue() {
 			return contentTypeOptionsHeaderValue;
 		}
 
-		public void setContentTypeOptionsHeaderValue(String contentTypeOptionsHeaderValue) {
+		public void setContentTypeOptionsHeaderValue(@Nullable String contentTypeOptionsHeaderValue) {
 			this.contentTypeOptionsHeaderValue = contentTypeOptionsHeaderValue;
 		}
 
-		public String getReferrerPolicyHeaderValue() {
+		public @Nullable String getReferrerPolicyHeaderValue() {
 			return referrerPolicyHeaderValue;
 		}
 
-		public void setReferrerPolicyHeaderValue(String referrerPolicyHeaderValue) {
+		public void setReferrerPolicyHeaderValue(@Nullable String referrerPolicyHeaderValue) {
 			this.referrerPolicyHeaderValue = referrerPolicyHeaderValue;
 		}
 
-		public String getContentSecurityPolicyHeaderValue() {
+		public @Nullable String getContentSecurityPolicyHeaderValue() {
 			return contentSecurityPolicyHeaderValue;
 		}
 
-		public void setContentSecurityPolicyHeaderValue(String contentSecurityPolicyHeaderValue) {
+		public void setContentSecurityPolicyHeaderValue(@Nullable String contentSecurityPolicyHeaderValue) {
 			this.contentSecurityPolicyHeaderValue = contentSecurityPolicyHeaderValue;
 		}
 
-		public String getDownloadOptionsHeaderValue() {
+		public @Nullable String getDownloadOptionsHeaderValue() {
 			return downloadOptionsHeaderValue;
 		}
 
-		public void setDownloadOptionsHeaderValue(String downloadOptionHeaderValue) {
+		public void setDownloadOptionsHeaderValue(@Nullable String downloadOptionHeaderValue) {
 			this.downloadOptionsHeaderValue = downloadOptionHeaderValue;
 		}
 
-		public String getPermittedCrossDomainPoliciesHeaderValue() {
+		public @Nullable String getPermittedCrossDomainPoliciesHeaderValue() {
 			return permittedCrossDomainPoliciesHeaderValue;
 		}
 
-		public void setPermittedCrossDomainPoliciesHeaderValue(String permittedCrossDomainPoliciesHeaderValue) {
+		public void setPermittedCrossDomainPoliciesHeaderValue(
+				@Nullable String permittedCrossDomainPoliciesHeaderValue) {
 			this.permittedCrossDomainPoliciesHeaderValue = permittedCrossDomainPoliciesHeaderValue;
 		}
 
-		public String getPermissionPolicyHeaderValue() {
+		public @Nullable String getPermissionPolicyHeaderValue() {
 			return permissionPolicyHeaderValue;
 		}
 
-		public void setPermissionPolicyHeaderValue(String permissionPolicyHeaderValue) {
+		public void setPermissionPolicyHeaderValue(@Nullable String permissionPolicyHeaderValue) {
 			this.permissionPolicyHeaderValue = permissionPolicyHeaderValue;
 		}
 
@@ -394,14 +396,14 @@ public class SecureHeadersGatewayFilterFactory
 		/**
 		 * @return the route specific/opt-out permission policies.
 		 */
-		String getRoutePermissionsPolicyHeaderValue() {
+		protected @Nullable String getRoutePermissionsPolicyHeaderValue() {
 			return routePermissionsPolicyHeaderValue;
 		}
 
 		/**
 		 * bind the route specific/opt-out permissions policy.
 		 */
-		void setPermissionsPolicy(String permissionsPolicy) {
+		void setPermissionsPolicy(@Nullable String permissionsPolicy) {
 			this.routeFilterConfigProvided = true;
 			this.routePermissionsPolicyHeaderValue = permissionsPolicy;
 		}

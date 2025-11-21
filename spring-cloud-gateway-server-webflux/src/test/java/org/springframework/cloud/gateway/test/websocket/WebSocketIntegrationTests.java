@@ -330,7 +330,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class EchoWebSocketHandler implements WebSocketHandler {
+	private static final class EchoWebSocketHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
@@ -340,7 +340,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class SubProtocolWebSocketHandler implements WebSocketHandler {
+	private static final class SubProtocolWebSocketHandler implements WebSocketHandler {
 
 		@Override
 		public List<String> getSubProtocols() {
@@ -361,7 +361,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class CustomHeaderHandler implements WebSocketHandler {
+	private static final class CustomHeaderHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
@@ -376,7 +376,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class ServerClosingHandler implements WebSocketHandler {
+	private static final class ServerClosingHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
@@ -385,7 +385,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class ClientClosingHandler implements WebSocketHandler {
+	private static final class ClientClosingHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
@@ -394,7 +394,7 @@ public class WebSocketIntegrationTests {
 
 	}
 
-	private static class CookieHandler implements WebSocketHandler {
+	private static final class CookieHandler implements WebSocketHandler {
 
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {

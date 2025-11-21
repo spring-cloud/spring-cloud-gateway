@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -28,7 +30,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -78,7 +79,8 @@ public class CacheRequestBodyGatewayFilterFactory
 				return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange, (serverHttpRequest) -> {
 					final ServerRequest serverRequest = ServerRequest
 						.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders);
-					return serverRequest.bodyToMono((config.getBodyClass())).doOnNext(objectValue -> {
+					Class<?> bodyClass = Objects.requireNonNull(config.getBodyClass(), "bodyClass must not be null");
+					return serverRequest.bodyToMono(bodyClass).doOnNext(objectValue -> {
 						Object previousCachedBody = exchange.getAttributes()
 							.put(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR, objectValue);
 						if (previousCachedBody != null) {
@@ -88,7 +90,7 @@ public class CacheRequestBodyGatewayFilterFactory
 					}).then(Mono.defer(() -> {
 						ServerHttpRequest cachedRequest = exchange
 							.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-						Assert.notNull(cachedRequest, "cache request shouldn't be null");
+						Objects.requireNonNull(cachedRequest, "cache request shouldn't be null");
 						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 						return chain.filter(exchange.mutate().request(cachedRequest).build()).doFinally(s -> {
 							//
@@ -113,9 +115,9 @@ public class CacheRequestBodyGatewayFilterFactory
 
 	public static class Config {
 
-		private Class<?> bodyClass;
+		private @Nullable Class<?> bodyClass;
 
-		public Class<?> getBodyClass() {
+		public @Nullable Class<?> getBodyClass() {
 			return bodyClass;
 		}
 

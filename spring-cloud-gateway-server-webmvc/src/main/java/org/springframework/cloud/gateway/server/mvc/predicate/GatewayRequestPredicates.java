@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -129,7 +130,7 @@ public abstract class GatewayRequestPredicates {
 	}
 
 	public static RequestPredicate host(String pattern) {
-		Assert.notNull(pattern, "'pattern' must not be null");
+		Objects.requireNonNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
 	}
 
@@ -156,7 +157,7 @@ public abstract class GatewayRequestPredicates {
 	 * {@code RequestPredicates} instance
 	 */
 	public static Function<String, RequestPredicate> hostPredicates(PathPatternParser patternParser) {
-		Assert.notNull(patternParser, "PathPatternParser must not be null");
+		Objects.requireNonNull(patternParser, "PathPatternParser must not be null");
 		return pattern -> new HostPatternPredicate(patternParser.parse(pattern));
 	}
 
@@ -389,7 +390,7 @@ public abstract class GatewayRequestPredicates {
 		private PathPattern pattern;
 
 		HostPatternPredicate(PathPattern pattern) {
-			Assert.notNull(pattern, "'pattern' must not be null");
+			Objects.requireNonNull(pattern, "'pattern' must not be null");
 			this.pattern = pattern;
 		}
 
@@ -451,7 +452,7 @@ public abstract class GatewayRequestPredicates {
 		private final PathPatternParser parser;
 
 		ChangePathPatternParserVisitor(PathPatternParser parser) {
-			Assert.notNull(parser, "Parser must not be null");
+			Objects.requireNonNull(parser, "Parser must not be null");
 			this.parser = parser;
 		}
 

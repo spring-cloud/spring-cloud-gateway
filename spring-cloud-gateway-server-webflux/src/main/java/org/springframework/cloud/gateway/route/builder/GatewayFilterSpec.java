@@ -58,7 +58,6 @@ import org.springframework.cloud.gateway.filter.factory.RemoveRequestParameterGa
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
-import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
@@ -72,6 +71,7 @@ import org.springframework.cloud.gateway.filter.factory.SecureHeadersGatewayFilt
 import org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;

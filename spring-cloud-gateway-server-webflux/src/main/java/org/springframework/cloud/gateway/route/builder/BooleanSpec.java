@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.gateway.route.builder;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.Route;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.route.builder.BooleanSpec.Operator.AND;
@@ -88,7 +88,7 @@ public class BooleanSpec extends UriSpec {
 
 		BooleanOpSpec(Route.AsyncBuilder routeBuilder, RouteLocatorBuilder.Builder builder, Operator operator) {
 			super(routeBuilder, builder);
-			Assert.notNull(operator, "operator may not be null");
+			Objects.requireNonNull(operator, "operator may not be null");
 			this.operator = operator;
 		}
 

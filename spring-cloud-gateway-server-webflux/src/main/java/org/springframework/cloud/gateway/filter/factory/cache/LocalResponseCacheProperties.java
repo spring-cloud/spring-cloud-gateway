@@ -20,6 +20,7 @@ import java.time.Duration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.unit.DataSize;
@@ -36,13 +37,13 @@ public class LocalResponseCacheProperties {
 
 	private static final Duration DEFAULT_CACHE_TTL_MINUTES = Duration.ofMinutes(5);
 
-	private DataSize size;
+	private @Nullable DataSize size;
 
-	private Duration timeToLive;
+	private @Nullable Duration timeToLive;
 
 	private RequestOptions request = new RequestOptions();
 
-	public DataSize getSize() {
+	public @Nullable DataSize getSize() {
 		return size;
 	}
 

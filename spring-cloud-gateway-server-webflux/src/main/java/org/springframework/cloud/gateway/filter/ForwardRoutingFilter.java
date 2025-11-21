@@ -17,9 +17,11 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,17 +40,16 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 	private final ObjectProvider<DispatcherHandler> dispatcherHandlerProvider;
 
 	// do not use this dispatcherHandler directly, use getDispatcherHandler() instead.
-	private volatile DispatcherHandler dispatcherHandler;
+	private @Nullable volatile DispatcherHandler dispatcherHandler;
 
 	public ForwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandlerProvider) {
 		this.dispatcherHandlerProvider = dispatcherHandlerProvider;
 	}
 
-	private DispatcherHandler getDispatcherHandler() {
+	private @Nullable DispatcherHandler getDispatcherHandler() {
 		if (dispatcherHandler == null) {
 			dispatcherHandler = dispatcherHandlerProvider.getIfAvailable();
 		}
-
 		return dispatcherHandler;
 	}
 
@@ -71,8 +72,9 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		if (log.isTraceEnabled()) {
 			log.trace("Forwarding to URI: " + requestUrl);
 		}
-
-		return handle(this.getDispatcherHandler(), exchange);
+		DispatcherHandler handler = getDispatcherHandler();
+		Objects.requireNonNull(handler, "DispatcherHandler must not be null");
+		return handle(handler, exchange);
 	}
 
 }

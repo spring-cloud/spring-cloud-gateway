@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -28,6 +29,7 @@ import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
 import io.github.bucket4j.distributed.AsyncBucketProxy;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.task.TaskExecutor;
@@ -73,7 +75,7 @@ public abstract class Bucket4jFilterFunctions {
 
 		return (request, next) -> {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
-			String key = config.getKeyResolver().apply(request);
+			String key = config.getKeyResolver() != null ? config.getKeyResolver().apply(request) : "";
 			if (!StringUtils.hasText(key)) {
 				// TODO: configurable empty key status code
 				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
@@ -110,12 +112,15 @@ public abstract class Bucket4jFilterFunctions {
 
 		long capacity;
 
+		@org.jspecify.annotations.Nullable
 		Duration period;
 
+		@org.jspecify.annotations.Nullable
 		Function<ServerRequest, String> keyResolver;
 
 		HttpStatusCode statusCode = HttpStatus.TOO_MANY_REQUESTS;
 
+		@org.jspecify.annotations.Nullable
 		Duration timeout;
 
 		int tokens = 1;
@@ -127,7 +132,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public void setConfigurationBuilder(Function<RateLimitConfig, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -140,7 +145,7 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Duration getPeriod() {
+		public @Nullable Duration getPeriod() {
 			return period;
 		}
 
@@ -149,12 +154,12 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Function<ServerRequest, String> getKeyResolver() {
+		public @Nullable Function<ServerRequest, String> getKeyResolver() {
 			return keyResolver;
 		}
 
 		public RateLimitConfig setKeyResolver(Function<ServerRequest, String> keyResolver) {
-			Assert.notNull(keyResolver, "keyResolver may not be null");
+			Objects.requireNonNull(keyResolver, "keyResolver may not be null");
 			this.keyResolver = keyResolver;
 			return this;
 		}
@@ -168,7 +173,7 @@ public abstract class Bucket4jFilterFunctions {
 			return this;
 		}
 
-		public Duration getTimeout() {
+		public @Nullable Duration getTimeout() {
 			return timeout;
 		}
 
@@ -192,7 +197,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public RateLimitConfig setHeaderName(String headerName) {
-			Assert.notNull(headerName, "headerName may not be null");
+			Objects.requireNonNull(headerName, "headerName may not be null");
 			this.headerName = headerName;
 			return this;
 		}

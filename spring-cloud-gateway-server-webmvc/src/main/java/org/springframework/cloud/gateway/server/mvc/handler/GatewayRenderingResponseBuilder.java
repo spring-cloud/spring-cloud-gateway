@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import jakarta.servlet.http.Cookie;
@@ -32,7 +33,6 @@ import org.springframework.core.Conventions;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
@@ -57,7 +57,7 @@ final class GatewayRenderingResponseBuilder implements RenderingResponse.Builder
 	private final Map<String, Object> model = new LinkedHashMap<>();
 
 	GatewayRenderingResponseBuilder(RenderingResponse other) {
-		Assert.notNull(other, "RenderingResponse must not be null");
+		Objects.requireNonNull(other, "RenderingResponse must not be null");
 		this.name = other.name();
 		this.status = other.statusCode();
 		this.headers.putAll(other.headers());
@@ -65,13 +65,13 @@ final class GatewayRenderingResponseBuilder implements RenderingResponse.Builder
 	}
 
 	GatewayRenderingResponseBuilder(String name) {
-		Assert.notNull(name, "Name must not be null");
+		Objects.requireNonNull(name, "Name must not be null");
 		this.name = name;
 	}
 
 	@Override
 	public RenderingResponse.Builder status(HttpStatusCode status) {
-		Assert.notNull(status, "HttpStatusCode must not be null");
+		Objects.requireNonNull(status, "HttpStatusCode must not be null");
 		this.status = status;
 		return this;
 	}
@@ -83,7 +83,7 @@ final class GatewayRenderingResponseBuilder implements RenderingResponse.Builder
 
 	@Override
 	public RenderingResponse.Builder cookie(Cookie cookie) {
-		Assert.notNull(cookie, "Cookie must not be null");
+		Objects.requireNonNull(cookie, "Cookie must not be null");
 		this.cookies.add(cookie.getName(), cookie);
 		return this;
 	}
@@ -96,7 +96,7 @@ final class GatewayRenderingResponseBuilder implements RenderingResponse.Builder
 
 	@Override
 	public RenderingResponse.Builder modelAttribute(Object attribute) {
-		Assert.notNull(attribute, "Attribute must not be null");
+		Objects.requireNonNull(attribute, "Attribute must not be null");
 		if (attribute instanceof Collection<?> collection && collection.isEmpty()) {
 			return this;
 		}
@@ -105,7 +105,7 @@ final class GatewayRenderingResponseBuilder implements RenderingResponse.Builder
 
 	@Override
 	public RenderingResponse.Builder modelAttribute(String name, @Nullable Object value) {
-		Assert.notNull(name, "Name must not be null");
+		Objects.requireNonNull(name, "Name must not be null");
 		this.model.put(name, value);
 		return this;
 	}

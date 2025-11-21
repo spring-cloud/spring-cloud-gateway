@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.Objects;
 
 import reactor.core.publisher.Mono;
 
@@ -41,6 +42,8 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+				String name = Objects.requireNonNull(config.getName(), "name must not be null");
+				String rawValue = Objects.requireNonNull(config.getValue(), "value must not be null");
 				URI uri = exchange.getRequest().getURI();
 				StringBuilder query = new StringBuilder();
 				String originalQuery = uri.getRawQuery();
@@ -52,9 +55,9 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 					}
 				}
 
-				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+				String value = ServerWebExchangeUtils.expand(exchange, rawValue);
 				// TODO urlencode?
-				query.append(config.getName());
+				query.append(name);
 				query.append('=');
 				query.append(value);
 
@@ -76,8 +79,10 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 
 			@Override
 			public String toString() {
+				String name = config.getName();
+				String value = config.getValue();
 				return filterToStringCreator(AddRequestParameterGatewayFilterFactory.this)
-					.append(config.getName(), config.getValue())
+					.append(name != null ? name : "", value != null ? value : "")
 					.toString();
 			}
 		};

@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.discovery;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
@@ -34,7 +36,7 @@ public class DiscoveryLocatorProperties {
 	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName()
 	 * + "_". Service Id will be appended to create the routeId.
 	 */
-	private String routeIdPrefix;
+	private @Nullable String routeIdPrefix;
 
 	/**
 	 * SpEL expression that will evaluate whether to include a service in gateway
@@ -66,7 +68,7 @@ public class DiscoveryLocatorProperties {
 		this.enabled = enabled;
 	}
 
-	public String getRouteIdPrefix() {
+	public @Nullable String getRouteIdPrefix() {
 		return routeIdPrefix;
 	}
 

@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
@@ -29,7 +30,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.util.Assert;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -50,8 +50,8 @@ abstract class GatewayErrorHandlingServerResponse implements ServerResponse {
 	protected final <T extends ServerResponse> void addErrorHandler(Predicate<Throwable> predicate,
 			BiFunction<Throwable, ServerRequest, T> errorHandler) {
 
-		Assert.notNull(predicate, "Predicate must not be null");
-		Assert.notNull(errorHandler, "ErrorHandler must not be null");
+		Objects.requireNonNull(predicate, "Predicate must not be null");
+		Objects.requireNonNull(errorHandler, "ErrorHandler must not be null");
 		this.errorHandlers.add(new ErrorHandler<>(predicate, errorHandler));
 	}
 
@@ -91,8 +91,8 @@ abstract class GatewayErrorHandlingServerResponse implements ServerResponse {
 		private final BiFunction<Throwable, ServerRequest, T> responseProvider;
 
 		ErrorHandler(Predicate<Throwable> predicate, BiFunction<Throwable, ServerRequest, T> responseProvider) {
-			Assert.notNull(predicate, "Predicate must not be null");
-			Assert.notNull(responseProvider, "ResponseProvider must not be null");
+			Objects.requireNonNull(predicate, "Predicate must not be null");
+			Objects.requireNonNull(responseProvider, "ResponseProvider must not be null");
 			this.predicate = predicate;
 			this.responseProvider = responseProvider;
 		}

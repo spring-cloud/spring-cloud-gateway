@@ -1690,7 +1690,7 @@ public class ServerMvcIntegrationTests {
 
 	}
 
-	private static class MyFilter implements Filter, Ordered {
+	private static final class MyFilter implements Filter, Ordered {
 
 		@Override
 		public int getOrder() {

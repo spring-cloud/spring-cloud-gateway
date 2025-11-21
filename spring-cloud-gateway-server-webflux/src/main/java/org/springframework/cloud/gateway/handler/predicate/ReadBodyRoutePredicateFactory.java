@@ -18,10 +18,12 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -75,7 +77,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 				// multiple times
 				if (cachedBody != null) {
 					try {
-						boolean test = config.predicate.test(cachedBody);
+						boolean test = config.predicate != null && config.predicate.test(cachedBody);
 						exchange.getAttributes().put(TEST_ATTRIBUTE, test);
 						return Mono.just(test);
 					}
@@ -88,13 +90,15 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 					return Mono.just(false);
 				}
 				else {
+					Objects.requireNonNull(inClass, "inClass must not be null");
 					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
 							(serverHttpRequest) -> ServerRequest
 								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)
 								.bodyToMono(inClass)
 								.doOnNext(objectValue -> exchange.getAttributes()
 									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
-								.map(objectValue -> config.getPredicate().test(objectValue)));
+								.map(objectValue -> config.getPredicate() != null
+										&& config.getPredicate().test(objectValue)));
 				}
 			}
 
@@ -118,13 +122,13 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 
 	public static class Config {
 
-		private Class inClass;
+		private @Nullable Class inClass;
 
-		private Predicate predicate;
+		private @Nullable Predicate predicate;
 
-		private Map<String, Object> hints;
+		private @Nullable Map<String, Object> hints;
 
-		public Class getInClass() {
+		public @Nullable Class getInClass() {
 			return inClass;
 		}
 
@@ -133,7 +137,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 			return this;
 		}
 
-		public Predicate getPredicate() {
+		public @Nullable Predicate getPredicate() {
 			return predicate;
 		}
 
@@ -148,7 +152,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 			return this;
 		}
 
-		public Map<String, Object> getHints() {
+		public @Nullable Map<String, Object> getHints() {
 			return hints;
 		}
 

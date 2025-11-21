@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import reactor.core.publisher.Mono;
 
@@ -63,15 +64,17 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 
 			@Override
 			public String toString() {
+				String name = config.getName();
+				String value = config.getValue();
 				if (config instanceof Config) {
 					return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
-						.append(GatewayFilter.NAME_KEY, config.getName())
-						.append(GatewayFilter.VALUE_KEY, config.getValue())
+						.append(GatewayFilter.NAME_KEY, name != null ? name : "")
+						.append(GatewayFilter.VALUE_KEY, value != null ? value : "")
 						.append(OVERRIDE_KEY, ((Config) config).isOverride())
 						.toString();
 				}
 				return filterToStringCreator(AddResponseHeaderGatewayFilterFactory.this)
-					.append(config.getName(), config.getValue())
+					.append(name != null ? name : "", value != null ? value : "")
 					.toString();
 			}
 		};
@@ -80,7 +83,9 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
 		// if response has been commited, no more response headers will bee added.
 		if (!exchange.getResponse().isCommitted()) {
-			final String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
+			String name = Objects.requireNonNull(config.getName(), "name must not be null");
+			String rawValue = Objects.requireNonNull(config.getValue(), "value must not be null");
+			final String value = ServerWebExchangeUtils.expand(exchange, rawValue);
 			HttpHeaders headers = exchange.getResponse().getHeaders();
 
 			boolean override = true; // default is true
@@ -89,14 +94,14 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			}
 
 			if (override) {
-				headers.add(config.getName(), value);
+				headers.add(name, value);
 			}
 			else {
-				boolean headerIsMissingOrBlank = headers.getOrEmpty(config.getName())
+				boolean headerIsMissingOrBlank = headers.getOrEmpty(name)
 					.stream()
 					.allMatch(h -> !StringUtils.hasText(h));
 				if (headerIsMissingOrBlank) {
-					headers.add(config.getName(), value);
+					headers.add(name, value);
 				}
 			}
 		}

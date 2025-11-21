@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -69,7 +70,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	private final ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider;
 
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
-	private volatile List<HttpHeadersFilter> headersFilters;
+	private volatile @Nullable List<HttpHeadersFilter> headersFilters;
 
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
@@ -111,7 +112,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, filtered, protocols));
 	}
 
-	/* for testing */ List<String> getProtocols(HttpHeaders headers) {
+	/* for testing */ static @Nullable List<String> getProtocols(HttpHeaders headers) {
 		List<String> protocols = headers.get(SEC_WEBSOCKET_PROTOCOL);
 		if (protocols != null) {
 			ArrayList<String> updatedProtocols = new ArrayList<>();
@@ -182,7 +183,7 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 		private final List<String> subProtocols;
 
-		ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, List<String> protocols) {
+		ProxyWebSocketHandler(URI url, WebSocketClient client, HttpHeaders headers, @Nullable List<String> protocols) {
 			this.client = client;
 			this.url = url;
 			this.headers = headers;

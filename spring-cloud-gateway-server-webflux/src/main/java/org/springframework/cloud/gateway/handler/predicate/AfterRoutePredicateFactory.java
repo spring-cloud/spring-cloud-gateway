@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.web.server.ServerWebExchange;
 
@@ -68,9 +69,9 @@ public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<Af
 	public static class Config {
 
 		@NotNull
-		private ZonedDateTime datetime;
+		private @Nullable ZonedDateTime datetime;
 
-		public ZonedDateTime getDatetime() {
+		public @Nullable ZonedDateTime getDatetime() {
 			return datetime;
 		}
 

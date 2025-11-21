@@ -101,8 +101,9 @@ public class XForwardedRemoteAddrRoutePredicateFactory
 
 			if (log.isDebugEnabled()) {
 				ServerHttpRequest request = exchange.getRequest();
-				log.debug("Request for \"" + request.getURI() + "\" from client \""
-						+ request.getRemoteAddress().getAddress().getHostAddress() + "\" with \""
+				String clientAddress = request.getRemoteAddress() != null
+						? request.getRemoteAddress().getAddress().getHostAddress() : "unknown";
+				log.debug("Request for \"" + request.getURI() + "\" from client \"" + clientAddress + "\" with \""
 						+ XForwardedRemoteAddressResolver.X_FORWARDED_FOR + "\" header value of \""
 						+ request.getHeaders().get(XForwardedRemoteAddressResolver.X_FORWARDED_FOR) + "\" is "
 						+ (isAllowed ? "ALLOWED" : "NOT ALLOWED"));

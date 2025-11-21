@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -27,6 +28,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -85,7 +87,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 	private final HttpClientProperties properties;
 
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
-	private volatile List<HttpHeadersFilter> headersFilters;
+	private volatile @Nullable List<HttpHeadersFilter> headersFilters;
 
 	public NettyRoutingFilter(HttpClient httpClient, ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider,
 			HttpClientProperties properties) {
@@ -94,7 +96,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		this.properties = properties;
 	}
 
-	public List<HttpHeadersFilter> getHeadersFilters() {
+	public @Nullable List<HttpHeadersFilter> getHeadersFilters() {
 		if (headersFilters == null) {
 			headersFilters = headersFiltersProvider.getIfAvailable();
 		}
@@ -129,7 +131,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
-
+		Objects.requireNonNull(route, "route must not be null");
 		Flux<HttpClientResponse> responseFlux = getHttpClientMono(route, exchange)
 			.flatMapMany(httpClient -> httpClient.headers(headers -> {
 				headers.add(httpHeaders);
@@ -257,13 +259,14 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		Object connectTimeoutAttr = route.getMetadata().get(CONNECT_TIMEOUT_ATTR) != null
 				? route.getMetadata().get(CONNECT_TIMEOUT_ATTR) : properties.getConnectTimeout();
 		if (connectTimeoutAttr != null) {
-			Integer connectTimeout = getInteger(connectTimeoutAttr);
+			Integer connectTimeout = java.util.Objects.requireNonNull(getInteger(connectTimeoutAttr),
+					"connectTimeout must not be null");
 			return this.httpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeout);
 		}
 		return httpClient;
 	}
 
-	static Integer getInteger(Object connectTimeoutAttr) {
+	static @Nullable Integer getInteger(Object connectTimeoutAttr) {
 		Integer connectTimeout;
 		if (connectTimeoutAttr instanceof Integer) {
 			connectTimeout = (Integer) connectTimeoutAttr;
@@ -274,7 +277,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		return connectTimeout;
 	}
 
-	private Duration getResponseTimeout(Route route) {
+	private @Nullable Duration getResponseTimeout(Route route) {
 		try {
 			if (route.getMetadata().containsKey(RESPONSE_TIMEOUT_ATTR)) {
 				Long routeResponseTimeout = getLong(route.getMetadata().get(RESPONSE_TIMEOUT_ATTR));
@@ -292,7 +295,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		return properties.getResponseTimeout();
 	}
 
-	static Long getLong(Object responseTimeoutAttr) {
+	static @Nullable Long getLong(Object responseTimeoutAttr) {
 		Long responseTimeout = null;
 		if (responseTimeoutAttr instanceof Number) {
 			responseTimeout = ((Number) responseTimeoutAttr).longValue();

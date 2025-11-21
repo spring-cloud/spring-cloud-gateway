@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -49,7 +50,6 @@ import org.springframework.http.server.reactive.AbstractServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -298,13 +298,13 @@ public final class ServerWebExchangeUtils {
 	}
 
 	public static AsyncPredicate<ServerWebExchange> toAsyncPredicate(Predicate<? super ServerWebExchange> predicate) {
-		Assert.notNull(predicate, "predicate must not be null");
+		Objects.requireNonNull(predicate, "predicate must not be null");
 		return AsyncPredicate.from(predicate);
 	}
 
 	public static String expand(ServerWebExchange exchange, String template) {
-		Assert.notNull(exchange, "exchange may not be null");
-		Assert.notNull(template, "template may not be null");
+		Objects.requireNonNull(exchange, "exchange may not be null");
+		Objects.requireNonNull(template, "template may not be null");
 
 		if (template.indexOf('{') == -1) { // short circuit
 			return template;

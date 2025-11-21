@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -41,7 +43,7 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 	String VALUE_KEY = "value";
 
 	// useful for javadsl
-	default GatewayFilter apply(String routeId, Consumer<C> consumer) {
+	default GatewayFilter apply(@Nullable String routeId, Consumer<C> consumer) {
 		C config = newConfig();
 		consumer.accept(config);
 		return apply(routeId, config);
@@ -64,7 +66,7 @@ public interface GatewayFilterFactory<C> extends ShortcutConfigurable, Configura
 
 	GatewayFilter apply(C config);
 
-	default GatewayFilter apply(String routeId, C config) {
+	default GatewayFilter apply(@Nullable String routeId, C config) {
 		if (config instanceof HasRouteId) {
 			HasRouteId hasRouteId = (HasRouteId) config;
 			hasRouteId.setRouteId(routeId);

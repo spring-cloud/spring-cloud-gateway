@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -55,7 +56,7 @@ public class TokenRelayGatewayFilterFactory
 	}
 
 	@Override
-	public GatewayFilter apply(NameConfig config) {
+	public GatewayFilter apply(@Nullable NameConfig config) {
 		String defaultClientRegistrationId = (config == null) ? null : config.getName();
 		return (exchange, chain) -> exchange.getPrincipal()
 			// .log("token-relay-filter")
@@ -70,7 +71,7 @@ public class TokenRelayGatewayFilterFactory
 			.flatMap(chain::filter);
 	}
 
-	private Mono<OAuth2AuthorizeRequest> authorizationRequest(String defaultClientRegistrationId,
+	private Mono<OAuth2AuthorizeRequest> authorizationRequest(@Nullable String defaultClientRegistrationId,
 			Authentication principal) {
 		String clientRegistrationId = defaultClientRegistrationId;
 		if (clientRegistrationId == null && principal instanceof OAuth2AuthenticationToken) {

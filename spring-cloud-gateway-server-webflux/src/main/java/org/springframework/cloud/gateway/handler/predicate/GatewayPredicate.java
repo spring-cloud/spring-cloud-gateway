@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfig {
@@ -61,7 +61,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		private final Predicate<? super ServerWebExchange> delegate;
 
 		public GatewayPredicateWrapper(Predicate<? super ServerWebExchange> delegate) {
-			Assert.notNull(delegate, "delegate GatewayPredicate must not be null");
+			Objects.requireNonNull(delegate, "delegate GatewayPredicate must not be null");
 			this.delegate = delegate;
 		}
 
@@ -89,7 +89,7 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		private final GatewayPredicate predicate;
 
 		public NegateGatewayPredicate(GatewayPredicate predicate) {
-			Assert.notNull(predicate, "predicate GatewayPredicate must not be null");
+			Objects.requireNonNull(predicate, "predicate GatewayPredicate must not be null");
 			this.predicate = predicate;
 		}
 
@@ -117,8 +117,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		private final GatewayPredicate right;
 
 		public AndGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
-			Assert.notNull(left, "Left GatewayPredicate must not be null");
-			Assert.notNull(right, "Right GatewayPredicate must not be null");
+			Objects.requireNonNull(left, "Left GatewayPredicate must not be null");
+			Objects.requireNonNull(right, "Right GatewayPredicate must not be null");
 			this.left = left;
 			this.right = right;
 		}
@@ -148,8 +148,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		private final GatewayPredicate right;
 
 		public OrGatewayPredicate(GatewayPredicate left, GatewayPredicate right) {
-			Assert.notNull(left, "Left GatewayPredicate must not be null");
-			Assert.notNull(right, "Right GatewayPredicate must not be null");
+			Objects.requireNonNull(left, "Left GatewayPredicate must not be null");
+			Objects.requireNonNull(right, "Right GatewayPredicate must not be null");
 			this.left = left;
 			this.right = right;
 		}

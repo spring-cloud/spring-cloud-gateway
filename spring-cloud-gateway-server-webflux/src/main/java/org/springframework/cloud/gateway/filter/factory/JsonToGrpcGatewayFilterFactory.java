@@ -44,6 +44,7 @@ import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -123,13 +124,13 @@ public class JsonToGrpcGatewayFilterFactory
 
 	public static class Config {
 
-		private String protoDescriptor;
+		private @Nullable String protoDescriptor;
 
-		private String service;
+		private @Nullable String service;
 
-		private String method;
+		private @Nullable String method;
 
-		public String getProtoDescriptor() {
+		public @Nullable String getProtoDescriptor() {
 			return protoDescriptor;
 		}
 
@@ -138,7 +139,7 @@ public class JsonToGrpcGatewayFilterFactory
 			return this;
 		}
 
-		public String getService() {
+		public @Nullable String getService() {
 			return service;
 		}
 
@@ -147,7 +148,7 @@ public class JsonToGrpcGatewayFilterFactory
 			return this;
 		}
 
-		public String getMethod() {
+		public @Nullable String getMethod() {
 			return method;
 		}
 
@@ -222,6 +223,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private Descriptors.MethodDescriptor getMethodDescriptor(Config config)
 				throws IOException, Descriptors.DescriptorValidationException {
+			Objects.requireNonNull(config.getProtoDescriptor(), "Proto Descriptor must not be null");
 			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
 				.parseFrom(descriptorFile.getInputStream());
@@ -260,7 +262,7 @@ public class JsonToGrpcGatewayFilterFactory
 			return deps;
 		}
 
-		private FileDescriptorProto findFileByName(FileDescriptorSet input, String name) {
+		private @Nullable FileDescriptorProto findFileByName(FileDescriptorSet input, String name) {
 			for (FileDescriptorProto file : input.getFileList()) {
 				if (file.getName().equals(name)) {
 					return file;
@@ -270,7 +272,8 @@ public class JsonToGrpcGatewayFilterFactory
 		}
 
 		private ManagedChannel createChannel() {
-			URI requestURI = ((Route) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR)).getUri();
+			Route route = (Route) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
+			URI requestURI = Objects.requireNonNull(route, "Route not found in exchange attributes").getUri();
 			return createChannelChannel(requestURI.getHost(), requestURI.getPort());
 		}
 

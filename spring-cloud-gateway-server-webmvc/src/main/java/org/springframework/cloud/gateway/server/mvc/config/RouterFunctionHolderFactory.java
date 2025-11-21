@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -32,6 +33,7 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
@@ -153,6 +155,7 @@ public class RouterFunctionHolderFactory {
 
 		Map<String, RouterFunction> routerFunctions = new LinkedHashMap<>();
 		properties.getRoutes().forEach(routeProperties -> {
+			Objects.requireNonNull(routeProperties.getId(), "Route id is required");
 			routerFunctions.put(routeProperties.getId(), getRouterFunction(routeProperties, routeProperties.getId()));
 		});
 		properties.getRoutesMap().forEach((routeId, routeProperties) -> {
@@ -171,6 +174,7 @@ public class RouterFunctionHolderFactory {
 			routerFunction = routerFunctions.values().stream().reduce(RouterFunction::andOther).orElse(null);
 			// puts the map of configured RouterFunctions in an attribute. Makes testing
 			// easy.
+			Objects.requireNonNull(routerFunction, "Unable to create RouterFunction");
 			routerFunction = routerFunction.withAttribute("gatewayRouterFunctions", routerFunctions);
 		}
 		log.trace(LogMessage.format("RouterFunctionHolder initialized %s", routerFunction.toString()));
@@ -186,7 +190,11 @@ public class RouterFunctionHolderFactory {
 		MultiValueMap<String, OperationMethod> handlerOperations = handlerDiscoverer.getOperations();
 		// TODO: cache?
 		// translate handlerFunction
-		String scheme = routeProperties.getUri().getScheme();
+
+		String scheme = "http";
+		if (routeProperties.getUri() != null && routeProperties.getUri().getScheme() != null) {
+			scheme = routeProperties.getUri().getScheme();
+		}
 
 		// filters added by HandlerDiscoverer need to go last, so save them
 		HandlerFunction<ServerResponse> handlerFunction = null;
@@ -246,7 +254,7 @@ public class RouterFunctionHolderFactory {
 			predicateOperations.addAll(predicateBeanFactoryDiscoverer.getOperations());
 		}
 		predicateOperations.addAll(predicateDiscoverer.getOperations());
-		final AtomicReference<RequestPredicate> predicate = new AtomicReference<>();
+		final AtomicReference<@Nullable RequestPredicate> predicate = new AtomicReference<>();
 
 		routeProperties.getPredicates().forEach(predicateProperties -> {
 			Map<String, Object> args = new LinkedHashMap<>(predicateProperties.getArgs());
@@ -265,7 +273,8 @@ public class RouterFunctionHolderFactory {
 		});
 
 		// combine predicate and handlerFunction
-		builder.route(predicate.get(), handlerFunction);
+		RequestPredicate check = Objects.requireNonNull(predicate.get(), "Unable to create RequestPredicate");
+		builder.route(check, handlerFunction);
 		predicate.set(null);
 
 		// HandlerDiscoverer filters needing lower priority, so put them first
@@ -290,9 +299,12 @@ public class RouterFunctionHolderFactory {
 		return builder.build();
 	}
 
-	private <T> void translate(MultiValueMap<String, OperationMethod> operations, String operationName,
+	private <T> void translate(MultiValueMap<String, OperationMethod> operations, @Nullable String operationName,
 			Map<String, Object> operationArgs, Class<T> returnType, Consumer<T> operationHandler) {
-		String normalizedName = StringUtils.uncapitalize(operationName);
+		String normalizedName = operationName;
+		if (operationName != null) {
+			normalizedName = StringUtils.uncapitalize(operationName);
+		}
 		Optional<NormalizedOperationMethod> operationMethod = findOperation(operations, normalizedName, operationArgs);
 		if (operationMethod.isPresent()) {
 			NormalizedOperationMethod opMethod = operationMethod.get();
@@ -313,7 +325,7 @@ public class RouterFunctionHolderFactory {
 	}
 
 	private Optional<NormalizedOperationMethod> findOperation(MultiValueMap<String, OperationMethod> operations,
-			String operationName, Map<String, Object> operationArgs) {
+			@Nullable String operationName, Map<String, Object> operationArgs) {
 		return operations.getOrDefault(operationName, Collections.emptyList())
 			.stream()
 			.sorted(Comparator.comparing(OperationMethod::isConfigurable))
@@ -381,7 +393,7 @@ public class RouterFunctionHolderFactory {
 		}
 
 		@Override
-		public <T> T resolve(Class<T> type) {
+		public @Nullable <T> T resolve(Class<T> type) {
 			return null;
 		}
 

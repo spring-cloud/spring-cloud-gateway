@@ -116,12 +116,13 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 		predicate.accept(p -> {
 			if (p.getConfig() instanceof PathRoutePredicateFactory.Config pathConfig) {
 				if (!pathConfig.getPatterns().isEmpty()) {
-					pathPatterns.compareAndSet(null, pathConfig.getPatterns().get(0));
+					pathPatterns.set(pathConfig.getPatterns().get(0));
 				}
 			}
 		});
-		if (pathPatterns.get() != null) {
-			return pathPatterns.get();
+		String result = pathPatterns.get();
+		if (result != null) {
+			return result;
 		}
 		return ALL_PATHS;
 	}

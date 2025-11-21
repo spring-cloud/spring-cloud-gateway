@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -33,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.async.AsyncWebRequest;
@@ -161,7 +161,7 @@ final class GatewayAsyncServerResponse extends GatewayErrorHandlingServerRespons
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static AsyncServerResponse create(Object obj, @Nullable Duration timeout) {
-		Assert.notNull(obj, "Argument to async must not be null");
+		Objects.requireNonNull(obj, "Argument to async must not be null");
 
 		if (obj instanceof CompletableFuture futureResponse) {
 			return new GatewayAsyncServerResponse(futureResponse, timeout);

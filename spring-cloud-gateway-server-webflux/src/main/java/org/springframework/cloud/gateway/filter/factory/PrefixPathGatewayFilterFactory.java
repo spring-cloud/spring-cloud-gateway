@@ -20,9 +20,11 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -62,7 +64,8 @@ public class PrefixPathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
-			final UriTemplate uriTemplate = new UriTemplate(config.prefix);
+			final UriTemplate uriTemplate = new UriTemplate(
+					Objects.requireNonNull(config.prefix, "prefix must not be null"));
 
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -99,9 +102,9 @@ public class PrefixPathGatewayFilterFactory
 
 	public static class Config {
 
-		private String prefix;
+		private @Nullable String prefix;
 
-		public String getPrefix() {
+		public @Nullable String getPrefix() {
 			return prefix;
 		}
 

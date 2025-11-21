@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -113,7 +114,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 
 		private DataSize maxSize = DataSize.ofBytes(16000L);
 
-		private String errorHeaderName;
+		private @Nullable String errorHeaderName;
 
 		public DataSize getMaxSize() {
 			return maxSize;
@@ -123,7 +124,7 @@ public class RequestHeaderSizeGatewayFilterFactory
 			this.maxSize = maxSize;
 		}
 
-		public String getErrorHeaderName() {
+		public @Nullable String getErrorHeaderName() {
 			return errorHeaderName;
 		}
 

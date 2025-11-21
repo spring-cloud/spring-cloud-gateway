@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +32,6 @@ import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.core.Ordered;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -84,8 +84,8 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 
 	private XForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props,
 			TrustedProxies trustedProxies) {
-		Assert.notNull(props, "XForwardedRequestHeadersFilterProperties must not be null");
-		Assert.notNull(trustedProxies, "trustedProxies must not be null");
+		Objects.requireNonNull(props, "XForwardedRequestHeadersFilterProperties must not be null");
+		Objects.requireNonNull(trustedProxies, "trustedProxies must not be null");
 		this.properties = props;
 		this.trustedProxies = trustedProxies;
 	}
@@ -203,9 +203,12 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 			}
 			// these headers should be treated as a single comma separated header
 			if (headers.containsHeader(name)) {
-				List<String> values = headers.get(name).stream().filter(shouldWrite).toList();
-				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
-				headers.set(name, delimitedValue);
+				List<String> values = headers.get(name);
+				if (values != null) {
+					List<String> filteredValues = values.stream().filter(shouldWrite).toList();
+					String delimitedValue = StringUtils.collectionToCommaDelimitedString(filteredValues);
+					headers.set(name, delimitedValue);
+				}
 			}
 		}
 		else if (value != null && shouldWrite.test(value)) {

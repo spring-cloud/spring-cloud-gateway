@@ -42,7 +42,7 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(METHODS_KEY);
+		return List.of(METHODS_KEY);
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 
 	public static class Config {
 
-		private HttpMethod[] methods;
+		private HttpMethod[] methods = new HttpMethod[0];
 
 		public HttpMethod[] getMethods() {
 			return methods;

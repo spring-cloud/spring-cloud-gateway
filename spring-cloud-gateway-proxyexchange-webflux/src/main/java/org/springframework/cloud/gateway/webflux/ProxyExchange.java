@@ -23,10 +23,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -121,11 +123,11 @@ public class ProxyExchange<T> {
 
 	private HttpMethod httpMethod;
 
-	private URI uri;
+	private @Nullable URI uri;
 
 	private WebClient rest;
 
-	private Publisher<Object> body;
+	private @Nullable Publisher<Object> body;
 
 	private boolean hasBody = false;
 
@@ -133,7 +135,7 @@ public class ProxyExchange<T> {
 
 	private BindingContext bindingContext;
 
-	private Set<String> excluded;
+	private @Nullable Set<String> excluded;
 
 	private HttpHeaders headers = new HttpHeaders();
 
@@ -244,6 +246,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> get() {
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -253,6 +256,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> head() {
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -262,6 +266,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> options() {
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -271,8 +276,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
-		return exchange(requestEntity);
+		return doExchange(RequestEntity::post);
 	}
 
 	public <S> Mono<ResponseEntity<S>> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -280,8 +284,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> delete() {
-		RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
-		return exchange(requestEntity);
+		return doExchange(uri -> (BodyBuilder) RequestEntity.delete(uri));
 	}
 
 	public <S> Mono<ResponseEntity<S>> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -289,7 +292,14 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
+		return doExchange(RequestEntity::put);
+	}
+
+	private Mono<ResponseEntity<T>> doExchange(Function<URI, RequestEntity.BodyBuilder> getBodyBuilder) {
+		Objects.requireNonNull(uri, "URI must not be null");
+		BodyBuilder bodyBuilder = headers(getBodyBuilder.apply(uri));
+		Publisher<?> body = body();
+		RequestEntity<?> requestEntity = body != null ? bodyBuilder.body(body) : bodyBuilder.build();
 		return exchange(requestEntity);
 	}
 
@@ -298,8 +308,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
-		return exchange(requestEntity);
+		return doExchange(RequestEntity::patch);
 	}
 
 	public <S> Mono<ResponseEntity<S>> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -360,6 +369,7 @@ public class ProxyExchange<T> {
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
+		Objects.requireNonNull(requestEntity.getMethod(), "Method must not be null");
 		RequestBodySpec builder = rest.method(requestEntity.getMethod())
 			.uri(requestEntity.getUrl())
 			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
@@ -388,9 +398,12 @@ public class ProxyExchange<T> {
 
 	private void addHeaders(HttpHeaders headers, HttpHeaders toAdd) {
 		Set<String> filteredKeys = filterHeaderKeys(toAdd);
-		filteredKeys.stream()
-			.filter(key -> !headers.containsHeader(key))
-			.forEach(header -> headers.addAll(header, toAdd.get(header)));
+		filteredKeys.stream().filter(key -> !headers.containsHeader(key)).forEach(header -> {
+			java.util.List<String> headerValues = toAdd.get(header);
+			if (headerValues != null) {
+				headers.addAll(header, headerValues);
+			}
+		});
 	}
 
 	private Set<String> filterHeaderKeys(HttpHeaders headers) {
@@ -404,7 +417,10 @@ public class ProxyExchange<T> {
 	private BodyBuilder headers(BodyBuilder builder) {
 		proxy();
 		for (String name : filterHeaderKeys(headers)) {
-			builder.header(name, headers.get(name).toArray(new String[0]));
+			java.util.List<String> headerValues = headers.get(name);
+			if (headerValues != null) {
+				builder.header(name, headerValues.toArray(new String[0]));
+			}
 		}
 		return builder;
 	}
@@ -443,7 +459,7 @@ public class ProxyExchange<T> {
 		headers.set("forwarded", forwarded);
 	}
 
-	private String forwarded(URI uri, String hostHeader) {
+	private String forwarded(URI uri, @Nullable String hostHeader) {
 		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
@@ -453,7 +469,7 @@ public class ProxyExchange<T> {
 		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
 	}
 
-	private Publisher<?> body() {
+	private @Nullable Publisher<?> body() {
 		Publisher<?> body = this.body;
 		if (body != null) {
 			return body;
@@ -469,11 +485,14 @@ public class ProxyExchange<T> {
 	 * that it would have been for a <code>@RequestBody</code>.
 	 * @return the request body
 	 */
-	private Mono<Object> getRequestBody() {
+	private @Nullable Mono<Object> getRequestBody() {
 		for (String key : bindingContext.getModel().asMap().keySet()) {
 			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 				BindingResult result = (BindingResult) bindingContext.getModel().asMap().get(key);
-				return Mono.just(result.getTarget());
+				Object target = result.getTarget();
+				if (target != null) {
+					return Mono.just(target);
+				}
 			}
 		}
 		return null;
@@ -490,7 +509,7 @@ public class ProxyExchange<T> {
 	protected static class BodySender {
 
 		@ResponseBody
-		public Publisher<Object> body() {
+		public @Nullable Publisher<Object> body() {
 			return null;
 		}
 

@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.ReflectionHints;
@@ -106,7 +107,7 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 		return classesToAdd.stream().filter(Objects::nonNull).collect(Collectors.toSet());
 	}
 
-	private static void addEnclosingClassesForClass(Set<Class<?>> enclosingClasses, Class<?> clazz) {
+	private static void addEnclosingClassesForClass(Set<Class<?>> enclosingClasses, @Nullable Class<?> clazz) {
 		if (clazz == null) {
 			return;
 		}

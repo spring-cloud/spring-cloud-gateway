@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotEmpty;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpCookie;
 import org.springframework.web.server.ServerWebExchange;
@@ -55,7 +56,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 			@Override
 			public boolean test(ServerWebExchange exchange) {
 				List<HttpCookie> cookies = exchange.getRequest().getCookies().get(config.name);
-				if (cookies == null) {
+				if (cookies == null || config.regexp == null) {
 					return false;
 				}
 				return cookies.stream().anyMatch(cookie -> cookie.getValue().matches(config.regexp));
@@ -76,12 +77,12 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 	public static class Config {
 
 		@NotEmpty
-		private String name;
+		private @Nullable String name;
 
 		@NotEmpty
-		private String regexp;
+		private @Nullable String regexp;
 
-		public String getName() {
+		public @Nullable String getName() {
 			return name;
 		}
 
@@ -90,7 +91,7 @@ public class CookieRoutePredicateFactory extends AbstractRoutePredicateFactory<C
 			return this;
 		}
 
-		public String getRegexp() {
+		public @Nullable String getRegexp() {
 			return regexp;
 		}
 

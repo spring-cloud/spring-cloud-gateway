@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import jakarta.servlet.http.Cookie;
@@ -34,7 +35,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.DelegatingServerHttpResponse;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -60,10 +60,10 @@ final class GatewayStreamingServerResponse extends AbstractGatewayServerResponse
 
 	static ServerResponse create(HttpStatusCode statusCode, HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
 			Consumer<StreamBuilder> streamConsumer, @Nullable Duration timeout) {
-		Assert.notNull(statusCode, "statusCode must not be null");
-		Assert.notNull(headers, "headers must not be null");
-		Assert.notNull(cookies, "cookies must not be null");
-		Assert.notNull(streamConsumer, "streamConsumer must not be null");
+		Objects.requireNonNull(statusCode, "statusCode must not be null");
+		Objects.requireNonNull(headers, "headers must not be null");
+		Objects.requireNonNull(cookies, "cookies must not be null");
+		Objects.requireNonNull(streamConsumer, "streamConsumer must not be null");
 		return new GatewayStreamingServerResponse(statusCode, headers, cookies, streamConsumer, timeout);
 	}
 
@@ -110,7 +110,7 @@ final class GatewayStreamingServerResponse extends AbstractGatewayServerResponse
 
 		@Override
 		public StreamBuilder write(Object object, @Nullable MediaType mediaType) throws IOException {
-			Assert.notNull(object, "data must not be null");
+			Objects.requireNonNull(object, "data must not be null");
 			try {
 				if (object instanceof byte[] bytes) {
 					this.outputMessage.getBody().write(bytes);

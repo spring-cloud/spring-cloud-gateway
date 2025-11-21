@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.event.EnableBodyCachingEvent;
 import org.springframework.cloud.gateway.support.AbstractConfigurable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +31,7 @@ import org.springframework.context.ApplicationEventPublisherAware;
 public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurable<C>
 		implements GatewayFilterFactory<C>, ApplicationEventPublisherAware {
 
-	private ApplicationEventPublisher publisher;
+	private @Nullable ApplicationEventPublisher publisher;
 
 	@SuppressWarnings("unchecked")
 	public AbstractGatewayFilterFactory() {
@@ -40,11 +42,11 @@ public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurab
 		super(configClass);
 	}
 
-	protected ApplicationEventPublisher getPublisher() {
+	protected @Nullable ApplicationEventPublisher getPublisher() {
 		return this.publisher;
 	}
 
-	protected void enableBodyCaching(String routeId) {
+	protected void enableBodyCaching(@Nullable String routeId) {
 		if (routeId != null && getPublisher() != null) {
 			// send an event to enable caching
 			getPublisher().publishEvent(new EnableBodyCachingEvent(this, routeId));
@@ -58,9 +60,9 @@ public abstract class AbstractGatewayFilterFactory<C> extends AbstractConfigurab
 
 	public static class NameConfig {
 
-		private String name;
+		private @Nullable String name;
 
-		public String getName() {
+		public @Nullable String getName() {
 			return name;
 		}
 

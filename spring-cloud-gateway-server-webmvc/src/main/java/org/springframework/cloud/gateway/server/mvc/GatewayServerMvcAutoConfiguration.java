@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -130,6 +131,7 @@ public class GatewayServerMvcAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Conditional(TrustedProxies.ForwardedTrustedProxiesCondition.class)
 	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter(GatewayMvcProperties properties) {
+		Objects.requireNonNull(properties.getTrustedProxies(), "trustedProxies must not be null");
 		return new ForwardedRequestHeadersFilter(properties.getTrustedProxies());
 	}
 
@@ -207,6 +209,7 @@ public class GatewayServerMvcAutoConfiguration {
 	@Conditional(TrustedProxies.XForwardedTrustedProxiesCondition.class)
 	public XForwardedRequestHeadersFilter xForwardedRequestHeadersFilter(XForwardedRequestHeadersFilterProperties props,
 			GatewayMvcProperties gatewayMvcProperties) {
+		Objects.requireNonNull(gatewayMvcProperties.getTrustedProxies(), "trustedProxies must not be null");
 		return new XForwardedRequestHeadersFilter(props, gatewayMvcProperties.getTrustedProxies());
 	}
 

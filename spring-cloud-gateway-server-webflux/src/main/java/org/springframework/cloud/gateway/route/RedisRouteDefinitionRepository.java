@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -63,15 +65,19 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
-		return route.flatMap(routeDefinition -> routeDefinitionReactiveValueOperations
-			.set(createKey(routeDefinition.getId()), routeDefinition)
-			.flatMap(success -> {
-				if (success) {
-					return Mono.empty();
-				}
-				return Mono.defer(() -> Mono.error(new RuntimeException(
-						String.format("Could not add route to redis repository: %s", routeDefinition))));
-			}));
+		return route.flatMap(routeDefinition -> {
+			Objects.requireNonNull(routeDefinition.getId(), "id may not be null");
+			return routeDefinitionReactiveValueOperations.set(createKey(routeDefinition.getId()), routeDefinition)
+				.flatMap(success -> {
+					if (success) {
+						return Mono.empty();
+					}
+					return Mono.defer(() -> Mono.error(new RuntimeException(
+							String.format("Could not add route to redis repository: %s", routeDefinition))));
+
+				});
+		});
+
 	}
 
 	@Override

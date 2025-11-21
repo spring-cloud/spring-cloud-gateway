@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.Collections;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -65,7 +66,9 @@ public class SetRequestHostHeaderGatewayFilterFactory
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this).append(config.getHost())
+				String host = config.getHost();
+				return filterToStringCreator(SetRequestHostHeaderGatewayFilterFactory.this)
+					.append(host != null ? host : "")
 					.toString();
 			}
 		};
@@ -73,9 +76,9 @@ public class SetRequestHostHeaderGatewayFilterFactory
 
 	public static class Config {
 
-		private String host;
+		private @Nullable String host;
 
-		public String getHost() {
+		public @Nullable String getHost() {
 			return host;
 		}
 

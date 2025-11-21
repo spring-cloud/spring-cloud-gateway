@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.handler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -42,6 +43,7 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 	@Override
 	public ServerResponse exchange(Request request) {
 		try {
+			Objects.requireNonNull(request.getUri(), "uri is required");
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
 			clientHttpRequest.getHeaders().putAll(request.getHeaders());
 			// copy body from request to clientHttpRequest
@@ -58,6 +60,7 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 						// modified.
 						InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
 								MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+						Objects.requireNonNull(inputStream, "input stream cannot be null");
 						// copy body from request to clientHttpRequest
 						ClientHttpRequestFactoryProxyExchange.this.copyResponseBody(clientHttpResponse, inputStream,
 								httpServletResponse.getOutputStream());

@@ -17,6 +17,9 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Map;
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -107,7 +110,7 @@ public class RequestRateLimiterGatewayFilterFactory
 			String routeId = config.getRouteId();
 			if (routeId == null) {
 				Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-				routeId = route.getId();
+				routeId = Objects.requireNonNull(route, "Route not found").getId();
 			}
 			return limiter.isAllowed(routeId, key).flatMap(response -> {
 
@@ -125,25 +128,25 @@ public class RequestRateLimiterGatewayFilterFactory
 		});
 	}
 
-	private <T> T getOrDefault(T configValue, T defaultValue) {
+	private <T> T getOrDefault(@Nullable T configValue, T defaultValue) {
 		return (configValue != null) ? configValue : defaultValue;
 	}
 
 	public static class Config implements HasRouteId {
 
-		private KeyResolver keyResolver;
+		private @Nullable KeyResolver keyResolver;
 
-		private RateLimiter rateLimiter;
+		private @Nullable RateLimiter rateLimiter;
 
 		private HttpStatus statusCode = HttpStatus.TOO_MANY_REQUESTS;
 
-		private Boolean denyEmptyKey;
+		private @Nullable Boolean denyEmptyKey;
 
-		private String emptyKeyStatus;
+		private @Nullable String emptyKeyStatus;
 
-		private String routeId;
+		private @Nullable String routeId;
 
-		public KeyResolver getKeyResolver() {
+		public @Nullable KeyResolver getKeyResolver() {
 			return keyResolver;
 		}
 
@@ -152,7 +155,7 @@ public class RequestRateLimiterGatewayFilterFactory
 			return this;
 		}
 
-		public RateLimiter getRateLimiter() {
+		public @Nullable RateLimiter getRateLimiter() {
 			return rateLimiter;
 		}
 
@@ -170,7 +173,7 @@ public class RequestRateLimiterGatewayFilterFactory
 			return this;
 		}
 
-		public Boolean getDenyEmptyKey() {
+		public @Nullable Boolean getDenyEmptyKey() {
 			return denyEmptyKey;
 		}
 
@@ -179,7 +182,7 @@ public class RequestRateLimiterGatewayFilterFactory
 			return this;
 		}
 
-		public String getEmptyKeyStatus() {
+		public @Nullable String getEmptyKeyStatus() {
 			return emptyKeyStatus;
 		}
 
@@ -194,7 +197,7 @@ public class RequestRateLimiterGatewayFilterFactory
 		}
 
 		@Override
-		public String getRouteId() {
+		public @Nullable String getRouteId() {
 			return this.routeId;
 		}
 

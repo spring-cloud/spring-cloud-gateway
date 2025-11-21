@@ -22,10 +22,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -102,6 +104,7 @@ public class ResponseCacheManager {
 		final ServerHttpResponse response = exchange.getResponse();
 		final CachedResponseMetadata metadata = new CachedResponseMetadata(response.getHeaders().getVary());
 		final String key = resolveKey(exchange, metadata.varyOnHeaders());
+		Objects.requireNonNull(response.getStatusCode(), "Response status code must not be null");
 		CachedResponse.Builder cachedResponseBuilder = CachedResponse.create(response.getStatusCode())
 			.headers(response.getHeaders());
 		CachedResponse toProcess = cachedResponseBuilder.build();
@@ -152,7 +155,7 @@ public class ResponseCacheManager {
 			.writeWith(Flux.fromIterable(cachedResponse.body()).map(data -> response.bufferFactory().wrap(data)));
 	}
 
-	private CachedResponseMetadata retrieveMetadata(String metadataKey) {
+	private @Nullable CachedResponseMetadata retrieveMetadata(String metadataKey) {
 		CachedResponseMetadata metadata;
 		try {
 			metadata = cache.get(metadataKey, CachedResponseMetadata.class);

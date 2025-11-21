@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,6 +34,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplier.ArgumentSuppliedEvent;
 import org.springframework.cloud.gateway.server.mvc.common.AttributedArugmentSuppliedEvent;
@@ -59,7 +61,7 @@ public class WeightCalculatorFilter implements Filter, Ordered, SmartApplication
 
 	private static final Log log = LogFactory.getLog(WeightCalculatorFilter.class);
 
-	private Supplier<Double> randomSupplier = null;
+	private @Nullable Supplier<Double> randomSupplier = null;
 
 	private int order = WEIGHT_CALC_FILTER_ORDER;
 
@@ -99,7 +101,7 @@ public class WeightCalculatorFilter implements Filter, Ordered, SmartApplication
 	}
 
 	@Override
-	public boolean supportsSourceType(Class<?> sourceType) {
+	public boolean supportsSourceType(@Nullable Class<?> sourceType) {
 		return true;
 	}
 
@@ -111,6 +113,7 @@ public class WeightCalculatorFilter implements Filter, Ordered, SmartApplication
 				if (weightConfig.getRouteId() == null
 						&& argumentSuppliedEvent instanceof AttributedArugmentSuppliedEvent<?> attributed) {
 					String routeId = (String) attributed.getAttributes().get(MvcUtils.GATEWAY_ROUTE_ID_ATTR);
+					Objects.requireNonNull(routeId, "routeId is required for WeightConfig");
 					weightConfig.setRouteId(routeId);
 				}
 
@@ -119,7 +122,8 @@ public class WeightCalculatorFilter implements Filter, Ordered, SmartApplication
 		}
 	}
 
-	/* for testing */ void addWeightConfig(WeightConfig weightConfig) {
+	@SuppressWarnings("NullAway")
+	/* for testing */ void addWeightConfig(@Nullable WeightConfig weightConfig) {
 		// Assert.hasText(weightConfig.getRouteId(), "routeId is required");
 
 		String group = weightConfig.getGroup();

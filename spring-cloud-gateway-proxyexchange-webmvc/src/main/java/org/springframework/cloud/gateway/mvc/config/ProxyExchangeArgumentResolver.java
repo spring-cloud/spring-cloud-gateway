@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -75,8 +76,10 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
+		Objects.requireNonNull(binderFactory, "WebDataBinderFactory is required");
+		Objects.requireNonNull(mavContainer, "ModelAndViewContainer is required");
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
@@ -94,12 +97,15 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
 		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+		Objects.requireNonNull(nativeRequest, "HttpServletRequest is required");
 		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
 		HttpHeaders headers = new HttpHeaders();
-		while (headerNames.hasMoreElements()) {
-			String header = headerNames.nextElement();
-			if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
-				headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+		if (headerNames != null && autoForwardedHeaders != null) {
+			while (headerNames.hasMoreElements()) {
+				String header = headerNames.nextElement();
+				if (this.autoForwardedHeaders.contains(header.toLowerCase(Locale.ROOT))) {
+					headers.addAll(header, Collections.list(nativeRequest.getHeaders(header)));
+				}
 			}
 		}
 		return headers;

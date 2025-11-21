@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -50,7 +51,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -88,7 +88,7 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 
 	@Override
 	public EntityResponse.Builder<T> status(HttpStatusCode status) {
-		Assert.notNull(status, "HttpStatusCode must not be null");
+		Objects.requireNonNull(status, "HttpStatusCode must not be null");
 		this.status = status;
 		return this;
 	}
@@ -100,7 +100,7 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 
 	@Override
 	public EntityResponse.Builder<T> cookie(Cookie cookie) {
-		Assert.notNull(cookie, "Cookie must not be null");
+		Objects.requireNonNull(cookie, "Cookie must not be null");
 		this.cookies.add(cookie.getName(), cookie);
 		return this;
 	}
@@ -239,8 +239,8 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 		}
 
 		@Override
-		protected ModelAndView writeToInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-				Context context) throws ServletException, IOException {
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest servletRequest,
+				HttpServletResponse servletResponse, Context context) throws ServletException, IOException {
 
 			writeEntityWithMessageConverters(this.entity, servletRequest, servletResponse, context);
 			return null;
@@ -336,8 +336,8 @@ final class GatewayEntityResponseBuilder<T> implements EntityResponse.Builder<T>
 		}
 
 		@Override
-		protected ModelAndView writeToInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-				Context context) throws ServletException, IOException {
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest servletRequest,
+				HttpServletResponse servletResponse, Context context) throws ServletException, IOException {
 
 			DeferredResult<ServerResponse> deferredResult = createDeferredResult(servletRequest, servletResponse,
 					context);

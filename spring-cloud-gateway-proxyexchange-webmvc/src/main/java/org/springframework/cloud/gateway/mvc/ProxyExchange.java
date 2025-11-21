@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
@@ -45,6 +46,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
@@ -138,11 +140,11 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
  */
 public class ProxyExchange<T> {
 
-	private URI uri;
+	private @Nullable URI uri;
 
 	private RestTemplate rest;
 
-	private Object body;
+	private @Nullable Object body;
 
 	private RequestResponseBodyMethodProcessor delegate;
 
@@ -152,7 +154,7 @@ public class ProxyExchange<T> {
 
 	private WebDataBinderFactory binderFactory;
 
-	private Set<String> excluded;
+	private @Nullable Set<String> excluded;
 
 	private HttpHeaders headers = new HttpHeaders();
 
@@ -246,13 +248,16 @@ public class ProxyExchange<T> {
 		}
 	}
 
-	public String path() {
+	public @Nullable String path() {
 		return (String) this.webRequest.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
 				WebRequest.SCOPE_REQUEST);
 	}
 
-	public String path(String prefix) {
+	public @Nullable String path(String prefix) {
 		String path = path();
+		if (path == null) {
+			return null;
+		}
 		if (!path.startsWith(prefix)) {
 			throw new IllegalArgumentException("Path does not start with prefix (" + prefix + "): " + path);
 		}
@@ -263,6 +268,8 @@ public class ProxyExchange<T> {
 		HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
 		HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
 		try {
+			Objects.requireNonNull(request, "HttpServletRequest is required");
+			Objects.requireNonNull(response, "HttpServletResponse is required");
 			request.getRequestDispatcher(path)
 				.forward(new BodyForwardingHttpServletRequest(request, response), response);
 		}
@@ -272,8 +279,15 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> get() {
-		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).body(body());
-		return exchange(requestEntity);
+		Objects.requireNonNull(this.uri, "URI is required");
+		Object body = body();
+		BodyBuilder builder = headers((BodyBuilder) RequestEntity.get(uri));
+		if (body != null) {
+			return exchange(builder.body(body));
+		}
+		else {
+			return exchange(builder.build());
+		}
 	}
 
 	public <S> ResponseEntity<S> get(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -281,6 +295,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> head() {
+		Objects.requireNonNull(this.uri, "URI is required");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -290,6 +305,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> options() {
+		Objects.requireNonNull(this.uri, "URI is required");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -299,8 +315,15 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> post() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.post(uri)).body(body());
-		return exchange(requestEntity);
+		Objects.requireNonNull(this.uri, "URI is required");
+		Object body = body();
+		BodyBuilder builder = headers(RequestEntity.post(uri));
+		if (body != null) {
+			return exchange(builder.body(body));
+		}
+		else {
+			return exchange(builder.build());
+		}
 	}
 
 	public <S> ResponseEntity<S> post(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -308,8 +331,15 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> delete() {
-		RequestEntity<Object> requestEntity = headers((BodyBuilder) RequestEntity.delete(uri)).body(body());
-		return exchange(requestEntity);
+		Objects.requireNonNull(this.uri, "URI is required");
+		Object body = body();
+		BodyBuilder builder = headers((BodyBuilder) RequestEntity.delete(uri));
+		if (body != null) {
+			return exchange(builder.body(body));
+		}
+		else {
+			return exchange(builder.build());
+		}
 	}
 
 	public <S> ResponseEntity<S> delete(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -317,8 +347,15 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> put() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.put(uri)).body(body());
-		return exchange(requestEntity);
+		Objects.requireNonNull(this.uri, "URI is required");
+		Object body = body();
+		BodyBuilder builder = headers(RequestEntity.put(uri));
+		if (body != null) {
+			return exchange(builder.body(body));
+		}
+		else {
+			return exchange(builder.build());
+		}
 	}
 
 	public <S> ResponseEntity<S> put(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -326,8 +363,15 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> patch() {
-		RequestEntity<Object> requestEntity = headers(RequestEntity.patch(uri)).body(body());
-		return exchange(requestEntity);
+		Objects.requireNonNull(this.uri, "URI is required");
+		Object body = body();
+		BodyBuilder builder = headers(RequestEntity.patch(uri));
+		if (body != null) {
+			return exchange(builder.body(body));
+		}
+		else {
+			return exchange(builder.build());
+		}
 	}
 
 	public <S> ResponseEntity<S> patch(Function<ResponseEntity<T>, ResponseEntity<S>> converter) {
@@ -354,7 +398,10 @@ public class ProxyExchange<T> {
 	private BodyBuilder headers(BodyBuilder builder) {
 		proxy();
 		for (String name : filterHeaderKeys(headers)) {
-			builder.header(name, headers.get(name).toArray(new String[0]));
+			List<String> values = headers.get(name);
+			if (values != null) {
+				builder.header(name, values.toArray(new String[0]));
+			}
 		}
 		builder.headers(this::addHeaders);
 		return builder;
@@ -372,14 +419,15 @@ public class ProxyExchange<T> {
 	}
 
 	private void proxy() {
+		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
+		Objects.requireNonNull(request, "Request is required");
 		try {
-			URI uri = new URI(webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL().toString());
+			URI uri = new URI(request.getRequestURL().toString());
 			appendForwarded(uri);
 			appendXForwarded(uri);
 		}
 		catch (URISyntaxException e) {
-			throw new IllegalStateException("Cannot create URI for request: "
-					+ webRequest.getNativeRequest(HttpServletRequest.class).getRequestURL());
+			throw new IllegalStateException("Cannot create URI for request: " + request.getRequestURL());
 		}
 	}
 
@@ -407,7 +455,10 @@ public class ProxyExchange<T> {
 		else {
 			forwarded = "";
 		}
-		forwarded = forwarded + forwarded(uri, webRequest.getHeader("host"));
+		String forwardedHeader = webRequest.getHeader("host");
+		if (forwardedHeader != null) {
+			forwarded = forwarded + forwarded(uri, forwardedHeader);
+		}
 		headers.set("forwarded", forwarded);
 	}
 
@@ -421,7 +472,7 @@ public class ProxyExchange<T> {
 		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
 	}
 
-	private Object body() {
+	private @Nullable Object body() {
 		if (body != null) {
 			return body;
 		}
@@ -435,7 +486,7 @@ public class ProxyExchange<T> {
 	 * that it would have been for a <code>@RequestBody</code>.
 	 * @return the request body
 	 */
-	private Object getRequestBody() {
+	private @Nullable Object getRequestBody() {
 		for (String key : mavContainer.getModel().keySet()) {
 			if (key.startsWith(BindingResult.MODEL_KEY_PREFIX)) {
 				BindingResult result = (BindingResult) mavContainer.getModel().get(key);
@@ -451,6 +502,9 @@ public class ProxyExchange<T> {
 		}
 		String name = Conventions.getVariableNameForParameter(input);
 		BindingResult result = (BindingResult) mavContainer.getModel().get(BindingResult.MODEL_KEY_PREFIX + name);
+		if (result == null) {
+			return null;
+		}
 		return result.getTarget();
 	}
 
@@ -465,7 +519,7 @@ public class ProxyExchange<T> {
 	protected static class BodySender {
 
 		@ResponseBody
-		public Object body() {
+		public @Nullable Object body() {
 			return null;
 		}
 
@@ -489,9 +543,8 @@ public class ProxyExchange<T> {
 			this.response = response;
 		}
 
-		private List<String> header(String name) {
-			List<String> list = headers.get(name);
-			return list;
+		private @Nullable List<String> header(String name) {
+			return headers.get(name);
 		}
 
 		@Override

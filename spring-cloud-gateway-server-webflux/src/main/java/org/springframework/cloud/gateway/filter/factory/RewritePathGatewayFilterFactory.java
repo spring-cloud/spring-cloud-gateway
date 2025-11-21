@@ -18,8 +18,10 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -59,8 +61,10 @@ public class RewritePathGatewayFilterFactory
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		String replacement = config.replacement.replace("$\\", "$");
-		Pattern pattern = Pattern.compile(config.regexp);
+		String replacementValue = Objects.requireNonNull(config.replacement, "replacement must not be null");
+		String replacement = replacementValue.replace("$\\", "$");
+		String regexpValue = Objects.requireNonNull(config.regexp, "regexp must not be null");
+		Pattern pattern = Pattern.compile(regexpValue);
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -78,8 +82,9 @@ public class RewritePathGatewayFilterFactory
 
 			@Override
 			public String toString() {
+				String regexp = config.getRegexp();
 				return filterToStringCreator(RewritePathGatewayFilterFactory.this)
-					.append(config.getRegexp(), replacement)
+					.append(regexp != null ? regexp : "", replacement)
 					.toString();
 			}
 		};
@@ -87,11 +92,11 @@ public class RewritePathGatewayFilterFactory
 
 	public static class Config {
 
-		private String regexp;
+		private @Nullable String regexp;
 
-		private String replacement;
+		private @Nullable String replacement;
 
-		public String getRegexp() {
+		public @Nullable String getRegexp() {
 			return regexp;
 		}
 
@@ -101,12 +106,12 @@ public class RewritePathGatewayFilterFactory
 			return this;
 		}
 
-		public String getReplacement() {
+		public @Nullable String getReplacement() {
 			return replacement;
 		}
 
 		public Config setReplacement(String replacement) {
-			Assert.notNull(replacement, "replacement must not be null");
+			Objects.requireNonNull(replacement, "replacement must not be null");
 			this.replacement = replacement;
 			return this;
 		}

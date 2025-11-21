@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.util.Objects;
+
 import org.springframework.boot.web.server.context.WebServerApplicationContext;
 import org.springframework.cloud.client.discovery.event.HeartbeatEvent;
 import org.springframework.cloud.client.discovery.event.HeartbeatMonitor;
@@ -27,7 +29,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.Assert;
 
 // see ZuulDiscoveryRefreshListener
 // TODO: make abstract class in commons?
@@ -38,7 +39,7 @@ public class RouteRefreshListener implements ApplicationListener<ApplicationEven
 	private HeartbeatMonitor monitor = new HeartbeatMonitor();
 
 	public RouteRefreshListener(ApplicationEventPublisher publisher) {
-		Assert.notNull(publisher, "publisher may not be null");
+		Objects.requireNonNull(publisher, "publisher may not be null");
 		this.publisher = publisher;
 	}
 

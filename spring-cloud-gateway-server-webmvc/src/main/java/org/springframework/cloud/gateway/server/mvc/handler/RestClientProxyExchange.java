@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -40,6 +41,7 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 
 	@Override
 	public ServerResponse exchange(Request request) {
+		Objects.requireNonNull(request.getUri(), "uri cannot be null");
 		RestClient.RequestBodySpec requestSpec = restClient.method(request.getMethod())
 			.uri(request.getUri())
 			.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
@@ -74,6 +76,7 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 					// modified.
 					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
 							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+					Objects.requireNonNull(inputStream, "input stream cannot be null");
 					// copy body from request to clientHttpRequest
 					RestClientProxyExchange.this.copyResponseBody(clientResponse, inputStream,
 							httpServletResponse.getOutputStream());

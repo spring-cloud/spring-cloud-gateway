@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -59,14 +61,20 @@ public class MapRequestHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				if (!exchange.getRequest().getHeaders().containsHeader(config.getFromHeader())) {
+				String fromHeader = Objects.requireNonNull(config.getFromHeader(), "fromHeader must be set");
+				String toHeader = Objects.requireNonNull(config.getToHeader(), "toHeader must be set");
+				if (!exchange.getRequest().getHeaders().containsHeader(fromHeader)) {
 					return chain.filter(exchange);
 				}
-				List<String> headerValues = exchange.getRequest().getHeaders().get(config.getFromHeader());
+				List<String> headerValues = exchange.getRequest().getHeaders().get(fromHeader);
+
+				if (headerValues == null) {
+					return chain.filter(exchange);
+				}
 
 				ServerHttpRequest request = exchange.getRequest()
 					.mutate()
-					.headers(i -> i.addAll(config.getToHeader(), headerValues))
+					.headers(i -> i.addAll(toHeader, headerValues))
 					.build();
 
 				return chain.filter(exchange.mutate().request(request).build());
@@ -75,9 +83,11 @@ public class MapRequestHeaderGatewayFilterFactory
 			@Override
 			public String toString() {
 				// @formatter:off
+				String fromHeader = config.getFromHeader();
+				String toHeader = config.getToHeader();
 				return filterToStringCreator(MapRequestHeaderGatewayFilterFactory.this)
-						.append(FROM_HEADER_KEY, config.getFromHeader())
-						.append(TO_HEADER_KEY, config.getToHeader())
+						.append(FROM_HEADER_KEY, fromHeader != null ? fromHeader : "")
+						.append(TO_HEADER_KEY, toHeader != null ? toHeader : "")
 						.toString();
 				// @formatter:on
 			}
@@ -86,11 +96,11 @@ public class MapRequestHeaderGatewayFilterFactory
 
 	public static class Config {
 
-		private String fromHeader;
+		private @Nullable String fromHeader;
 
-		private String toHeader;
+		private @Nullable String toHeader;
 
-		public String getFromHeader() {
+		public @Nullable String getFromHeader() {
 			return this.fromHeader;
 		}
 
@@ -99,7 +109,7 @@ public class MapRequestHeaderGatewayFilterFactory
 			return this;
 		}
 
-		public String getToHeader() {
+		public @Nullable String getToHeader() {
 			return this.toHeader;
 		}
 

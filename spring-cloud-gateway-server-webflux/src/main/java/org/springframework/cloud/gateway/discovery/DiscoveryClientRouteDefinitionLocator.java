@@ -21,10 +21,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.client.ServiceInstance;
@@ -56,7 +58,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 	private final SimpleEvaluationContext evalCtxt;
 
-	private Flux<List<ServiceInstance>> serviceInstances;
+	private @Nullable Flux<List<ServiceInstance>> serviceInstances;
 
 	public DiscoveryClientRouteDefinitionLocator(ReactiveDiscoveryClient discoveryClient,
 			DiscoveryLocatorProperties properties) {
@@ -96,7 +98,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				return include;
 			};
 		}
-
+		Objects.requireNonNull(serviceInstances, "serviceInstances must be set");
 		return serviceInstances.filter(instances -> !instances.isEmpty())
 			.flatMap(Flux::fromIterable)
 			.filter(includePredicate)
@@ -110,20 +112,28 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 				for (PredicateDefinition original : this.properties.getPredicates()) {
 					PredicateDefinition predicate = new PredicateDefinition();
-					predicate.setName(original.getName());
+					if (original.getName() != null) {
+						predicate.setName(original.getName());
+					}
 					for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
 						String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
-						predicate.addArg(entry.getKey(), value);
+						if (value != null) {
+							predicate.addArg(entry.getKey(), value);
+						}
 					}
 					routeDefinition.getPredicates().add(predicate);
 				}
 
 				for (FilterDefinition original : this.properties.getFilters()) {
 					FilterDefinition filter = new FilterDefinition();
-					filter.setName(original.getName());
+					if (original.getName() != null) {
+						filter.setName(original.getName());
+					}
 					for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {
 						String value = getValueFromExpr(evalCtxt, parser, instanceForEval, entry);
-						filter.addArg(entry.getKey(), value);
+						if (value != null) {
+							filter.addArg(entry.getKey(), value);
+						}
 					}
 					routeDefinition.getFilters().add(filter);
 				}
@@ -137,14 +147,16 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		RouteDefinition routeDefinition = new RouteDefinition();
 		routeDefinition.setId(this.routeIdPrefix + serviceId);
 		String uri = urlExpr.getValue(this.evalCtxt, serviceInstance, String.class);
-		routeDefinition.setUri(URI.create(uri));
+		if (uri != null) {
+			routeDefinition.setUri(URI.create(uri));
+		}
 		// add instance metadata
 		routeDefinition.setMetadata(new LinkedHashMap<>(serviceInstance.getMetadata()));
 		return routeDefinition;
 	}
 
-	String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser, ServiceInstance instance,
-			Map.Entry<String, String> entry) {
+	private @Nullable String getValueFromExpr(SimpleEvaluationContext evalCtxt, SpelExpressionParser parser,
+			ServiceInstance instance, Map.Entry<String, String> entry) {
 		try {
 			Expression valueExpr = parser.parseExpression(entry.getValue());
 			return valueExpr.getValue(evalCtxt, instance, String.class);
@@ -202,7 +214,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		}
 
 		@Override
-		public String getScheme() {
+		public @Nullable String getScheme() {
 			return delegate.getScheme();
 		}
 

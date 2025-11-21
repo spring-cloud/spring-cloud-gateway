@@ -20,7 +20,9 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -55,7 +57,8 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 
 	@Override
 	public GatewayFilter apply(Config config) {
-		UriTemplate uriTemplate = new UriTemplate(config.template);
+		String template = Objects.requireNonNull(config.template, "template must not be null");
+		UriTemplate uriTemplate = new UriTemplate(template);
 
 		return new GatewayFilter() {
 			@Override
@@ -85,9 +88,9 @@ public class SetPathGatewayFilterFactory extends AbstractGatewayFilterFactory<Se
 
 	public static class Config {
 
-		private String template;
+		private @Nullable String template;
 
-		public String getTemplate() {
+		public @Nullable String getTemplate() {
 			return template;
 		}
 

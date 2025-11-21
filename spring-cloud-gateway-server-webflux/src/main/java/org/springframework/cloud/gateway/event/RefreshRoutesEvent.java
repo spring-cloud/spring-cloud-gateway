@@ -33,7 +33,8 @@ public class RefreshRoutesEvent extends ApplicationEvent {
 	 * @param source the object on which the event initially occurred (never {@code null})
 	 */
 	public RefreshRoutesEvent(Object source) {
-		this(source, null);
+		super(source);
+		metadata = Map.of();
 	}
 
 	/**

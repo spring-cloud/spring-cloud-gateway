@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.core.Ordered;
@@ -48,7 +49,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(ForwardedHeadersFilter.class);
 
-	private Integer serverPort;
+	private @Nullable Integer serverPort;
 
 	private final Log logger = LogFactory.getLog(getClass());
 
@@ -82,14 +83,16 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			String[] forwardedValues = StringUtils.tokenizeToStringArray(value, ",");
 			for (String forwardedValue : forwardedValues) {
 				Forwarded forwarded = parse(forwardedValue);
-				forwardeds.add(forwarded);
+				if (forwarded != null) {
+					forwardeds.add(forwarded);
+				}
 			}
 		}
 		return forwardeds;
 	}
 
 	/* for testing */
-	static Forwarded parse(String value) {
+	static @Nullable Forwarded parse(String value) {
 		String[] pairs = StringUtils.tokenizeToStringArray(value, ";");
 
 		LinkedCaseInsensitiveMap<String> result = splitIntoCaseInsensitiveMap(pairs);
@@ -102,7 +105,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return forwarded;
 	}
 
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
+	/* for testing */ static @Nullable LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
 		if (ObjectUtils.isEmpty(pairs)) {
 			return null;
 		}
@@ -152,11 +155,16 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			}
 		}
 
-		List<Forwarded> forwardeds = parse(original.get(FORWARDED_HEADER));
+		List<String> forwardedHeaders = original.get(FORWARDED_HEADER);
+		if (forwardedHeaders == null) {
+			forwardedHeaders = List.of();
+		}
+		List<Forwarded> forwardeds = parse(forwardedHeaders);
 
 		for (Forwarded f : forwardeds) {
 			// only add if "for" value matches trustedProxies
-			if (trustedProxies.isTrusted(f.get("for"))) {
+			String forValue = f.get("for");
+			if (forValue != null && trustedProxies.isTrusted(forValue)) {
 				updated.add(FORWARDED_HEADER, f.toHeaderValue());
 			}
 		}
@@ -164,7 +172,10 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		// TODO: add new forwarded
 		URI uri = request.getURI();
 		String host = original.getFirst(HttpHeaders.HOST);
-		Forwarded forwarded = new Forwarded().put("host", host).put("proto", uri.getScheme());
+		Forwarded forwarded = new Forwarded().put("proto", uri.getScheme());
+		if (host != null) {
+			forwarded.put("host", host);
+		}
 
 		InetSocketAddress remoteAddress = request.getRemoteAddress();
 		// TODO: only add if "remoteAddress" value matches trustedProxies
@@ -251,7 +262,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			return s;
 		}
 
-		public String get(String key) {
+		public @Nullable String get(String key) {
 			return this.values.get(key);
 		}
 
@@ -267,7 +278,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		public String toHeaderValue() {
 			StringBuilder builder = new StringBuilder();
 			for (Map.Entry<String, String> entry : this.values.entrySet()) {
-				if (builder.length() > 0) {
+				if (!builder.isEmpty()) {
 					builder.append(SEMICOLON);
 				}
 				builder.append(entry.getKey()).append(EQUALS).append(entry.getValue());

@@ -27,6 +27,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.validation.annotation.Validated;
 
@@ -41,7 +42,7 @@ public class RouteProperties {
 	/**
 	 * The Route ID.
 	 */
-	private String id;
+	private @Nullable String id;
 
 	/**
 	 * List of predicates for matching the Route.
@@ -60,7 +61,7 @@ public class RouteProperties {
 	 * The destination URI.
 	 */
 	@NotNull
-	private URI uri;
+	private @Nullable URI uri;
 
 	/**
 	 * Metadata associated with the Route.
@@ -93,7 +94,7 @@ public class RouteProperties {
 		}
 	}
 
-	public String getId() {
+	public @Nullable String getId() {
 		return id;
 	}
 
@@ -117,7 +118,7 @@ public class RouteProperties {
 		this.filters = filters;
 	}
 
-	public URI getUri() {
+	public @Nullable URI getUri() {
 		return uri;
 	}
 

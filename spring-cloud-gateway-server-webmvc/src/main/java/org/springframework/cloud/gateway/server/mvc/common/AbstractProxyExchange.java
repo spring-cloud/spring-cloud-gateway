@@ -19,11 +19,11 @@ package org.springframework.cloud.gateway.server.mvc.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 
 public abstract class AbstractProxyExchange implements ProxyExchange {
@@ -36,9 +36,9 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 
 	protected int copyResponseBody(ClientHttpResponse clientResponse, InputStream inputStream,
 			OutputStream outputStream) throws IOException {
-		Assert.notNull(clientResponse, "No ClientResponse specified");
-		Assert.notNull(inputStream, "No InputStream specified");
-		Assert.notNull(outputStream, "No OutputStream specified");
+		Objects.requireNonNull(clientResponse, "No ClientResponse specified");
+		Objects.requireNonNull(inputStream, "No InputStream specified");
+		Objects.requireNonNull(outputStream, "No OutputStream specified");
 
 		int transferredBytes;
 

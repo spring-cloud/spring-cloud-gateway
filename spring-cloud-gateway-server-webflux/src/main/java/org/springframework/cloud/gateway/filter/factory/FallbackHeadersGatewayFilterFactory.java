@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -59,18 +61,23 @@ public class FallbackHeadersGatewayFilterFactory
 
 	private ServerWebExchange addFallbackHeaders(Config config, ServerWebExchange exchange,
 			Throwable executionException) {
+
 		ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-		requestBuilder.header(config.executionExceptionTypeHeaderName, executionException.getClass().getName());
-		requestBuilder.header(config.executionExceptionMessageHeaderName, executionException.getMessage());
+		requestBuilder.header(config.getExecutionExceptionMessageHeaderName(), executionException.getClass().getName());
+		String executionMessage = executionException.getMessage();
+		requestBuilder.header(config.getExecutionExceptionMessageHeaderName(),
+				executionMessage != null ? executionMessage : "");
 		Throwable rootCause = getRootCause(executionException);
 		if (rootCause != null) {
-			requestBuilder.header(config.rootCauseExceptionTypeHeaderName, rootCause.getClass().getName());
-			requestBuilder.header(config.rootCauseExceptionMessageHeaderName, rootCause.getMessage());
+			requestBuilder.header(config.getRootCauseExceptionTypeHeaderName(), rootCause.getClass().getName());
+			String rootCauseMessage = rootCause.getMessage();
+			requestBuilder.header(config.getRootCauseExceptionMessageHeaderName(),
+					rootCauseMessage != null ? rootCauseMessage : "");
 		}
 		return exchange.mutate().request(requestBuilder.build()).build();
 	}
 
-	private static Throwable getRootCause(final Throwable throwable) {
+	private static @Nullable Throwable getRootCause(final Throwable throwable) {
 		final List<Throwable> list = getThrowableList(throwable);
 		return list.isEmpty() ? null : list.get(list.size() - 1);
 	}

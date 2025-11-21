@@ -21,11 +21,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import jakarta.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -93,13 +95,13 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	private Log log = LogFactory.getLog(getClass());
 
-	private ReactiveStringRedisTemplate redisTemplate;
+	private @Nullable ReactiveStringRedisTemplate redisTemplate;
 
-	private RedisScript<List<Long>> script;
+	private @Nullable RedisScript<List<Long>> script;
 
 	private AtomicBoolean initialized = new AtomicBoolean(false);
 
-	private Config defaultConfig;
+	private @Nullable Config defaultConfig;
 
 	// configuration properties
 	/**
@@ -151,6 +153,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity, int defaultRequestedTokens) {
 		this(defaultReplenishRate, defaultBurstCapacity);
+		Objects.requireNonNull(this.defaultConfig, "defaultConfig may not be null");
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
 	}
 
@@ -226,7 +229,9 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		}
 	}
 
-	/* for testing */ Config getDefaultConfig() {
+	@SuppressWarnings("NullAway")
+	/* for testing */
+	Config getDefaultConfig() {
 		return defaultConfig;
 	}
 
@@ -259,6 +264,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 			// The arguments to the LUA script. time() returns unixtime in seconds.
 			List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "", "", requestedTokens + "");
 			// allowed, tokens_left = redis.eval(SCRIPT, keys, args)
+			Objects.requireNonNull(this.redisTemplate, "redisTemplate may not be null");
+			Objects.requireNonNull(this.script, "script may not be null");
 			Flux<List<Long>> flux = this.redisTemplate.execute(this.script, keys, scriptArgs);
 			// .log("redisratelimiter", Level.FINER);
 			return flux.onErrorResume(throwable -> {
@@ -290,6 +297,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return Mono.just(new Response(true, getHeaders(routeConfig, -1L)));
 	}
 
+	@SuppressWarnings("NullAway")
 	/* for testing */ Config loadConfiguration(String routeId) {
 		Config routeConfig = getConfig().getOrDefault(routeId, defaultConfig);
 

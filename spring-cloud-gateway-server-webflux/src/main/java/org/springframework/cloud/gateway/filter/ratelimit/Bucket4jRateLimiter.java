@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -33,12 +34,12 @@ import io.github.bucket4j.distributed.AsyncBucketProxy;
 import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.Assert;
 
 public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter.Config> {
 
@@ -130,20 +131,20 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 
 		Function<Config, BucketConfiguration> configurationBuilder = DEFAULT_CONFIGURATION_BUILDER;
 
-		Supplier<CompletableFuture<BucketConfiguration>> configurationSupplier;
+		protected @Nullable Supplier<CompletableFuture<BucketConfiguration>> configurationSupplier;
 
 		String headerName = DEFAULT_HEADER_NAME;
 
-		Duration refillPeriod;
+		protected @Nullable Duration refillPeriod;
 
 		RefillStyle refillStyle = RefillStyle.GREEDY;
 
-		Long refillTokens;
+		protected @Nullable Long refillTokens;
 
 		long requestedTokens = 1;
 
 		// for RefillStyle.INTERVALLY_ALIGNED
-		Instant timeOfFirstRefill;
+		protected @Nullable Instant timeOfFirstRefill;
 
 		public long getCapacity() {
 			return capacity;
@@ -159,7 +160,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public void setConfigurationBuilder(Function<Config, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -171,7 +172,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public void setConfigurationSupplier(Function<Config, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -180,12 +181,12 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public Config setHeaderName(String headerName) {
-			Assert.notNull(headerName, "headerName may not be null");
+			Objects.requireNonNull(headerName, "headerName may not be null");
 			this.headerName = headerName;
 			return this;
 		}
 
-		public Duration getRefillPeriod() {
+		public @Nullable Duration getRefillPeriod() {
 			return refillPeriod;
 		}
 
@@ -203,7 +204,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Long getRefillTokens() {
+		public @Nullable Long getRefillTokens() {
 			return refillTokens;
 		}
 
@@ -221,7 +222,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 			return this;
 		}
 
-		public Instant getTimeOfFirstRefill() {
+		public @Nullable Instant getTimeOfFirstRefill() {
 			return timeOfFirstRefill;
 		}
 

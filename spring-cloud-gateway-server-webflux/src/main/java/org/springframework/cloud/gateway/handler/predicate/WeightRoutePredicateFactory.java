@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.event.WeightDefinedEvent;
 import org.springframework.cloud.gateway.support.WeightConfig;
@@ -53,7 +54,7 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 
 	private static final Log log = LogFactory.getLog(WeightRoutePredicateFactory.class);
 
-	private ApplicationEventPublisher publisher;
+	private @Nullable ApplicationEventPublisher publisher;
 
 	public WeightRoutePredicateFactory() {
 		super(WeightConfig.class);
@@ -89,6 +90,10 @@ public class WeightRoutePredicateFactory extends AbstractRoutePredicateFactory<W
 				Map<String, String> weights = exchange.getAttributeOrDefault(WEIGHT_ATTR, Collections.emptyMap());
 
 				String routeId = exchange.getAttribute(GATEWAY_PREDICATE_ROUTE_ATTR);
+
+				if (routeId == null) {
+					return false;
+				}
 
 				// all calculations and comparison against random num happened in
 				// WeightCalculatorWebFilter

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -199,7 +200,7 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory
 
 		private String locationHeaderName = HttpHeaders.LOCATION;
 
-		private String hostValue;
+		private @Nullable String hostValue;
 
 		private String protocols = DEFAULT_PROTOCOLS;
 
@@ -225,7 +226,7 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory
 			return this;
 		}
 
-		public String getHostValue() {
+		public @Nullable String getHostValue() {
 			return hostValue;
 		}
 

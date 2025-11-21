@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Function;
 
 import io.github.bucket4j.BucketConfiguration;
@@ -75,9 +76,11 @@ public class FilterAutoConfiguration {
 
 		@Bean
 		public Function<RouteProperties, HandlerFunctionDefinition> lbHandlerFunctionDefinition() {
-			return routeProperties -> new HandlerFunctionDefinition.Default("lb", HandlerFunctions.http(),
-					Collections.emptyList(),
-					Collections.singletonList(LoadBalancerFilterFunctions.lb(routeProperties.getUri().getHost())));
+			return routeProperties -> {
+				Objects.requireNonNull(routeProperties.getUri(), "routeProperties.uri must not be null");
+				return new HandlerFunctionDefinition.Default("lb", HandlerFunctions.http(), Collections.emptyList(),
+						Collections.singletonList(LoadBalancerFilterFunctions.lb(routeProperties.getUri().getHost())));
+			};
 		}
 
 	}

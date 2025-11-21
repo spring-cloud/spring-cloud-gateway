@@ -4,11 +4,10 @@ test:
 
 my.timeout: 3000
 
-server:
-  error:
-    include-message: always
-
 spring:
+  web:
+    error:
+      include-message: always
   profiles:
     group:
       - logging

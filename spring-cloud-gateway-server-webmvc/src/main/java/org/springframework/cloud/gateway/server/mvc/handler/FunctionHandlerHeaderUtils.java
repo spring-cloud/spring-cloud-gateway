@@ -16,13 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.messaging.MessageHeaders;
@@ -83,7 +84,7 @@ public final class FunctionHandlerHeaderUtils {
 			List<String> value = request.get(name);
 			name = name.toLowerCase(Locale.ROOT);
 			if (!IGNORED.containsHeader(name) && !REQUEST_ONLY.containsHeader(name) && !ignoredHeders.contains(name)
-					&& !requestOnlyHeaders.contains(name)) {
+					&& !requestOnlyHeaders.contains(name) && value != null) {
 				result.put(name, value);
 			}
 		}
@@ -109,8 +110,11 @@ public final class FunctionHandlerHeaderUtils {
 		return new MessageHeaders(map);
 	}
 
-	private static Collection<?> multi(Object value) {
-		return value instanceof Collection ? (Collection<?>) value : Arrays.asList(value);
+	private static Collection<?> multi(@Nullable Object value) {
+		if (value == null) {
+			return Collections.emptyList();
+		}
+		return value instanceof Collection ? (Collection<?>) value : List.of(value);
 	}
 
 }

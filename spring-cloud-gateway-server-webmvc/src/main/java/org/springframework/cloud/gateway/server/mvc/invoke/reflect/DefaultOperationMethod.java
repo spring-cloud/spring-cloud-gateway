@@ -17,11 +17,11 @@
 package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.util.Assert;
 
 /**
  * Information describing an operation method on an endpoint method.
@@ -43,7 +43,7 @@ public class DefaultOperationMethod implements OperationMethod {
 	 * @param method the source method
 	 */
 	public DefaultOperationMethod(Method method) {
-		Assert.notNull(method, "Method must not be null");
+		Objects.requireNonNull(method, "Method must not be null");
 		this.method = method;
 		this.operationParameters = new OperationMethodParameters(method, DEFAULT_PARAMETER_NAME_DISCOVERER);
 	}

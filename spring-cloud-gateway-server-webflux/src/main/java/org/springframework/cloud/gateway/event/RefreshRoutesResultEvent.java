@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.event;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -23,7 +25,7 @@ import org.springframework.context.ApplicationEvent;
  */
 public class RefreshRoutesResultEvent extends ApplicationEvent {
 
-	private Throwable throwable;
+	private @Nullable Throwable throwable;
 
 	public RefreshRoutesResultEvent(Object source, Throwable throwable) {
 		super(source);
@@ -34,7 +36,7 @@ public class RefreshRoutesResultEvent extends ApplicationEvent {
 		super(source);
 	}
 
-	public Throwable getThrowable() {
+	public @Nullable Throwable getThrowable() {
 		return throwable;
 	}
 

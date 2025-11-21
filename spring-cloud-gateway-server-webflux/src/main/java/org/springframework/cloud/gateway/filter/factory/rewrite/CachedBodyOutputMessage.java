@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -40,7 +41,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
 	private boolean cached = false;
 
-	private Flux<DataBuffer> body = null;
+	private @Nullable Flux<DataBuffer> body = null;
 
 	public CachedBodyOutputMessage(ServerWebExchange exchange, HttpHeaders httpHeaders) {
 		this.bufferFactory = exchange.getResponse().bufferFactory();

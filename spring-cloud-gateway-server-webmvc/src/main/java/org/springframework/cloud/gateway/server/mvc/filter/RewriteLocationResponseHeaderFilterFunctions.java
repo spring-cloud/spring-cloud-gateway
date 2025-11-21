@@ -20,6 +20,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -162,7 +164,7 @@ public abstract class RewriteLocationResponseHeaderFilterFunctions {
 
 		private String locationHeaderName = HttpHeaders.LOCATION;
 
-		private String hostValue;
+		private @Nullable String hostValue;
 
 		private String protocolsRegex = DEFAULT_PROTOCOLS;
 
@@ -193,7 +195,7 @@ public abstract class RewriteLocationResponseHeaderFilterFunctions {
 			return this;
 		}
 
-		public String getHostValue() {
+		public @Nullable String getHostValue() {
 			return hostValue;
 		}
 

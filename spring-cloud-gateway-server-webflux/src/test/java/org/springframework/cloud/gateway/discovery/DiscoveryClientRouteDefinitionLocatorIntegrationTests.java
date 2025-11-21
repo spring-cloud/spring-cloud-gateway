@@ -80,7 +80,7 @@ public class DiscoveryClientRouteDefinitionLocatorIntegrationTests {
 
 	}
 
-	private static class TestDiscoveryClient implements ReactiveDiscoveryClient {
+	private static final class TestDiscoveryClient implements ReactiveDiscoveryClient {
 
 		AtomicBoolean single = new AtomicBoolean(true);
 
