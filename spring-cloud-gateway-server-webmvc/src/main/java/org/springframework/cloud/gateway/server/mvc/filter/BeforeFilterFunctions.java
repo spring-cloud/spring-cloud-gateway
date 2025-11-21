@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -242,7 +243,7 @@ public abstract class BeforeFilterFunctions {
 	}
 
 	public static Function<ServerRequest, ServerRequest> requestHeaderSize(DataSize maxSize, String errorHeaderName) {
-		Assert.notNull(maxSize, "maxSize may not be null");
+		Objects.requireNonNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		Assert.hasText(errorHeaderName, "errorHeaderName may not be empty");
 		return request -> {
@@ -300,7 +301,7 @@ public abstract class BeforeFilterFunctions {
 	}
 
 	public static Function<ServerRequest, ServerRequest> requestSize(DataSize maxSize) {
-		Assert.notNull(maxSize, "maxSize may not be null");
+		Objects.requireNonNull(maxSize, "maxSize may not be null");
 		Assert.isTrue(maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		return request -> {
 			if (request.headers().asHttpHeaders().containsHeader(HttpHeaders.CONTENT_LENGTH)) {

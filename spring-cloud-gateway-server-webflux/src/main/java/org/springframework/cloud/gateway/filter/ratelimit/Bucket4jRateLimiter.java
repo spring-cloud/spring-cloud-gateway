@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,7 +40,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.Assert;
 
 public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter.Config> {
 
@@ -160,7 +160,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public void setConfigurationBuilder(Function<Config, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -172,7 +172,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public void setConfigurationSupplier(Function<Config, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -181,7 +181,7 @@ public class Bucket4jRateLimiter extends AbstractRateLimiter<Bucket4jRateLimiter
 		}
 
 		public Config setHeaderName(String headerName) {
-			Assert.notNull(headerName, "headerName may not be null");
+			Objects.requireNonNull(headerName, "headerName may not be null");
 			this.headerName = headerName;
 			return this;
 		}

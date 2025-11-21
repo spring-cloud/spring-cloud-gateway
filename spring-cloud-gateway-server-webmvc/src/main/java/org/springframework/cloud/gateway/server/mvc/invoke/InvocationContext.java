@@ -20,10 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
-
-import org.springframework.util.Assert;
 
 /**
  * The context for the {@link OperationInvoker invocation of an operation}.
@@ -46,7 +45,7 @@ public class InvocationContext {
 	 * the operation.
 	 */
 	public InvocationContext(Map<String, Object> arguments, OperationArgumentResolver... argumentResolvers) {
-		Assert.notNull(arguments, "Arguments must not be null");
+		Objects.requireNonNull(arguments, "Arguments must not be null");
 		this.arguments = arguments;
 		this.argumentResolvers = new ArrayList<>();
 		if (argumentResolvers != null) {

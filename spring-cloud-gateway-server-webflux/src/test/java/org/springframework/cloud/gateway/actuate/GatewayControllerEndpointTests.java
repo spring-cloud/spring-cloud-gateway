@@ -834,7 +834,7 @@ public class GatewayControllerEndpointTests {
 
 	}
 
-	private static class TestFilterGatewayFilterFactory extends AbstractGatewayFilterFactory {
+	private static final class TestFilterGatewayFilterFactory extends AbstractGatewayFilterFactory {
 
 		@Override
 		public GatewayFilter apply(Object config) {

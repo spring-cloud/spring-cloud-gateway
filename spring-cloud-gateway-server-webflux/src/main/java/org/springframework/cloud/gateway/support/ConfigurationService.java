@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -131,7 +132,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 		@Override
 		protected void validate() {
-			Assert.notNull(this.configurable, "configurable may not be null");
+			Objects.requireNonNull(this.configurable, "configurable may not be null");
 		}
 
 		@Override
@@ -170,7 +171,7 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 
 		@Override
 		protected void validate() {
-			Assert.notNull(this.instance, "instance may not be null");
+			Objects.requireNonNull(this.instance, "instance may not be null");
 		}
 
 		@Override

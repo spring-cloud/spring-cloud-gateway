@@ -30,7 +30,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.util.Assert;
 
 /**
  * {@link OperationParameters} created from an {@link OperationMethod}.
@@ -47,8 +46,8 @@ class OperationMethodParameters implements OperationParameters {
 	 * @param parameterNameDiscoverer the parameter name discoverer
 	 */
 	OperationMethodParameters(Method method, ParameterNameDiscoverer parameterNameDiscoverer) {
-		Assert.notNull(method, "Method must not be null");
-		Assert.notNull(parameterNameDiscoverer, "ParameterNameDiscoverer must not be null");
+		Objects.requireNonNull(method, "Method must not be null");
+		Objects.requireNonNull(parameterNameDiscoverer, "ParameterNameDiscoverer must not be null");
 		@Nullable String @Nullable [] parameterNames = parameterNameDiscoverer.getParameterNames(method);
 		Parameter[] parameters = method.getParameters();
 		this.operationParameters = getOperationParameters(parameters, parameterNames);

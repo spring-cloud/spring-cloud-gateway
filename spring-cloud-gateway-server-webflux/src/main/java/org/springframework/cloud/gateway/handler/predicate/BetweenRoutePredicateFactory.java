@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +54,7 @@ public class BetweenRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
-		Assert.notNull(config.getDatetime1(), DATETIME1_KEY + " must not be null");
+		Objects.requireNonNull(config.getDatetime1(), DATETIME1_KEY + " must not be null");
 		Assert.isTrue(config.getDatetime1().isBefore(config.getDatetime2()),
 				config.getDatetime1() + " must be before " + config.getDatetime2());
 

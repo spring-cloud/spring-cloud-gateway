@@ -30,7 +30,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -91,7 +90,7 @@ public class CacheRequestBodyGatewayFilterFactory
 					}).then(Mono.defer(() -> {
 						ServerHttpRequest cachedRequest = exchange
 							.getAttribute(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
-						Assert.notNull(cachedRequest, "cache request shouldn't be null");
+						Objects.requireNonNull(cachedRequest, "cache request shouldn't be null");
 						exchange.getAttributes().remove(CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR);
 						return chain.filter(exchange.mutate().request(cachedRequest).build()).doFinally(s -> {
 							//

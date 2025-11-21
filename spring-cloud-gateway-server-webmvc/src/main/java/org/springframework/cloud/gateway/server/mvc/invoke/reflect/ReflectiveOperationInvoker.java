@@ -29,7 +29,6 @@ import org.springframework.cloud.gateway.server.mvc.invoke.OperationInvoker;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -71,9 +70,9 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 	 */
 	public ReflectiveOperationInvoker(@Nullable Object target, OperationMethod operationMethod,
 			ParameterValueMapper parameterValueMapper) {
-		// Assert.notNull(target, "Target must not be null");
-		Assert.notNull(operationMethod, "OperationMethod must not be null");
-		Assert.notNull(parameterValueMapper, "ParameterValueMapper must not be null");
+		// Objects.requireNonNull(target, "Target must not be null");
+		Objects.requireNonNull(operationMethod, "OperationMethod must not be null");
+		Objects.requireNonNull(parameterValueMapper, "ParameterValueMapper must not be null");
 		ReflectionUtils.makeAccessible(operationMethod.getMethod());
 		this.target = target;
 		this.operationMethod = operationMethod;

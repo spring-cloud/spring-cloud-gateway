@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.logging.Log;
@@ -42,7 +43,6 @@ import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -144,8 +144,8 @@ public abstract class MvcUtils {
 	}
 
 	public static String expand(ServerRequest request, String template) {
-		Assert.notNull(request, "request may not be null");
-		Assert.notNull(template, "template may not be null");
+		Objects.requireNonNull(request, "request may not be null");
+		Objects.requireNonNull(template, "template may not be null");
 
 		if (template.indexOf('{') == -1) { // short circuit
 			return template;

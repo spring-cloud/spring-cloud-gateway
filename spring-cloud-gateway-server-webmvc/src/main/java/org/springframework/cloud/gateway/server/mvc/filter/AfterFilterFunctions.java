@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -69,7 +70,7 @@ public abstract class AfterFilterFunctions {
 	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> dedupeResponseHeader(String name,
 			DedupeStrategy strategy) {
 		Assert.hasText(name, "name must not be null or empty");
-		Assert.notNull(strategy, "strategy must not be null");
+		Objects.requireNonNull(strategy, "strategy must not be null");
 		return (request, response) -> {
 			dedupeHeaders(response.headers(), name, strategy);
 			return response;

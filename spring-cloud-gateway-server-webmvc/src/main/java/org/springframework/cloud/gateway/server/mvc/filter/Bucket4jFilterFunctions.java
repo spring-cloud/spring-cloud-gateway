@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -131,7 +132,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public void setConfigurationBuilder(Function<RateLimitConfig, BucketConfiguration> configurationBuilder) {
-			Assert.notNull(configurationBuilder, "configurationBuilder may not be null");
+			Objects.requireNonNull(configurationBuilder, "configurationBuilder may not be null");
 			this.configurationBuilder = configurationBuilder;
 		}
 
@@ -158,7 +159,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public RateLimitConfig setKeyResolver(Function<ServerRequest, String> keyResolver) {
-			Assert.notNull(keyResolver, "keyResolver may not be null");
+			Objects.requireNonNull(keyResolver, "keyResolver may not be null");
 			this.keyResolver = keyResolver;
 			return this;
 		}
@@ -196,7 +197,7 @@ public abstract class Bucket4jFilterFunctions {
 		}
 
 		public RateLimitConfig setHeaderName(String headerName) {
-			Assert.notNull(headerName, "headerName may not be null");
+			Objects.requireNonNull(headerName, "headerName may not be null");
 			this.headerName = headerName;
 			return this;
 		}

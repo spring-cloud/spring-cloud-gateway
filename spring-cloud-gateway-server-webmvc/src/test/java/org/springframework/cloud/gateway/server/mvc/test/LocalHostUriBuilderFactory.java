@@ -21,11 +21,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -67,8 +67,8 @@ public class LocalHostUriBuilderFactory implements UriBuilderFactory {
 	 * @since 1.4.1
 	 */
 	public LocalHostUriBuilderFactory(Environment environment, String scheme) {
-		Assert.notNull(environment, "Environment must not be null");
-		Assert.notNull(scheme, "Scheme must not be null");
+		Objects.requireNonNull(environment, "Environment must not be null");
+		Objects.requireNonNull(scheme, "Scheme must not be null");
 		this.environment = environment;
 		this.scheme = scheme;
 	}

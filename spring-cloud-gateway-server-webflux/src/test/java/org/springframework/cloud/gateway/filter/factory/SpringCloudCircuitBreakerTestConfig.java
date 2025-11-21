@@ -158,7 +158,7 @@ public class SpringCloudCircuitBreakerTestConfig {
 		return route(GET("/circuitbreakerExceptionFallback"), exceptionFallbackHandler::retrieveExceptionInfo);
 	}
 
-	private static class CircuitBreakerExceptionFallbackHandler {
+	private static final class CircuitBreakerExceptionFallbackHandler {
 
 		static final String RETRIEVED_EXCEPTION = "Retrieved-Exception";
 

@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.test.support;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,7 +94,7 @@ public abstract class AbstractHttpServer implements HttpServer {
 
 	@Override
 	public final void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.host, "Host must not be null");
+		Objects.requireNonNull(this.host, "Host must not be null");
 		Assert.isTrue(this.port >= 0, "Port must not be a negative number");
 		Assert.isTrue(this.httpHandler != null || this.handlerMap != null, "No HttpHandler configured");
 		Assert.state(!this.running, "Cannot reconfigure while running");

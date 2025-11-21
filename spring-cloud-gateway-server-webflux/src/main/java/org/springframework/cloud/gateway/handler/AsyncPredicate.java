@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -25,7 +26,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
 import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -89,7 +89,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		private final AsyncPredicate<? super T> predicate;
 
 		public NegateAsyncPredicate(AsyncPredicate<? super T> predicate) {
-			Assert.notNull(predicate, "predicate AsyncPredicate must not be null");
+			Objects.requireNonNull(predicate, "predicate AsyncPredicate must not be null");
 			this.predicate = predicate;
 		}
 
@@ -112,8 +112,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		private final AsyncPredicate<? super T> right;
 
 		public AndAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
-			Assert.notNull(left, "Left AsyncPredicate must not be null");
-			Assert.notNull(right, "Right AsyncPredicate must not be null");
+			Objects.requireNonNull(left, "Left AsyncPredicate must not be null");
+			Objects.requireNonNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
 			this.right = right;
 		}
@@ -143,8 +143,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		private final AsyncPredicate<? super T> right;
 
 		public OrAsyncPredicate(AsyncPredicate<? super T> left, AsyncPredicate<? super T> right) {
-			Assert.notNull(left, "Left AsyncPredicate must not be null");
-			Assert.notNull(right, "Right AsyncPredicate must not be null");
+			Objects.requireNonNull(left, "Left AsyncPredicate must not be null");
+			Objects.requireNonNull(right, "Right AsyncPredicate must not be null");
 			this.left = left;
 			this.right = right;
 		}

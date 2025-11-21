@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import jakarta.validation.constraints.NotBlank;
@@ -76,7 +77,7 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 				if (config.parsedVersion == null) {
 					Assert.state(apiVersionStrategy != null, "No ApiVersionStrategy to parse version with");
 					String version = config.version;
-					Assert.notNull(version, "version must not be null");
+					Objects.requireNonNull(version, "version must not be null");
 					config.parsedVersion = apiVersionStrategy.parseVersion(version);
 				}
 

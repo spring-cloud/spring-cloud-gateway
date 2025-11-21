@@ -18,11 +18,11 @@ package org.springframework.cloud.gateway.filter.ratelimit;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.support.StatefulConfigurable;
-import org.springframework.util.Assert;
 
 /**
  * @author Spencer Gibb
@@ -42,7 +42,7 @@ public interface RateLimiter<C> extends StatefulConfigurable<C> {
 		public Response(boolean allowed, Map<String, String> headers) {
 			this.allowed = allowed;
 			this.tokensRemaining = -1;
-			Assert.notNull(headers, "headers may not be null");
+			Objects.requireNonNull(headers, "headers may not be null");
 			this.headers = headers;
 		}
 

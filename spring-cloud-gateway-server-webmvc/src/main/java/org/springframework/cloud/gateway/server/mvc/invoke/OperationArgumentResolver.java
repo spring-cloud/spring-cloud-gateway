@@ -16,11 +16,10 @@
 
 package org.springframework.cloud.gateway.server.mvc.invoke;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
-
-import org.springframework.util.Assert;
 
 /**
  * Resolver for an argument of an {@link Operation}.
@@ -55,8 +54,8 @@ public interface OperationArgumentResolver {
 	 * @return an {@link OperationArgumentResolver} instance
 	 */
 	static <T> OperationArgumentResolver of(Class<T> type, Supplier<? extends T> supplier) {
-		Assert.notNull(type, "Type must not be null");
-		Assert.notNull(supplier, "Supplier must not be null");
+		Objects.requireNonNull(type, "Type must not be null");
+		Objects.requireNonNull(supplier, "Supplier must not be null");
 		return new OperationArgumentResolver() {
 
 			@Override

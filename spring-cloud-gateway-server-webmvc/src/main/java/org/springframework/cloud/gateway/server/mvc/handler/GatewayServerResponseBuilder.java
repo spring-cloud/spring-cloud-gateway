@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -36,7 +37,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
@@ -57,14 +57,14 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 	private final MultiValueMap<String, Cookie> cookies = new LinkedMultiValueMap<>();
 
 	GatewayServerResponseBuilder(ServerResponse other) {
-		Assert.notNull(other, "ServerResponse must not be null");
+		Objects.requireNonNull(other, "ServerResponse must not be null");
 		this.statusCode = other.statusCode();
 		this.headers.addAll(other.headers());
 		this.cookies.addAll(other.cookies());
 	}
 
 	GatewayServerResponseBuilder(HttpStatusCode status) {
-		Assert.notNull(status, "HttpStatusCode must not be null");
+		Objects.requireNonNull(status, "HttpStatusCode must not be null");
 		this.statusCode = status;
 	}
 
@@ -84,7 +84,7 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 
 	@Override
 	public ServerResponse.BodyBuilder cookie(Cookie cookie) {
-		Assert.notNull(cookie, "Cookie must not be null");
+		Objects.requireNonNull(cookie, "Cookie must not be null");
 		this.cookies.add(cookie.getName(), cookie);
 		return this;
 	}
@@ -221,7 +221,7 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 				WriteFunction writeFunction) {
 
 			super(statusCode, headers, cookies);
-			Assert.notNull(writeFunction, "WriteFunction must not be null");
+			Objects.requireNonNull(writeFunction, "WriteFunction must not be null");
 			this.writeFunction = writeFunction;
 		}
 

@@ -21,13 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 @ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.remove-hop-by-hop")
@@ -54,7 +54,7 @@ public class RemoveHopByHopHeadersFilter implements HttpHeadersFilter, Ordered {
 	}
 
 	public void setHeaders(Set<String> headers) {
-		Assert.notNull(headers, "headers may not be null");
+		Objects.requireNonNull(headers, "headers may not be null");
 		this.headers = headers.stream().map(String::toLowerCase).collect(Collectors.toSet());
 	}
 

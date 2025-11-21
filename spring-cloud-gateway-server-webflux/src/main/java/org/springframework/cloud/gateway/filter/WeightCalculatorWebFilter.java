@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -45,7 +46,6 @@ import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.log.LogMessage;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -104,12 +104,12 @@ public class WeightCalculatorWebFilter implements WebFilter, Ordered, SmartAppli
 	}
 
 	public void setRandomSupplier(Supplier<Double> randomSupplier) {
-		Assert.notNull(randomSupplier, "randomSupplier may not be null");
+		Objects.requireNonNull(randomSupplier, "randomSupplier may not be null");
 		this.randomFunction = exchange -> randomSupplier.get();
 	}
 
 	public void setRandomFunction(Function<ServerWebExchange, Double> randomFunction) {
-		Assert.notNull(randomFunction, "randomFunction may not be null");
+		Objects.requireNonNull(randomFunction, "randomFunction may not be null");
 		this.randomFunction = randomFunction;
 	}
 

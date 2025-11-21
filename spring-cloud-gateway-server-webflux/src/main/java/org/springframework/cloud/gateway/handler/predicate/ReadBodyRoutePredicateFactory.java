@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
@@ -29,7 +30,6 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.codec.HttpMessageReader;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -90,7 +90,7 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 					return Mono.just(false);
 				}
 				else {
-					Assert.notNull(inClass, "inClass must not be null");
+					Objects.requireNonNull(inClass, "inClass must not be null");
 					return ServerWebExchangeUtils.cacheRequestBodyAndRequest(exchange,
 							(serverHttpRequest) -> ServerRequest
 								.create(exchange.mutate().request(serverHttpRequest).build(), messageReaders)

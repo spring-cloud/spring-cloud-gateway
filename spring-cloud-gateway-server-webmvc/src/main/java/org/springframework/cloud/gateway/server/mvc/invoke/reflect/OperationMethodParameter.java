@@ -80,7 +80,7 @@ class OperationMethodParameter implements OperationParameter {
 		return this.name + " of type " + this.parameter.getType().getName();
 	}
 
-	private static class Jsr305 {
+	private static final class Jsr305 {
 
 		boolean isMandatory(Parameter parameter) {
 			MergedAnnotation<Nonnull> annotation = MergedAnnotations.from(parameter).get(Nonnull.class);

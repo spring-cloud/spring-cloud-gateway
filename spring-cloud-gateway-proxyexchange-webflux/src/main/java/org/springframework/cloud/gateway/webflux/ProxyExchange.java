@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -41,7 +42,6 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -246,7 +246,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> get() {
-		Assert.notNull(uri, "URI must not be null");
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.get(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -256,7 +256,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> head() {
-		Assert.notNull(uri, "URI must not be null");
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -266,7 +266,7 @@ public class ProxyExchange<T> {
 	}
 
 	public Mono<ResponseEntity<T>> options() {
-		Assert.notNull(uri, "URI must not be null");
+		Objects.requireNonNull(uri, "URI must not be null");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -296,7 +296,7 @@ public class ProxyExchange<T> {
 	}
 
 	private Mono<ResponseEntity<T>> doExchange(Function<URI, RequestEntity.BodyBuilder> getBodyBuilder) {
-		Assert.notNull(uri, "URI must not be null");
+		Objects.requireNonNull(uri, "URI must not be null");
 		BodyBuilder bodyBuilder = headers(getBodyBuilder.apply(uri));
 		Publisher<?> body = body();
 		RequestEntity<?> requestEntity = body != null ? bodyBuilder.body(body) : bodyBuilder.build();
@@ -369,7 +369,7 @@ public class ProxyExchange<T> {
 
 	private Mono<ResponseEntity<T>> exchange(RequestEntity<?> requestEntity) {
 		Type type = this.responseType;
-		Assert.notNull(requestEntity.getMethod(), "Method must not be null");
+		Objects.requireNonNull(requestEntity.getMethod(), "Method must not be null");
 		RequestBodySpec builder = rest.method(requestEntity.getMethod())
 			.uri(requestEntity.getUrl())
 			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));

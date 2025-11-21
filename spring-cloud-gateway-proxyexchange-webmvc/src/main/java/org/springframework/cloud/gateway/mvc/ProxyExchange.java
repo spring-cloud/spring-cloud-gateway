@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
 import java.util.function.Function;
@@ -56,7 +57,6 @@ import org.springframework.http.RequestEntity.BodyBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
@@ -268,8 +268,8 @@ public class ProxyExchange<T> {
 		HttpServletRequest request = this.webRequest.getNativeRequest(HttpServletRequest.class);
 		HttpServletResponse response = this.webRequest.getNativeResponse(HttpServletResponse.class);
 		try {
-			Assert.notNull(request, "HttpServletRequest is required");
-			Assert.notNull(response, "HttpServletResponse is required");
+			Objects.requireNonNull(request, "HttpServletRequest is required");
+			Objects.requireNonNull(response, "HttpServletResponse is required");
 			request.getRequestDispatcher(path)
 				.forward(new BodyForwardingHttpServletRequest(request, response), response);
 		}
@@ -279,7 +279,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> get() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		Object body = body();
 		BodyBuilder builder = headers((BodyBuilder) RequestEntity.get(uri));
 		if (body != null) {
@@ -295,7 +295,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> head() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.head(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -305,7 +305,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> options() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		RequestEntity<?> requestEntity = headers((BodyBuilder) RequestEntity.options(uri)).build();
 		return exchange(requestEntity);
 	}
@@ -315,7 +315,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> post() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		Object body = body();
 		BodyBuilder builder = headers(RequestEntity.post(uri));
 		if (body != null) {
@@ -331,7 +331,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> delete() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		Object body = body();
 		BodyBuilder builder = headers((BodyBuilder) RequestEntity.delete(uri));
 		if (body != null) {
@@ -347,7 +347,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> put() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		Object body = body();
 		BodyBuilder builder = headers(RequestEntity.put(uri));
 		if (body != null) {
@@ -363,7 +363,7 @@ public class ProxyExchange<T> {
 	}
 
 	public ResponseEntity<T> patch() {
-		Assert.notNull(this.uri, "URI is required");
+		Objects.requireNonNull(this.uri, "URI is required");
 		Object body = body();
 		BodyBuilder builder = headers(RequestEntity.patch(uri));
 		if (body != null) {
@@ -420,7 +420,7 @@ public class ProxyExchange<T> {
 
 	private void proxy() {
 		HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
-		Assert.notNull(request, "Request is required");
+		Objects.requireNonNull(request, "Request is required");
 		try {
 			URI uri = new URI(request.getRequestURL().toString());
 			appendForwarded(uri);

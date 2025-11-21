@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -456,7 +457,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 
 		public void validate() {
-			Assert.notNull(this.firstBackoff, "firstBackoff must be present");
+			Objects.requireNonNull(this.firstBackoff, "firstBackoff must be present");
 		}
 
 		public Duration getFirstBackoff() {

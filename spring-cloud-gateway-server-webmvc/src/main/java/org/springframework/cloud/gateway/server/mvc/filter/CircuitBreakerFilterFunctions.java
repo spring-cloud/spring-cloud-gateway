@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -157,7 +158,7 @@ public abstract class CircuitBreakerFilterFunctions {
 		}
 
 		public CircuitBreakerConfig setFallbackUri(String fallbackUri) {
-			Assert.notNull(fallbackUri, "fallbackUri String may not be null");
+			Objects.requireNonNull(fallbackUri, "fallbackUri String may not be null");
 			setFallbackUri(URI.create(fallbackUri));
 			return this;
 		}

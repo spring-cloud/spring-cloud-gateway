@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +26,6 @@ import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.Ordered;
-import org.springframework.util.Assert;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -73,7 +73,7 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 			log.trace("Forwarding to URI: " + requestUrl);
 		}
 		DispatcherHandler handler = getDispatcherHandler();
-		Assert.notNull(handler, "DispatcherHandler must not be null");
+		Objects.requireNonNull(handler, "DispatcherHandler must not be null");
 		return handle(handler, exchange);
 	}
 

@@ -16,11 +16,11 @@
 
 package org.springframework.cloud.gateway.support.tagsprovider;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import io.micrometer.core.instrument.Tags;
 
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.web.server.ServerWebExchange;
 public interface GatewayTagsProvider extends Function<ServerWebExchange, Tags> {
 
 	default GatewayTagsProvider and(GatewayTagsProvider other) {
-		Assert.notNull(other, "other must not be null");
+		Objects.requireNonNull(other, "other must not be null");
 
 		return exchange -> other.apply(exchange).and(apply(exchange));
 	}

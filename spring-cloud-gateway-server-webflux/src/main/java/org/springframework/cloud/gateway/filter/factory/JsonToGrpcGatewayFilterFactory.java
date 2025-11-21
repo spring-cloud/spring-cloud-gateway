@@ -69,7 +69,6 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.codec.json.JacksonJsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
-import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -224,7 +223,7 @@ public class JsonToGrpcGatewayFilterFactory
 
 		private Descriptors.MethodDescriptor getMethodDescriptor(Config config)
 				throws IOException, Descriptors.DescriptorValidationException {
-			Assert.notNull(config.getProtoDescriptor(), "Proto Descriptor must not be null");
+			Objects.requireNonNull(config.getProtoDescriptor(), "Proto Descriptor must not be null");
 			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
 			DescriptorProtos.FileDescriptorSet fileDescriptorSet = DescriptorProtos.FileDescriptorSet
 				.parseFrom(descriptorFile.getInputStream());

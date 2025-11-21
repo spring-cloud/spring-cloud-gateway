@@ -94,7 +94,7 @@ public class ProxyResponseAutoConfiguration implements WebMvcConfigurer {
 		argumentResolvers.add(context.getBean(ProxyExchangeArgumentResolver.class));
 	}
 
-	private static class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
+	private static final class NoOpResponseErrorHandler extends DefaultResponseErrorHandler {
 
 		@Override
 		public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {

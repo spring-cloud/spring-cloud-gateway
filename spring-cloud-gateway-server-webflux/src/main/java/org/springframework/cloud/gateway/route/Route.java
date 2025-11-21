@@ -251,10 +251,10 @@ public class Route implements Ordered {
 		}
 
 		public Route build() {
-			Assert.notNull(this.id, "id can not be null");
-			Assert.notNull(this.uri, "uri can not be null");
+			Objects.requireNonNull(this.id, "id can not be null");
+			Objects.requireNonNull(this.uri, "uri can not be null");
 			AsyncPredicate<ServerWebExchange> predicate = getPredicate();
-			Assert.notNull(predicate, "predicate can not be null");
+			Objects.requireNonNull(predicate, "predicate can not be null");
 
 			return new Route(this.id, this.uri, this.order, predicate, this.gatewayFilters, this.metadata);
 		}
@@ -272,7 +272,7 @@ public class Route implements Ordered {
 
 		@Override
 		public AsyncPredicate<ServerWebExchange> getPredicate() {
-			Assert.notNull(this.predicate, "predicate can not be null");
+			Objects.requireNonNull(this.predicate, "predicate can not be null");
 			return this.predicate;
 		}
 
@@ -286,19 +286,19 @@ public class Route implements Ordered {
 		}
 
 		public AsyncBuilder and(AsyncPredicate<ServerWebExchange> predicate) {
-			Assert.notNull(this.predicate, "can not call and() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call and() on null predicate");
 			this.predicate = this.predicate.and(predicate);
 			return this;
 		}
 
 		public AsyncBuilder or(AsyncPredicate<ServerWebExchange> predicate) {
-			Assert.notNull(this.predicate, "can not call or() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call or() on null predicate");
 			this.predicate = this.predicate.or(predicate);
 			return this;
 		}
 
 		public AsyncBuilder negate() {
-			Assert.notNull(this.predicate, "can not call negate() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call negate() on null predicate");
 			this.predicate = this.predicate.negate();
 			return this;
 		}
@@ -320,19 +320,19 @@ public class Route implements Ordered {
 		}
 
 		public Builder and(Predicate<ServerWebExchange> predicate) {
-			Assert.notNull(this.predicate, "can not call and() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call and() on null predicate");
 			this.predicate = this.predicate.and(predicate);
 			return this;
 		}
 
 		public Builder or(Predicate<ServerWebExchange> predicate) {
-			Assert.notNull(this.predicate, "can not call or() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call or() on null predicate");
 			this.predicate = this.predicate.or(predicate);
 			return this;
 		}
 
 		public Builder negate() {
-			Assert.notNull(this.predicate, "can not call negate() on null predicate");
+			Objects.requireNonNull(this.predicate, "can not call negate() on null predicate");
 			this.predicate = this.predicate.negate();
 			return this;
 		}

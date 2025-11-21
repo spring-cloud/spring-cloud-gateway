@@ -111,7 +111,7 @@ public class RewritePathGatewayFilterFactory
 		}
 
 		public Config setReplacement(String replacement) {
-			Assert.notNull(replacement, "replacement must not be null");
+			Objects.requireNonNull(replacement, "replacement must not be null");
 			this.replacement = replacement;
 			return this;
 		}

@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.filter.factory;
 
+import java.util.Objects;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -111,7 +113,7 @@ public class RequestSizeGatewayFilterFactory
 
 		// TODO: use validator annotation
 		public void validate() {
-			Assert.notNull(this.maxSize, "maxSize may not be null");
+			Objects.requireNonNull(this.maxSize, "maxSize may not be null");
 			Assert.isTrue(this.maxSize.toBytes() > 0, "maxSize must be greater than 0");
 		}
 

@@ -21,6 +21,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +30,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.cloud.gateway.mvc.ProxyExchange;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.client.RestTemplate;
@@ -78,8 +78,8 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 	@Override
 	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-		Assert.notNull(binderFactory, "WebDataBinderFactory is required");
-		Assert.notNull(mavContainer, "ModelAndViewContainer is required");
+		Objects.requireNonNull(binderFactory, "WebDataBinderFactory is required");
+		Objects.requireNonNull(mavContainer, "ModelAndViewContainer is required");
 		ProxyExchange<?> proxy = new ProxyExchange<>(rest, webRequest, mavContainer, binderFactory, type(parameter));
 		configureHeaders(proxy);
 		configureAutoForwardedHeaders(proxy, webRequest);
@@ -97,7 +97,7 @@ public class ProxyExchangeArgumentResolver implements HandlerMethodArgumentResol
 
 	private HttpHeaders extractAutoForwardedHeaders(NativeWebRequest webRequest) {
 		HttpServletRequest nativeRequest = webRequest.getNativeRequest(HttpServletRequest.class);
-		Assert.notNull(nativeRequest, "HttpServletRequest is required");
+		Objects.requireNonNull(nativeRequest, "HttpServletRequest is required");
 		Enumeration<String> headerNames = nativeRequest.getHeaderNames();
 		HttpHeaders headers = new HttpHeaders();
 		if (headerNames != null && autoForwardedHeaders != null) {
