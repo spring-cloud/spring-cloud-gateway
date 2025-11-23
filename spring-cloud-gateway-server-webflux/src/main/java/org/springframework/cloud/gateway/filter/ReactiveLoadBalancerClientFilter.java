@@ -85,9 +85,6 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 	}
 
 	@Override
-	// TODO remove this suppress warnings once the commons changes are merged in for
-	// CompletionContext
-	@SuppressWarnings("NullAway")
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
@@ -123,6 +120,7 @@ public class ReactiveLoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 			// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
 			// if the loadbalancer doesn't provide one.
+			Objects.requireNonNull(retrievedInstance, "retrievedInstance can not be null");
 			String overrideScheme = retrievedInstance.isSecure() ? "https" : "http";
 			if (schemePrefix != null) {
 				overrideScheme = url.getScheme();
