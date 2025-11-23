@@ -156,12 +156,12 @@ public abstract class LoadBalancerFilterFunctions {
 		}
 
 		@Override
-		public @Nullable String getServiceId() {
+		public String getServiceId() {
 			return delegate.getServiceId();
 		}
 
 		@Override
-		public @Nullable String getHost() {
+		public String getHost() {
 			return delegate.getHost();
 		}
 

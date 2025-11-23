@@ -62,12 +62,10 @@ public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Or
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		Response<ServiceInstance> serviceInstanceResponse = exchange.getAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
-		if (serviceInstanceResponse == null || serviceInstanceResponse.getServer() == null) {
+		if (serviceInstanceResponse == null || !serviceInstanceResponse.hasServer()) {
 			return chain.filter(exchange);
 		}
-		if (!serviceInstanceResponse.hasServer()) {
-			return chain.filter(exchange);
-		}
+		@SuppressWarnings("NullAway") // protected by hasServer() above
 		LoadBalancerProperties properties = loadBalancerClientFactory != null
 				? loadBalancerClientFactory.getProperties(serviceInstanceResponse.getServer().getServiceId())
 				: loadBalancerProperties;

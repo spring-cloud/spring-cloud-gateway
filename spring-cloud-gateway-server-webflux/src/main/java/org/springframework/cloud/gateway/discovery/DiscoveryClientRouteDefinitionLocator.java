@@ -102,7 +102,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		return serviceInstances.filter(instances -> !instances.isEmpty())
 			.flatMap(Flux::fromIterable)
 			.filter(includePredicate)
-			.collectMap(instance -> Objects.requireNonNull(instance.getServiceId()))
+			.collectMap(instance -> instance.getServiceId())
 			// remove duplicates
 			.flatMapMany(map -> Flux.fromIterable(map.values()))
 			.map(instance -> {
@@ -181,15 +181,15 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		}
 
 		@Override
-		public @Nullable String getServiceId() {
-			if (properties.isLowerCaseServiceId() && delegate.getServiceId() != null) {
+		public String getServiceId() {
+			if (properties.isLowerCaseServiceId()) {
 				return delegate.getServiceId().toLowerCase(Locale.ROOT);
 			}
 			return delegate.getServiceId();
 		}
 
 		@Override
-		public @Nullable String getHost() {
+		public String getHost() {
 			return delegate.getHost();
 		}
 
