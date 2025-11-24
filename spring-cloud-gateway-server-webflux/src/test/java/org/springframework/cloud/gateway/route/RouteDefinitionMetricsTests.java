@@ -31,12 +31,13 @@ import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
  * @author Fredrich Ombico
+ * @author Haotian Zhang
  */
 @ExtendWith(MockitoExtension.class)
 class RouteDefinitionMetricsTests {
