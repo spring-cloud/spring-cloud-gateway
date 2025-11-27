@@ -221,3 +221,51 @@ class RouteConfiguration {
 }
 ----
 
+[[circuit-breaker-resume-without-error]]
+== Resume Without Error
+
+When a circuit breaker trips or encounters an error, you can configure it to resume without propagating the error to the client by setting `resumeWithoutError` to `true`. This is useful for non-critical services where you want to continue processing even if the circuit breaker fails.
+
+NOTE: When `resumeWithoutError` is `true`, timeout exceptions and circuit open exceptions (CallNotPermittedException) are still returned with their respective HTTP status codes (504 Gateway Timeout and 503 Service Unavailable). Only other unhandled exceptions will result in a successful response.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: circuitbreaker_route
+          uri: lb://backing-service:8088
+          predicates:
+          - Path=/consumingServiceEndpoint
+          filters:
+          - name: CircuitBreaker
+            args:
+              name: myCircuitBreaker
+              resumeWithoutError: true
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
+import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCircuitBreakerResumeWithoutError() {
+        return route("circuitbreaker_route")
+                .route(path("/consumingServiceEndpoint"), http())
+                .filter(lb("backing-service"))
+				.filter(circuitBreaker(config -> config.setId("myCircuitBreaker").setResumeWithoutError(true)))
+                .build();
+    }
+}
+----
+

@@ -58,7 +58,7 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
     return builder.routes()
         .route("circuitbreaker_route", r -> r.path("/consumingServiceEndpoint")
             .filters(f -> f.circuitBreaker(c -> c.name("myCircuitBreaker").fallbackUri("forward:/inCaseOfFailureUseThis"))
-                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088")
+                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088"))
         .build();
 }
 ----
@@ -161,7 +161,45 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
     return builder.routes()
         .route("circuitbreaker_route", r -> r.path("/consumingServiceEndpoint")
             .filters(f -> f.circuitBreaker(c -> c.name("myCircuitBreaker").fallbackUri("forward:/inCaseOfFailureUseThis").addStatusCode("INTERNAL_SERVER_ERROR"))
-                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088")
+                .rewritePath("/consumingServiceEndpoint", "/backingServiceEndpoint")).uri("lb://backing-service:8088"))
+        .build();
+}
+----
+
+[[circuit-breaker-resume-without-error]]
+== Resume Without Error
+
+When a circuit breaker trips or encounters an error, you can configure it to resume without propagating the error to the client by setting `resumeWithoutError` to `true`. This is useful for non-critical services where you want to continue processing even if the circuit breaker fails.
+
+NOTE: When `resumeWithoutError` is `true`, timeout exceptions and circuit open exceptions (CallNotPermittedException) are still returned with their respective HTTP status codes (504 Gateway Timeout and 503 Service Unavailable). Only other unhandled exceptions will result in a successful response.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: circuitbreaker_route
+        uri: lb://backing-service:8088
+        predicates:
+        - Path=/consumingServiceEndpoint
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: myCircuitBreaker
+            resumeWithoutError: true
+----
+
+.Application.java
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("circuitbreaker_route", r -> r.path("/consumingServiceEndpoint")
+            .filters(f -> f.circuitBreaker(c -> c.name("myCircuitBreaker").setResumeWithoutError(true)))
+            .uri("lb://backing-service:8088"))
         .build();
 }
 ----
