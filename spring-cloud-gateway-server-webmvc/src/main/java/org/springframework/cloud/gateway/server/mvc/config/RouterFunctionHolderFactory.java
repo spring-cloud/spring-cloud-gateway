@@ -60,7 +60,9 @@ import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMeth
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.ReflectiveOperationInvoker;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
+import org.springframework.cloud.gateway.server.mvc.support.StringToZonedDateTimeConverter;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.log.LogMessage;
@@ -82,6 +84,7 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
  *
  * @author Spencer Gibb
  * @author Jürgen Wißkirchen
+ * @author raccoonback
  */
 public class RouterFunctionHolderFactory {
 
@@ -112,7 +115,7 @@ public class RouterFunctionHolderFactory {
 
 	private final PredicateDiscoverer predicateDiscoverer = new PredicateDiscoverer();
 
-	private final ParameterValueMapper parameterValueMapper = new ConversionServiceParameterValueMapper();
+	private final ParameterValueMapper parameterValueMapper;
 
 	private final BeanFactory beanFactory;
 
@@ -140,6 +143,12 @@ public class RouterFunctionHolderFactory {
 		else {
 			this.conversionService = DefaultConversionService.getSharedInstance();
 		}
+
+		if (this.conversionService instanceof ConfigurableConversionService configurableConversionService) {
+			configurableConversionService.addConverter(new StringToZonedDateTimeConverter());
+		}
+
+		this.parameterValueMapper = new ConversionServiceParameterValueMapper(this.conversionService);
 	}
 
 	/**

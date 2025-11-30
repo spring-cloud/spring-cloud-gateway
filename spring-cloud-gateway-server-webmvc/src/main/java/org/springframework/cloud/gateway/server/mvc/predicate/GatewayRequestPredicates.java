@@ -91,7 +91,6 @@ public abstract class GatewayRequestPredicates {
 		return request -> ZonedDateTime.now().isBefore(dateTime);
 	}
 
-	// TODO: accept and test datetime predicates (including yaml config)
 	@Shortcut
 	public static RequestPredicate between(ZonedDateTime dateTime1, ZonedDateTime dateTime2) {
 		return request -> {

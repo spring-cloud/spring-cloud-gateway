@@ -1,0 +1,86 @@
+spring.cloud.gateway.server.webmvc:
+  routes:
+    - id: after_test
+      uri: no://op
+      predicates:
+        - Path=/test/after
+        - After=2020-01-20T17:42:47.789-07:00[America/Denver]
+      filters:
+        - SetPath=/anything/after
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,After
+
+    - id: before_test
+      uri: no://op
+      predicates:
+        - Path=/test/before
+        - Before=2099-01-20T17:42:47.789-07:00[America/Denver]
+      filters:
+        - SetPath=/anything/before
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,Before
+
+    - id: between_test
+      uri: no://op
+      predicates:
+        - Path=/test/between
+        - Between=2020-01-01T00:00:00Z,2099-01-01T00:00:00Z
+      filters:
+        - SetPath=/anything/between
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,Between
+
+    - id: between_epoch_test
+      uri: no://op
+      predicates:
+        - Path=/test/between-epoch
+        # Epoch milliseconds: 2000-01-01 to 2100-01-01
+        - Between=946684800000,4102444800000
+      filters:
+        - SetPath=/anything/between-epoch
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,BetweenEpoch
+
+    - id: after_future_test
+      uri: no://op
+      predicates:
+        - Path=/test/future-only
+        # This should NOT match as it's in the future
+        - After=2099-01-20T17:42:47.789-07:00[America/Denver]
+      filters:
+        - SetPath=/anything/future-only
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,AfterFuture
+
+    - id: before_past_test
+      uri: no://op
+      predicates:
+        - Path=/test/past-only
+        # This should NOT match as it's in the past
+        - Before=2020-01-20T17:42:47.789-07:00[America/Denver]
+      filters:
+        - SetPath=/anything/past-only
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,BeforePast
+
+    - id: between_outside_range_test
+      uri: no://op
+      predicates:
+        - Path=/test/outside-range
+        # This should NOT match as current time is outside this range
+        - Between=2020-01-01T00:00:00Z,2020-12-31T23:59:59Z
+      filters:
+        - SetPath=/anything/outside-range
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,BetweenOutsideRange
+
+    - id: between_future_range_test
+      uri: no://op
+      predicates:
+        - Path=/test/future-range
+        # This should NOT match as the range is in the future
+        - Between=2099-01-01T00:00:00Z,2099-12-31T23:59:59Z
+      filters:
+        - SetPath=/anything/future-range
+        - HttpbinUriResolver=
+        - AddResponseHeader=X-Predicate-Type,BetweenFutureRange

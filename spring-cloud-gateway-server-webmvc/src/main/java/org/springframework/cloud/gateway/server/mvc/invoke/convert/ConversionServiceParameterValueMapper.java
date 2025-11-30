@@ -18,7 +18,6 @@ package org.springframework.cloud.gateway.server.mvc.invoke.convert;
 
 import java.util.Objects;
 
-import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameter;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterMappingException;
 import org.springframework.cloud.gateway.server.mvc.invoke.ParameterValueMapper;
@@ -29,18 +28,12 @@ import org.springframework.core.convert.ConversionService;
  *
  * @author Stephane Nicoll
  * @author Phillip Webb
+ * @author raccoonback
  * @since 2.0.0
  */
 public class ConversionServiceParameterValueMapper implements ParameterValueMapper {
 
 	private final ConversionService conversionService;
-
-	/**
-	 * Create a new {@link ConversionServiceParameterValueMapper} instance.
-	 */
-	public ConversionServiceParameterValueMapper() {
-		this(ApplicationConversionService.getSharedInstance());
-	}
 
 	/**
 	 * Create a new {@link ConversionServiceParameterValueMapper} instance backed by a
