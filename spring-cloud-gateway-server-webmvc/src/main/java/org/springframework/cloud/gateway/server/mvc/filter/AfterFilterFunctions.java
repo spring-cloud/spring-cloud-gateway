@@ -25,11 +25,11 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -48,8 +48,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * @author raccoonback
  */
 public abstract class AfterFilterFunctions {
-
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	private AfterFilterFunctions() {
 	}
@@ -192,15 +190,14 @@ public abstract class AfterFilterFunctions {
 
 		return modifyResponseBody(String.class, String.class, APPLICATION_JSON_VALUE, (request, response, body) -> {
 			String responseBody = body;
+			JsonMapper jsonMapper = MvcUtils.getApplicationContext(request).getBean(JsonMapper.class);
 			if (APPLICATION_JSON.isCompatibleWith(response.headers().getContentType())) {
 				try {
-					JsonNode jsonBodyContent = OBJECT_MAPPER.readValue(responseBody, JsonNode.class);
-
+					JsonNode jsonBodyContent = jsonMapper.readValue(responseBody, JsonNode.class);
 					removeJsonAttributes(jsonBodyContent, immutableFieldList, deleteRecursively);
-
-					responseBody = OBJECT_MAPPER.writeValueAsString(jsonBodyContent);
+					responseBody = jsonMapper.writeValueAsString(jsonBodyContent);
 				}
-				catch (JsonProcessingException exception) {
+				catch (JacksonException exception) {
 					throw new IllegalStateException("Failed to process JSON of response body.", exception);
 				}
 			}
