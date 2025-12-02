@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.servlet.ServletException;
 import org.jspecify.annotations.Nullable;
 
@@ -105,8 +106,15 @@ public abstract class CircuitBreakerFilterFunctions {
 						throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, throwable.getMessage(),
 								throwable);
 					}
-					// TODO: if not permitted (like circuit open), SERVICE_UNAVAILABLE
-					// TODO: if resume without error, return ok response?
+					// if circuit breaker is open (CallNotPermittedException), raise SERVICE_UNAVAILABLE
+					if (throwable instanceof CallNotPermittedException) {
+						throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, throwable.getMessage(),
+								throwable);
+					}
+					// if resume without error, return ok response
+					if (config.isResumeWithoutError()) {
+						return ServerResponse.ok().build();
+					}
 					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
 							throwable != null ? throwable.getMessage() : null, throwable);
 				}
@@ -143,6 +151,8 @@ public abstract class CircuitBreakerFilterFunctions {
 		private @Nullable String fallbackPath;
 
 		private Set<String> statusCodes = new HashSet<>();
+
+		private boolean resumeWithoutError = false;
 
 		public @Nullable String getId() {
 			return id;
@@ -190,6 +200,15 @@ public abstract class CircuitBreakerFilterFunctions {
 
 		public CircuitBreakerConfig setStatusCodes(Set<String> statusCodes) {
 			this.statusCodes = statusCodes;
+			return this;
+		}
+
+		public boolean isResumeWithoutError() {
+			return resumeWithoutError;
+		}
+
+		public CircuitBreakerConfig setResumeWithoutError(boolean resumeWithoutError) {
+			this.resumeWithoutError = resumeWithoutError;
 			return this;
 		}
 
