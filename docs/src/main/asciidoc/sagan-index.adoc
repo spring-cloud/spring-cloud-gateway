@@ -1,14 +1,3 @@
----
-title: Spring Cloud Gateway
-status: ACTIVE
-stackOverflow: https://stackoverflow.com/questions/tagged/spring-cloud
-github: https://github.com/spring-cloud/spring-cloud-gateway
-site: https://spring.io/projects/spring-cloud-gateway
-order: 255
-supportPolicy: DOWNSTREAM
-parent: spring-cloud
----
-
 This project provides a library for building an API Gateway on top of Spring. Spring Cloud Gateway aims to provide a simple, yet effective way to route to APIs and provide cross-cutting concerns to them such as: security, monitoring/metrics, and resiliency.
 
 ## Features
