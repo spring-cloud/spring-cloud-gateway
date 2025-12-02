@@ -52,9 +52,11 @@ This filter adds a timer metric named `spring.cloud.gateway.requests` with the f
 * `httpStatusCode`: The HTTP Status of the request returned to the client.
 * `httpMethod`: The HTTP method used for the request.
 
-In addition, through the `spring.cloud.gateway.metrics.tags.path.enabled` property (by default, `false`), you can activate an extra metric with the path tag:
+In addition, through the `spring.cloud.gateway.server.webflux.metrics.path-tags.enabled` property (by default, `false`), you can activate an extra metric with the path tag:
 
 * `path`: The path of the request.
+
+WARNING: The property `spring.cloud.gateway.server.webflux.metrics.tags.path.enabled` will also add the above metric but has the side effect of the value ending up as a tag.  This property is deprecated and will be removed in a future release.
 
 These metrics are then available to be scraped from `/actuator/metrics/spring.cloud.gateway.requests` and can be easily integrated with Prometheus to create a link:images/gateway-grafana-dashboard.jpeg[Grafana] link:gateway-grafana-dashboard.json[dashboard].
 You can also alarm with these useful metrics to take an example from link:gateway-alarming.adoc[alarming-template].
