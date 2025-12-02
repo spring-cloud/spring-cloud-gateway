@@ -32,6 +32,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.reactive.HttpHandlerAutoConfiguration;
@@ -69,8 +70,10 @@ public class GatewayMetricsAutoConfiguration {
 		return new GatewayHttpTagsProvider();
 	}
 
+	// TODO: remove support for the property `metrics.tags.path.enabled` in the next major
 	@Bean
-	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.tags.path.enabled")
+	@ConditionalOnExpression("'${" + GatewayProperties.PREFIX + ".metrics.tags.path.enabled:false}' == 'true' || '${"
+			+ GatewayProperties.PREFIX + ".metrics.path-tags-provider.enabled:false}' == 'true'")
 	public GatewayPathTagsProvider gatewayPathTagsProvider() {
 		return new GatewayPathTagsProvider();
 	}
