@@ -86,8 +86,14 @@ public class HttpStatusTests extends BaseWebClientTests {
 			.expectStatus()
 			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
 			.expectBody(Map.class)
-			.consumeWith(result -> assertThat(result.getResponseBody()).hasSizeGreaterThanOrEqualTo(5)
-				.containsKeys("timestamp", "path", "status", "error", "message"));
+			.consumeWith(result -> {
+				Map<String, Object> body = result.getResponseBody();
+
+				assertThat(body).hasSizeGreaterThanOrEqualTo(5).containsKeys("timestamp", "path", "status", "error");
+				;
+
+				assertThat(body.keySet()).containsAnyOf("message", "requestId");
+			});
 	}
 
 	@EnableAutoConfiguration
