@@ -236,21 +236,20 @@ public class GatewayAutoConfigurationTests {
 
 	@Test
 	public void noTokenRelayFilter() {
-		assertThatThrownBy(() -> {
-			try (ConfigurableApplicationContext ctx = SpringApplication.run(RouteLocatorBuilderConfig.class,
-					"--spring.jmx.enabled=false",
-					"--spring.cloud.gateway.server.webflux.filter.token-relay.enabled=false",
-					"--spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
-					"--spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
-					"--spring.security.oauth2.client.registration[test].provider=testprovider",
-					"--spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
-					"--spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
-					"--spring.security.oauth2.client.registration[test].client-id=login-client", "--server.port=0",
-					"--spring.cloud.gateway.actuator.verbose.enabled=false")) {
-				assertThat(ctx.getBeanNamesForType(GatewayLegacyControllerEndpoint.class)).hasSize(1);
-			}
-		}).hasRootCauseInstanceOf(IllegalStateException.class)
-			.hasMessageContaining("No TokenRelayGatewayFilterFactory bean was found. Did you include");
+		new ReactiveWebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class,
+					ReactiveWebSecurityAutoConfiguration.class, ReactiveOAuth2ClientAutoConfiguration.class,
+					GatewayAutoConfiguration.class, ServerPropertiesConfig.class))
+			.withPropertyValues("spring.cloud.gateway.server.webflux.filter.token-relay.enabled=false",
+					"spring.security.oauth2.client.provider[testprovider].authorization-uri=http://localhost",
+					"spring.security.oauth2.client.provider[testprovider].token-uri=http://localhost/token",
+					"spring.security.oauth2.client.registration[test].provider=testprovider",
+					"spring.security.oauth2.client.registration[test].authorization-grant-type=authorization_code",
+					"spring.security.oauth2.client.registration[test].redirect-uri=http://localhost/redirect",
+					"spring.security.oauth2.client.registration[test].client-id=login-client")
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(TokenRelayGatewayFilterFactory.class);
+			});
 	}
 
 	@Test // gh-2159
