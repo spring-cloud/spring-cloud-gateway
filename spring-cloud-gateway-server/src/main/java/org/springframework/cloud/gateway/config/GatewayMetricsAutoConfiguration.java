@@ -73,7 +73,7 @@ public class GatewayMetricsAutoConfiguration {
 	// TODO: remove support for the property `metrics.tags.path.enabled` in the next major
 	@Bean
 	@ConditionalOnExpression("'${" + GatewayProperties.PREFIX + ".metrics.tags.path.enabled:false}' == 'true' || '${"
-			+ GatewayProperties.PREFIX + ".metrics.path-tags-provider.enabled:false}' == 'true'")
+			+ GatewayProperties.PREFIX + ".metrics.path-tags.enabled:false}' == 'true'")
 	public GatewayPathTagsProvider gatewayPathTagsProvider() {
 		return new GatewayPathTagsProvider();
 	}
