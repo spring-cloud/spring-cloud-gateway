@@ -436,6 +436,22 @@
       "type": "java.lang.Boolean",
       "description": "If RedisRouteDefinitionRepository should be enabled.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.server.webflux.metrics.tags.path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the gateway path tag provider.",
+      "defaultValue": "false",
+      "deprecation": {
+        "reason": "Setting this property to true will cause the path tag to be added to all metrics.",
+        "replacement": "spring.cloud.gateway.server.webflux.metrics.path-tags.enabled"
+      }
+    },
+    {
+      "name": "spring.cloud.gateway.server.webflux.metrics.path-tags.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the gateway path tag provider.",
+      "defaultValue": "false"
     }
   ]
 }
