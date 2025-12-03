@@ -11,6 +11,7 @@ You can combine multiple route predicate factories with the `RequestPredicate.an
 
 The `After` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
 This predicate matches requests that happen after the specified datetime.
+The datetime can be specified as a ZonedDateTime string or as epoch milliseconds.
 The following example configures an after route predicate:
 
 .application.yml
@@ -25,6 +26,22 @@ spring:
           uri: https://example.org
           predicates:
           - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+The datetime can also be specified as epoch milliseconds:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: after_route
+          uri: https://example.org
+          predicates:
+          - After=1484968967789
 ----
 
 .GatewaySampleApplication.java
@@ -56,6 +73,7 @@ This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denv
 
 The `Before` route predicate factory takes one parameter, a `datetime` (which is a java `ZonedDateTime`).
 This predicate matches requests that happen before the specified `datetime`.
+The datetime can be specified as a ZonedDateTime string or as epoch milliseconds.
 The following example configures a before route predicate:
 
 .application.yml
@@ -70,6 +88,22 @@ spring:
           uri: https://example.org
           predicates:
           - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+----
+
+The datetime can also be specified as epoch milliseconds:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: before_route
+          uri: https://example.org
+          predicates:
+          - Before=1484968967789
 ----
 
 .GatewaySampleApplication.java
@@ -103,6 +137,7 @@ The `Between` route predicate factory takes two parameters, `datetime1` and `dat
 which are java `ZonedDateTime` objects.
 This predicate matches requests that happen after `datetime1` and before `datetime2`.
 The `datetime2` parameter must be after `datetime1`.
+The datetimes can be specified as ZonedDateTime strings or as epoch milliseconds.
 The following example configures a between route predicate:
 
 .application.yml
@@ -117,6 +152,22 @@ spring:
           uri: https://example.org
           predicates:
           - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+----
+
+The datetimes can also be specified as epoch milliseconds:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+        - id: between_route
+          uri: https://example.org
+          predicates:
+          - Between=1484968967789, 1485055367789
 ----
 
 .GatewaySampleApplication.java
