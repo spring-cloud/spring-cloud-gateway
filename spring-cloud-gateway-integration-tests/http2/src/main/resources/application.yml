@@ -4,6 +4,8 @@ logging:
     reactor.netty.http.client: DEBUG
 
 server:
+  compression:
+    enabled: true
   ssl:
     key-store: classpath:sample.jks
     key-store-password: secret
