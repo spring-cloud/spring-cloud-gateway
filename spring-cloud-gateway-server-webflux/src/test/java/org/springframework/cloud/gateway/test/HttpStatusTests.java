@@ -89,9 +89,7 @@ public class HttpStatusTests extends BaseWebClientTests {
 			.consumeWith(result -> {
 				Map<String, Object> body = result.getResponseBody();
 
-				assertThat(body)
-						.hasSizeGreaterThanOrEqualTo(5)
-						.containsKeys("timestamp", "path", "status", "error");
+				assertThat(body).hasSizeGreaterThanOrEqualTo(5).containsKeys("timestamp", "path", "status", "error");
 
 				assertThat(body.keySet()).containsAnyOf("message", "requestId");
 			});

@@ -119,8 +119,10 @@
 |spring.cloud.gateway.server.webflux.httpserver.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.server.webflux.loadbalancer.use404 | `+++false+++` | 
 |spring.cloud.gateway.server.webflux.metrics.enabled | `+++false+++` | Enables the collection of metrics data.
+|spring.cloud.gateway.server.webflux.metrics.path-tags.enabled | `+++false+++` | Enables the gateway path tag provider.
 |spring.cloud.gateway.server.webflux.metrics.prefix | `+++spring.cloud.gateway+++` | The prefix of all metrics emitted by gateway.
 |spring.cloud.gateway.server.webflux.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.server.webflux.metrics.tags.path.enabled | `+++false+++` | Enables the gateway path tag provider.
 |spring.cloud.gateway.server.webflux.observability.enabled | `+++true+++` | If Micrometer Observability support should be turned on.
 |spring.cloud.gateway.server.webflux.predicate.after.enabled | `+++true+++` | Enables the after predicate.
 |spring.cloud.gateway.server.webflux.predicate.before.enabled | `+++true+++` | Enables the before predicate.

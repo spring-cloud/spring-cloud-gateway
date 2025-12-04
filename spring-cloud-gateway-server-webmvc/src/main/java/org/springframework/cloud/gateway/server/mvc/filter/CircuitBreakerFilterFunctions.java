@@ -106,7 +106,8 @@ public abstract class CircuitBreakerFilterFunctions {
 						throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, throwable.getMessage(),
 								throwable);
 					}
-					// if circuit breaker is open (CallNotPermittedException), raise SERVICE_UNAVAILABLE
+					// if circuit breaker is open (CallNotPermittedException), raise
+					// SERVICE_UNAVAILABLE
 					if (throwable instanceof CallNotPermittedException) {
 						throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, throwable.getMessage(),
 								throwable);

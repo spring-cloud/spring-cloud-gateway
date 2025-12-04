@@ -56,10 +56,8 @@ import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequ
 /**
  * @author raccoonback
  */
-@SpringBootTest(
-		properties = { GatewayMvcProperties.PREFIX + ".function.enabled=false" },
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+@SpringBootTest(properties = { GatewayMvcProperties.PREFIX + ".function.enabled=false" },
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
 class CircuitBreakerFilterFunctionsTests {
 
@@ -80,20 +78,12 @@ class CircuitBreakerFilterFunctionsTests {
 
 	@Test
 	void circuitBreakerTimeoutReturns504() {
-		restClient.get()
-				.uri("/circuitbreaker/timeout")
-				.exchange()
-				.expectStatus()
-				.isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
+		restClient.get().uri("/circuitbreaker/timeout").exchange().expectStatus().isEqualTo(HttpStatus.GATEWAY_TIMEOUT);
 	}
 
 	@Test
 	void circuitBreakerResumeWithoutErrorReturns200() {
-		restClient.get()
-				.uri("/circuitbreaker/resume-without-error")
-				.exchange()
-				.expectStatus()
-				.isOk();
+		restClient.get().uri("/circuitbreaker/resume-without-error").exchange().expectStatus().isOk();
 	}
 
 	@Test
@@ -121,7 +111,8 @@ class CircuitBreakerFilterFunctionsTests {
 			.exchange()
 			.expectStatus()
 			.isOk()
-			.expectBody(String.class).isEqualTo("fallback response data");
+			.expectBody(String.class)
+			.isEqualTo("fallback response data");
 	}
 
 	@SpringBootConfiguration
@@ -133,73 +124,58 @@ class CircuitBreakerFilterFunctionsTests {
 		@Bean
 		public Customizer<Resilience4JCircuitBreakerFactory> circuitBreakerCustomizer() {
 			return factory -> {
-				factory.addCircuitBreakerCustomizer(
-						CircuitBreaker::transitionToForcedOpenState,
-						"forced-open"
-				);
+				factory.addCircuitBreakerCustomizer(CircuitBreaker::transitionToForcedOpenState, "forced-open");
 
-				factory.configure(
-						builder -> builder
-								.timeLimiterConfig(
-										TimeLimiterConfig.custom()
-												.timeoutDuration(Duration.ofMillis(500))
-												.build()
-								)
-								.circuitBreakerConfig(CircuitBreakerConfig.ofDefaults()),
-						"timeout"
-				);
+				factory.configure(builder -> builder
+					.timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofMillis(500)).build())
+					.circuitBreakerConfig(CircuitBreakerConfig.ofDefaults()), "timeout");
 			};
 		}
 
 		@Bean
 		public RouterFunction<ServerResponse> circuitBreakerRoutes() {
-			return route("circuit_breaker_forced_open")
-					.route(path("/circuitbreaker/forced-open"), http())
-					.before(new LocalServerPortUriResolver())
-					.filter(setPath("/status/200"))
-					.filter(circuitBreaker("forced-open"))
-					.build()
+			return route("circuit_breaker_forced_open").route(path("/circuitbreaker/forced-open"), http())
+				.before(new LocalServerPortUriResolver())
+				.filter(setPath("/status/200"))
+				.filter(circuitBreaker("forced-open"))
+				.build()
 
-				.and(route("circuit_breaker_timeout")
-						.route(path("/circuitbreaker/timeout"), http())
-						.before(new LocalServerPortUriResolver())
-						.filter(setPath("/delay/10"))
-						.filter(circuitBreaker("timeout"))
-						.build())
+				.and(route("circuit_breaker_timeout").route(path("/circuitbreaker/timeout"), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/delay/10"))
+					.filter(circuitBreaker("timeout"))
+					.build())
 
 				.and(route("circuit_breaker_resume_without_error")
-						.route(path("/circuitbreaker/resume-without-error"), http())
-						.before(new LocalServerPortUriResolver())
-						.filter(setPath("/status/500"))
-						.filter(circuitBreaker(config -> config.setId("resume-without-error")
-								.setResumeWithoutError(true)
-								.setStatusCodes("500")))
-						.build())
+					.route(path("/circuitbreaker/resume-without-error"), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/status/500"))
+					.filter(circuitBreaker(config -> config.setId("resume-without-error")
+						.setResumeWithoutError(true)
+						.setStatusCodes("500")))
+					.build())
 
 				.and(route("circuit_breaker_resume_without_error_forced_open")
-						.route(path("/circuitbreaker/resume-without-error-forced-open"), http())
-						.before(new LocalServerPortUriResolver())
-						.filter(setPath("/status/200"))
-						.filter(circuitBreaker(config -> config.setId("forced-open")
-								.setResumeWithoutError(true)))
-						.build())
+					.route(path("/circuitbreaker/resume-without-error-forced-open"), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/status/200"))
+					.filter(circuitBreaker(config -> config.setId("forced-open").setResumeWithoutError(true)))
+					.build())
 
 				.and(route("circuit_breaker_resume_without_error_timeout")
-						.route(path("/circuitbreaker/resume-without-error-timeout"), http())
-						.before(new LocalServerPortUriResolver())
-						.filter(setPath("/delay/10"))
-						.filter(circuitBreaker(config -> config.setId("timeout")
-										.setResumeWithoutError(true)))
-						.build())
+					.route(path("/circuitbreaker/resume-without-error-timeout"), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/delay/10"))
+					.filter(circuitBreaker(config -> config.setId("timeout").setResumeWithoutError(true)))
+					.build())
 
-				.and(route("circuit_breaker_with_fallback")
-						.route(path("/circuitbreaker/with-fallback"), http())
-						.before(new LocalServerPortUriResolver())
-						.filter(setPath("/status/500"))
-						.filter(circuitBreaker(config -> config.setId("fallback")
-							.setFallbackUri(URI.create("forward:/fallback"))
-							.setStatusCodes("500")))
-						.build());
+				.and(route("circuit_breaker_with_fallback").route(path("/circuitbreaker/with-fallback"), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(setPath("/status/500"))
+					.filter(circuitBreaker(config -> config.setId("fallback")
+						.setFallbackUri(URI.create("forward:/fallback"))
+						.setStatusCodes("500")))
+					.build());
 		}
 
 		@GetMapping("/delay/{seconds}")
