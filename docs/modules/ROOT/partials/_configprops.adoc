@@ -115,8 +115,10 @@
 |spring.cloud.gateway.httpserver.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.loadbalancer.use404 | `+++false+++` | 
 |spring.cloud.gateway.metrics.enabled | `+++false+++` | Enables the collection of metrics data.
+|spring.cloud.gateway.metrics.path-tags.enabled | `+++false+++` | Enables the gateway path tag provider.
 |spring.cloud.gateway.metrics.prefix | `+++spring.cloud.gateway+++` | The prefix of all metrics emitted by gateway.
 |spring.cloud.gateway.metrics.tags |  | Tags map that added to metrics.
+|spring.cloud.gateway.metrics.tags.path.enabled | `+++false+++` | Enables the gateway path tag provider.
 |spring.cloud.gateway.mvc.form-filter.enabled | `+++true+++` | Enables the form-filter.
 |spring.cloud.gateway.mvc.forwarded-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.mvc.http-client.connect-timeout |  | The HttpClient connect timeout.
