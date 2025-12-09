@@ -24,9 +24,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
+import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.gateway.server.mvc.test.client.TestRestClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -55,6 +57,7 @@ public class ServerMvcLoadBalancerIntegrationTests {
 
 	@SpringBootApplication
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
+	@Import(PermitAllSecurityConfiguration.class)
 	static class Config {
 
 	}
