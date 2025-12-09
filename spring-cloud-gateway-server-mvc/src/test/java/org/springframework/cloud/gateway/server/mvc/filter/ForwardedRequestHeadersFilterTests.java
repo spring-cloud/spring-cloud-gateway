@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter.Forwarded;
@@ -141,10 +140,9 @@ public class ForwardedRequestHeadersFilterTests {
 	}
 
 	@Test
-	@Disabled
 	public void correctIPv6RemoteAddressMapping() throws UnknownHostException {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
-			.remoteAddress("2001:db8:cafe:0:0:0:0:17:80")
+			.remoteAddress("2001:db8:cafe:0:0:0:0:17")
 			.header(HttpHeaders.HOST, "myhost")
 			.buildRequest(null);
 		servletRequest.setRemoteHost("2001:db8:cafe:0:0:0:0:17");
