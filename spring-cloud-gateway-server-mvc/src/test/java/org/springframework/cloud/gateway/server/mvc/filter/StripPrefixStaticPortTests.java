@@ -26,6 +26,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.cloud.gateway.server.mvc.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.HttpbinTestcontainers;
 import org.springframework.cloud.gateway.server.mvc.test.PermitAllSecurityConfiguration;
 import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;

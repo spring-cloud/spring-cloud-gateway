@@ -1032,7 +1032,7 @@ public class ServerMvcIntegrationTests {
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	@Import(PermitAllSecurityConfiguration.class)
-	protected static class TestConfiguration extends WebMvcConfigurationSupport {
+	protected static class TestConfiguration {
 
 		@Bean
 		StaticPortController staticPortController() {
@@ -1047,26 +1047,6 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		EventController eventController() {
 			return new EventController();
-		}
-
-		// TODO This is needed to work around
-		// https://github.com/spring-cloud/spring-cloud-gateway/issues/3816
-		// which results from Spring Security being on the classpath. Once we can address
-		// this issue we should
-		// remove this bean and no longer extend WebMvcConfigurationSupport in this
-		// configuration class
-		@Bean
-		@Lazy
-		@Override
-		public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-			return new HandlerMappingIntrospector() {
-				@Override
-				public Filter createCacheFilter() {
-					return (request, response, chain) -> {
-						chain.doFilter(request, response);
-					};
-				}
-			};
 		}
 
 		@Bean
