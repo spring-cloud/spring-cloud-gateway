@@ -65,7 +65,6 @@ import org.springframework.cloud.gateway.server.mvc.test.TestLoadBalancerConfig;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -90,7 +89,6 @@ import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_FIRST;
@@ -1046,26 +1044,6 @@ public class ServerMvcIntegrationTests {
 		@Bean
 		EventController eventController() {
 			return new EventController();
-		}
-
-		// TODO This is needed to work around
-		// https://github.com/spring-cloud/spring-cloud-gateway/issues/3816
-		// which results from Spring Security being on the classpath. Once we can address
-		// this issue we should
-		// remove this bean and no longer extend WebMvcConfigurationSupport in this
-		// configuration class
-		@Bean
-		@Lazy
-		@Override
-		public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
-			return new HandlerMappingIntrospector() {
-				@Override
-				public Filter createCacheFilter() {
-					return (request, response, chain) -> {
-						chain.doFilter(request, response);
-					};
-				}
-			};
 		}
 
 		@Bean
