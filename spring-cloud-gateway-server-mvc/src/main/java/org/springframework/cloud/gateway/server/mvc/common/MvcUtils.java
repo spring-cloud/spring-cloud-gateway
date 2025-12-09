@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -123,6 +125,21 @@ public abstract class MvcUtils {
 		return readBody(request, rawBody, toClass);
 	}
 
+	/**
+	 * Unwraps an HttpServletRequest to get to the innermost request. This is necessary to
+	 * ensure attributes are set on the actual request object rather than on wrapper
+	 * instances that may not propagate attribute changes.
+	 * @param request the request to unwrap
+	 * @return the innermost HttpServletRequest
+	 */
+	private static HttpServletRequest unwrapRequest(HttpServletRequest request) {
+		HttpServletRequest unwrapped = request;
+		while (unwrapped instanceof HttpServletRequestWrapper wrapper) {
+			unwrapped = (HttpServletRequest) wrapper.getRequest();
+		}
+		return unwrapped;
+	}
+
 	public static ByteArrayInputStream cacheBody(ServerRequest request) {
 		try {
 			byte[] bytes = StreamUtils.copyToByteArray(request.servletRequest().getInputStream());
@@ -183,7 +200,12 @@ public abstract class MvcUtils {
 		if (request.attributes().containsKey(key)) {
 			return (T) request.attributes().get(key);
 		}
-		return (T) getGatewayAttributes(request).get(key);
+		T gatewayAttr = (T) getGatewayAttributes(request).get(key);
+		if (gatewayAttr != null) {
+			return gatewayAttr;
+		}
+		// Fallback to servlet request attributes for compatibility with request wrappers
+		return (T) request.servletRequest().getAttribute(key);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -207,8 +229,13 @@ public abstract class MvcUtils {
 	}
 
 	public static void putAttribute(ServerRequest request, String key, Object value) {
+		// Also set on the unwrapped servlet request to ensure persistence through
+		// wrappers like Spring's AttributesPreservingRequest
+		HttpServletRequest unwrapped = unwrapRequest((HttpServletRequest) request.servletRequest());
 		request.attributes().put(key, value);
 		getGatewayAttributes(request).put(key, value);
+		unwrapped.setAttribute(key, value);
+
 	}
 
 	@SuppressWarnings("unchecked")
