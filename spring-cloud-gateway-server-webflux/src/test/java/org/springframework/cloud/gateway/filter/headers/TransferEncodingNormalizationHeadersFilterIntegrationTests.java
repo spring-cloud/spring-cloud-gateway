@@ -71,26 +71,20 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 	private int port;
 
 	@Test
-	void invalidRequestShouldFail() throws Exception {
-		// Issue a crafted request with smuggling attempt
-		assertStatus("Should Fail", invalidRequest, "400 Bad Request");
-	}
-
-	@Test
 	void legitRequestShouldNotFail() throws Exception {
 		// Issue a legit request, which should not fail
-		assertStatusWith("200 OK", "Should Not Fail", validRequest.getBytes());
+		assertStatusWith("200 OK", "Should Not Fail", validRequest);
 	}
 
 	@Test
 	void badRequestShouldFail() throws Exception {
 		// Issue a crafted request with smuggling attempt
-		assertStatusWith("400 Bad Request", "Should Fail", invalidRequest.getBytes());
+		assertStatusWith("400 Bad Request", "Should Fail", invalidRequest);
 	}
 
-	private void assertStatusWith(String status, String name, byte[] payload) throws Exception {
+	private void assertStatusWith(String status, String name, String payload) throws Exception {
 		final String response = execute("localhost", port, payload);
-		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
+		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, payload));
 		assertThat(response).isNotNull();
 		log.info(LogMessage.format("Response %s\n%s", name, response));
 		assertThat(response).matches("HTTP/1.\\d " + status);
