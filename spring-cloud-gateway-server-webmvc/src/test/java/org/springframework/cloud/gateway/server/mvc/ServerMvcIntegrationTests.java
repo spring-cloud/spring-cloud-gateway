@@ -1029,7 +1029,7 @@ public class ServerMvcIntegrationTests {
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
 	@Import(PermitAllSecurityConfiguration.class)
-	protected static class TestConfiguration extends WebMvcConfigurationSupport {
+	protected static class TestConfiguration {
 
 		@Bean
 		StaticPortController staticPortController() {
