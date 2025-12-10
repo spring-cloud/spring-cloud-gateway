@@ -44,7 +44,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,29 +57,37 @@ public class TransferEncodingNormalizationHeadersFilterIntegrationTests {
 
 	private static final Log log = LogFactory.getLog(TransferEncodingNormalizationHeadersFilterIntegrationTests.class);
 
+	private static final String invalidRequest = "POST /route/echo HTTP/1.0\r\n" + "Host: localhost:8080\r\n"
+			+ "Content-Length: 19\r\n" + "Transfer-encoding: Chunked\r\n" + "Content-Type: application/json\r\n"
+			+ "Connection: close\r\n" + "\r\n" + "22\r\n" + "{\"message\":\"3\"}\r\n" + "\r\n"
+			+ "GET /nonexistantpath123 HTTP/1.0\r\n" + "0\r\n" + "\r\n";
+
+	private static final String validRequest = "POST /route/echo HTTP/1.1\r\n" + "Host: localhost:8080\r\n"
+			+ "Content-Type: application/json\r\n" + "Content-Length: 15\r\n" + "Connection: close\r\n" + "\r\n"
+			+ "{\"message\":\"3\"}\r\n";
+
 	@LocalServerPort
 	private int port;
 
 	@Test
 	@Disabled
 	void legitRequestShouldNotFail() throws Exception {
-		final ClassLoader classLoader = this.getClass().getClassLoader();
-
-		// Issue a crafted request with smuggling attempt
-		assert200With("Should Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/invalid-request.bin")));
-
 		// Issue a legit request, which should not fail
-		assert200With("Should Not Fail",
-				StreamUtils.copyToByteArray(classLoader.getResourceAsStream("transfer-encoding/valid-request.bin")));
+		assertStatusWith("200 OK", "Should Not Fail", validRequest.getBytes());
 	}
 
-	private void assert200With(String name, byte[] payload) throws Exception {
+	@Test
+	void badRequestShouldFail() throws Exception {
+		// Issue a crafted request with smuggling attempt
+		assertStatusWith("400 Bad Request", "Should Fail", invalidRequest.getBytes());
+	}
+
+	private void assertStatusWith(String status, String name, byte[] payload) throws Exception {
 		final String response = execute("localhost", port, payload);
 		log.info(LogMessage.format("Request to localhost:%d %s\n%s", port, name, new String(payload)));
 		assertThat(response).isNotNull();
 		log.info(LogMessage.format("Response %s\n%s", name, response));
-		assertThat(response).matches("HTTP/1.\\d 200 OK");
+		assertThat(response).matches("HTTP/1.\\d " + status);
 	}
 
 	private String execute(String target, int port, byte[] payload) throws IOException {
