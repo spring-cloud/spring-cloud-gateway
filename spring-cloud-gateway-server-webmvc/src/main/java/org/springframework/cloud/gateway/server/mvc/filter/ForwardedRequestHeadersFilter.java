@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,8 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 	 */
 	public static final String FORWARDED_HEADER = "Forwarded";
 
+	private boolean forwardedByEnabled = false;
+
 	private final TrustedProxies trustedProxies;
 
 	@Deprecated
@@ -58,6 +61,11 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 
 	public ForwardedRequestHeadersFilter(String trustedProxiesRegex) {
 		trustedProxies = TrustedProxies.from(trustedProxiesRegex);
+	}
+
+	public ForwardedRequestHeadersFilter(String trustedProxiesRegex, boolean forwardedByEnabled) {
+		this.trustedProxies = TrustedProxies.from(trustedProxiesRegex);
+		this.forwardedByEnabled = forwardedByEnabled;
 	}
 
 	/* for testing */
@@ -145,39 +153,68 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 		// TODO: add new forwarded
 		URI uri = request.uri();
 		String host = original.getFirst(HttpHeaders.HOST);
+
+		Forwarded forwarded = new Forwarded();
 		if (host != null) {
-			Forwarded forwarded = new Forwarded().put("host", host).put("proto", uri.getScheme());
+			forwarded.put("host", host);
+		}
+		forwarded.put("proto", uri.getScheme());
 
-			request.remoteAddress().ifPresent(remoteAddress -> {
-				// If remoteAddress is unresolved, calling getHostAddress() would cause a
-				// NullPointerException.
-				String forValue;
-				if (remoteAddress.isUnresolved()) {
-					forValue = remoteAddress.getHostName();
+		request.remoteAddress().ifPresent(remoteAddress -> {
+			// If remoteAddress is unresolved, calling getHostAddress() would cause a
+			// NullPointerException.
+			String forValue;
+			if (remoteAddress.isUnresolved()) {
+				forValue = remoteAddress.getHostName();
+			}
+			else {
+				InetAddress address = remoteAddress.getAddress();
+				forValue = remoteAddress.getAddress().getHostAddress();
+				if (address instanceof Inet6Address) {
+					forValue = "[" + forValue + "]";
 				}
-				else {
-					InetAddress address = remoteAddress.getAddress();
-					forValue = remoteAddress.getAddress().getHostAddress();
-					if (address instanceof Inet6Address) {
-						forValue = "[" + forValue + "]";
-					}
-				}
-				if (!trustedProxies.isTrusted(forValue)) {
-					// don't add for value
-					return;
-				}
-				int port = remoteAddress.getPort();
-				if (port >= 0 && !forValue.endsWith(":" + port)) {
-					forValue = forValue + ":" + port;
-				}
-				forwarded.put("for", forValue);
-			});
-			// TODO: support by?
+			}
+			if (!trustedProxies.isTrusted(forValue)) {
+				// don't add for value
+				return;
+			}
+			int port = remoteAddress.getPort();
+			if (port >= 0 && !forValue.endsWith(":" + port)) {
+				forValue = forValue + ":" + port;
+			}
+			forwarded.put("for", forValue);
+		});
 
-			updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
+		if (forwardedByEnabled) {
+			addForwardedByHeader(forwarded, request);
 		}
 
+		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
+
 		return updated;
+	}
+
+	private void addForwardedByHeader(Forwarded forwarded, ServerRequest request) {
+		try {
+			int serverPort = request.servletRequest().getServerPort();
+			addForwardedBy(forwarded, InetAddress.getLocalHost(), serverPort);
+		}
+		catch (UnknownHostException e) {
+			log.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+		}
+	}
+
+	private void addForwardedBy(Forwarded forwarded, InetAddress localAddress, int serverPort) {
+		if (localAddress != null) {
+			String byValue = localAddress.getHostAddress();
+			if (localAddress instanceof Inet6Address) {
+				byValue = "[" + byValue + "]";
+			}
+			if (serverPort > 0) {
+				byValue = byValue + ":" + serverPort;
+			}
+			forwarded.put("by", byValue);
+		}
 	}
 
 	@SuppressWarnings("NullAway")

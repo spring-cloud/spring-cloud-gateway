@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -49,8 +49,8 @@ import static org.springframework.cloud.gateway.server.mvc.filter.ForwardedReque
 
 /**
  * @author Spencer Gibb
+ * @author raccoonback
  */
-@Disabled("FIXME: ")
 public class ForwardedRequestHeadersFilterTests {
 
 	static Map<String, String> map(String... values) {
@@ -74,6 +74,33 @@ public class ForwardedRequestHeadersFilterTests {
 			.withPropertyValues(GatewayMvcProperties.PREFIX + ".trusted-proxies=11\\.0\\.0\\..*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class);
+			});
+	}
+
+	@Test
+	public void forwardedByEnabledFromProperties() {
+		new WebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(WebMvcAutoConfiguration.class, RestClientAutoConfiguration.class,
+					SslAutoConfiguration.class, TomcatServletWebServerAutoConfiguration.class,
+					GatewayServerMvcAutoConfiguration.class, FilterAutoConfiguration.class,
+					PredicateAutoConfiguration.class))
+			.withPropertyValues(GatewayMvcProperties.PREFIX + ".trusted-proxies=.*",
+					GatewayMvcProperties.PREFIX + ".forwarded-by-enabled=true")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class);
+				ForwardedRequestHeadersFilter filter = context.getBean(ForwardedRequestHeadersFilter.class);
+
+				MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+					.remoteAddress("10.0.0.1:80")
+					.header(HttpHeaders.HOST, "myhost")
+					.buildRequest(null);
+				servletRequest.setRemoteHost("10.0.0.1");
+				ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+				HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+				List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+				assertThat(forwardeds).hasSize(1);
+				assertThat(forwardeds.get(0).get("by")).isNotNull();
 			});
 	}
 
@@ -315,6 +342,76 @@ public class ForwardedRequestHeadersFilterTests {
 		List<String> forwardedHeaders = headers.get(FORWARDED_HEADER);
 		Optional<String> filtered = forwardedHeaders.stream().filter(value -> value.contains("127.0.0.1")).findFirst();
 		assertThat(filtered).isEmpty();
+	}
+
+	@Test
+	public void forwardedByIsAddedWhenEnabled() throws Exception {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "myhost")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		servletRequest.setServerPort(80);
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*", true);
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		InetAddress localHost = InetAddress.getLocalHost();
+		String expectedByValue = localHost.getHostAddress();
+		if (localHost instanceof java.net.Inet6Address) {
+			expectedByValue = "\"[" + expectedByValue + "]:80\"";
+		}
+		else {
+			expectedByValue = "\"" + expectedByValue + ":80\"";
+		}
+		assertThat(forwarded.get("by")).isEqualTo(expectedByValue);
+	}
+
+	@Test
+	public void forwardedByWithPortIsAdded() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost:8080/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "myhost")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		servletRequest.setServerPort(8080);
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*", true);
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		assertThat(forwarded.get("by")).isNotNull().contains(":8080");
+	}
+
+	@Test
+	public void forwardedByNotAddedWhenDisabled() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "myhost")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		assertThat(forwarded.get("by")).isNull();
 	}
 
 }
