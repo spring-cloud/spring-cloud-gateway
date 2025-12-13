@@ -132,7 +132,7 @@ public class GatewayServerMvcAutoConfiguration {
 	@Conditional(TrustedProxies.ForwardedTrustedProxiesCondition.class)
 	public ForwardedRequestHeadersFilter forwardedRequestHeadersFilter(GatewayMvcProperties properties) {
 		Objects.requireNonNull(properties.getTrustedProxies(), "trustedProxies must not be null");
-		return new ForwardedRequestHeadersFilter(properties.getTrustedProxies());
+		return new ForwardedRequestHeadersFilter(properties.getTrustedProxies(), properties.isForwardedByEnabled());
 	}
 
 	@Bean
