@@ -84,6 +84,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -367,6 +368,19 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> headers = getMap(map, "headers");
 				assertThat(headers).containsEntry("X-Test", "loadbalancer");
 			});
+	}
+
+	@Test
+	public void loadbalancerDoesNotWrapException() {
+		restClient.get()
+			.uri("/anything/loadbalancer-does-not-wrap-exception")
+			.exchange()
+			.expectStatus()
+			.is5xxServerError()
+			.expectHeader()
+			.valueEquals("X-Exception-ClassName", "IOException")
+			.expectHeader()
+			.valueEquals("X-Exception-Message", "A custom exception");
 	}
 
 	@Test
@@ -1185,6 +1199,43 @@ public class ServerMvcIntegrationTests {
 					.filter(addRequestHeader("X-Test", "loadbalancer"))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testloadbalancer")
 					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsLoadBalancerDoesNotWrapException() {
+			HandlerFilterFunction<ServerResponse, ServerResponse> addExceptionDetailsInResponseHeadersFilter = (request,
+					next) -> {
+				try {
+					return next.handle(request);
+				}
+				catch (Exception e) {
+					return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.header("X-Exception-ClassName", e.getClass().getSimpleName())
+						.header("X-Exception-Message", e.getMessage())
+						.build();
+				}
+
+			};
+
+			var throwingExceptionFilter = new HandlerFilterFunction<ServerResponse, ServerResponse>() {
+
+				@Override
+				public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next)
+						throws Exception {
+					throw new IOException("A custom exception");
+				}
+
+			};
+
+			// @formatter:off
+			return route()
+				.GET("/anything/loadbalancer-does-not-wrap-exception", http())
+				.filter(addExceptionDetailsInResponseHeadersFilter)
+				.filter(lb("httpbin"))
+				.filter(throwingExceptionFilter)
+				.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testloadbalancerForException")
+				.build();
 			// @formatter:on
 		}
 
