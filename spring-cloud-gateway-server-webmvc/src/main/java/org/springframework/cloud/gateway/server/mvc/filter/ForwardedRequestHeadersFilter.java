@@ -39,6 +39,23 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
+/**
+ * Filter that creates RFC 7239 compliant Forwarded headers to send to downstream
+ * services.
+ *
+ * <p>
+ * This filter adds Forwarded headers containing information about the original request,
+ * including the client address (for), request protocol (proto), host header (host), and
+ * optionally the proxy interface that received the request (by).
+ *
+ * <p>
+ * The filter validates that proxies are trusted using a regular expression pattern
+ * configured via {@code spring.cloud.gateway.server.webmvc.trusted-proxies}.
+ *
+ * @author raccoonback
+ * @see <a href="https://tools.ietf.org/html/rfc7239">RFC 7239: Forwarded HTTP
+ * Extension</a>
+ */
 public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestHttpHeadersFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(ForwardedRequestHeadersFilter.class);
@@ -59,10 +76,24 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 				+ ".trusted-proxies is not set. Using deprecated Constructor. Untrusted hosts might be added to Forwarded header.");
 	}
 
+	/**
+	 * Creates a new ForwardedRequestHeadersFilter with the specified trusted proxies
+	 * pattern.
+	 * @param trustedProxiesRegex regular expression pattern to match trusted proxy
+	 * addresses
+	 */
 	public ForwardedRequestHeadersFilter(String trustedProxiesRegex) {
 		trustedProxies = TrustedProxies.from(trustedProxiesRegex);
 	}
 
+	/**
+	 * Creates a new ForwardedRequestHeadersFilter with the specified trusted proxies
+	 * pattern and forwarded-by enabled flag.
+	 * @param trustedProxiesRegex regular expression pattern to match trusted proxy
+	 * addresses
+	 * @param forwardedByEnabled whether to include the "by" parameter in the Forwarded
+	 * header
+	 */
 	public ForwardedRequestHeadersFilter(String trustedProxiesRegex, boolean forwardedByEnabled) {
 		this.trustedProxies = TrustedProxies.from(trustedProxiesRegex);
 		this.forwardedByEnabled = forwardedByEnabled;
