@@ -18,7 +18,7 @@ When enabled, the filter adds the server's local address and port to the `Forwar
 
 [source]
 ----
-Forwarded: for="192.0.2.60:47011";proto=https;by="198.51.100.17:8080"
+Forwarded: for="192.0.2.60:47011";proto=https;host="example.com:443";by="198.51.100.17:8080"
 ----
 
 NOTE: The `by` parameter includes the port number only when it is greater than 0. IPv6 addresses are properly formatted with brackets.
