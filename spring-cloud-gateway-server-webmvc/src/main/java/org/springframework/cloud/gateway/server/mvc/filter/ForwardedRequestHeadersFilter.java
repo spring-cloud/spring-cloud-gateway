@@ -83,7 +83,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 	 * addresses
 	 */
 	public ForwardedRequestHeadersFilter(String trustedProxiesRegex) {
-		trustedProxies = TrustedProxies.from(trustedProxiesRegex);
+		this(trustedProxiesRegex, false);
 	}
 
 	/**
