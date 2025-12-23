@@ -235,7 +235,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 		}
 	}
 
-	private void addForwardedBy(Forwarded forwarded, InetAddress localAddress, int serverPort) {
+	private void addForwardedBy(Forwarded forwarded, @Nullable InetAddress localAddress, int serverPort) {
 		if (localAddress != null) {
 			String byValue = localAddress.getHostAddress();
 			if (localAddress instanceof Inet6Address) {
