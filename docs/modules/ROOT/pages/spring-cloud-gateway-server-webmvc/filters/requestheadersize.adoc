@@ -12,14 +12,15 @@ The following listing configures a `RequestHeaderSize` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: requestheadersize_route
-          uri: https://example.org
-          predicates:
-          - Path=/**
-          filters:
-          - RequestHeaderSize=1000B
+      server:
+        webmvc:
+          routes:
+            - id: requestheadersize_route
+              uri: https://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - RequestHeaderSize=1000B
 ----
 
 .GatewaySampleApplication.java

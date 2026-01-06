@@ -13,16 +13,17 @@ The following listing configures a `RequestSize` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: request_size_route
-          uri: http://localhost:8080
-          predicates:
-          - Path=/upload
-          filters:
-          - name: RequestSize
-            args:
-              maxSize: 5000000
+      server:
+        webmvc:
+          routes:
+            - id: request_size_route
+              uri: http://localhost:8080
+              predicates:
+              - Path=/upload
+              filters:
+              - name: RequestSize
+                args:
+                  maxSize: 5000000
 ----
 
 .GatewaySampleApplication.java

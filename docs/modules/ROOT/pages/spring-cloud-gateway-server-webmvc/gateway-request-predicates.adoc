@@ -20,12 +20,13 @@ The following example configures an after route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: after_route
-          uri: https://example.org
-          predicates:
-          - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+      server:
+        webmvc:
+          routes:
+            - id: after_route
+              uri: https://example.org
+              predicates:
+              - After=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
 
 The datetime can also be specified as epoch milliseconds:
@@ -82,12 +83,13 @@ The following example configures a before route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: before_route
-          uri: https://example.org
-          predicates:
-          - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+      server:
+        webmvc:
+          routes:
+            - id: before_route
+              uri: https://example.org
+              predicates:
+              - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
 
 The datetime can also be specified as epoch milliseconds:
@@ -146,12 +148,13 @@ The following example configures a between route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: between_route
-          uri: https://example.org
-          predicates:
-          - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+      server:
+        webmvc:
+          routes:
+            - id: between_route
+              uri: https://example.org
+              predicates:
+              - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
 ----
 
 The datetimes can also be specified as epoch milliseconds:
@@ -209,12 +212,13 @@ The following example configures a cookie route predicate factory:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: cookie_route
-          uri: https://example.org
-          predicates:
-          - Cookie=chocolate, ch.p
+      server:
+        webmvc:
+          routes:
+            - id: cookie_route
+              uri: https://example.org
+              predicates:
+              - Cookie=chocolate, ch.p
 ----
 
 .GatewaySampleApplication.java
@@ -252,13 +256,13 @@ The following example configures a header route predicate:
 ----
 spring:
   cloud:
-    gateway:
-      mvc:
+    server:
+      webmvc:
         routes:
-        - id: header_route
-          uri: https://example.org
-          predicates:
-          - Header=X-Request-Id, \d+
+            - id: header_route
+              uri: https://example.org
+              predicates:
+              - Header=X-Request-Id, \d+
 ----
 
 .GatewaySampleApplication.java
@@ -298,12 +302,13 @@ The following example configures a host route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: host_route
-          uri: https://example.org
-          predicates:
-          - Host=**.somehost.org,**.anotherhost.org
+      server:
+        webmvc:
+          routes:
+            - id: host_route
+              uri: https://example.org
+              predicates:
+              - Host=**.somehost.org,**.anotherhost.org
 ----
 
 .GatewaySampleApplication.java
@@ -348,12 +353,13 @@ The following example configures a method route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: method_route
-          uri: https://example.org
-          predicates:
-          - Method=GET,POST
+      server:
+        webmvc:
+          routes:
+            - id: method_route
+              uri: https://example.org
+              predicates:
+              - Method=GET,POST
 ----
 
 .GatewaySampleApplication.java
@@ -418,12 +424,13 @@ The following example configures a path route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: path_route
-          uri: https://example.org
-          predicates:
-          - Path=/red/{segment},/blue/{segment}
+      server:
+        webmvc:
+          routes:
+            - id: path_route
+              uri: https://example.org
+              predicates:
+              - Path=/red/{segment},/blue/{segment}
 ----
 
 .GatewaySampleApplication.java
@@ -477,12 +484,13 @@ The following example configures a query route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: query_route
-          uri: https://example.org
-          predicates:
-          - Query=green
+      server:
+        webmvc:
+          routes:
+            - id: query_route
+              uri: https://example.org
+              predicates:
+              - Query=green
 ----
 
 .GatewaySampleApplication.java
@@ -514,12 +522,13 @@ The preceding route matches if the request contained a `green` query parameter.
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: query_route
-          uri: https://example.org
-          predicates:
-          - Query=red, gree.
+      server:
+        webmvc:
+          routes:
+            - id: query_route
+              uri: https://example.org
+              predicates:
+              - Query=red, gree.
 ----
 
 .GatewaySampleApplication.java
@@ -559,12 +568,13 @@ The following example configures a RemoteAddr route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: remoteaddr_route
-          uri: https://example.org
-          predicates:
-          - RemoteAddr=192.168.1.1/24
+      server:
+        webmvc:
+          routes:
+            - id: remoteaddr_route
+              uri: https://example.org
+              predicates:
+              - RemoteAddr=192.168.1.1/24
 ----
 
 This route matches if the remote address of the request was, for example, `192.168.1.10`.
@@ -639,16 +649,17 @@ The following example configures a weight route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: weight_high
-          uri: https://weighthigh.org
-          predicates:
-          - Weight=group1, 8
-        - id: weight_low
-          uri: https://weightlow.org
-          predicates:
-          - Weight=group1, 2
+      server:
+        webmvc:
+          routes:
+            - id: weight_high
+              uri: https://weighthigh.org
+              predicates:
+              - Weight=group1, 8
+            - id: weight_low
+              uri: https://weightlow.org
+              predicates:
+              - Weight=group1, 2
 ----
 
 .GatewaySampleApplication.java
@@ -701,12 +712,13 @@ The following example configures a XForwardedRemoteAddr route predicate:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: xforwarded_remoteaddr_route
-          uri: https://example.org
-          predicates:
-          - XForwardedRemoteAddr=192.168.1.1/24
+      server:
+        webmvc:
+          routes:
+            - id: xforwarded_remoteaddr_route
+              uri: https://example.org
+              predicates:
+              - XForwardedRemoteAddr=192.168.1.1/24
 ----
 
 This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.

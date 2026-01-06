@@ -43,20 +43,21 @@ The following listing configures a Retry  filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: retry_route
-          uri: http://localhost:8080/flakey
-          predicates:
-          - Host=*.retry.com
-          filters:
-          - name: Retry
-            args:
-              retries: 3
-              series: SERVER_ERROR
-              methods: GET,POST
-              cacheBody: true
-          - name: AdaptCachedBody
+      server:
+        webmvc:
+          routes:
+            - id: retry_route
+              uri: http://localhost:8080/flakey
+              predicates:
+              - Host=*.retry.com
+              filters:
+              - name: Retry
+                args:
+                  retries: 3
+                  series: SERVER_ERROR
+                  methods: GET,POST
+                  cacheBody: true
+              - name: AdaptCachedBody
 ----
 
 .GatewaySampleApplication.java
