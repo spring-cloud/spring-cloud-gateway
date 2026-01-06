@@ -10,14 +10,15 @@ The following listing configures a `SetResponseHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: setresponseheader_route
-          uri: https://example.org
-          predicates:
-          - Path=/anything/setresponseheader
-          filters:
-          - SetResponseHeader=X-Response-Red, Blue
+      server:
+        webmvc:
+          routes:
+            - id: setresponseheader_route
+              uri: https://example.org
+              predicates:
+              - Path=/anything/setresponseheader
+              filters:
+              - SetResponseHeader=X-Response-Red, Blue
 ----
 
 .GatewaySampleApplication.java

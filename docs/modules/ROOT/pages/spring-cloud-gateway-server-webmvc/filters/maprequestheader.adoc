@@ -13,14 +13,15 @@ The following example configures a `MapRequestHeader`:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: map_request_header_route
-          uri: https://example.org
-          predicates:
-          - Path=/mypath
-          filters:
-          - MapRequestHeader=Blue, X-Request-Red
+      server:
+        webmvc:
+          routes:
+            - id: map_request_header_route
+              uri: https://example.org
+              predicates:
+              - Path=/mypath
+              filters:
+              - MapRequestHeader=Blue, X-Request-Red
 ----
 
 .GatewaySampleApplication.java

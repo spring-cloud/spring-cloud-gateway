@@ -12,14 +12,15 @@ The following listing configures a `RemoveRequestHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: removerequestheader_route
-          uri: https://example.org
-          predicates:
-          - Path=/**
-          filters:
-          - RemoveRequestHeader=X-Request-Foo
+      server:
+        webmvc:
+          routes:
+            - id: removerequestheader_route
+              uri: https://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - RemoveRequestHeader=X-Request-Foo
 ----
 
 .GatewaySampleApplication.java

@@ -77,14 +77,15 @@ or this
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: resource
-          uri: http://localhost:9000
-          predicates:
-          - Path=/resource
-          filters:
-          - TokenRelay=
+      server:
+        webmvc:
+          routes:
+            - id: resource
+              uri: http://localhost:9000
+              predicates:
+              - Path=/resource
+              filters:
+              - TokenRelay=
 ----
 
 and it will (in addition to logging the user in and grabbing a token)

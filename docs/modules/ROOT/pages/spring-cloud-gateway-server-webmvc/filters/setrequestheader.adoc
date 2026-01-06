@@ -10,14 +10,15 @@ The following listing configures a `SetRequestHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: setrequestheader_route
-          uri: https://example.org
-          predicates:
-          - Path=/**
-          filters:
-          - SetRequestHeader=X-Request-Red, Blue
+      server:
+        webmvc:
+          routes:
+            - id: setrequestheader_route
+              uri: https://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - SetRequestHeader=X-Request-Red, Blue
 ----
 
 .GatewaySampleApplication.java

@@ -12,20 +12,21 @@ The following listing configures a `SetStatus` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: setstatusstring_route
-          uri: https://example.org
-          predicates:
-          - Path=/path1
-          filters:
-          - SetStatus=UNAUTHORIZED
-        - id: setstatusint_route
-          uri: https://example.org
-          predicates:
-          - Path=/path2
-          filters:
-          - SetStatus=401
+      server:
+        webmvc:
+          routes:
+            - id: setstatusstring_route
+              uri: https://example.org
+              predicates:
+              - Path=/path1
+              filters:
+              - SetStatus=UNAUTHORIZED
+            - id: setstatusint_route
+              uri: https://example.org
+              predicates:
+              - Path=/path2
+              filters:
+              - SetStatus=401
 ----
 
 .GatewaySampleApplication.java

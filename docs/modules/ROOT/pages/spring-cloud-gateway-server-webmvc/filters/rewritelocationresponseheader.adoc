@@ -11,14 +11,15 @@ The following listing configures a `RewriteLocationResponseHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: rewritelocationresponseheader_route
-          uri: http://example.org
-          predicates:
-          - Path=/**
-          filters:
-          - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+      server:
+        webmvc:
+          routes:
+            - id: rewritelocationresponseheader_route
+              uri: http://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
 ----
 
 .GatewaySampleApplication.java

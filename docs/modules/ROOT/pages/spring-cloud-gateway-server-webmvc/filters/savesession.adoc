@@ -11,14 +11,15 @@ The following example configures a `SaveSession` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: save_session
-          uri: https://example.org
-          predicates:
-          - Path=/foo/**
-          filters:
-          - SaveSession=
+      server:
+        webmvc:
+          routes:
+            - id: save_session
+              uri: https://example.org
+              predicates:
+              - Path=/foo/**
+              filters:
+              - SaveSession=
 ----
 
 If you integrate https://projects.spring.io/spring-security/[Spring Security] with Spring Session and want to ensure security details have been forwarded to the remote process, this is critical.

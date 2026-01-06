@@ -35,12 +35,13 @@ The following listing configures a LoadBalancer Filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: api_route
-          uri: lb://apiservice
-          predicates:
-          - Path=/api/**
+      server:
+        webmvc:
+          routes:
+            - id: api_route
+              uri: lb://apiservice
+              predicates:
+              - Path=/api/**
 ----
 
 WARNING: If using the `lb()` filter, it needs to be after any filter that manipulates the path such as `setPath()` or `stripPrefix()`, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.

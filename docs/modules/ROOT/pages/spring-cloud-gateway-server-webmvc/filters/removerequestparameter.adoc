@@ -12,14 +12,15 @@ The following example configures a `RemoveRequestParameter` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: removerequestparameter_route
-          uri: https://example.org
-          predicates:
-          - Path=/**
-          filters:
-          - RemoveRequestParameter=red
+      server:
+        webmvc:
+          routes:
+            - id: removerequestparameter_route
+              uri: https://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - RemoveRequestParameter=red
 ----
 
 .GatewaySampleApplication.java
