@@ -34,6 +34,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerResilience4JFilterFactory;
+import org.springframework.javapoet.ClassName;
 import org.springframework.javapoet.TypeSpec;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,6 +88,11 @@ class ConfigurableHintsRegistrationProcessorTests {
 		@Override
 		public GeneratedMethods getMethods() {
 			return generatedClass.getMethods();
+		}
+
+		@Override
+		public ClassName getClassName() {
+			return ClassName.get(MockBeanFactoryInitializationCode.class);
 		}
 
 		@Override

@@ -19,11 +19,9 @@ package org.springframework.cloud.gateway.server.mvc.invoke.convert;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 /**
  * A {@link String} to {@link OffsetDateTime} {@link Converter} that uses
@@ -36,11 +34,9 @@ import org.springframework.util.StringUtils;
 public class IsoOffsetDateTimeConverter implements Converter<String, OffsetDateTime> {
 
 	@Override
-	public @Nullable OffsetDateTime convert(String source) {
-		if (StringUtils.hasLength(source)) {
-			return OffsetDateTime.parse(source, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-		}
-		return null;
+	public OffsetDateTime convert(String source) {
+		Assert.notNull(source, "'source' Converter must not be null");
+		return OffsetDateTime.parse(source, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 	}
 
 	public static void registerConverter(ConverterRegistry registry) {
