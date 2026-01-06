@@ -9,25 +9,26 @@ The `FallbackHeaders` factory lets you add Spring Cloud CircuitBreaker execution
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: ingredients
-          uri: lb://ingredients
-          predicates:
-          - Path=/ingredients/**
-          filters:
-          - name: CircuitBreaker
-            args:
-              name: fetchIngredients
-              fallbackUri: forward:/fallback
-        - id: ingredients-fallback
-          uri: http://localhost:9994
-          predicates:
-          - Path=/fallback
-          filters:
-          - name: FallbackHeaders
-            args:
-              executionExceptionTypeHeaderName: Test-Header
+      server:
+        webmvc:
+          routes:
+            - id: ingredients
+              uri: lb://ingredients
+              predicates:
+              - Path=/ingredients/**
+              filters:
+              - name: CircuitBreaker
+                args:
+                  name: fetchIngredients
+                  fallbackUri: forward:/fallback
+            - id: ingredients-fallback
+              uri: http://localhost:9994
+              predicates:
+              - Path=/fallback
+              filters:
+              - name: FallbackHeaders
+                args:
+                  executionExceptionTypeHeaderName: Test-Header
 ----
 
 .GatewaySampleApplication.java

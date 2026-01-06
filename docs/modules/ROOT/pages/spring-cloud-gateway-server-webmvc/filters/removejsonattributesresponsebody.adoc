@@ -12,12 +12,13 @@ The following example configures an `RemoveJsonAttributesResponseBody` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: removejsonattributes_route
-          uri: https://example.org
-          filters:
-          - RemoveJsonAttributesResponseBody=id,color
+      server:
+        webmvc:
+          routes:
+            - id: removejsonattributes_route
+              uri: https://example.org
+              filters:
+              - RemoveJsonAttributesResponseBody=id,color
 ----
 
 This removes attributes "id" and "color" from the JSON content body at root level.

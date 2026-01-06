@@ -10,14 +10,15 @@ The following example configures an `AddResponseHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: add_response_header_route
-          uri: https://example.org
-          predicates:
-          - Path=/anything/addresheader
-          filters:
-          - AddResponseHeader=X-Response-Red, Blue
+      server:
+        webmvc:
+          routes:
+            - id: add_response_header_route
+              uri: https://example.org
+              predicates:
+              - Path=/anything/addresheader
+              filters:
+              - AddResponseHeader=X-Response-Red, Blue
 ----
 
 .GatewaySampleApplication.java

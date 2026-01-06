@@ -10,14 +10,15 @@ application.yml
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: add_request_parameter_route
-          uri: https://example.org
-          predicates:
-          - Path=/anything/addrequestparam
-          filters:
-          - AddRequestParameter=red, blue
+      server:
+        webmvc:
+          routes:
+            - id: add_request_parameter_route
+              uri: https://example.org
+              predicates:
+              - Path=/anything/addrequestparam
+              filters:
+              - AddRequestParameter=red, blue
 ----
 
 .GatewaySampleApplication.java

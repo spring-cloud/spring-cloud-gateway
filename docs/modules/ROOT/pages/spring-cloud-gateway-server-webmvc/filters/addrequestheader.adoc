@@ -10,14 +10,15 @@ The following example configures an `AddRequestHeader` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: add_request_header_route
-          uri: https://example.org
-          predicates:
-          - Path=/red
-          filters:
-          - AddRequestHeader=X-Request-red, blue
+      server:
+        webmvc:
+          routes:
+            - id: add_request_header_route
+              uri: https://example.org
+              predicates:
+              - Path=/red
+              filters:
+              - AddRequestHeader=X-Request-red, blue
 ----
 
 .GatewaySampleApplication.java

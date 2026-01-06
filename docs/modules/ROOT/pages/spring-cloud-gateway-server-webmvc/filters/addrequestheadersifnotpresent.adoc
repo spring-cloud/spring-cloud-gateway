@@ -10,14 +10,15 @@ The following example configures an `AddRequestHeadersIfNotPresent` filter:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: add_request_headers_route_inp
-          uri: https://example.org
-          predicates:
-          - Path=/red
-          filters:
-          - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
+      server:
+        webmvc:
+          routes:
+            - id: add_request_headers_route_inp
+              uri: https://example.org
+              predicates:
+              - Path=/red
+              filters:
+              - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
 ----
 
 .GatewaySampleApplication.java
