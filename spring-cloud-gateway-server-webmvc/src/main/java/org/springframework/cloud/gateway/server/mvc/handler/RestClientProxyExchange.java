@@ -59,7 +59,9 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 		}
 		return requestSpec.exchange((clientRequest, clientResponse) -> {
 			ServerResponse serverResponse = doExchange(request, clientResponse);
-			clearTempFileIfExist(request);
+			if(isWriteClientBodyToFile(request)){
+				clearTempFileIfExist(request);
+			}
 			return serverResponse;
 		}, false);
 	}
