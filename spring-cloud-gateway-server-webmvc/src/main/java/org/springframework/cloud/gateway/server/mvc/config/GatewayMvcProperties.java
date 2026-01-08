@@ -78,6 +78,10 @@ public class GatewayMvcProperties {
 
 	private FileBuffer fileBuffer = new FileBuffer();
 
+	public FileBuffer getFileBuffer() {
+		return fileBuffer;
+	}
+
 	public List<RouteProperties> getRoutes() {
 		return routes;
 	}
@@ -153,6 +157,14 @@ public class GatewayMvcProperties {
 
 		public void setEnabled(boolean enabled) {
 			this.enabled = enabled;
+		}
+
+		public DataSize getSizeThreshold() {
+			return sizeThreshold;
+		}
+
+		public void setSizeThreshold(DataSize sizeThreshold) {
+			this.sizeThreshold = sizeThreshold;
 		}
 
 		@Override
