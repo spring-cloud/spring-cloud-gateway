@@ -133,90 +133,8 @@ public class GatewayMvcProperties {
 			.append("streamingMediaTypes", streamingMediaTypes)
 			.append("streamingBufferSize", streamingBufferSize)
 			.append("trustedProxies", trustedProxies)
-            .append("fileBuffer",fileBuffer)
+			.append("fileBuffer", fileBuffer)
 			.toString();
-	}
-
-	/**
-	 * @deprecated in favor of spring.http.client.
-	 */
-	@Deprecated
-	public static class HttpClient {
-
-		/** The HttpClient connect timeout. */
-		private Duration connectTimeout;
-
-		/** The HttpClient read timeout. */
-		private Duration readTimeout;
-
-		/** The name of the SSL bundle to use. */
-		private String sslBundle;
-
-		/** The HttpClient type. Defaults to JDK. */
-		private HttpClientType type = HttpClientType.JDK;
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.connect-timeout", since = "4.2.0")
-		public Duration getConnectTimeout() {
-			return connectTimeout;
-		}
-
-		public void setConnectTimeout(Duration connectTimeout) {
-			this.connectTimeout = connectTimeout;
-		}
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.read-timeout", since = "4.2.0")
-		public Duration getReadTimeout() {
-			return readTimeout;
-		}
-
-		public void setReadTimeout(Duration readTimeout) {
-			this.readTimeout = readTimeout;
-		}
-
-		@Deprecated
-		@DeprecatedConfigurationProperty(replacement = "spring.http.client.ssl.bundle", since = "4.2.0")
-		public String getSslBundle() {
-			return sslBundle;
-		}
-
-		public void setSslBundle(String sslBundle) {
-			this.sslBundle = sslBundle;
-		}
-
-		@Deprecated
-		public HttpClientType getType() {
-			return type;
-		}
-
-		public void setType(HttpClientType type) {
-			this.type = type;
-		}
-
-		@Override
-		public String toString() {
-			return new ToStringCreator(this).append("connectTimeout", connectTimeout)
-				.append("readTimeout", readTimeout)
-				.append("sslBundle", sslBundle)
-				.append("type", type)
-				.toString();
-		}
-
-	}
-
-	public enum HttpClientType {
-
-		/**
-		 * Use JDK HttpClient.
-		 */
-		JDK,
-
-		/**
-		 * Auto-detect the HttpClient.
-		 */
-		AUTODETECT
-
 	}
 	public static class FileBuffer {
 		/**
@@ -240,9 +158,8 @@ public class GatewayMvcProperties {
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("enabled", enabled)
-				.append("sizeThreshold", sizeThreshold)
-				.toString();
+					.append("sizeThreshold", sizeThreshold)
+					.toString();
 		}
 	}
-
 }
