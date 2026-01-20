@@ -233,8 +233,22 @@ The following table describes the structure of each element (each is a route) of
 == Retrieving Information about a Particular Route
 
 To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/\{id}` (for example, `/actuator/gateway/routes/first_route`).
-The resulting response is similar to the following:
 
+NOTE: By default, `spring.cloud.gateway.actuator.verbose.enabled` is `true`.
+This affects the JSON output format.
+
+.Verbose (default) output:
+----
+{
+  "route_id": "first_route",
+  "predicate": "(Paths: [/first], match trailing slash: true && Methods: [GET])",
+  "filters": [],
+  "uri": "https://www.uri-destination.org",
+  "order": 0
+}
+----
+
+.Non-verbose output (`verbose.enabled=false`):
 ----
 {
   "id": "first_route",
