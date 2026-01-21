@@ -250,7 +250,7 @@ The following table describes the structure of the response:
 |===
 | Path | Type | Description
 
-|`id`
+|`route_id`
 | String
 | The route ID.
 
