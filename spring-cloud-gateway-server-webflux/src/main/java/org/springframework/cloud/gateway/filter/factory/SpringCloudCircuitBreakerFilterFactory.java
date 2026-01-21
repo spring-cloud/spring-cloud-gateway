@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +43,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import static java.util.Collections.singletonList;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CIRCUITBREAKER_EXECUTION_EXCEPTION_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -58,6 +58,26 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	/** CircuitBreaker component name. */
 	public static final String NAME = "CircuitBreaker";
+
+	/**
+	 * Fallback uri key.
+	 */
+	public static final String FALLBACK_URI_KEY = "fallbackUri";
+
+	/**
+	 * Route Id key.
+	 */
+	public static final String ROUTE_ID_KEY = "routeId";
+
+	/**
+	 * Status codes key.
+	 */
+	public static final String STATUS_CODES_KEY = "statusCodes";
+
+	/**
+	 * Resume without error key.
+	 */
+	public static final String RESUME_WITHOUT_ERROR_KEY = "resumeWithoutError";
 
 	private ReactiveCircuitBreakerFactory reactiveCircuitBreakerFactory;
 
@@ -85,7 +105,7 @@ public abstract class SpringCloudCircuitBreakerFilterFactory
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return singletonList(NAME_KEY);
+		return Arrays.asList(NAME_KEY, FALLBACK_URI_KEY, ROUTE_ID_KEY, STATUS_CODES_KEY, RESUME_WITHOUT_ERROR_KEY);
 	}
 
 	@Override
