@@ -5,7 +5,23 @@ HttpHeadersFilters are applied to the requests before sending them downstream, s
 
 [[forwarded-headers-filter]]
 == Forwarded Headers Filter
-The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header. To activate this filter set the `spring.cloud.gateway.server.webmvc.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
+The `Forwarded` Headers Filter creates a `Forwarded` header to send to the downstream service, as defined in https://tools.ietf.org/html/rfc7239[RFC 7239]. It adds the `Host` header, scheme and port of the current request to any existing `Forwarded` header. To activate this filter set the `spring.cloud.gateway.server.webmvc.trusted-proxies` property to a Java Regular Expression. This regular expression defines the proxies that are trusted when they appear in the `Forwarded` header.
+
+The filter supports the following optional parameters:
+
+=== Forwarded "by" Parameter
+The `by` parameter identifies the proxy interface where the request was received. This is useful for debugging and tracing in multi-hop proxy environments. To enable the `by` parameter, set the following property:
+
+- `spring.cloud.gateway.server.webmvc.forwarded-by-enabled` (defaults to `false`)
+
+When enabled, the filter adds the server's local address and port to the `Forwarded` header. For example:
+
+[source]
+----
+Forwarded: for="192.0.2.60:47011";proto=https;host="example.com:443";by="198.51.100.17:8080"
+----
+
+NOTE: The `by` parameter includes the port number only when it is greater than 0. IPv6 addresses are properly formatted with brackets.
 
 [[removehopbyhop-headers-filter]]
 == RemoveHopByHop Headers Filter
