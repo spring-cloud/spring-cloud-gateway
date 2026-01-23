@@ -26,24 +26,6 @@
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
-	<dependencyManagement>
-		<dependencies>
-			<!--<dependency>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-dependencies</artifactId>
-				<version>4.0.1</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>-->
-			<!--<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-framework-bom</artifactId>
-				<version>7.0.3</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>-->
-		</dependencies>
-	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
