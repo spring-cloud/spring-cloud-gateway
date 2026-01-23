@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
+import org.springframework.web.accept.ApiVersionHolder;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.accept.ApiVersionStrategy;
 import org.springframework.web.reactive.accept.DefaultApiVersionStrategy;
@@ -81,15 +82,15 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 					config.parsedVersion = apiVersionStrategy.parseVersion(version);
 				}
 
-				Comparable<?> requestVersion = (Comparable<?>) request.getAttributes()
+				ApiVersionHolder requestVersion = (ApiVersionHolder) request.getAttributes()
 					.get(HandlerMapping.API_VERSION_ATTRIBUTE);
 
-				if (requestVersion == null) {
+				if (requestVersion == null || !requestVersion.hasVersion()) {
 					traceMatch("Version", config.version, null, false);
-					return false;
+					return true;
 				}
 
-				int result = compareVersions(config.parsedVersion, requestVersion);
+				int result = compareVersions(config.parsedVersion, requestVersion.getVersion());
 				boolean match = (config.baselineVersion ? result <= 0 : result == 0);
 				traceMatch("Version", config.version, requestVersion, match);
 				return match;
