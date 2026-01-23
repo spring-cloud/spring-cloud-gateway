@@ -87,7 +87,7 @@ public class VersionRoutePredicateFactory extends AbstractRoutePredicateFactory<
 
 				if (requestVersion == null || !requestVersion.hasVersion()) {
 					traceMatch("Version", config.version, null, false);
-					return false;
+					return true;
 				}
 
 				int result = compareVersions(config.parsedVersion, requestVersion.getVersion());
