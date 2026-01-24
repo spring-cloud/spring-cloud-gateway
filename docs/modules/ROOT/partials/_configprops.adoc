@@ -175,6 +175,7 @@
 |spring.cloud.gateway.server.webflux.x-forwarded.proto-append | `+++true+++` | If appending X-Forwarded-Proto as a list is enabled.
 |spring.cloud.gateway.server.webflux.x-forwarded.proto-enabled | `+++true+++` | If X-Forwarded-Proto is enabled.
 |spring.cloud.gateway.server.webmvc.form-filter.enabled | `+++true+++` | Enables the form-filter.
+|spring.cloud.gateway.server.webmvc.forwarded-by-enabled | `+++false+++` | Whether to add the "by" parameter to the Forwarded header.
 |spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled | `+++true+++` | Enables the forwarded-request-headers-filter.
 |spring.cloud.gateway.server.webmvc.remove-content-length-request-headers-filter.enabled | `+++true+++` | Enables the remove-content-length-request-headers-filter.
 |spring.cloud.gateway.server.webmvc.remove-hop-by-hop-request-headers-filter.enabled | `+++true+++` | Enables the remove-hop-by-hop-request-headers-filter.
