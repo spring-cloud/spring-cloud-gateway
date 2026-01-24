@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -45,6 +46,7 @@ import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("globalfiltertests")
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
+@AutoConfigureRestTestClient
 class GlobalFilterTests {
 
 	@Autowired
