@@ -54,6 +54,9 @@ import org.springframework.cloud.gateway.server.mvc.filter.TrustedProxies;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
+import org.springframework.cloud.gateway.server.mvc.filter.global.GlobalFilterProcessor;
+import org.springframework.cloud.gateway.server.mvc.filter.global.GlobalRequestFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.global.GlobalResponseFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchangeHandlerFunction;
@@ -97,11 +100,17 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
+	public GlobalFilterProcessor globalFilterProcessor(ObjectProvider<GlobalRequestFilter> requestFilterObjectProvider, ObjectProvider<GlobalResponseFilter>  responseFilterObjectProvider) {
+		return new GlobalFilterProcessor(requestFilterObjectProvider, responseFilterObjectProvider);
+	}
+
+	@Bean
 	public RouterFunctionHolderFactory routerFunctionHolderFactory(Environment env, BeanFactory beanFactory,
 			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
-			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer,
+			GlobalFilterProcessor globalFilterProcessor) {
 		return new RouterFunctionHolderFactory(env, beanFactory, filterBeanFactoryDiscoverer,
-				predicateBeanFactoryDiscoverer);
+				predicateBeanFactoryDiscoverer, globalFilterProcessor);
 	}
 
 	@Bean

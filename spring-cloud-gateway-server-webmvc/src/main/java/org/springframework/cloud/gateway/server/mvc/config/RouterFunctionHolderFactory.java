@@ -48,6 +48,7 @@ import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
+import org.springframework.cloud.gateway.server.mvc.filter.global.GlobalFilterProcessor;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
@@ -125,13 +126,18 @@ public class RouterFunctionHolderFactory {
 
 	private final ConversionService conversionService;
 
+	private final GlobalFilterProcessor globalFilterProcessor;
+
 	public RouterFunctionHolderFactory(Environment env, BeanFactory beanFactory,
 			FilterBeanFactoryDiscoverer filterBeanFactoryDiscoverer,
-			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer) {
+			PredicateBeanFactoryDiscoverer predicateBeanFactoryDiscoverer,
+			GlobalFilterProcessor globalFilterProcessor
+	) {
 		this.env = env;
 		this.beanFactory = beanFactory;
 		this.filterBeanFactoryDiscoverer = filterBeanFactoryDiscoverer;
 		this.predicateBeanFactoryDiscoverer = predicateBeanFactoryDiscoverer;
+		this.globalFilterProcessor = globalFilterProcessor;
 		if (beanFactory instanceof ConfigurableBeanFactory configurableBeanFactory) {
 			if (configurableBeanFactory.getConversionService() != null) {
 				this.conversionService = configurableBeanFactory.getConversionService();
@@ -289,6 +295,9 @@ public class RouterFunctionHolderFactory {
 		// HandlerDiscoverer filters needing lower priority, so put them first
 		lowerPrecedenceFilters.forEach(builder::filter);
 
+		// GlobalRequestFilters
+		globalFilterProcessor.getRequestFilters().forEach(builder::filter);
+
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = new LinkedMultiValueMap<>();
 		if (filterBeanFactoryDiscoverer != null) {
@@ -299,6 +308,10 @@ public class RouterFunctionHolderFactory {
 			Map<String, Object> args = new LinkedHashMap<>(filterProperties.getArgs());
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
 		});
+
+
+		// GlobalResponseFilters
+		globalFilterProcessor.getResponseFilters().forEach(builder::filter);
 
 		// HandlerDiscoverer filters need higher priority, so put them last
 		higherPrecedenceFilters.forEach(builder::filter);
