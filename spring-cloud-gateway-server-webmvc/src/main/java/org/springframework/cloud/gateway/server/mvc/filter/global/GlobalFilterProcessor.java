@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter.global;
 
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,12 +35,10 @@ public class GlobalFilterProcessor {
 	private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> responseFilters;
 
 	public GlobalFilterProcessor(ObjectProvider<GlobalRequestFilter> requestFilterObjectProvider, ObjectProvider<GlobalResponseFilter> responseFilterObjectProvider) {
-		this.requestFilters = requestFilterObjectProvider.stream()
-				.sorted(Comparator.comparingInt(GlobalRequestFilter::getOrder))
+		this.requestFilters = requestFilterObjectProvider.orderedStream()
 				.map(globalRequestFilter -> ofRequestProcessor(globalRequestFilter::processRequest))
 				.toList();
-		this.responseFilters = responseFilterObjectProvider.stream()
-				.sorted(Comparator.comparingInt(GlobalResponseFilter::getOrder))
+		this.responseFilters = responseFilterObjectProvider.orderedStream()
 				.map(globalResponseFilter -> ofResponseProcessor(globalResponseFilter::processResponse))
 				.toList();
 	}

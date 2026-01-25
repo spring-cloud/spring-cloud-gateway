@@ -82,27 +82,6 @@ class GlobalFilterTests {
 					System.out.println("REQ ONE");
 					return request;
 				}
-
-				@Override
-				public int getOrder() {
-					return 0;
-				}
-			};
-		}
-
-		@Bean
-		public GlobalRequestFilter globalRequestFilter2() {
-			return new GlobalRequestFilter() {
-				@Override
-				public ServerRequest processRequest(ServerRequest request) {
-					System.out.println("REQ TWO");
-					return request;
-				}
-
-				@Override
-				public int getOrder() {
-					return 1;
-				}
 			};
 		}
 
@@ -111,29 +90,8 @@ class GlobalFilterTests {
 			return new GlobalResponseFilter() {
 				@Override
 				public ServerResponse processResponse(ServerRequest serverRequest, ServerResponse serverResponse) {
-					System.out.println("RESP 1");
+					System.out.println("RESP ONE");
 					return serverResponse;
-				}
-
-				@Override
-				public int getOrder() {
-					return 0;
-				}
-			};
-		}
-
-		@Bean
-		public GlobalResponseFilter globalResponseFilter2() {
-			return new GlobalResponseFilter() {
-				@Override
-				public ServerResponse processResponse(ServerRequest serverRequest, ServerResponse serverResponse) {
-					System.out.println("RESP 2");
-					return serverResponse;
-				}
-
-				@Override
-				public int getOrder() {
-					return 1;
 				}
 			};
 		}

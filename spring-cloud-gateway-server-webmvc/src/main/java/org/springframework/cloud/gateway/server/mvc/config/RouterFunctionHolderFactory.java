@@ -310,11 +310,11 @@ public class RouterFunctionHolderFactory {
 		// GlobalRequestFilters
 		globalFilterProcessor.getRequestFilters().forEach(builder::filter);
 
-		// GlobalResponseFilters
-		globalFilterProcessor.getResponseFilters().forEach(builder::filter);
-
 		// HandlerDiscoverer filters need higher priority, so put them last
 		higherPrecedenceFilters.forEach(builder::filter);
+
+		// GlobalResponseFilters
+		globalFilterProcessor.getResponseFilters().forEach(builder::filter);
 
 		builder.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 
