@@ -17,9 +17,22 @@
 package org.springframework.cloud.gateway.server.mvc.filter.global;
 
 import org.springframework.core.Ordered;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 
+/**
+ * Filter that gets executed in the request phase.
+ * The filter wil be executed after the {@link HandlerFunction} lowPrecedence filters and the route's own request-filters (like rewritePath).
+ * Order can be defined through the {@link Ordered#getOrder()} method, this will have precedence over the bean @Order.
+ * Lower values will match first.
+ * @author Joris Oosterhuis
+ */
 public interface GlobalRequestFilter extends Ordered {
 
 	ServerRequest processRequest(ServerRequest request);
+
+	@Override
+	default int getOrder() {
+		return 0;
+	}
 }

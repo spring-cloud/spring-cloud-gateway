@@ -17,10 +17,28 @@
 package org.springframework.cloud.gateway.server.mvc.filter.global;
 
 import org.springframework.core.Ordered;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
+/**
+ * Filter that gets executed in the response phase.
+ * The filter wil be executed before the {@link HandlerFunction} highPrecedence filters and the route's own response-filters (like modifyResponseBody).
+ * Order can be defined through the {@link Ordered#getOrder()} method, this will have precedence over the bean @Order.
+ * Lower values will match first.
+ * @author Joris Oosterhuis
+ */
 public interface GlobalResponseFilter extends Ordered {
 
+	/**
+	 * Modify the serverResponse.
+	 * The {@link ServerResponse} cannot be modified directly, use {@link ServerRequest#from}.
+	 * @return The modified serverResponse.
+	 */
 	ServerResponse processResponse(ServerRequest serverRequest, ServerResponse serverResponse);
+
+	@Override
+	default int getOrder() {
+		return 0;
+	}
 }

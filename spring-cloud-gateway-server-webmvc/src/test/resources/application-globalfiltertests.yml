@@ -5,7 +5,6 @@ spring.cloud.gateway.server.webmvc:
       predicates:
         - name: Method
           args:
-            # TODO: implement aliases?
             methods: GET
         - name: Path
           args:
@@ -13,7 +12,6 @@ spring.cloud.gateway.server.webmvc:
       filters:
         - HttpbinUriResolver=
         - AddRequestHeader=X-Test,listRoute1
-        - SetStatus=409
 logging:
   level:
     org.springframework.cloud.gateway.server.mvc: TRACE

@@ -26,6 +26,10 @@ import org.springframework.web.servlet.function.ServerResponse;
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofRequestProcessor;
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofResponseProcessor;
 
+/**
+ * Process the {@link GlobalRequestFilter}s and @{@link GlobalResponseFilter}s into HandlerFilterFunctions to be used in the RouterFunction.
+ * @author Joris Oosterhuis
+ */
 public class GlobalFilterProcessor {
 
 	private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> requestFilters;

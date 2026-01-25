@@ -86,6 +86,7 @@ import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouter
  * @author Spencer Gibb
  * @author Jürgen Wißkirchen
  * @author raccoonback
+ * @author Joris Oosterhuis
  */
 public class RouterFunctionHolderFactory {
 
@@ -295,9 +296,6 @@ public class RouterFunctionHolderFactory {
 		// HandlerDiscoverer filters needing lower priority, so put them first
 		lowerPrecedenceFilters.forEach(builder::filter);
 
-		// GlobalRequestFilters
-		globalFilterProcessor.getRequestFilters().forEach(builder::filter);
-
 		// translate filters
 		MultiValueMap<String, OperationMethod> filterOperations = new LinkedMultiValueMap<>();
 		if (filterBeanFactoryDiscoverer != null) {
@@ -309,6 +307,8 @@ public class RouterFunctionHolderFactory {
 			translate(filterOperations, filterProperties.getName(), args, HandlerFilterFunction.class, builder::filter);
 		});
 
+		// GlobalRequestFilters
+		globalFilterProcessor.getRequestFilters().forEach(builder::filter);
 
 		// GlobalResponseFilters
 		globalFilterProcessor.getResponseFilters().forEach(builder::filter);
