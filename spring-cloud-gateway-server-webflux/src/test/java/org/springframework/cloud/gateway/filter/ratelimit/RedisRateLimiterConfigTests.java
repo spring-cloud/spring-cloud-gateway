@@ -86,7 +86,20 @@ public class RedisRateLimiterConfigTests {
 		assertFilter("alt_custom_redis_rate_limiter", 30, 60, 20, true);
 	}
 
-	private void assertFilter(String key, int replenishRate, int burstCapacity, int requestedTokens,
+	@Test
+	public void fractionalReplenishRateTest() {
+		String key = "fractionalKey";
+		double replenishRate = 0.5; // half token per second
+		int burstCapacity = 1;
+		assertFilter(key, replenishRate, burstCapacity, 1, true);
+		assertFilter(key, replenishRate, burstCapacity, 1, false);
+		assertFilter(key, replenishRate, burstCapacity, 1, false); // still denied
+		assertFilter(key, replenishRate, burstCapacity, 1, true); // allowed after enough
+																	// "internal time"
+
+	}
+
+	private void assertFilter(String key, double replenishRate, int burstCapacity, int requestedTokens,
 			boolean useDefaultConfig) {
 		RedisRateLimiter.Config config;
 
