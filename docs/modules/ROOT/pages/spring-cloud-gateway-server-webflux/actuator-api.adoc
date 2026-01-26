@@ -233,15 +233,11 @@ The following table describes the structure of each element (each is a route) of
 == Retrieving Information about a Particular Route
 
 To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/\{id}` (for example, `/actuator/gateway/routes/first_route`).
-The resulting response is similar to the following:
 
 ----
 {
-  "id": "first_route",
-  "predicates": [{
-    "name": "Path",
-    "args": {"_genkey_0":"/first"}
-  }],
+  "route_id": "first_route",
+  "predicate": "(Paths: [/first], match trailing slash: true && Methods: [GET])",
   "filters": [],
   "uri": "https://www.uri-destination.org",
   "order": 0
@@ -254,7 +250,7 @@ The following table describes the structure of the response:
 |===
 | Path | Type | Description
 
-|`id`
+|`route_id`
 | String
 | The route ID.
 

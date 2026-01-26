@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.accept.ApiVersionHolder;
 import org.springframework.web.accept.SemanticApiVersionParser;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.accept.ApiVersionStrategy;
@@ -49,7 +50,7 @@ public class VersionRoutePredicateFactoryTests {
 		ApiVersionStrategy versionStrategy = apiVersionStrategy();
 		Comparable<?> parsedVersion = versionStrategy.parseVersion(version);
 		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("https://localhost"));
-		exchange.getAttributes().put(HandlerMapping.API_VERSION_ATTRIBUTE, parsedVersion);
+		exchange.getAttributes().put(HandlerMapping.API_VERSION_ATTRIBUTE, ApiVersionHolder.fromVersion(parsedVersion));
 		return exchange;
 	}
 

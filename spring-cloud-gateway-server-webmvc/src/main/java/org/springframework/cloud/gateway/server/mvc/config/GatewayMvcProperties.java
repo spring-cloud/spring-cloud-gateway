@@ -71,6 +71,11 @@ public class GatewayMvcProperties {
 	private @Nullable String trustedProxies;
 
 	/**
+	 * Whether to add the "by" parameter to the Forwarded header.
+	 */
+	private boolean forwardedByEnabled = false;
+
+	/**
 	 * In the case where Spring Retry is on the classpath but you still want to use Spring
 	 * Framework retry as your retry filter, set this property to true.
 	 */
@@ -130,6 +135,14 @@ public class GatewayMvcProperties {
 		this.trustedProxies = trustedProxies;
 	}
 
+	public boolean isForwardedByEnabled() {
+		return forwardedByEnabled;
+	}
+
+	public void setForwardedByEnabled(boolean forwardedByEnabled) {
+		this.forwardedByEnabled = forwardedByEnabled;
+	}
+
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("routes", routes)
@@ -138,6 +151,7 @@ public class GatewayMvcProperties {
 			.append("streamingBufferSize", streamingBufferSize)
 			.append("trustedProxies", trustedProxies)
 			.append("fileBuffer", fileBuffer)
+			.append("forwardedByEnabled", forwardedByEnabled)
 			.toString();
 	}
 	public static class FileBuffer {

@@ -13,7 +13,7 @@ image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph
 * Route matching built into Spring Handler Mapping
 * Route matching on HTTP Request (Path, Method, Header, Host, etc...)
 * Filters scoped to Matching Route
-* Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Hystrix, etc...)
+* Filters can modify downstream HTTP Request and HTTP Response (Add/Remove Headers, Add/Remove Parameters, Rewrite Path, Set Path, Circuit Breaker, etc...)
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
