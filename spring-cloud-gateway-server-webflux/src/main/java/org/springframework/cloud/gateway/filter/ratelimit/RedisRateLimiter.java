@@ -312,11 +312,18 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return routeConfig;
 	}
 
+	private static String formatReplenishRate(double rate) {
+		if (rate == Math.floor(rate)) {
+			return String.valueOf((long) rate);
+		}
+		return String.valueOf(rate);
+	}
+
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
 			headers.put(this.remainingHeader, tokensLeft.toString());
-			headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
+			headers.put(this.replenishRateHeader, formatReplenishRate(config.getReplenishRate()));
 			headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
 			headers.put(this.requestedTokensHeader, String.valueOf(config.getRequestedTokens()));
 		}
