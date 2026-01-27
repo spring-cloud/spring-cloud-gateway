@@ -64,8 +64,8 @@ public class PrefixPathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
-			final UriTemplate uriTemplate = new UriTemplate(
-					Objects.requireNonNull(config.prefix, "prefix must not be null"));
+			final String prefix = config.prefix != null ? config.prefix : "";
+			final UriTemplate uriTemplate = prefix.isEmpty() ? null : new UriTemplate(prefix);
 
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -78,11 +78,16 @@ public class PrefixPathGatewayFilterFactory
 				ServerHttpRequest req = exchange.getRequest();
 				addOriginalRequestUrl(exchange, req.getURI());
 
-				Map<String, String> uriVariables = getUriTemplateVariables(exchange);
-				URI uri = uriTemplate.expand(uriVariables);
-
-				String newPath = uri.getRawPath() + req.getURI().getRawPath();
-				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+				String newPath;
+				if (uriTemplate != null) {
+					Map<String, String> uriVariables = getUriTemplateVariables(exchange);
+					URI uri = uriTemplate.expand(uriVariables);
+					newPath = uri.getRawPath() + req.getURI().getRawPath();
+					exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+				}
+				else {
+					newPath = req.getURI().getRawPath();
+				}
 				ServerHttpRequest request = req.mutate().path(newPath).build();
 
 				if (log.isTraceEnabled()) {
