@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>5.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-cloud-gateway-docs</artifactId>
 	<packaging>jar</packaging>
