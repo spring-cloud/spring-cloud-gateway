@@ -16,15 +16,19 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestClient;
@@ -46,9 +50,27 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 			.uri(request.getUri())
 			.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
 		if (isBodyPresent(request)) {
-			requestSpec.body(outputStream -> copyBody(request, outputStream));
+			if (isWriteClientBodyToFile(request)) {
+				requestSpec.body(copyClientBodyToFile(request));
+			}
+			else {
+				requestSpec.body(outputStream -> copyBody(request, outputStream));
+			}
 		}
-		return requestSpec.exchange((clientRequest, clientResponse) -> doExchange(request, clientResponse), false);
+		return requestSpec.exchange((clientRequest, clientResponse) -> {
+			ServerResponse serverResponse = doExchange(request, clientResponse);
+			if (isWriteClientBodyToFile(request)) {
+				clearTempFileIfExist(request);
+			}
+			return serverResponse;
+		}, false);
+	}
+
+	private void clearTempFileIfExist(Request request) {
+		File tempFile = MvcUtils.getAttribute(request.getServerRequest(), MvcUtils.CLIENT_BODY_TMP_ATTR);
+		if (tempFile != null && tempFile.exists()) {
+			tempFile.delete();
+		}
 	}
 
 	private static boolean isBodyPresent(Request request) {
@@ -62,6 +84,23 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 
 	private static int copyBody(Request request, OutputStream outputStream) throws IOException {
 		return StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), outputStream);
+	}
+
+	private static FileSystemResource copyClientBodyToFile(Request request) {
+		File bodyTempFile = null;
+		try {
+			// TODO: customize temp dir
+			bodyTempFile = File.createTempFile("gateway_client_body", ".tmp");
+			Files.copy(request.getServerRequest().servletRequest().getInputStream(), bodyTempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (IOException e) {
+			if (bodyTempFile != null && bodyTempFile.exists()) {
+				bodyTempFile.delete();
+			}
+			throw new UncheckedIOException(e);
+		}
+		MvcUtils.setBodyTempFile(request.getServerRequest(), bodyTempFile);
+		return new FileSystemResource(bodyTempFile);
 	}
 
 	private ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
