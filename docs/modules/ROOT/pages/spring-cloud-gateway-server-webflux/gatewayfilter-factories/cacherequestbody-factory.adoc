@@ -25,15 +25,17 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 spring:
   cloud:
     gateway:
-      routes:
-      - id: cache_request_body_route
-        uri: lb://downstream
-        predicates:
-        - Path=/downstream/**
-        filters:
-        - name: CacheRequestBody
-          args:
-            bodyClass: java.lang.String
+      server:
+        webflux:
+          routes:
+          - id: cache_request_body_route
+            uri: lb://downstream
+            predicates:
+            - Path=/downstream/**
+            filters:
+            - name: CacheRequestBody
+              args:
+                bodyClass: java.lang.String
 ----
 `CacheRequestBody` extracts the request body and converts it to a body class (such as `java.lang.String`, defined in the preceding example).
 `CacheRequestBody` then places it in the attributes available from `ServerWebExchange.getAttributes()`, with a key defined in `ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR`.

@@ -13,13 +13,15 @@ The following example configures a `SetPath` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setpath_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment}
-        filters:
-        - SetPath=/{segment}
+      server:
+        webflux:
+          routes:
+          - id: setpath_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/{segment}
+            filters:
+            - SetPath=/{segment}
 ----
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request.

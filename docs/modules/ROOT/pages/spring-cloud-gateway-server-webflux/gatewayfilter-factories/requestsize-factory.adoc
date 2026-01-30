@@ -13,15 +13,17 @@ The following listing configures a `RequestSize` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: request_size_route
-        uri: http://localhost:8080/upload
-        predicates:
-        - Path=/upload
-        filters:
-        - name: RequestSize
-          args:
-            maxSize: 5000000
+      server:
+        webflux:
+          routes:
+          - id: request_size_route
+            uri: http://localhost:8080/upload
+            predicates:
+            - Path=/upload
+            filters:
+            - name: RequestSize
+              args:
+                maxSize: 5000000
 ----
 
 The `RequestSize` `GatewayFilter` factory sets the response status as `413 Payload Too Large` with an additional header `errorMessage` when the request is rejected due to size. The following example shows such an `errorMessage`:

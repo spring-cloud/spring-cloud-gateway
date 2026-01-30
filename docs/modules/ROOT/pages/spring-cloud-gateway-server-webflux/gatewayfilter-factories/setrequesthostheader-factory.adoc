@@ -11,15 +11,17 @@ The following listing configures a `SetRequestHostHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: set_request_host_header_route
-        uri: http://localhost:8080/headers
-        predicates:
-        - Path=/headers
-        filters:
-        - name: SetRequestHostHeader
-          args:
-            host: example.org
+      server:
+        webflux:
+          routes:
+          - id: set_request_host_header_route
+            uri: http://localhost:8080/headers
+            predicates:
+            - Path=/headers
+            filters:
+            - name: SetRequestHostHeader
+              args:
+                host: example.org
 ----
 
 The `SetRequestHostHeader` `GatewayFilter` factory replaces the value of the host header with `example.org`.

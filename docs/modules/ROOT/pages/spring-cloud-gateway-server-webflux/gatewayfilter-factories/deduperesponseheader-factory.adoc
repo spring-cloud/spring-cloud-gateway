@@ -10,11 +10,13 @@ The following example configures a `DedupeResponseHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: dedupe_response_header_route
-        uri: https://example.org
-        filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      server:
+        webflux:
+          routes:
+          - id: dedupe_response_header_route
+            uri: https://example.org
+            filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 ----
 
 This removes duplicate values of `Access-Control-Allow-Credentials` and `Access-Control-Allow-Origin` response headers in cases when both the gateway CORS logic and the downstream logic add them.

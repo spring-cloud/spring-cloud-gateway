@@ -10,11 +10,13 @@ The following listing configures a `SetRequestHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setrequestheader_route
-        uri: https://example.org
-        filters:
-        - SetRequestHeader=X-Request-Red, Blue
+      server:
+        webflux:
+          routes:
+          - id: setrequestheader_route
+            uri: https://example.org
+            filters:
+            - SetRequestHeader=X-Request-Red, Blue
 ----
 
 This `GatewayFilter` replaces (rather than adding) all headers with the given name.
@@ -30,12 +32,14 @@ The following example configures an `SetRequestHeader` `GatewayFilter` that uses
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setrequestheader_route
-        uri: https://example.org
-        predicates:
-        - Host: {segment}.myhost.org
-        filters:
-        - SetRequestHeader=foo, bar-{segment}
+      server:
+        webflux:
+          routes:
+          - id: setrequestheader_route
+            uri: https://example.org
+            predicates:
+            - Host: {segment}.myhost.org
+            filters:
+            - SetRequestHeader=foo, bar-{segment}
 ----
 

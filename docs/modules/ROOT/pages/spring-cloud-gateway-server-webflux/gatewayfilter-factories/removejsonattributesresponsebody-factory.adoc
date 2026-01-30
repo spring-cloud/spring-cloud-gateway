@@ -12,11 +12,13 @@ The following example configures an `RemoveJsonAttributesResponseBody` `GatewayF
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removejsonattributes_route
-        uri: https://example.org
-        filters:
-        - RemoveJsonAttributesResponseBody=id,color
+      server:
+        webflux:
+          routes:
+          - id: removejsonattributes_route
+            uri: https://example.org
+            filters:
+            - RemoveJsonAttributesResponseBody=id,color
 ----
 
 This removes attributes "id" and "color" from the JSON content body at root level.
@@ -29,13 +31,15 @@ The following example configures an `RemoveJsonAttributesResponseBody` `GatewayF
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removejsonattributes_recursively_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment}
-        filters:
-        - RemoveJsonAttributesResponseBody=id,color,true
+      server:
+        webflux:
+          routes:
+          - id: removejsonattributes_recursively_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/{segment}
+            filters:
+            - RemoveJsonAttributesResponseBody=id,color,true
 ----
 
 This removes attributes "id" and "color" from the JSON content body at any level.

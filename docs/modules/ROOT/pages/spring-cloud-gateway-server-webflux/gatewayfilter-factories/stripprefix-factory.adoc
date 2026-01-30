@@ -11,13 +11,15 @@ The following listing configures a `StripPrefix` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: nameRoot
-        uri: https://nameservice
-        predicates:
-        - Path=/name/**
-        filters:
-        - StripPrefix=2
+      server:
+        webflux:
+          routes:
+          - id: nameRoot
+            uri: https://nameservice
+            predicates:
+            - Path=/name/**
+            filters:
+            - StripPrefix=2
 ----
 
 When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.

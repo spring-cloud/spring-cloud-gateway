@@ -10,11 +10,13 @@ The following example configures an `AddRequestHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_request_header_route
-        uri: https://example.org
-        filters:
-        - AddRequestHeader=X-Request-red, blue
+      server:
+        webflux:
+          routes:
+          - id: add_request_header_route
+            uri: https://example.org
+            filters:
+            - AddRequestHeader=X-Request-red, blue
 ----
 
 This listing adds `X-Request-red:blue` header to the downstream request's headers for all matching requests.
@@ -29,12 +31,14 @@ The following example configures an `AddRequestHeader` `GatewayFilter` that uses
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_request_header_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment}
-        filters:
-        - AddRequestHeader=X-Request-Red, Blue-{segment}
+      server:
+        webflux:
+          routes:
+          - id: add_request_header_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/{segment}
+            filters:
+            - AddRequestHeader=X-Request-Red, Blue-{segment}
 ----
 

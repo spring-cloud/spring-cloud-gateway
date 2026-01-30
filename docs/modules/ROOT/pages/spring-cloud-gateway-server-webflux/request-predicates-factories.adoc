@@ -19,11 +19,13 @@ The following example configures an after route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: after_route
-        uri: https://example.org
-        predicates:
-        - After=2017-01-20T17:42:47.789-07:00[America/Denver]
+      server:
+        webflux:
+          routes:
+          - id: after_route
+            uri: https://example.org
+            predicates:
+            - After=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
 
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver).
@@ -41,11 +43,13 @@ The following example configures a before route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: before_route
-        uri: https://example.org
-        predicates:
-        - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
+      server:
+        webflux:
+          routes:
+          - id: before_route
+            uri: https://example.org
+            predicates:
+            - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
 ----
 
 This route matches any request made before Jan 20, 2017 17:42 Mountain Time (Denver).
@@ -65,11 +69,13 @@ The following example configures a between route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: between_route
-        uri: https://example.org
-        predicates:
-        - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
+      server:
+        webflux:
+          routes:
+          - id: between_route
+            uri: https://example.org
+            predicates:
+            - Between=2017-01-20T17:42:47.789-07:00[America/Denver], 2017-01-21T17:42:47.789-07:00[America/Denver]
 ----
 
 This route matches any request made after Jan 20, 2017 17:42 Mountain Time (Denver) and before Jan 21, 2017 17:42 Mountain Time (Denver).
@@ -88,11 +94,13 @@ The following example configures a cookie route predicate factory:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: cookie_route
-        uri: https://example.org
-        predicates:
-        - Cookie=chocolate, ch.p
+      server:
+        webflux:
+          routes:
+          - id: cookie_route
+            uri: https://example.org
+            predicates:
+            - Cookie=chocolate, ch.p
 ----
 
 This route matches requests that have a cookie named `chocolate` whose value matches the `ch.p` regular expression.
@@ -110,11 +118,13 @@ The following example configures a header route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: header_route
-        uri: https://example.org
-        predicates:
-        - Header=X-Request-Id, \d+
+      server:
+        webflux:
+          routes:
+          - id: header_route
+            uri: https://example.org
+            predicates:
+            - Header=X-Request-Id, \d+
 ----
 
 This route matches if the request has a header named `X-Request-Id` whose value matches the `\d+` regular expression (that is, it has a value of one or more digits).
@@ -133,11 +143,13 @@ The following example configures a host route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: host_route
-        uri: https://example.org
-        predicates:
-        - Host=**.somehost.org,**.anotherhost.org
+      server:
+        webflux:
+          routes:
+          - id: host_route
+            uri: https://example.org
+            predicates:
+            - Host=**.somehost.org,**.anotherhost.org
 ----
 
 URI template variables (such as `\{sub}.myhost.org`) are supported as well.
@@ -160,11 +172,13 @@ The following example configures a method route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: method_route
-        uri: https://example.org
-        predicates:
-        - Method=GET,POST
+      server:
+        webflux:
+          routes:
+          - id: method_route
+            uri: https://example.org
+            predicates:
+            - Method=GET,POST
 ----
 
 This route matches if the request method was a `GET` or a `POST`.
@@ -181,11 +195,13 @@ The following example configures a path route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: path_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment},/blue/{segment}
+      server:
+        webflux:
+          routes:
+          - id: path_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/{segment},/blue/{segment}
 ----
 
 This route matches if the request path was, for example: `/red/1` or `/red/1/` or `/red/blue` or `/blue/green`.
@@ -219,11 +235,13 @@ The following example configures a query route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: query_route
-        uri: https://example.org
-        predicates:
-        - Query=green
+      server:
+        webflux:
+          routes:
+          - id: query_route
+            uri: https://example.org
+            predicates:
+            - Query=green
 ----
 
 The preceding route matches if the request contained a `green` query parameter.
@@ -234,11 +252,13 @@ The preceding route matches if the request contained a `green` query parameter.
 spring:
   cloud:
     gateway:
-      routes:
-      - id: query_route
-        uri: https://example.org
-        predicates:
-        - Query=red, gree.
+      server:
+        webflux:
+          routes:
+          - id: query_route
+            uri: https://example.org
+            predicates:
+            - Query=red, gree.
 ----
 
 The preceding route matches if the request contained a `red` query parameter whose value matched the `gree.` regexp, so `green` and `greet` would match.
@@ -256,11 +276,13 @@ The following example configures a RemoteAddr route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: remoteaddr_route
-        uri: https://example.org
-        predicates:
-        - RemoteAddr=192.168.1.1/24
+      server:
+        webflux:
+          routes:
+          - id: remoteaddr_route
+            uri: https://example.org
+            predicates:
+            - RemoteAddr=192.168.1.1/24
 ----
 
 This route matches if the remote address of the request was, for example, `192.168.1.10`.
@@ -334,15 +356,17 @@ The following example configures a weight route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: weight_high
-        uri: https://weighthigh.org
-        predicates:
-        - Weight=group1, 8
-      - id: weight_low
-        uri: https://weightlow.org
-        predicates:
-        - Weight=group1, 2
+      server:
+        webflux:
+          routes:
+          - id: weight_high
+            uri: https://weighthigh.org
+            predicates:
+            - Weight=group1, 8
+          - id: weight_low
+            uri: https://weightlow.org
+            predicates:
+            - Weight=group1, 2
 ----
 
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org
@@ -367,11 +391,13 @@ The following example configures a XForwardedRemoteAddr route predicate:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: xforwarded_remoteaddr_route
-        uri: https://example.org
-        predicates:
-        - XForwardedRemoteAddr=192.168.1.1/24
+      server:
+        webflux:
+          routes:
+          - id: xforwarded_remoteaddr_route
+            uri: https://example.org
+            predicates:
+            - XForwardedRemoteAddr=192.168.1.1/24
 ----
 
 This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.

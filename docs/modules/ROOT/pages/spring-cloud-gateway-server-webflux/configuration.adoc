@@ -23,17 +23,19 @@ The following two examples are equivalent:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setstatus_route
-        uri: https://example.org
-        filters:
-        - name: SetStatus
-          args:
-            status: 401
-      - id: setstatusshortcut_route
-        uri: https://example.org
-        filters:
-        - SetStatus=401
+      server:
+        webflux:
+          routes:
+          - id: setstatus_route
+            uri: https://example.org
+            filters:
+            - name: SetStatus
+              args:
+                status: 401
+          - id: setstatusshortcut_route
+            uri: https://example.org
+            filters:
+            - SetStatus=401
 ----
 
 For some usages of the gateway, properties are adequate, but some production use cases benefit from loading configuration from an external source, such as a database. Future milestone versions will have `RouteDefinitionLocator` implementations based off of Spring Data Repositories, such as Redis, MongoDB, and Cassandra.

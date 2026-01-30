@@ -133,11 +133,13 @@ The following listing configures a `ReactiveLoadBalancerClientFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: myRoute
-        uri: lb://service
-        predicates:
-        - Path=/service/**
+      server:
+        webflux:
+          routes:
+          - id: myRoute
+            uri: lb://service
+            predicates:
+            - Path=/service/**
 ----
 
 NOTE: By default, when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` is returned.
@@ -177,17 +179,19 @@ The following listing configures a websocket routing filter:
 spring:
   cloud:
     gateway:
-      routes:
-      # SockJS route
-      - id: websocket_sockjs_route
-        uri: http://localhost:3001
-        predicates:
-        - Path=/websocket/info/**
-      # Normal Websocket route
-      - id: websocket_route
-        uri: ws://localhost:3001
-        predicates:
-        - Path=/websocket/**
+      server:
+        webflux:
+          routes:
+          # SockJS route
+          - id: websocket_sockjs_route
+            uri: http://localhost:3001
+            predicates:
+            - Path=/websocket/info/**
+          # Normal Websocket route
+          - id: websocket_route
+            uri: ws://localhost:3001
+            predicates:
+            - Path=/websocket/**
 ----
 
 [[marking-an-exchange-as-routed]]

@@ -44,18 +44,20 @@ NOTE: If no `Path` predicate is present in the route '/**' will be applied.
 spring:
   cloud:
     gateway:
-      routes:
-      - id: cors_route
-        uri: https://example.org
-        predicates:
-        - Path=/service/**
-        metadata:
-          cors:
-            allowedOrigins: '*'
-            allowedMethods:
-              - GET
-              - POST
-            allowedHeaders: '*'
-            maxAge: 30
+      server:
+        webflux:
+          routes:
+          - id: cors_route
+            uri: https://example.org
+            predicates:
+            - Path=/service/**
+            metadata:
+              cors:
+                allowedOrigins: '*'
+                allowedMethods:
+                  - GET
+                  - POST
+                allowedHeaders: '*'
+                maxAge: 30
 ----
 

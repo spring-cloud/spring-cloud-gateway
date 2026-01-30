@@ -13,13 +13,15 @@ The following listing configures a `SetRequestUri` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: seturi_route
-        uri: no://op
-        predicates:
-        - Path=/{appId}/**
-        filters:
-        - SetRequestUri=http://{appId}.example.com
+      server:
+        webflux:
+          routes:
+          - id: seturi_route
+            uri: no://op
+            predicates:
+            - Path=/{appId}/**
+            filters:
+            - SetRequestUri=http://{appId}.example.com
 ----
 
 For a request path of `/red-application/blue`, this sets the uri to `http://red-application.example.com` before making the downstream request and the final url, including path is going to be `http://red-application.example.com/red-application/blue`

@@ -43,17 +43,19 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 spring:
   cloud:
     gateway:
-      routes:
-        - id: json-grpc
-          uri: https://localhost:6565
-          predicates:
-            - Path=/json/**
-          filters:
-            - name: JsonToGrpc
-              args:
-                service: HelloService
-                method: hello
-                protoDescriptor: file:proto/hello.pb
+      server:
+        webflux:
+          routes:
+            - id: json-grpc
+              uri: https://localhost:6565
+              predicates:
+                - Path=/json/**
+              filters:
+                - name: JsonToGrpc
+                  args:
+                    service: HelloService
+                    method: hello
+                    protoDescriptor: file:proto/hello.pb
 ----
 
 When a request is made through the gateway to `/json/hello`, the request is transformed by using the definition provided in `hello.proto`, sent to `HelloService/hello`, and the response back is transformed to JSON.

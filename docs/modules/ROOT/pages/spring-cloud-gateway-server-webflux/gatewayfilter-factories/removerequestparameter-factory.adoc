@@ -12,11 +12,13 @@ The following example configures a `RemoveRequestParameter` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removerequestparameter_route
-        uri: https://example.org
-        filters:
-        - RemoveRequestParameter=red
+      server:
+        webflux:
+          routes:
+          - id: removerequestparameter_route
+            uri: https://example.org
+            filters:
+            - RemoveRequestParameter=red
 ----
 
 This will remove the `red` parameter before it is sent downstream.

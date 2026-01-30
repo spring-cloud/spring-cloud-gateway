@@ -12,10 +12,12 @@ The following example configures a `PreserveHostHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: preserve_host_route
-        uri: https://example.org
-        filters:
-        - PreserveHostHeader
+      server:
+        webflux:
+          routes:
+          - id: preserve_host_route
+            uri: https://example.org
+            filters:
+            - PreserveHostHeader
 ----
 

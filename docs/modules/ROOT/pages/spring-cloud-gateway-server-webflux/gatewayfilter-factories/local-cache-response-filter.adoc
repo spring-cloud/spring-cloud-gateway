@@ -35,13 +35,15 @@ or this
 spring:
   cloud:
     gateway:
-      routes:
-      - id: resource
-        uri: http://localhost:9000
-        predicates:
-        - Path=/resource
-        filters:
-        - LocalResponseCache=30m,500MB
+      server:
+        webflux:
+          routes:
+          - id: resource
+            uri: http://localhost:9000
+            predicates:
+            - Path=/resource
+            filters:
+            - LocalResponseCache=30m,500MB
 ----
 
 NOTE: This filter also automatically calculates the `max-age` value in the HTTP `Cache-Control` header.

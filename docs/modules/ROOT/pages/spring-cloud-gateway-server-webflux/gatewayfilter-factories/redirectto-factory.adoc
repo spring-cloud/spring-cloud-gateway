@@ -16,11 +16,13 @@ The following listing configures a `RedirectTo` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: prefixpath_route
-        uri: https://example.org
-        filters:
-        - RedirectTo=302, https://acme.org
+      server:
+        webflux:
+          routes:
+          - id: prefixpath_route
+            uri: https://example.org
+            filters:
+            - RedirectTo=302, https://acme.org
 ----
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
@@ -33,11 +35,13 @@ The following example configures a `RedirectTo` `GatewayFilter` with `includeReq
 spring:
   cloud:
     gateway:
-      routes:
-      - id: prefixpath_route
-        uri: https://example.org
-        filters:
-        - RedirectTo=302, https://acme.org, true
+      server:
+        webflux:
+          routes:
+          - id: prefixpath_route
+            uri: https://example.org
+            filters:
+            - RedirectTo=302, https://acme.org, true
 ----
 
 When a request with query `?skip=10` is made to the gateway, the gateway will send a status 302 with a

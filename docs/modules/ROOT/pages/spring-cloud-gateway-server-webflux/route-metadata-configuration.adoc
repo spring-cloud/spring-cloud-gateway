@@ -9,14 +9,16 @@ You can configure additional parameters for each route by using metadata, as fol
 spring:
   cloud:
     gateway:
-      routes:
-      - id: route_with_metadata
-        uri: https://example.org
-        metadata:
-          optionName: "OptionValue"
-          compositeObject:
-            name: "value"
-          iAmNumber: 1
+      server:
+        webflux:
+          routes:
+          - id: route_with_metadata
+            uri: https://example.org
+            metadata:
+              optionName: "OptionValue"
+              compositeObject:
+                name: "value"
+              iAmNumber: 1
 ----
 
 You could acquire all metadata properties from an exchange, as follows:

@@ -11,13 +11,15 @@ The following listing configures a `RewritePath` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewritepath_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/**
-        filters:
-        - RewritePath=/red/?(?<segment>.*), /$\{segment}
+      server:
+        webflux:
+          routes:
+          - id: rewritepath_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/**
+            filters:
+            - RewritePath=/red/?(?<segment>.*), /$\{segment}
 ----
 
 For a request path of `/red/blue`, this sets the path to `/blue` before making the downstream request. Note that the `$` should be replaced with `$\` because of the YAML specification.

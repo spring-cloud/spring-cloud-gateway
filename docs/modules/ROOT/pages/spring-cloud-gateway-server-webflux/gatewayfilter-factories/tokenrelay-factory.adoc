@@ -34,13 +34,15 @@ or this
 spring:
   cloud:
     gateway:
-      routes:
-      - id: resource
-        uri: http://localhost:9000
-        predicates:
-        - Path=/resource
-        filters:
-        - TokenRelay=myregistrationid
+      server:
+        webflux:
+          routes:
+          - id: resource
+            uri: http://localhost:9000
+            predicates:
+            - Path=/resource
+            filters:
+            - TokenRelay=myregistrationid
 ----
 
 The example above specifies a `clientRegistrationId`, which can be used to obtain and forward an OAuth2 access token for any available `ClientRegistration`.
@@ -70,13 +72,15 @@ or this
 spring:
   cloud:
     gateway:
-      routes:
-      - id: resource
-        uri: http://localhost:9000
-        predicates:
-        - Path=/resource
-        filters:
-        - TokenRelay=
+      server:
+        webflux:
+          routes:
+          - id: resource
+            uri: http://localhost:9000
+            predicates:
+            - Path=/resource
+            filters:
+            - TokenRelay=
 ----
 
 and it will (in addition to logging the user in and grabbing a token)

@@ -57,13 +57,15 @@ Here is a valid yaml reference:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: limit
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            key-resolver: "#{@userkeyresolver}"
+      server:
+        webflux:
+          routes:
+          - id: limit
+            uri: https://example.org
+            filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userkeyresolver}"
 ----
 =====
 
@@ -99,15 +101,17 @@ For example, setting `replenishRate=1`, `requestedTokens=60`, and `burstCapacity
 spring:
   cloud:
     gateway:
-      routes:
-      - id: requestratelimiter_route
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: 10
-            redis-rate-limiter.burstCapacity: 20
-            redis-rate-limiter.requestedTokens: 1
+      server:
+        webflux:
+          routes:
+          - id: requestratelimiter_route
+            uri: https://example.org
+            filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
 
 ----
 
@@ -176,16 +180,18 @@ NOTE: This is not recommended for production
 spring:
   cloud:
     gateway:
-      routes:
-      - id: requestratelimiter_route
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            bucket4j-rate-limiter.capacity: 20
-            bucket4j-rate-limiter.refillTokens: 10
-            bucket4j-rate-limiter.refillPeriod: 1s
-            bucket4j-rate-limiter.requestedTokens: 1
+      server:
+        webflux:
+          routes:
+          - id: requestratelimiter_route
+            uri: https://example.org
+            filters:
+            - name: RequestRateLimiter
+              args:
+                bucket4j-rate-limiter.capacity: 20
+                bucket4j-rate-limiter.refillTokens: 10
+                bucket4j-rate-limiter.refillPeriod: 1s
+                bucket4j-rate-limiter.requestedTokens: 1
 
 ----
 
@@ -203,14 +209,16 @@ The following listing defines a rate limiter that uses the `KeyResolver` defined
 spring:
   cloud:
     gateway:
-      routes:
-      - id: requestratelimiter_route
-        uri: https://example.org
-        filters:
-        - name: RequestRateLimiter
-          args:
-            rate-limiter: "#{@myRateLimiter}"
-            key-resolver: "#{@userKeyResolver}"
+      server:
+        webflux:
+          routes:
+          - id: requestratelimiter_route
+            uri: https://example.org
+            filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@myRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
 
 ----
 

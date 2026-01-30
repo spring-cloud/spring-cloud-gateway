@@ -13,11 +13,13 @@ The following example configures a `MapRequestHeader`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: map_request_header_route
-        uri: https://example.org
-        filters:
-        - MapRequestHeader=Blue, X-Request-Red
+      server:
+        webflux:
+          routes:
+          - id: map_request_header_route
+            uri: https://example.org
+            filters:
+            - MapRequestHeader=Blue, X-Request-Red
 ----
 
 This adds the `X-Request-Red:<values>` header to the downstream request with updated values from the incoming HTTP request's `Blue` header.

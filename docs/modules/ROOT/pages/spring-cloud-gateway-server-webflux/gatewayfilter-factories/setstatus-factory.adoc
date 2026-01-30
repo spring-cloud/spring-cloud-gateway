@@ -12,15 +12,17 @@ The following listing configures a `SetStatus` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: setstatusstring_route
-        uri: https://example.org
-        filters:
-        - SetStatus=UNAUTHORIZED
-      - id: setstatusint_route
-        uri: https://example.org
-        filters:
-        - SetStatus=401
+      server:
+        webflux:
+          routes:
+          - id: setstatusstring_route
+            uri: https://example.org
+            filters:
+            - SetStatus=UNAUTHORIZED
+          - id: setstatusint_route
+            uri: https://example.org
+            filters:
+            - SetStatus=401
 ----
 
 In either case, the HTTP status of the response is set to 401.

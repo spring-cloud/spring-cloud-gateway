@@ -11,11 +11,13 @@ The following listing configures a `RewriteLocationResponseHeader` `GatewayFilte
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewritelocationresponseheader_route
-        uri: http://example.org
-        filters:
-        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+      server:
+        webflux:
+          routes:
+          - id: rewritelocationresponseheader_route
+            uri: http://example.org
+            filters:
+            - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
 ----
 
 For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.

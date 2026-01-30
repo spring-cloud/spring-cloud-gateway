@@ -10,11 +10,13 @@ The following example configures an `AddRequestHeadersIfNotPresent` `GatewayFilt
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_request_headers_route
-        uri: https://example.org
-        filters:
-        - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
+      server:
+        webflux:
+          routes:
+          - id: add_request_headers_route
+            uri: https://example.org
+            filters:
+            - AddRequestHeadersIfNotPresent=X-Request-Color-1:blue,X-Request-Color-2:green
 ----
 
 This listing adds 2 headers `X-Request-Color-1:blue` and `X-Request-Color-2:green` to the downstream request's headers for all matching requests.
@@ -33,12 +35,14 @@ The following example configures an `AddRequestHeadersIfNotPresent` `GatewayFilt
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_request_header_route
-        uri: https://example.org
-        predicates:
-        - Path=/red/{segment}
-        filters:
-        - AddRequestHeadersIfNotPresent=X-Request-Red:Blue-{segment}
+      server:
+        webflux:
+          routes:
+          - id: add_request_header_route
+            uri: https://example.org
+            predicates:
+            - Path=/red/{segment}
+            filters:
+            - AddRequestHeadersIfNotPresent=X-Request-Red:Blue-{segment}
 ----
 

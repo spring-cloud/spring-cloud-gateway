@@ -34,25 +34,27 @@ The following listing configures a Retry `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: retry_test
-        uri: http://localhost:8080/flakey
-        predicates:
-        - Host=*.retry.com
-        filters:
-        - name: Retry
-          args:
-            retries: 3
-            statuses: BAD_GATEWAY
-            methods: GET,POST
-            backoff:
-              firstBackoff: 10ms
-              maxBackoff: 50ms
-              factor: 2
-              basedOnPreviousValue: false
-            jitter:
-              randomFactor: 0.5
-            timeout: 100ms
+      server:
+        webflux:
+          routes:
+          - id: retry_test
+            uri: http://localhost:8080/flakey
+            predicates:
+            - Host=*.retry.com
+            filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 50ms
+                  factor: 2
+                  basedOnPreviousValue: false
+                jitter:
+                  randomFactor: 0.5
+                timeout: 100ms
 ----
 
 NOTE: When using the retry filter with a `forward:` prefixed URL, the target endpoint should be written carefully so that, in case of an error, it does not do anything that could result in a response being sent to the client and committed.
@@ -73,27 +75,29 @@ The following two examples are equivalent:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: retry_route
-        uri: https://example.org
-        filters:
-        - name: Retry
-          args:
-            retries: 3
-            statuses: INTERNAL_SERVER_ERROR
-            methods: GET
-            backoff:
-              firstBackoff: 10ms
-              maxBackoff: 50ms
-              factor: 2
-              basedOnPreviousValue: false
-            jitter:
-              randomFactor: 0.5
-            timeout: 100ms
+      server:
+        webflux:
+          routes:
+          - id: retry_route
+            uri: https://example.org
+            filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: INTERNAL_SERVER_ERROR
+                methods: GET
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 50ms
+                  factor: 2
+                  basedOnPreviousValue: false
+                jitter:
+                  randomFactor: 0.5
+                timeout: 100ms
 
-      - id: retryshortcut_route
-        uri: https://example.org
-        filters:
-        - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false,0.5,100ms
+          - id: retryshortcut_route
+            uri: https://example.org
+            filters:
+            - Retry=3,INTERNAL_SERVER_ERROR,GET,10ms,50ms,2,false,0.5,100ms
 ----
 

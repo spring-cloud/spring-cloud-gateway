@@ -12,11 +12,13 @@ The following example configures a `RewriteResponseHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewriteresponseheader_route
-        uri: https://example.org
-        filters:
-        - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
+      server:
+        webflux:
+          routes:
+          - id: rewriteresponseheader_route
+            uri: https://example.org
+            filters:
+            - RewriteResponseHeader=X-Response-Red, , password=[^&]+, password=***
 ----
 
 For a header value of `/42?user=ford&password=omg!what&flag=true`, it is set to `/42?user=ford&password=\***&flag=true` after making the downstream request.

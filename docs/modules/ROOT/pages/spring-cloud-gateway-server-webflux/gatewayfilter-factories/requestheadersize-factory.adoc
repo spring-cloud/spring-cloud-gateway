@@ -12,11 +12,13 @@ The following listing configures a `RequestHeaderSize` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: requestheadersize_route
-        uri: https://example.org
-        filters:
-        - RequestHeaderSize=1000B
+      server:
+        webflux:
+          routes:
+          - id: requestheadersize_route
+            uri: https://example.org
+            filters:
+            - RequestHeaderSize=1000B
 ----
 
 This will send a status 431 if size of any request header is greater than 1000 Bytes.

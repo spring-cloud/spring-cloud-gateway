@@ -10,12 +10,14 @@ The following example configures an `AddResponseHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_response_header_route
-        uri: https://example.org
-        filters:
-        - AddResponseHeader=X-Response-Red, Blue
-        - AddResponseHeader=X-Response-Black, White, false
+      server:
+        webflux:
+          routes:
+          - id: add_response_header_route
+            uri: https://example.org
+            filters:
+            - AddResponseHeader=X-Response-Red, Blue
+            - AddResponseHeader=X-Response-Black, White, false
 ----
 
 This adds `X-Response-Red:Blue` header to the downstream response's headers for all matching requests.
@@ -32,13 +34,15 @@ The following example configures an `AddResponseHeader` `GatewayFilter` that use
 spring:
   cloud:
     gateway:
-      routes:
-      - id: add_response_header_route
-        uri: https://example.org
-        predicates:
-        - Host: {segment}.myhost.org
-        filters:
-        - AddResponseHeader=foo, bar-{segment}
+      server:
+        webflux:
+          routes:
+          - id: add_response_header_route
+            uri: https://example.org
+            predicates:
+            - Host: {segment}.myhost.org
+            filters:
+            - AddResponseHeader=foo, bar-{segment}
 ----
 
 

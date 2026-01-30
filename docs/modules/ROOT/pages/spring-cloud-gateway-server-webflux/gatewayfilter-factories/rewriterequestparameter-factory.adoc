@@ -13,13 +13,15 @@ The following listing configures a `RewriteRequestParameter` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: rewriterequestparameter_route
-        uri: https://example.org
-        predicates:
-        - Path=/products
-        filters:
-        - RewriteRequestParameter=campaign,fall2023
+      server:
+        webflux:
+          routes:
+          - id: rewriterequestparameter_route
+            uri: https://example.org
+            predicates:
+            - Path=/products
+            filters:
+            - RewriteRequestParameter=campaign,fall2023
 ----
 ====
 

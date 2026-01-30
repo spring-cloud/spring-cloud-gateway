@@ -16,11 +16,13 @@ Shortcut configuration is recognized by the filter name, followed by an equals s
 spring:
   cloud:
     gateway:
-      routes:
-      - id: after_route
-        uri: https://example.org
-        predicates:
-        - Cookie=mycookie,mycookievalue
+      server:
+        webflux:
+          routes:
+          - id: after_route
+            uri: https://example.org
+            predicates:
+            - Cookie=mycookie,mycookievalue
 ----
 
 The previous sample defines the `Cookie` Route Predicate Factory with two arguments, the cookie name, `mycookie` and the value to match `mycookievalue`.
@@ -36,14 +38,16 @@ Fully expanded arguments appear more like standard yaml configuration with name/
 spring:
   cloud:
     gateway:
-      routes:
-      - id: after_route
-        uri: https://example.org
-        predicates:
-        - name: Cookie
-          args:
-            name: mycookie
-            regexp: mycookievalue
+      server:
+        webflux:
+          routes:
+          - id: after_route
+            uri: https://example.org
+            predicates:
+            - name: Cookie
+              args:
+                name: mycookie
+                regexp: mycookievalue
 ----
 
 This is the full configuration of the shortcut configuration of the `Cookie` predicate shown above.

@@ -11,11 +11,13 @@ The following listing configures a `RemoveResponseHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removeresponseheader_route
-        uri: https://example.org
-        filters:
-        - RemoveResponseHeader=X-Response-Foo
+      server:
+        webflux:
+          routes:
+          - id: removeresponseheader_route
+            uri: https://example.org
+            filters:
+            - RemoveResponseHeader=X-Response-Foo
 ----
 
 This will remove the `X-Response-Foo` header from the response before it is returned to the gateway client.

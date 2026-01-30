@@ -13,11 +13,13 @@ The following example configures a Spring Cloud CircuitBreaker `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: https://example.org
-        filters:
-        - CircuitBreaker=myCircuitBreaker
+      server:
+        webflux:
+          routes:
+          - id: circuitbreaker_route
+            uri: https://example.org
+            filters:
+            - CircuitBreaker=myCircuitBreaker
 ----
 
 To configure the circuit breaker, see the configuration for the underlying circuit breaker implementation you are using.
@@ -35,17 +37,19 @@ The following example configures such a fallback:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: lb://backing-service:8088
-        predicates:
-        - Path=/consumingServiceEndpoint
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            fallbackUri: forward:/inCaseOfFailureUseThis
-        - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
+      server:
+        webflux:
+          routes:
+          - id: circuitbreaker_route
+            uri: lb://backing-service:8088
+            predicates:
+            - Path=/consumingServiceEndpoint
+            filters:
+            - name: CircuitBreaker
+              args:
+                name: myCircuitBreaker
+                fallbackUri: forward:/inCaseOfFailureUseThis
+            - RewritePath=/consumingServiceEndpoint, /backingServiceEndpoint
 ----
 
 The following listing does the same thing in Java:
@@ -77,16 +81,18 @@ In the example below the call `consumingServiceEndpoint/users/1` will be redirec
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: lb://backing-service:8088
-        predicates:
-        - Path=/consumingServiceEndpoint/{*segments}
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            fallbackUri: forward:/inCaseOfFailureUseThis/{segments}
+      server:
+        webflux:
+          routes:
+          - id: circuitbreaker_route
+            uri: lb://backing-service:8088
+            predicates:
+            - Path=/consumingServiceEndpoint/{*segments}
+            filters:
+            - name: CircuitBreaker
+              args:
+                name: myCircuitBreaker
+                fallbackUri: forward:/inCaseOfFailureUseThis/{segments}
 ----
 
 The primary scenario is to use the `fallbackUri` to define an internal controller or handler within the gateway application.
@@ -98,20 +104,22 @@ However, you can also reroute the request to a controller or handler in an exter
 spring:
   cloud:
     gateway:
-      routes:
-      - id: ingredients
-        uri: lb://ingredients
-        predicates:
-        - Path=//ingredients/**
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: fetchIngredients
-            fallbackUri: forward:/fallback
-      - id: ingredients-fallback
-        uri: http://localhost:9994
-        predicates:
-        - Path=/fallback
+      server:
+        webflux:
+          routes:
+          - id: ingredients
+            uri: lb://ingredients
+            predicates:
+            - Path=//ingredients/**
+            filters:
+            - name: CircuitBreaker
+              args:
+                name: fetchIngredients
+                fallbackUri: forward:/fallback
+          - id: ingredients-fallback
+            uri: http://localhost:9994
+            predicates:
+            - Path=/fallback
 ----
 
 In this example, there is no `fallback` endpoint or handler in the gateway application.
@@ -138,19 +146,21 @@ value or the String representation of the `HttpStatus` enumeration.
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: lb://backing-service:8088
-        predicates:
-        - Path=/consumingServiceEndpoint
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            fallbackUri: forward:/inCaseOfFailureUseThis
-            statusCodes:
-              - 500
-              - "NOT_FOUND"
+      server:
+        webflux:
+          routes:
+          - id: circuitbreaker_route
+            uri: lb://backing-service:8088
+            predicates:
+            - Path=/consumingServiceEndpoint
+            filters:
+            - name: CircuitBreaker
+              args:
+                name: myCircuitBreaker
+                fallbackUri: forward:/inCaseOfFailureUseThis
+                statusCodes:
+                  - 500
+                  - "NOT_FOUND"
 ----
 
 .Application.java
@@ -179,16 +189,18 @@ NOTE: When `resumeWithoutError` is `true`, timeout exceptions and circuit open e
 spring:
   cloud:
     gateway:
-      routes:
-      - id: circuitbreaker_route
-        uri: lb://backing-service:8088
-        predicates:
-        - Path=/consumingServiceEndpoint
-        filters:
-        - name: CircuitBreaker
-          args:
-            name: myCircuitBreaker
-            resumeWithoutError: true
+      server:
+        webflux:
+          routes:
+          - id: circuitbreaker_route
+            uri: lb://backing-service:8088
+            predicates:
+            - Path=/consumingServiceEndpoint
+            filters:
+            - name: CircuitBreaker
+              args:
+                name: myCircuitBreaker
+                resumeWithoutError: true
 ----
 
 .Application.java

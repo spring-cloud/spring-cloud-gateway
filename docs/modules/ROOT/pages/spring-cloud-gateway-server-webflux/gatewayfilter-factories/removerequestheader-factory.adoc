@@ -12,11 +12,13 @@ The following listing configures a `RemoveRequestHeader` `GatewayFilter`:
 spring:
   cloud:
     gateway:
-      routes:
-      - id: removerequestheader_route
-        uri: https://example.org
-        filters:
-        - RemoveRequestHeader=X-Request-Foo
+      server:
+        webflux:
+          routes:
+          - id: removerequestheader_route
+            uri: https://example.org
+            filters:
+            - RemoveRequestHeader=X-Request-Foo
 ----
 
 This removes the `X-Request-Foo` header before it is sent downstream.
