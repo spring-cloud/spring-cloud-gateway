@@ -22,7 +22,7 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.77.0</grpc.version>
-		<protobuf.version>4.33.2</protobuf.version>
+		<protobuf.version>4.33.5</protobuf.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
