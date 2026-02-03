@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -112,6 +113,11 @@ public abstract class MvcUtils {
 	 * Weight attribute name.
 	 */
 	public static final String WEIGHT_ATTR = qualify("routeWeight");
+
+	/**
+	 * Client request body temp file.
+	 */
+	public static final String CLIENT_BODY_TMP_ATTR = qualify("clientBodyTempFile");
 
 	private MvcUtils() {
 	}
@@ -347,6 +353,12 @@ public abstract class MvcUtils {
 		}
 		return result;
 	}
+
+	public static void setBodyTempFile(ServerRequest request, File file) {
+		request.attributes().put(GATEWAY_ROUTE_ID_ATTR, file);
+		request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, file);
+	}
+
 
 	private record ByteArrayInputMessage(ServerRequest request, ByteArrayInputStream body) implements HttpInputMessage {
 
