@@ -15,11 +15,11 @@ updates:
     schedule:
       interval: daily
     target-branch: main
-#    ignore:
+    ignore:
       # only upgrade by minor or patch
-#      - dependency-name: "*"
-#        update-types:
-#          - version-update:semver-major
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: maven
     directory: /
     schedule:
