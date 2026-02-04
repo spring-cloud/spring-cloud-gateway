@@ -63,7 +63,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<bucket4j.version>8.15.0</bucket4j.version>
-		<blockhound.version>1.0.8.RELEASE</blockhound.version>
+		<blockhound.version>1.0.16.RELEASE</blockhound.version>
 		<java.version>17</java.version>
 		<junit-pioneer.version>2.3.0</junit-pioneer.version>
 		<spring-cloud-circuitbreaker.version>5.0.2-SNAPSHOT</spring-cloud-circuitbreaker.version>
