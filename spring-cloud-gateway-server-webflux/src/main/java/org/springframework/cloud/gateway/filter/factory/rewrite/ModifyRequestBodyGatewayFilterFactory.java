@@ -45,6 +45,10 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
 
 /**
  * GatewayFilter that modifies the request body.
+ * <p>
+ * When the request has no body, the {@link RewriteFunction} is invoked with {@code null}
+ * for the body parameter. Implementations (including Kotlin with a nullable parameter)
+ * must handle this case.
  */
 public class ModifyRequestBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyRequestBodyGatewayFilterFactory.Config> {

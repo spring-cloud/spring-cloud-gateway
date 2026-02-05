@@ -54,6 +54,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
 
 /**
  * GatewayFilter that modifies the response body.
+ * <p>
+ * When the response has no body, the {@link RewriteFunction} is invoked with {@code null}
+ * for the body parameter. Implementations (including Kotlin with a nullable parameter)
+ * must handle this case.
  */
 public class ModifyResponseBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {

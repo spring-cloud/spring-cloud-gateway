@@ -72,6 +72,9 @@ public class RemoveJsonAttributesResponseBodyGatewayFilterFactory extends
 		modifyResponseBodyConfig.setOutClass(String.class);
 
 		RewriteFunction<String, String> rewriteFunction = (exchange, body) -> {
+			if (body == null) {
+				return Mono.just("");
+			}
 			if (MediaType.APPLICATION_JSON.isCompatibleWith(exchange.getResponse().getHeaders().getContentType())) {
 				try {
 					JsonNode jsonNode = mapper.readValue(body, JsonNode.class);
