@@ -36,11 +36,6 @@ Fully qualified name of the enclosing class `org.springframework.cloud.gateway.f
 |`spring.cloud.gateway.route.uri` _(required)_|HTTP URI taken from the Route.
 |===
 
-.High cardinality Keys
-[cols="a,a"]
-|===
-|Name | Description
-|`http.uri` _(required)_|Full HTTP URI.
-|===
+
 
 
