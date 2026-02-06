@@ -307,6 +307,9 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that can be used to modify the request body.
+	 * <p>
+	 * The rewrite function may receive {@code null} for the body when the request has no
+	 * body; implementations must handle this (e.g. use a nullable type in Kotlin).
 	 * @param inClass the class to convert the incoming request body to
 	 * @param outClass the class the Gateway will add to the request before it is routed
 	 * @param rewriteFunction the {@link RewriteFunction} that transforms the request body
