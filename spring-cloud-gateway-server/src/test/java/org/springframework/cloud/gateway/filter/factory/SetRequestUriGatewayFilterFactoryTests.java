@@ -80,4 +80,10 @@ public class SetRequestUriGatewayFilterFactoryTests {
 		assertThat(filter.toString()).contains("http://localhost:8080");
 	}
 
+	@Test
+	public void shortcutFieldOrderUsesTemplateSoShortcutConfigWorks() {
+		SetRequestUriGatewayFilterFactory factory = new SetRequestUriGatewayFilterFactory();
+		assertThat(factory.shortcutFieldOrder()).containsExactly("template");
+	}
+
 }
