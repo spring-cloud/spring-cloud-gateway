@@ -45,13 +45,18 @@ public class SetRequestUriGatewayFilterFactory
 
 	private static final Logger log = LoggerFactory.getLogger(SetRequestUriGatewayFilterFactory.class);
 
+	/**
+	 * Template key for shortcut configuration.
+	 */
+	public static final String TEMPLATE_KEY = "template";
+
 	public SetRequestUriGatewayFilterFactory() {
 		super(Config.class);
 	}
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(NAME_KEY);
+		return Arrays.asList(TEMPLATE_KEY);
 	}
 
 	@Override
