@@ -25,6 +25,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyResponseBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -102,6 +103,22 @@ public class GatewayFilterSpecTests {
 
 		assertFilter(route.getFilters().get(0), OrderedGatewayFilter.class, 0);
 		assertFilter(route.getFilters().get(1), MyOrderedFilter.class, 1000);
+	}
+
+	@Test
+	public void shouldSetModifyBodyRequestFilterWithRewriteFunctionAndEmptyBodySupplier() {
+		ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+		Route.AsyncBuilder routeBuilder = Route.async().id("123").uri("abc:123").predicate(exchange -> true);
+
+		when(context.getBean(ModifyRequestBodyGatewayFilterFactory.class))
+			.thenReturn(new ModifyRequestBodyGatewayFilterFactory());
+
+		RouteLocatorBuilder.Builder routes = new RouteLocatorBuilder(context).routes();
+		GatewayFilterSpec spec = new GatewayFilterSpec(routeBuilder, routes);
+		spec.modifyRequestBody(String.class, String.class, (exchange, s) -> Mono.just(s == null ? "emptybody" : s));
+
+		Route route = routeBuilder.build();
+		assertThat(route.getFilters()).hasSize(1);
 	}
 
 	@Test
