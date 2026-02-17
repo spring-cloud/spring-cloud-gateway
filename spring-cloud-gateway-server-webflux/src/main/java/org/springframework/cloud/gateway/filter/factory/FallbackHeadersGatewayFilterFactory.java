@@ -63,7 +63,7 @@ public class FallbackHeadersGatewayFilterFactory
 			Throwable executionException) {
 
 		ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-		requestBuilder.header(config.getExecutionExceptionMessageHeaderName(), executionException.getClass().getName());
+		requestBuilder.header(config.getExecutionExceptionTypeHeaderName(), executionException.getClass().getName());
 		String executionMessage = executionException.getMessage();
 		requestBuilder.header(config.getExecutionExceptionMessageHeaderName(),
 				executionMessage != null ? executionMessage : "");
