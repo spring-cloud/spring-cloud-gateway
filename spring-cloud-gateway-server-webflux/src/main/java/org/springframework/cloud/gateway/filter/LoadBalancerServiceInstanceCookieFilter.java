@@ -70,7 +70,7 @@ public class LoadBalancerServiceInstanceCookieFilter implements GlobalFilter, Or
 				? loadBalancerClientFactory.getProperties(serviceInstanceResponse.getServer().getServiceId())
 				: loadBalancerProperties;
 		Objects.requireNonNull(properties, "LoadBalancerProperties must not be null");
-		if (properties.getStickySession() != null && !properties.getStickySession().isAddServiceInstanceCookie()) {
+		if (properties.getStickySession() == null || !properties.getStickySession().isAddServiceInstanceCookie()) {
 			return chain.filter(exchange);
 		}
 		String instanceIdCookieName = properties.getStickySession().getInstanceIdCookieName();

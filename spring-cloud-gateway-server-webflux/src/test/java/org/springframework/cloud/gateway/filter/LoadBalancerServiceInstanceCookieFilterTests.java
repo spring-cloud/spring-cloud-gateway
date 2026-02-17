@@ -119,6 +119,18 @@ class LoadBalancerServiceInstanceCookieFilterTests {
 		assertThat(filteredExchange.getRequest().getHeaders().isEmpty()).isTrue();
 	}
 
+	@Test
+	void shouldContinueChainWhenStickySessionIsNull() {
+		exchange.getAttributes()
+			.put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+					new DefaultResponse(new DefaultServiceInstance("test-01", "test", "host", 8080, false)));
+		properties.setStickySession(null);
+
+		ServerWebExchange filteredExchange = testFilter(exchange);
+
+		assertThat(filteredExchange.getRequest().getHeaders().isEmpty()).isTrue();
+	}
+
 	private ServerWebExchange testFilter(ServerWebExchange exchange) {
 		ArgumentCaptor<ServerWebExchange> captor = ArgumentCaptor.forClass(ServerWebExchange.class);
 		when(chain.filter(captor.capture())).thenReturn(Mono.empty());
