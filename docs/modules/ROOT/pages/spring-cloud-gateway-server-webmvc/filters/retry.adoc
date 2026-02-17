@@ -106,20 +106,21 @@ The following two example routes are equivalent:
 spring:
   cloud:
     gateway:
-      mvc:
-        routes:
-        - id: retry_route
-          uri: https://example.org
-          filters:
-          - name: Retry
-            args:
-              retries: 3
-              statuses: INTERNAL_SERVER_ERROR
-              methods: GET
-        - id: retryshortcut_route
-          uri: https://example.org
-          filters:
-          - Retry=3,INTERNAL_SERVER_ERROR,GET
+      server:
+        webmvc:
+          routes:
+          - id: retry_route
+            uri: https://example.org
+            filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: INTERNAL_SERVER_ERROR
+                methods: GET
+          - id: retryshortcut_route
+            uri: https://example.org
+            filters:
+            - Retry=3,INTERNAL_SERVER_ERROR,GET
 ----
 
 == Forcing Framework Retry Filter
