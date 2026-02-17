@@ -144,6 +144,45 @@ class CorsGatewayFilterApplicationListenerTests {
 		});
 	}
 
+	@Test
+	void testOnApplicationEvent_preservesFirstPathPattern_whenRouteHasMultiplePathPredicates() {
+		String firstPath = "/first/path";
+		String secondPath = "/second/path";
+		String thirdPath = "/third/path";
+		String allowedOrigin = "https://multipath.com";
+
+		PathRoutePredicateFactory pathFactory = new PathRoutePredicateFactory(new WebFluxProperties());
+		PathRoutePredicateFactory.Config firstPathConfig = new PathRoutePredicateFactory.Config();
+		firstPathConfig.setPatterns(List.of(firstPath));
+		PathRoutePredicateFactory.Config secondPathConfig = new PathRoutePredicateFactory.Config();
+		secondPathConfig.setPatterns(List.of(secondPath));
+		PathRoutePredicateFactory.Config thirdPathConfig = new PathRoutePredicateFactory.Config();
+		thirdPathConfig.setPatterns(List.of(thirdPath));
+
+		Route routeWithMultiplePaths = Route.async()
+			.id("multi-path-route")
+			.uri(ROUTE_URI)
+			.asyncPredicate(pathFactory.applyAsync(firstPathConfig)
+				.and(pathFactory.applyAsync(secondPathConfig))
+				.and(pathFactory.applyAsync(thirdPathConfig)))
+			.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
+			.build();
+
+		when(routeLocator.getRoutes()).thenReturn(Flux.just(routeWithMultiplePaths));
+
+		listener.onApplicationEvent(new RefreshRoutesResultEvent(this));
+
+		Awaitility.await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+			verify(handlerMapping).setCorsConfigurations(corsConfigurations.capture());
+
+			Map<String, CorsConfiguration> mergedCorsConfigurations = corsConfigurations.getValue();
+			assertThat(mergedCorsConfigurations).containsKey(firstPath);
+			assertThat(mergedCorsConfigurations.get(firstPath).getAllowedOrigins()).containsExactly(allowedOrigin);
+			assertThat(mergedCorsConfigurations).doesNotContainKey(secondPath);
+			assertThat(mergedCorsConfigurations).doesNotContainKey(thirdPath);
+		});
+	}
+
 	private CorsConfiguration createCorsConfig(String origin) {
 
 		CorsConfiguration config = new CorsConfiguration();
