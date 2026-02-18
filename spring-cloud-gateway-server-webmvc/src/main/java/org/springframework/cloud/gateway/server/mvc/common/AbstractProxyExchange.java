@@ -75,4 +75,9 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 		return totalReadBytes;
 	}
 
+
+	protected boolean isWriteClientBodyToFile(Request request) {
+		return properties.getFileBuffer().isEnabled() && request.getServerRequest().servletRequest().getContentLength() >= properties.getFileBuffer().getSizeThreshold().toBytes();
+	}
+
 }
