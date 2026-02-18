@@ -16,12 +16,26 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
+import com.aayushatharva.brotli4j.decoder.DecoderJNI;
+import com.aayushatharva.brotli4j.decoder.DirectDecompress;
+import io.netty.handler.codec.compression.Brotli;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.Duration;
 
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import java.util.List;
+import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.HttpHeaders;
 import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.Http2SslContextSpec;
@@ -61,6 +75,75 @@ public class Http2ApplicationTests {
 		String expected = "Hello";
 		assertResponse(uri, expected);
 		Assertions.assertThat(output).contains("Negotiated application-level protocol [h2]", "PRI * HTTP/2.0");
+	}
+
+	@ParameterizedTest
+	@MethodSource("httpContentCompressionParameters")
+	public void httpContentCompression(String acceptEncoding, String expectedContentEncoding) throws Throwable {
+		Brotli.ensureAvailability();
+		final int uncompressedResponseSize = 6_666;
+		final String expectedUncompressedResponse = StringUtils.repeat('a', uncompressedResponseSize);
+		WebClient client = WebClient.builder().clientConnector(new ReactorClientHttpConnector(getHttpClient())).build();
+		Mono<ResponseEntity<byte[]>> responseEntityMono = client.get()
+				.uri(uriBuilder ->
+						uriBuilder.host("localhost").path("/myprefix/data").port(port).scheme("https").queryParam("size", uncompressedResponseSize).build())
+				.header("Accept-Encoding", acceptEncoding)
+				.retrieve()
+				.toEntity(byte[].class);
+            StepVerifier.create(responseEntityMono).assertNext(entity -> {
+			assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
+			HttpHeaders responseHeaders = entity.getHeaders();
+			assertThat(responseHeaders.getContentType().toString()).isEqualTo("text/plain;charset=UTF-8");
+			List<String> contentEncoding = responseHeaders.get("Content-Encoding");
+			if (expectedContentEncoding == null) {
+				assertThat(contentEncoding).isNull();
+				assertThat(entity.hasBody()).isTrue();
+				assertThat(new String(entity.getBody())).isEqualTo(expectedUncompressedResponse);
+				assertThat(responseHeaders.getContentLength()).isEqualTo(uncompressedResponseSize);
+			} else {
+				assertThat(contentEncoding).containsExactly(expectedContentEncoding);
+				assertThat(entity.hasBody()).isTrue();
+                String decompressedResponseBody = new String(decompress(entity));
+				assertThat(decompressedResponseBody).isEqualTo(expectedUncompressedResponse);
+				long contentLength = responseHeaders.getContentLength();
+				assertThat(contentLength).isGreaterThan(0);
+				assertThat(contentLength).isLessThan(uncompressedResponseSize);
+			}
+		}).expectComplete().verify();
+
+	}
+
+	private static byte[] decompress(ResponseEntity<byte[]> entity) {
+		if (!entity.hasBody()) {
+			return null;
+		}
+		String contentEncoding = entity.getHeaders().get("Content-Encoding").get(0);
+		byte[] compressedData = entity.getBody();
+		try {
+			if ("br".equals(contentEncoding)) {
+				DirectDecompress directDecompress = DirectDecompress.decompress(compressedData);
+				assertThat(directDecompress.getResultStatus()).isEqualTo(DecoderJNI.Status.DONE);
+				return directDecompress.getDecompressedData();
+			} else if ("gzip".equals(contentEncoding)) {
+				ByteArrayInputStream input = new ByteArrayInputStream(compressedData);
+				GZIPInputStream gzInput = new GZIPInputStream(input);
+				return IOUtils.toByteArray(gzInput);
+			} else {
+				throw new IllegalStateException("unexpected contentEncoding: " + contentEncoding);
+			}
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+	}
+
+	public static Stream<Arguments> httpContentCompressionParameters() {
+        return Stream.of(Arguments.of("", null),
+				Arguments.of("br", "br"),
+				Arguments.of("gzip", "gzip"),
+				Arguments.of("br, gzip", "br"),
+				Arguments.of("gzip, br", "br"),
+				Arguments.of("garbage, gzip", "gzip"),
+				Arguments.of("garbage", null));
 	}
 
 	public static void assertResponse(String uri, String expected) {
