@@ -19,9 +19,11 @@ package org.springframework.cloud.gateway.server.mvc.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
@@ -42,7 +44,7 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 
 		int transferredBytes;
 
-		if (properties.getStreamingMediaTypes().contains(clientResponse.getHeaders().getContentType())) {
+		if (isStreamingMediaType(properties.getStreamingMediaTypes(), clientResponse.getHeaders().getContentType())) {
 			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
 		}
 		else {
@@ -50,6 +52,15 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 		}
 
 		return transferredBytes;
+	}
+
+	private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, MediaType mediaType) {
+		for (var streamingMediaType : streamingMediaTypes) {
+			if (streamingMediaType.equalsTypeAndSubtype(mediaType)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private int copyResponseBodyWithFlushing(InputStream inputStream, OutputStream outputStream) throws IOException {
