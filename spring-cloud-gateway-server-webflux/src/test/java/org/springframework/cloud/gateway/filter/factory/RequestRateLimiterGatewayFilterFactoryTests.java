@@ -34,6 +34,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.gateway.support.TooManyRequestsException;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -84,21 +86,26 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	}
 
 	@Test
+	public void notAllowedThrows() {
+		assertFilterFactory(null, "allowedkey", false, HttpStatus.TOO_MANY_REQUESTS, null, true);
+	}
+
+	@Test
 	public void emptyKeyDenied() {
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN);
 	}
 
 	@Test
 	public void emptyKeyAllowed() {
-		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false, false);
 	}
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
-		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
+		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null, false);
 	}
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus,
-			Boolean denyEmptyKey) {
+			Boolean denyEmptyKey, Boolean throwOnLimit) {
 
 		String tokensRemaining = allowed ? "1" : "0";
 
@@ -122,6 +129,9 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		if (denyEmptyKey != null) {
 			factory.setDenyEmptyKey(denyEmptyKey);
 		}
+		if (throwOnLimit != null) {
+			factory.setThrowOnLimit(throwOnLimit);
+		}
 		GatewayFilter filter = factory.apply(config -> {
 			config.setRouteId("myroute");
 			config.setKeyResolver(keyResolver);
@@ -134,6 +144,10 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 					Collections.singletonList(tokensRemaining));
 		});
 
+		if (throwOnLimit != null && throwOnLimit) {
+			assertThatExceptionOfType(TooManyRequestsException.class).isThrownBy(response::block)
+				.satisfies(exception -> assertThat(exception.getStatusCode()).isEqualTo(expectedStatus));
+		}
 	}
 
 	@EnableAutoConfiguration
