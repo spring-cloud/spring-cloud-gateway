@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.jspecify.annotations.Nullable;
+import reactor.core.publisher.Mono;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -30,6 +31,7 @@ import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
@@ -59,6 +61,12 @@ public class RequestRateLimiterGatewayFilterFactory
 
 	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
+
+	/**
+	 * Switch to throw a {@link HttpClientErrorException} when the request is denied by
+	 * the RateLimiter, defaults to false.
+	 */
+	private boolean throwOnLimit = false;
 
 	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter, KeyResolver defaultKeyResolver) {
 		super(Config.class);
@@ -90,6 +98,14 @@ public class RequestRateLimiterGatewayFilterFactory
 		this.emptyKeyStatusCode = emptyKeyStatusCode;
 	}
 
+	public boolean isThrowOnLimit() {
+		return throwOnLimit;
+	}
+
+	public void setThrowOnLimit(boolean throwOnLimit) {
+		this.throwOnLimit = throwOnLimit;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public GatewayFilter apply(Config config) {
@@ -98,6 +114,7 @@ public class RequestRateLimiterGatewayFilterFactory
 		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
 			.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
+		boolean throwLimit = getOrDefault(config.throwOnLimit, this.throwOnLimit);
 
 		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY).flatMap(key -> {
 			if (EMPTY_KEY.equals(key)) {
@@ -122,6 +139,11 @@ public class RequestRateLimiterGatewayFilterFactory
 					return chain.filter(exchange);
 				}
 
+				if (throwLimit) {
+					return Mono.error(HttpClientErrorException.create(config.getStatusCode(), "Too Many Requests",
+							exchange.getResponse().getHeaders(), null, null));
+				}
+
 				setResponseStatus(exchange, config.getStatusCode());
 				return exchange.getResponse().setComplete();
 			});
@@ -143,6 +165,8 @@ public class RequestRateLimiterGatewayFilterFactory
 		private @Nullable Boolean denyEmptyKey;
 
 		private @Nullable String emptyKeyStatus;
+
+		private @Nullable Boolean throwOnLimit;
 
 		private @Nullable String routeId;
 
@@ -188,6 +212,15 @@ public class RequestRateLimiterGatewayFilterFactory
 
 		public Config setEmptyKeyStatus(String emptyKeyStatus) {
 			this.emptyKeyStatus = emptyKeyStatus;
+			return this;
+		}
+
+		public @Nullable Boolean getThrowOnLimit() {
+			return throwOnLimit;
+		}
+
+		public Config setThrowOnLimit(Boolean throwOnLimit) {
+			this.throwOnLimit = throwOnLimit;
 			return this;
 		}
 

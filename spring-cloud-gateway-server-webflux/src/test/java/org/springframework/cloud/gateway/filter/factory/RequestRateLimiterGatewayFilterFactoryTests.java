@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,6 +45,7 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -84,21 +86,31 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 	}
 
 	@Test
+	public void notAllowedThrows() {
+		assertFilterFactory(null, "allowedkey", false, HttpStatus.TOO_MANY_REQUESTS, null, true);
+	}
+
+	@Test
 	public void emptyKeyDenied() {
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN);
 	}
 
 	@Test
 	public void emptyKeyAllowed() {
-		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false);
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false, false);
+	}
+
+	@Test
+	public void emptyKeyDeniedWithThrowOnLimit() {
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN, true, true);
 	}
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
-		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null);
+		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null, false);
 	}
 
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus,
-			Boolean denyEmptyKey) {
+			Boolean denyEmptyKey, Boolean throwOnLimit) {
 
 		String tokensRemaining = allowed ? "1" : "0";
 
@@ -122,18 +134,40 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		if (denyEmptyKey != null) {
 			factory.setDenyEmptyKey(denyEmptyKey);
 		}
+		if (throwOnLimit != null) {
+			factory.setThrowOnLimit(throwOnLimit);
+		}
 		GatewayFilter filter = factory.apply(config -> {
 			config.setRouteId("myroute");
 			config.setKeyResolver(keyResolver);
 		});
 
-		Mono<Void> response = filter.filter(exchange, this.filterChain);
-		response.subscribe(aVoid -> {
-			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-			assertThat(exchange.getResponse().getHeaders().asMultiValueMap()).containsEntry("X-Tokens-Remaining",
-					Collections.singletonList(tokensRemaining));
-		});
+		StepVerifier.FirstStep<Void> voidFirstStep = StepVerifier.create(filter.filter(exchange, this.filterChain));
 
+		if (key == null) {
+			// empty key case won't contain the header, so we just check the status code
+			voidFirstStep.consumeSubscriptionWith(aVoid -> {
+				assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+			}).expectComplete().verify();
+		}
+		else if (throwOnLimit != null && throwOnLimit && !allowed) {
+			// if throwOnLimit is true and the request is denied, we expect an error instead of a complete signal
+			voidFirstStep.consumeErrorWith(throwable -> {
+				assertThat(throwable).isInstanceOf(HttpClientErrorException.class);
+				HttpClientErrorException ex = (HttpClientErrorException) throwable;
+				assertThat(ex.getStatusCode()).isEqualTo(expectedStatus);
+				assertThat(ex.getResponseHeaders().toSingleValueMap()).containsEntry("X-Tokens-Remaining",
+						tokensRemaining);
+			}).verify();
+		}
+		else {
+			// allowed and denied, we expect a complete signal with status and headers
+			voidFirstStep.consumeSubscriptionWith(aVoid -> {
+				assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+				assertThat(exchange.getResponse().getHeaders().toSingleValueMap()).containsEntry("X-Tokens-Remaining",
+						tokensRemaining);
+			}).expectComplete().verify();
+		}
 	}
 
 	@EnableAutoConfiguration
