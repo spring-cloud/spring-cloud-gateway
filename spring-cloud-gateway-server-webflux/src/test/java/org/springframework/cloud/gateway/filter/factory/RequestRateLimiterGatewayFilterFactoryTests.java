@@ -150,8 +150,8 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 				assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
 			}).expectComplete().verify();
 		}
-		else if (throwOnLimit != null && throwOnLimit) {
-			// if throwOnLimit is true, we expect an error instead of a complete signal
+		else if (throwOnLimit != null && throwOnLimit && !allowed) {
+			// if throwOnLimit is true and the request is denied, we expect an error instead of a complete signal
 			voidFirstStep.consumeErrorWith(throwable -> {
 				assertThat(throwable).isInstanceOf(HttpClientErrorException.class);
 				HttpClientErrorException ex = (HttpClientErrorException) throwable;
