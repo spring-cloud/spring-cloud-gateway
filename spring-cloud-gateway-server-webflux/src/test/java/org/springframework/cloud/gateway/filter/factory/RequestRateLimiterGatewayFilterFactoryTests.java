@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,7 +35,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter.Response;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.gateway.support.TooManyRequestsException;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -45,9 +45,9 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
@@ -100,6 +100,11 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.OK, false, false);
 	}
 
+	@Test
+	public void emptyKeyDeniedWithThrowOnLimit() {
+		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN, true, true);
+	}
+
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null, false);
 	}
@@ -137,16 +142,31 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 			config.setKeyResolver(keyResolver);
 		});
 
-		Mono<Void> response = filter.filter(exchange, this.filterChain);
-		response.subscribe(aVoid -> {
-			assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
-			assertThat(exchange.getResponse().getHeaders().asMultiValueMap()).containsEntry("X-Tokens-Remaining",
-					Collections.singletonList(tokensRemaining));
-		});
+		StepVerifier.FirstStep<Void> voidFirstStep = StepVerifier.create(filter.filter(exchange, this.filterChain));
 
-		if (throwOnLimit != null && throwOnLimit) {
-			assertThatExceptionOfType(TooManyRequestsException.class).isThrownBy(response::block)
-				.satisfies(exception -> assertThat(exception.getStatusCode()).isEqualTo(expectedStatus));
+		if (key == null) {
+			// empty key case won't contain the header, so we just check the status code
+			voidFirstStep.consumeSubscriptionWith(aVoid -> {
+				assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+			}).expectComplete().verify();
+		}
+		else if (throwOnLimit != null && throwOnLimit) {
+			// if throwOnLimit is true, we expect an error instead of a complete signal
+			voidFirstStep.consumeErrorWith(throwable -> {
+				assertThat(throwable).isInstanceOf(HttpClientErrorException.class);
+				HttpClientErrorException ex = (HttpClientErrorException) throwable;
+				assertThat(ex.getStatusCode()).isEqualTo(expectedStatus);
+				assertThat(ex.getResponseHeaders().toSingleValueMap()).containsEntry("X-Tokens-Remaining",
+						tokensRemaining);
+			}).verify();
+		}
+		else {
+			// allowed and denied, we expect a complete signal with status and headers
+			voidFirstStep.consumeSubscriptionWith(aVoid -> {
+				assertThat(exchange.getResponse().getStatusCode()).isEqualTo(expectedStatus);
+				assertThat(exchange.getResponse().getHeaders().toSingleValueMap()).containsEntry("X-Tokens-Remaining",
+						tokensRemaining);
+			}).expectComplete().verify();
 		}
 	}
 

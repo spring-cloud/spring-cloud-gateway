@@ -30,8 +30,8 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.cloud.gateway.support.HttpStatusHolder;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.gateway.support.TooManyRequestsException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
 
@@ -63,7 +63,7 @@ public class RequestRateLimiterGatewayFilterFactory
 	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
 
 	/**
-	 * Switch to throw a {@link TooManyRequestsException} when the request is denied by
+	 * Switch to throw a {@link HttpClientErrorException} when the request is denied by
 	 * the RateLimiter, defaults to false.
 	 */
 	private boolean throwOnLimit = false;
@@ -140,7 +140,8 @@ public class RequestRateLimiterGatewayFilterFactory
 				}
 
 				if (throwLimit) {
-					return Mono.error(new TooManyRequestsException(config.getStatusCode()));
+					return Mono.error(HttpClientErrorException.create(config.getStatusCode(), "Too Many Requests",
+							exchange.getResponse().getHeaders(), null, null));
 				}
 
 				setResponseStatus(exchange, config.getStatusCode());
