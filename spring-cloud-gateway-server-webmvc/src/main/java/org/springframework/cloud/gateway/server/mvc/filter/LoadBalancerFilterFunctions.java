@@ -46,10 +46,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.HandlerFunction;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getApplicationContext;
 
+/**
+ * @author Samuel Schnegg
+ */
 public abstract class LoadBalancerFilterFunctions {
 
 	private static final Log log = LogFactory.getLog(LoadBalancerFilterFunctions.class);
@@ -63,67 +68,76 @@ public abstract class LoadBalancerFilterFunctions {
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> lb(String serviceId,
 			BiFunction<ServiceInstance, URI, URI> reconstructUriFunction) {
-		return (request, next) -> {
-			MvcUtils.addOriginalRequestUrl(request, request.uri());
+		return new HandlerFilterFunction<ServerResponse, ServerResponse>() {
 
-			LoadBalancerClientFactory clientFactory = getApplicationContext(request)
-				.getBean(LoadBalancerClientFactory.class);
-			Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
-				.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
-						RequestDataContext.class, ResponseData.class, ServiceInstance.class);
-			RequestData requestData = new RequestData(request.method(), request.uri(),
-					request.headers().asHttpHeaders(), buildCookies(request.cookies()), request.attributes());
-			DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
-					new RequestDataContext(requestData, getHint(clientFactory, serviceId)));
+			@Override
+			public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
 
-			LoadBalancerClient loadBalancerClient = clientFactory.getInstance(serviceId, LoadBalancerClient.class);
-			if (loadBalancerClient == null) {
-				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
-						"No loadbalancer available for " + serviceId);
+				MvcUtils.addOriginalRequestUrl(request, request.uri());
+
+				LoadBalancerClientFactory clientFactory = getApplicationContext(request)
+					.getBean(LoadBalancerClientFactory.class);
+				Set<LoadBalancerLifecycle> supportedLifecycleProcessors = LoadBalancerLifecycleValidator
+					.getSupportedLifecycleProcessors(clientFactory.getInstances(serviceId, LoadBalancerLifecycle.class),
+							RequestDataContext.class, ResponseData.class, ServiceInstance.class);
+				RequestData requestData = new RequestData(request.method(), request.uri(),
+						request.headers().asHttpHeaders(), buildCookies(request.cookies()), request.attributes());
+				DefaultRequest<RequestDataContext> lbRequest = new DefaultRequest<>(
+						new RequestDataContext(requestData, getHint(clientFactory, serviceId)));
+
+				LoadBalancerClient loadBalancerClient = clientFactory.getInstance(serviceId, LoadBalancerClient.class);
+				if (loadBalancerClient == null) {
+					throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
+							"No loadbalancer available for " + serviceId);
+				}
+				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStart(lbRequest));
+				ServiceInstance retrievedInstance = loadBalancerClient.choose(serviceId, lbRequest);
+				if (retrievedInstance == null) {
+					supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
+						.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
+					throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
+							"Unable to find instance for " + serviceId);
+					// throw NotFoundException.create(properties.isUse404(), "Unable to
+					// find
+					// instance for " + serviceId);
+				}
+
+				URI uri = request.uri();
+
+				// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
+				// if the loadbalancer doesn't provide one.
+				String scheme = retrievedInstance.isSecure() ? "https" : "http";
+
+				DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(retrievedInstance, scheme);
+
+				URI requestUrl = reconstructUriFunction.apply(serviceInstance, uri);
+
+				if (log.isTraceEnabled()) {
+					log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
+				}
+				MvcUtils.setRequestUrl(request, requestUrl);
+				// exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
+				// response);
+				DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
+
+				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, defaultResponse));
+
+				try {
+					ServerResponse serverResponse = next.handle(request);
+					supportedLifecycleProcessors.forEach(
+							lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
+									lbRequest, defaultResponse, serverResponse)));
+					return serverResponse;
+				}
+				catch (Exception e) {
+					supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
+							new CompletionContext<>(CompletionContext.Status.FAILED, e, lbRequest, defaultResponse)));
+
+					throw e;
+				}
+
 			}
-			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStart(lbRequest));
-			ServiceInstance retrievedInstance = loadBalancerClient.choose(serviceId, lbRequest);
-			if (retrievedInstance == null) {
-				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
-					.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
-				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
-						"Unable to find instance for " + serviceId);
-				// throw NotFoundException.create(properties.isUse404(), "Unable to find
-				// instance for " + serviceId);
-			}
 
-			URI uri = request.uri();
-
-			// if the `lb:<scheme>` mechanism was used, use `<scheme>` as the default,
-			// if the loadbalancer doesn't provide one.
-			String scheme = retrievedInstance.isSecure() ? "https" : "http";
-
-			DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(retrievedInstance, scheme);
-
-			URI requestUrl = reconstructUriFunction.apply(serviceInstance, uri);
-
-			if (log.isTraceEnabled()) {
-				log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
-			}
-			MvcUtils.setRequestUrl(request, requestUrl);
-			// exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
-			DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
-
-			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, defaultResponse));
-
-			try {
-				ServerResponse serverResponse = next.handle(request);
-				supportedLifecycleProcessors
-					.forEach(lifecycle -> lifecycle.onComplete(new CompletionContext<>(CompletionContext.Status.SUCCESS,
-							lbRequest, defaultResponse, serverResponse)));
-				return serverResponse;
-			}
-			catch (Exception e) {
-				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
-						new CompletionContext<>(CompletionContext.Status.FAILED, e, lbRequest, defaultResponse)));
-
-				throw new RuntimeException(e);
-			}
 		};
 	}
 
