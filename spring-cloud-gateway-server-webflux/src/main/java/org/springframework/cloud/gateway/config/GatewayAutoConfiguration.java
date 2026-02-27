@@ -58,10 +58,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.reactor.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.reactor.netty.NettyServerCustomizer;
-import org.springframework.boot.reactor.netty.autoconfigure.NettyReactiveWebServerFactoryCustomizer;
 import org.springframework.boot.reactor.netty.autoconfigure.NettyServerProperties;
 import org.springframework.boot.security.autoconfigure.SecurityProperties;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.webflux.autoconfigure.HttpHandlerAutoConfiguration;
 import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
@@ -828,15 +828,8 @@ public class GatewayAutoConfiguration {
 
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.httpserver.wiretap")
-		public NettyReactiveWebServerFactoryCustomizer nettyServerWiretapCustomizer(Environment environment,
-				ServerProperties serverProperties, NettyServerProperties nettyServerProperties) {
-			return new NettyReactiveWebServerFactoryCustomizer(environment, serverProperties, nettyServerProperties) {
-				@Override
-				public void customize(NettyReactiveWebServerFactory factory) {
-					factory.addServerCustomizers(httpServer -> httpServer.wiretap(true));
-					super.customize(factory);
-				}
-			};
+		public WebServerFactoryCustomizer<NettyReactiveWebServerFactory> nettyServerWiretapCustomizer() {
+			return factory -> factory.addServerCustomizers(httpServer -> httpServer.wiretap(true));
 		}
 
 		@Bean

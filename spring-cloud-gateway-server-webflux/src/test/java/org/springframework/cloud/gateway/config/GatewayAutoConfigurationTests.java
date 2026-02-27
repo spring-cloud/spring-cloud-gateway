@@ -50,6 +50,7 @@ import org.springframework.boot.security.autoconfigure.web.reactive.ReactiveWebS
 import org.springframework.boot.security.oauth2.client.autoconfigure.reactive.ReactiveOAuth2ClientAutoConfiguration;
 import org.springframework.boot.ssl.DefaultSslBundleRegistry;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
@@ -175,6 +176,21 @@ public class GatewayAutoConfigurationTests {
 				assertThat(webSocketClient.getWebsocketClientSpec().maxFramePayloadLength()).isEqualTo(1024);
 				HttpClientCustomizedConfig config = context.getBean(HttpClientCustomizedConfig.class);
 				assertThat(config.called.get()).isTrue();
+			});
+	}
+
+	@Test
+	public void nettyHttpServerWiretapDoesNotRequireNettyReactiveWebServerFactoryCustomizer() {
+		new ReactiveWebApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(
+					"org.springframework.boot.reactor.netty.autoconfigure.NettyReactiveWebServerFactoryCustomizer"))
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					ServerPropertiesConfig.class))
+			.withPropertyValues("spring.cloud.gateway.server.webflux.httpserver.wiretap=true")
+			.run(context -> {
+				assertThat(context).hasNotFailed();
+				assertThat(context).hasBean("nettyServerWiretapCustomizer");
 			});
 	}
 
