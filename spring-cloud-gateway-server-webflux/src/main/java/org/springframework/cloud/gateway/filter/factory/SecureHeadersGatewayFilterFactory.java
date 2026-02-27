@@ -143,8 +143,8 @@ public class SecureHeadersGatewayFilterFactory
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.REFERRER_POLICY_HEADER,
 				config.getReferrerPolicyHeaderValue());
 
-		addHeaderIfEnabled(responseHeaders, headersToAddToResponse,
-				SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER, config.getContentSecurityPolicyHeaderValue());
+		addContentSecurityPolicyHeaderIfEnabled(responseHeaders, headersToAddToResponse,
+				config.getContentSecurityPolicyHeaderValue());
 
 		addHeaderIfEnabled(responseHeaders, headersToAddToResponse, SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER,
 				config.getDownloadOptionsHeaderValue());
@@ -191,6 +191,18 @@ public class SecureHeadersGatewayFilterFactory
 		if (headerValue != null && headersToAdd.contains(headerName.toLowerCase(Locale.ROOT))) {
 			if (!headers.containsHeader(headerName)) {
 				headers.add(headerName, headerValue);
+			}
+		}
+	}
+
+	private void addContentSecurityPolicyHeaderIfEnabled(HttpHeaders headers, Set<String> headersToAdd,
+			@Nullable String headerValue) {
+		if (headerValue != null && headersToAdd
+			.contains(SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER.toLowerCase(Locale.ROOT))) {
+			if (!headers.containsHeader(SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER)
+					|| !headers.getOrEmpty(SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER)
+						.contains(headerValue)) {
+				headers.add(SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER, headerValue);
 			}
 		}
 	}
