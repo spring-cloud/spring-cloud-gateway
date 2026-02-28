@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
+import java.util.LinkedHashSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ALREADY_ROUTED_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 
 /**
@@ -96,6 +98,17 @@ public class ForwardRoutingFilterTests {
 		verifyNoMoreInteractions(chain);
 		verify(dispatcherHandler).handle(
 				assertArg(exchange -> assertThat(exchange.getAttributes().get(GATEWAY_ALREADY_ROUTED_ATTR)).isNull()));
+	}
+
+	@Test
+	public void shouldAddOriginalRequestUrlAttributeWhenForwarding() {
+		URI uri = UriComponentsBuilder.fromUriString("forward://endpoint").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, uri);
+
+		forwardRoutingFilter.filter(exchange, chain);
+
+		LinkedHashSet<URI> uris = exchange.getRequiredAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+		assertThat(uris).containsExactly(exchange.getRequest().getURI());
 	}
 
 	@Test
