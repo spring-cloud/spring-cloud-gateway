@@ -75,6 +75,10 @@ public class RedisRateLimiterLuaScriptTests {
 		return Arrays.asList(rate + "", capacity + "", now + "", requested + "");
 	}
 
+	static List<String> getArgsWithRedisTime(long rate, long capacity, long requested) {
+		return Arrays.asList(rate + "", capacity + "", "", requested + "");
+	}
+
 	@Test
 	public void testNewAccess() {
 		long rate = 1;
@@ -162,6 +166,24 @@ public class RedisRateLimiterLuaScriptTests {
 
 		assertThat(result.get(0)).isEqualTo(1);
 		assertThat(result.get(1)).isEqualTo(REDIS_LUA_MAX_SAFE_INTEGER - 1);
+	}
+
+	@Test
+	public void testRedisTimeSupportsSubSecondRefill() throws InterruptedException {
+		long rate = 10;
+		long capacity = 10;
+		List<String> keys = getKeys("sub_second_refill");
+
+		List<String> args = getArgsWithRedisTime(rate, capacity, capacity);
+		List<Long> first = redisTemplate.execute(redisScript, keys, args).blockFirst();
+		assertThat(first.get(0)).isEqualTo(1);
+		assertThat(first.get(1)).isEqualTo(0);
+
+		Thread.sleep(250);
+
+		args = getArgsWithRedisTime(rate, capacity, 1);
+		List<Long> second = redisTemplate.execute(redisScript, keys, args).blockFirst();
+		assertThat(second.get(0)).isEqualTo(1);
 	}
 
 	@EnableAutoConfiguration
