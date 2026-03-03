@@ -46,30 +46,38 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 	@Override
 	public ServerResponse exchange(Request request) {
 		Objects.requireNonNull(request.getUri(), "uri cannot be null");
+		boolean writeClientBodyToFile = false;
 		RestClient.RequestBodySpec requestSpec = restClient.method(request.getMethod())
 			.uri(request.getUri())
 			.headers(httpHeaders -> httpHeaders.putAll(request.getHeaders()));
 		if (isBodyPresent(request)) {
-			if (isWriteClientBodyToFile(request)) {
+			writeClientBodyToFile = isWriteClientBodyToFile(request);
+			if (writeClientBodyToFile) {
 				requestSpec.body(copyClientBodyToFile(request));
 			}
 			else {
 				requestSpec.body(outputStream -> copyBody(request, outputStream));
 			}
 		}
-		return requestSpec.exchange((clientRequest, clientResponse) -> {
-			ServerResponse serverResponse = doExchange(request, clientResponse);
-			if (isWriteClientBodyToFile(request)) {
-				clearTempFileIfExist(request);
+		try {
+			return requestSpec.exchange((clientRequest, clientResponse) -> doExchange(request, clientResponse), false);
+		}
+		finally {
+			if (writeClientBodyToFile) {
+				clearTempFileIfExists(request);
 			}
-			return serverResponse;
-		}, false);
+		}
 	}
 
-	private void clearTempFileIfExist(Request request) {
+	private void clearTempFileIfExists(Request request) {
 		File tempFile = MvcUtils.getAttribute(request.getServerRequest(), MvcUtils.CLIENT_BODY_TMP_ATTR);
-		if (tempFile != null && tempFile.exists()) {
-			tempFile.delete();
+		if (tempFile != null) {
+			try {
+				Files.deleteIfExists(tempFile.toPath());
+			}
+			catch (IOException ignored) {
+				tempFile.deleteOnExit();
+			}
 		}
 	}
 

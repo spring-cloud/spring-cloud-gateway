@@ -355,8 +355,8 @@ public abstract class MvcUtils {
 	}
 
 	public static void setBodyTempFile(ServerRequest request, File file) {
-		request.attributes().put(GATEWAY_ROUTE_ID_ATTR, file);
-		request.servletRequest().setAttribute(GATEWAY_ROUTE_ID_ATTR, file);
+		request.attributes().put(CLIENT_BODY_TMP_ATTR, file);
+		request.servletRequest().setAttribute(CLIENT_BODY_TMP_ATTR, file);
 	}
 
 
