@@ -194,7 +194,7 @@ public abstract class BeforeFilterFunctions {
 			Map<String, Object> uriVariables = MvcUtils.getUriTemplateVariables(request);
 			URI uri = uriTemplate.expand(uriVariables);
 
-			String newPath = uri.getRawPath() + request.uri().getRawPath();
+			String newPath = uri.getRawPath() + MvcUtils.stripContextPath(request, request.uri().getRawPath());
 
 			URI prefixedUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(newPath).build(true).toUri();
 			return ServerRequest.from(request).uri(prefixedUri).build();
@@ -329,7 +329,7 @@ public abstract class BeforeFilterFunctions {
 		Pattern pattern = Pattern.compile(regexp);
 		return request -> {
 			MvcUtils.addOriginalRequestUrl(request, request.uri());
-			String path = request.uri().getPath();
+			String path = MvcUtils.stripContextPath(request, request.uri().getPath());
 			String newPath = pattern.matcher(path).replaceAll(normalizedReplacement);
 
 			URI rewrittenUri = UriComponentsBuilder.fromUri(request.uri())
@@ -338,9 +338,7 @@ public abstract class BeforeFilterFunctions {
 				.build()
 				.toUri();
 
-			ServerRequest modified = ServerRequest.from(request).uri(rewrittenUri).build();
-
-			return modified;
+			return ServerRequest.from(request).uri(rewrittenUri).build();
 		};
 	}
 
@@ -414,7 +412,7 @@ public abstract class BeforeFilterFunctions {
 		return request -> {
 			MvcUtils.addOriginalRequestUrl(request, request.uri());
 			// TODO: gateway url attributes
-			String path = request.uri().getRawPath();
+			String path = MvcUtils.stripContextPath(request, request.uri().getRawPath());
 			// TODO: begin duplicate code from StripPrefixGatewayFilterFactory
 			String[] originalParts = StringUtils.tokenizeToStringArray(path, "/");
 
