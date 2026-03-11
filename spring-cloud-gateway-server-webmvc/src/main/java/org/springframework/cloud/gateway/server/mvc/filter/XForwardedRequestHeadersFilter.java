@@ -234,8 +234,12 @@ public class XForwardedRequestHeadersFilter implements HttpHeadersFilter.Request
 	}
 
 	private String stripTrailingSlash(URI uri) {
-		if (uri.getPath().endsWith("/")) {
-			return uri.getPath().substring(0, uri.getPath().length() - 1);
+		String path = uri.getPath();
+		if (path == null) {
+			return null;
+		}
+		if (path.endsWith("/")) {
+			return path.substring(0, path.length() - 1);
 		}
 		else {
 			return uri.getPath();
