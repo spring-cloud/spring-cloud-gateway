@@ -21,6 +21,7 @@ import com.github.benmanes.caffeine.cache.Weigher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -28,10 +29,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.GlobalLocalResponseCacheGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.CacheMetricsListener;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheUtils;
 import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
@@ -60,10 +63,15 @@ public class LocalResponseCacheAutoConfiguration {
 	@Conditional(LocalResponseCacheAutoConfiguration.OnGlobalLocalResponseCacheCondition.class)
 	public GlobalLocalResponseCacheGatewayFilter globalLocalResponseCacheGatewayFilter(
 			ResponseCacheManagerFactory responseCacheManagerFactory,
-			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager,
-			LocalResponseCacheProperties properties) {
-		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, responseCache(cacheManager),
-				properties.getTimeToLive(), properties.getRequest());
+			@Qualifier(RESPONSE_CACHE_MANAGER_NAME) CacheManager cacheManager, LocalResponseCacheProperties properties,
+			ObjectProvider<CacheMetricsListener> metricsListenerProvider) {
+		Cache cache = responseCache(cacheManager);
+		CacheMetricsListener listener = metricsListenerProvider.getIfAvailable(() -> CacheMetricsListener.NOOP);
+		if (cache instanceof CaffeineCache caffeineCache) {
+			listener.onCacheCreated(caffeineCache.getNativeCache(), RESPONSE_CACHE_NAME);
+		}
+		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, cache, properties.getTimeToLive(),
+				properties.getRequest());
 	}
 
 	@Bean(name = RESPONSE_CACHE_MANAGER_NAME)
@@ -74,9 +82,11 @@ public class LocalResponseCacheAutoConfiguration {
 
 	@Bean
 	public LocalResponseCacheGatewayFilterFactory localResponseCacheGatewayFilterFactory(
-			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties) {
+			ResponseCacheManagerFactory responseCacheManagerFactory, LocalResponseCacheProperties properties,
+			ObjectProvider<CacheMetricsListener> metricsListenerProvider) {
+		CacheMetricsListener listener = metricsListenerProvider.getIfAvailable(() -> CacheMetricsListener.NOOP);
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
-				properties.getSize(), properties.getRequest());
+				properties.getSize(), properties.getRequest(), listener);
 	}
 
 	@Bean
