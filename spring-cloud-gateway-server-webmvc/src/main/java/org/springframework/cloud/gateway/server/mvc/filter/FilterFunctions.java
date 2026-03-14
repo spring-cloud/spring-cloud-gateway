@@ -206,6 +206,11 @@ public interface FilterFunctions {
 		return ofResponseProcessor(AfterFilterFunctions.setResponseHeader(name, value));
 	}
 
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> stripContextPath() {
+		return ofRequestProcessor(BeforeFilterFunctions.stripContextPath());
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> stripPrefix() {
 		return stripPrefix(1);
 	}
