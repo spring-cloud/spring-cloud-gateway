@@ -34,6 +34,7 @@ public class CustomBlockHoundIntegration implements BlockHoundIntegration {
 
 		// Uses Unsafe#park
 		builder.allowBlockingCallsInside("reactor.core.scheduler.SchedulerTask", "dispose");
+		builder.allowBlockingCallsInside("org.springframework.util.function.SingletonSupplier", "get");
 
 		// Uses
 		// ch.qos.logback.classic.spi.PackagingDataCalculator#getImplementationVersion
