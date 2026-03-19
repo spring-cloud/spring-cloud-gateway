@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
 import org.springframework.http.MediaType;
@@ -54,7 +56,7 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 		return transferredBytes;
 	}
 
-	private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, MediaType mediaType) {
+	private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, @Nullable MediaType mediaType) {
 		for (var streamingMediaType : streamingMediaTypes) {
 			if (streamingMediaType.equalsTypeAndSubtype(mediaType)) {
 				return true;
