@@ -415,11 +415,7 @@ public class ProductionConfigurationTests {
 			@PostMapping("/proxy/converter")
 			public ResponseEntity<Bar> implicitEntityWithConverter(@RequestBody Foo foo,
 					ProxyExchange<List<Bar>> proxy) {
-				return proxy.uri(home.toString() + "/bars")
-					.body(Arrays.asList(foo))
-					.post(response -> ResponseEntity.status(response.getStatusCode())
-						.headers(response.getHeaders())
-						.body(response.getBody().iterator().next()));
+				return proxy.uri(home.toString() + "/bars").body(Arrays.asList(foo)).post(this::first);
 			}
 
 			@PostMapping("/proxy/no-body")
@@ -500,6 +496,14 @@ public class ProductionConfigurationTests {
 			}
 
 			private <T> ResponseEntity<T> first(ResponseEntity<List<T>> response) {
+				// When using Java 25 this converter will cause IOException("Premature
+				// EOF")
+				// due to a change in the JDK, see
+				// https://bugs.openjdk.org/browse/JDK-8335135
+				// Since the converter changes the body length we remove the
+				// content-length
+				// header so the correct content length is recalculated
+				response.getHeaders().remove(HttpHeaders.CONTENT_LENGTH);
 				return ResponseEntity.status(response.getStatusCode())
 					.headers(response.getHeaders())
 					.body(response.getBody().iterator().next());

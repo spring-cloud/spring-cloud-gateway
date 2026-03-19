@@ -276,7 +276,8 @@ public class GatewayAutoConfigurationTests {
 			.reactorNettyWebSocketClient(new HttpClientProperties(), HttpClient.create());
 
 		// Method "buildWebSocketClientSpec" has only private visibility
-		Method buildSpec = ReactorNettyWebSocketClient.class.getDeclaredMethod("buildWebSocketClientSpec", String.class);
+		Method buildSpec = ReactorNettyWebSocketClient.class.getDeclaredMethod("buildWebSocketClientSpec",
+				String.class);
 		buildSpec.setAccessible(true);
 		WebsocketClientSpec spec1 = (WebsocketClientSpec) buildSpec.invoke(websocketClient, "p1");
 		WebsocketClientSpec spec2 = websocketClient.getWebsocketClientSpec();
