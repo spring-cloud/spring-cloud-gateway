@@ -191,6 +191,76 @@ class BeforeFilterFunctionsTests {
 	}
 
 	@Test
+	void stripContextPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
+			.get("http://localhost/context/depth1/depth2/depth3")
+			.buildRequest(null);
+		servletRequest.setContextPath("/context");
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripContextPath().apply(request);
+
+		assertThat(result.uri().getRawPath()).isEqualTo("/depth1/depth2/depth3");
+	}
+
+	@Test
+	void stripContextPathWithoutContextPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3")
+			.buildRequest(null);
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest result = BeforeFilterFunctions.stripContextPath().apply(request);
+
+		assertThat(result.uri().getRawPath()).isEqualTo("/depth1/depth2/depth3");
+	}
+
+	@Test
+	void stripPrefixWithContextPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
+			.get("http://localhost/context/depth1/depth2/depth3")
+			.buildRequest(null);
+		servletRequest.setContextPath("/context");
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest stripped = BeforeFilterFunctions.stripContextPath().apply(request);
+		ServerRequest result = BeforeFilterFunctions.stripPrefix(2).apply(stripped);
+
+		assertThat(result.uri().getRawPath()).isEqualTo("/depth3");
+	}
+
+	@Test
+	void rewritePathWithContextPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/context/service/path")
+			.buildRequest(null);
+		servletRequest.setContextPath("/context");
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest stripped = BeforeFilterFunctions.stripContextPath().apply(request);
+		ServerRequest modified = BeforeFilterFunctions.rewritePath("/service/(?<remaining>.*)", "/${remaining}")
+			.apply(stripped);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/path");
+	}
+
+	@Test
+	void prefixPathWithContextPath() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/context/get")
+			.buildRequest(null);
+		servletRequest.setContextPath("/context");
+
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ServerRequest stripped = BeforeFilterFunctions.stripContextPath().apply(request);
+		ServerRequest modified = BeforeFilterFunctions.prefixPath("/prefix").apply(stripped);
+
+		assertThat(modified.uri().getRawPath()).isEqualTo("/prefix/get");
+	}
+
+	@Test
 	void stripPrefixWithEncodedPath() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/depth1/depth2/depth3/é")
 			.buildRequest(null);

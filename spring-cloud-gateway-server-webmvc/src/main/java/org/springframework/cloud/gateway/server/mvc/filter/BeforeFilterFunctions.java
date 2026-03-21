@@ -406,6 +406,25 @@ public abstract class BeforeFilterFunctions {
 		};
 	}
 
+	/**
+	 * Returns a filter function that strips the servlet context-path from the request
+	 * URI. Users should add this filter before path-manipulating filters (StripPrefix,
+	 * RewritePath, PrefixPath) when using {@code server.servlet.context-path}.
+	 * @return a function that strips the context-path from the request URI
+	 */
+	public static Function<ServerRequest, ServerRequest> stripContextPath() {
+		return request -> {
+			String rawPath = request.uri().getRawPath();
+			String strippedPath = MvcUtils.stripContextPath(request, rawPath);
+			if (!rawPath.equals(strippedPath)) {
+				MvcUtils.addOriginalRequestUrl(request, request.uri());
+				URI newUri = UriComponentsBuilder.fromUri(request.uri()).replacePath(strippedPath).build(true).toUri();
+				return ServerRequest.from(request).uri(newUri).build();
+			}
+			return request;
+		};
+	}
+
 	public static Function<ServerRequest, ServerRequest> stripPrefix() {
 		return stripPrefix(1);
 	}

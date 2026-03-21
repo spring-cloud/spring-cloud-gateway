@@ -320,6 +320,25 @@ public abstract class MvcUtils {
 		urls.add(url);
 	}
 
+	/**
+	 * Removes the servlet context-path prefix from the given path. This ensures
+	 * path-manipulating filters (e.g., StripPrefix, RewritePath) operate on the same path
+	 * that route predicates match against.
+	 * @param request the server request used to obtain the context path
+	 * @param path the path to strip the context path from (raw or decoded)
+	 * @return the path without the servlet context-path prefix
+	 */
+	public static String stripContextPath(ServerRequest request, String path) {
+		String contextPath = request.servletRequest().getContextPath();
+		if (StringUtils.hasText(contextPath) && path.startsWith(contextPath)) {
+			path = path.substring(contextPath.length());
+			if (path.isEmpty()) {
+				path = "/";
+			}
+		}
+		return path;
+	}
+
 	public static MultiValueMap<String, String> encodeQueryParams(MultiValueMap<String, String> params) {
 		MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(params.size());
 		for (Map.Entry<String, List<String>> entry : params.entrySet()) {

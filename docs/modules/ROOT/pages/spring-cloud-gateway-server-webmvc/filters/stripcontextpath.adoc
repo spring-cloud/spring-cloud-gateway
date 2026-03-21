@@ -1,0 +1,58 @@
+[[stripcontextpath-filter]]
+= `StripContextPath` Filter
+
+The `StripContextPath` filter removes the servlet context-path (configured via `server.servlet.context-path`) from the request URI before downstream filters process it.
+This is useful when path-manipulating filters like `StripPrefix`, `RewritePath`, or `PrefixPath` should operate on the same path that route predicates match against, without the context-path prefix.
+
+The `StripContextPath` filter must be placed before any path-manipulating filters in the filter chain.
+The following listing configures a `StripContextPath` filter:
+
+.application.yml
+[source,yaml]
+----
+server:
+  servlet:
+    context-path: /context
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: strip_context_path_route
+              uri: https://example.org
+              predicates:
+              - Path=/name/**
+              filters:
+              - StripContextPath
+              - StripPrefix=1
+----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripContextPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.stripPrefix;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsStripContextPath() {
+        return route("strip_context_path_route")
+            .GET("/name/**", http())
+            .before(uri("https://example.org"))
+            .before(stripContextPath())
+            .before(stripPrefix(1))
+            .build();
+    }
+}
+----
+
+With `server.servlet.context-path=/context`, when a request is made through the gateway to `/context/name/blue`, the `StripContextPath` filter removes the `/context` prefix, and then `StripPrefix` strips `/name`, resulting in a downstream request to `https://example.org/blue`.
+
+WARNING: The `StripContextPath` filter must be listed before `StripPrefix`, `RewritePath`, `PrefixPath`, or any other filter that operates on the request path. Filters execute in the order they are defined, and these filters need the context-path already removed to work correctly.

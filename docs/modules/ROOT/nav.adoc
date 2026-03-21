@@ -104,6 +104,7 @@
 *** xref:spring-cloud-gateway-server-webmvc/filters/setrequestheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/setresponseheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/setstatus.adoc[]
+*** xref:spring-cloud-gateway-server-webmvc/filters/stripcontextpath.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/stripprefix.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/retry.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/requestsize.adoc[]
