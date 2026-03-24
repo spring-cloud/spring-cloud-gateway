@@ -114,6 +114,22 @@ class LocalResponseCacheMetricsAutoConfigurationTests {
 			});
 	}
 
+	@Test
+	void globalCacheMetricsRegisteredViaCaffeineCache() {
+		SimpleMeterRegistry registry = new SimpleMeterRegistry();
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(LocalResponseCacheAutoConfiguration.class,
+					LocalResponseCacheMetricsAutoConfiguration.class))
+			.withBean(MeterRegistry.class, () -> registry)
+			.withPropertyValues(GatewayProperties.PREFIX + ".filter.local-response-cache.enabled=true",
+					GatewayProperties.PREFIX + ".enabled=true",
+					GatewayProperties.PREFIX + ".global-filter.local-response-cache.enabled=true")
+			.run(context -> {
+				assertThat(context).hasSingleBean(CacheMetricsListener.class);
+				assertThat(registry.find("cache.size").tag("cache", "response-cache").gauge()).isNotNull();
+			});
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class MeterRegistryConfig {
 
