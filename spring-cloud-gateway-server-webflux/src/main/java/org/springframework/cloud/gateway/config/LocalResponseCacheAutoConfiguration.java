@@ -70,6 +70,9 @@ public class LocalResponseCacheAutoConfiguration {
 		if (cache instanceof CaffeineCache caffeineCache) {
 			listener.onCacheCreated(caffeineCache.getNativeCache(), RESPONSE_CACHE_NAME);
 		}
+		else if (listener != CacheMetricsListener.NOOP) {
+			LOGGER.warn("Global response cache is not a CaffeineCache instance; cache metrics will not be registered");
+		}
 		return new GlobalLocalResponseCacheGatewayFilter(responseCacheManagerFactory, cache, properties.getTimeToLive(),
 				properties.getRequest());
 	}
@@ -86,7 +89,7 @@ public class LocalResponseCacheAutoConfiguration {
 			ObjectProvider<CacheMetricsListener> metricsListenerProvider) {
 		CacheMetricsListener listener = metricsListenerProvider.getIfAvailable(() -> CacheMetricsListener.NOOP);
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
-				properties.getSize(), properties.getRequest(), listener);
+				properties.getSize(), properties.getRequest(), new CaffeineCacheManager(), listener);
 	}
 
 	@Bean

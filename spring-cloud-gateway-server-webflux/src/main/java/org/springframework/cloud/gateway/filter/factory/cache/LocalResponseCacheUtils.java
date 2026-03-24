@@ -48,6 +48,8 @@ public final class LocalResponseCacheUtils {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Caffeine createCaffeine(LocalResponseCacheProperties cacheProperties) {
+		// Always record stats so metrics are available when Micrometer is present.
+		// The overhead of LongAdder-based stat counters is minimal.
 		Caffeine caffeine = Caffeine.newBuilder().recordStats();
 		LOGGER.info("Initializing Caffeine");
 		Duration ttlSeconds = cacheProperties.getTimeToLive();

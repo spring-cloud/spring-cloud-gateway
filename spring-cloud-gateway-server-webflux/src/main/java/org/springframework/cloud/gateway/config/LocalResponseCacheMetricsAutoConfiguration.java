@@ -49,7 +49,7 @@ import org.springframework.context.annotation.Configuration;
 public class LocalResponseCacheMetricsAutoConfiguration {
 
 	@Bean
-	CacheMetricsListener localResponseCacheMetricsListener(MeterRegistry meterRegistry) {
+	public CacheMetricsListener localResponseCacheMetricsListener(MeterRegistry meterRegistry) {
 		return (cache, cacheName) -> CaffeineCacheMetrics.monitor(meterRegistry, cache, cacheName,
 				Collections.emptyList());
 	}

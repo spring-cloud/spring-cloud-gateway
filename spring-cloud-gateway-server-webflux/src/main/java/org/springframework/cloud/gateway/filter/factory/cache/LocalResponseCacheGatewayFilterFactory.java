@@ -80,13 +80,6 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
-			CacheMetricsListener cacheMetricsListener) {
-		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager(),
-				cacheMetricsListener);
-	}
-
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
 			CaffeineCacheManager caffeineCacheManager, CacheMetricsListener cacheMetricsListener) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
@@ -136,6 +129,7 @@ public class LocalResponseCacheGatewayFilterFactory
 	@FunctionalInterface
 	public interface CacheMetricsListener {
 
+		// Uses FQN to avoid ambiguity with org.springframework.cache.Cache
 		void onCacheCreated(com.github.benmanes.caffeine.cache.Cache<?, ?> cache, String cacheName);
 
 		/**
