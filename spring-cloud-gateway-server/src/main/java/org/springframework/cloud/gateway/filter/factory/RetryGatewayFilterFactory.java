@@ -28,7 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
-import reactor.netty.Connection;
 import reactor.retry.Backoff;
 import reactor.retry.Jitter;
 import reactor.retry.Repeat;
@@ -241,12 +240,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
 	 */
 	public void reset(ServerWebExchange exchange) {
-		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
-		if (conn != null) {
-			trace("disposing response connection before next iteration");
-			conn.dispose();
-			exchange.getAttributes().remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
-		}
 		ServerWebExchangeUtils.reset(exchange);
 	}
 
