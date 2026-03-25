@@ -32,6 +32,7 @@ import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.CacheMetricsListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * Auto-configuration for LocalResponseCache metrics. Registers Caffeine cache metrics
@@ -41,14 +42,16 @@ import org.springframework.context.annotation.Configuration;
  * @author LivingLikeKrillin
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass({ Caffeine.class, CaffeineCacheManager.class, MeterRegistry.class, MetricsAutoConfiguration.class })
-@ConditionalOnBean(MeterRegistry.class)
-@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
+@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".enabled", matchIfMissing = true)
 @AutoConfigureAfter({ LocalResponseCacheAutoConfiguration.class, MetricsAutoConfiguration.class,
 		CompositeMeterRegistryAutoConfiguration.class })
+@ConditionalOnClass({ DispatcherHandler.class, Caffeine.class, CaffeineCacheManager.class, MeterRegistry.class,
+		MetricsAutoConfiguration.class })
 public class LocalResponseCacheMetricsAutoConfiguration {
 
 	@Bean
+	@ConditionalOnBean(MeterRegistry.class)
+	@ConditionalOnProperty(name = GatewayProperties.PREFIX + ".metrics.enabled", matchIfMissing = true)
 	public CacheMetricsListener localResponseCacheMetricsListener(MeterRegistry meterRegistry) {
 		return (cache, cacheName) -> CaffeineCacheMetrics.monitor(meterRegistry, cache, cacheName,
 				Collections.emptyList());
