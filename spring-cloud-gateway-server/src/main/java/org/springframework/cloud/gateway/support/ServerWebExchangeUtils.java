@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -222,6 +223,17 @@ public final class ServerWebExchangeUtils {
 
 	public static void reset(ServerWebExchange exchange) {
 		// TODO: what else to do to reset exchange?
+		// Dispose and clean up client connection to prevent connection leaks
+		Connection conn = exchange.getAttribute(CLIENT_RESPONSE_CONN_ATTR);
+		if (conn != null) {
+			conn.dispose();
+			exchange.getAttributes().remove(CLIENT_RESPONSE_CONN_ATTR);
+		}
+
+		// Clean up client response
+		exchange.getAttributes().remove(CLIENT_RESPONSE_ATTR);
+
+		// Remove added response headers
 		Set<String> addedHeaders = exchange.getAttributeOrDefault(CLIENT_RESPONSE_HEADER_NAMES, Collections.emptySet());
 		addedHeaders.forEach(header -> exchange.getResponse().getHeaders().remove(header));
 		removeAlreadyRouted(exchange);

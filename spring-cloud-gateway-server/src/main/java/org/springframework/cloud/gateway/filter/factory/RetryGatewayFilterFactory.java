@@ -244,8 +244,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		if (conn != null) {
 			trace("disposing response connection before next iteration");
-			conn.dispose();
-			exchange.getAttributes().remove(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		}
 		ServerWebExchangeUtils.reset(exchange);
 	}
