@@ -208,6 +208,52 @@ This route matches if the request path was, for example: `/red/1` or `/red/1/` o
 
 If `matchTrailingSlash` is set to `false`, then request path `/red/1/` will not be matched.
 
+[[path-route-predicate-factory-expanded-arguments]]
+=== Fully Expanded Arguments
+
+When using the fully expanded argument format (for example, when configuring routes via the Actuator API or programmatically), the `Path` predicate uses indexed keys for list parameters. The following example shows the fully expanded configuration:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          - id: path_route
+            uri: https://example.org
+            predicates:
+            - name: Path
+              args:
+                patterns.0: /red/{segment}
+                patterns.1: /blue/{segment}
+                matchTrailingSlash: false
+----
+
+When posting route definitions via the Actuator API, use the same indexed notation in the JSON request body:
+
+[source,json]
+----
+{
+  "id": "path_route",
+  "uri": "https://example.org",
+  "predicates": [
+    {
+      "name": "Path",
+      "args": {
+        "patterns.0": "/red/{segment}",
+        "patterns.1": "/blue/{segment}",
+        "matchTrailingSlash": "false"
+      }
+    }
+  ]
+}
+----
+
+NOTE: The `args` map accepts only `String` key-value pairs. List parameters like `patterns` must be specified using indexed keys (`patterns.0`, `patterns.1`, etc.) rather than JSON arrays. This indexed notation is automatically converted to a `List<String>` when the predicate is configured.
+
 If you have set `spring.webflux.base-path` property, this will influence the path matching. The property value will be automatically prepended to the path patterns. For example, with `spring.webflux.base-path=/app` and a path pattern of `/red/\{segment\}`, the full pattern used for matching would be `/app/red/\{segment\}`.
 
 This predicate extracts the URI template variables (such as `segment`, defined in the preceding example) as a map of names and values and places it in the `ServerWebExchange.getAttributes()` with a key defined in `ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE`.
