@@ -268,12 +268,6 @@ public class ModifyResponseBodyGatewayFilterFactory
 		}
 
 		private <T> Mono<T> extractBody(ServerWebExchange exchange, ClientResponse clientResponse, Class<T> inClass) {
-			// if inClass is byte[] then just return body, otherwise check if
-			// decoding required
-			if (byte[].class.isAssignableFrom(inClass)) {
-				return clientResponse.bodyToMono(inClass);
-			}
-
 			List<String> encodingHeaders = exchange.getResponse().getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
 			for (String encoding : encodingHeaders) {
 				MessageBodyDecoder decoder = messageBodyDecoders.get(encoding);
@@ -293,10 +287,6 @@ public class ModifyResponseBodyGatewayFilterFactory
 		private Mono<DataBuffer> writeBody(ServerHttpResponse httpResponse, CachedBodyOutputMessage message,
 				Class<?> outClass) {
 			Mono<DataBuffer> response = DataBufferUtils.join(message.getBody());
-			if (byte[].class.isAssignableFrom(outClass)) {
-				return response;
-			}
-
 			List<String> encodingHeaders = httpResponse.getHeaders().getOrEmpty(HttpHeaders.CONTENT_ENCODING);
 			for (String encoding : encodingHeaders) {
 				MessageBodyEncoder encoder = messageBodyEncoders.get(encoding);
