@@ -15,7 +15,31 @@
  */
 
 /**
- * TODO: package javadoc.
+ * Event publishing and handling for Spring Cloud Gateway.
+ *
+ * <p>
+ * This package provides event-driven capabilities for gateway lifecycle and route
+ * management. It enables applications to react to gateway events such as route
+ * refreshes, route definitions being added or removed, and other gateway state changes.
+ * </p>
+ *
+ * <p>
+ * Key components:
+ * <ul>
+ * <li>Event classes for various gateway lifecycle events</li>
+ * <li>Event publishers for notifying listeners of gateway state changes</li>
+ * <li>Integration with Spring's event publishing mechanism</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Applications can listen to these events by implementing
+ * {@link org.springframework.context.ApplicationListener} or using the
+ * {@link org.springframework.context.event.EventListener} annotation.
+ * </p>
+ *
+ * @see org.springframework.context.ApplicationEvent
+ * @see org.springframework.context.ApplicationListener
  */
 @NullMarked
 package org.springframework.cloud.gateway.event;
