@@ -9,13 +9,44 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES or conditions of ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
 /**
- * TODO: package javadoc.
+ * Gateway filters for request and response processing.
+ *
+ * <p>
+ * This package contains the core filter implementations for Spring Cloud Gateway.
+ * Filters are used to modify incoming requests and outgoing responses as they pass
+ * through the gateway. They can be applied globally or scoped to specific routes.
+ * </p>
+ *
+ * <p>
+ * Filter types include:
+ * <ul>
+ * <li><strong>Global Filters:</strong> Applied to all routes</li>
+ * <li><strong>route Filters:</strong> Applied to specific routes</li>
+ * <li><strong>Pre-filters:</strong> Execute before the request is routed</li>
+ * <li><strong>Post-filters:</strong> Execute after the response is received</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Common filter implementations:
+ * <ul>
+ * <li>{@link org.springframework.cloud.gateway.filter.NettyRoutingFilter}
+ * - Routes requests using Netty HTTP client</li>
+ * <li>{@link org.springframework.cloud.gateway.filter.ForwardRoutingFilter}
+ * - Forwards requests to local endpoints</li>
+ * <li>{@link org.springframework.cloud.gateway.filter.FunctionRoutingFilter}
+ * - Routes requests to Spring Cloud Function endpoints</li>
+ * </ul>
+ * </p>
+ *
+ * @see org.springframework.cloud.gateway.filter.GatewayFilter
+ * @see org.springframework.cloud.gateway.filter.GlobalFilter
  */
 @NullMarked
 package org.springframework.cloud.gateway.filter;
