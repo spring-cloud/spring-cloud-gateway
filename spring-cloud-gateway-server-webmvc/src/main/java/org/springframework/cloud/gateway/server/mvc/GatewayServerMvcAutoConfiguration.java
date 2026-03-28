@@ -66,6 +66,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -105,6 +106,7 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
+	@Order(0)
 	public RestClientCustomizer gatewayRestClientCustomizer(
 			ObjectProvider<ClientHttpRequestFactory> requestFactoryProvider) {
 		return restClientBuilder -> {
