@@ -34,7 +34,7 @@ public class DiscoveryLocatorProperties {
 
 	/**
 	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName()
-	 * + "_". Service Id will be appended to create the routeId.
+	 * + "_". ServiceId will be appended to create the routeId.
 	 */
 	private @Nullable String routeIdPrefix;
 
@@ -51,7 +51,7 @@ public class DiscoveryLocatorProperties {
 
 	/**
 	 * Option to lower case serviceId in predicates and filters, defaults to false. Useful
-	 * with eureka when it automatically uppercases serviceId. so MYSERIVCE, would match
+	 * with eureka when it automatically uppercases serviceId. so "MYSERVICE", would match
 	 * /myservice/**
 	 */
 	private boolean lowerCaseServiceId = false;
