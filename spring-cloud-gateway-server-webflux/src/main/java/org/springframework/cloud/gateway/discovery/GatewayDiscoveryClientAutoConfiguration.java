@@ -54,7 +54,6 @@ public class GatewayDiscoveryClientAutoConfiguration {
 
 	public static List<PredicateDefinition> initPredicates() {
 		ArrayList<PredicateDefinition> definitions = new ArrayList<>();
-		// TODO: add a predicate that matches the url at /serviceId?
 
 		// add a predicate that matches the url at /serviceId/**
 		PredicateDefinition predicate = new PredicateDefinition();
