@@ -1,0 +1,28 @@
+[[stripcontextpath-gatewayfilter-factory]]
+= `StripContextPath` `GatewayFilter` Factory
+
+The `StripContextPath` `GatewayFilter` factory removes the request context path before downstream path filters run.
+This is useful when a context path is present through `spring.webflux.base-path` or forwarded prefixes and you want filters such as `StripPrefix`, `RewritePath`, `SetPath`, or `PrefixPath` to operate on the application path instead.
+
+The `StripContextPath` filter must be listed before any path-manipulating filters.
+The following example configures a `StripContextPath` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          - id: strip_context_path_route
+            uri: https://example.org
+            predicates:
+            - Path=/name/**
+            filters:
+            - StripContextPath
+            - StripPrefix=1
+----
+
+With a context path of `/context`, a request to `/context/name/blue` first becomes `/name/blue`, and then `StripPrefix=1` sends `https://example.org/blue` downstream.
