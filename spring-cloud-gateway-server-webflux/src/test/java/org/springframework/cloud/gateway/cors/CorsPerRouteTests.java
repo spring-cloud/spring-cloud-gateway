@@ -33,7 +33,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -41,9 +40,12 @@ import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTI
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_MAX_AGE;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT,
+		// Will be combined by AbstractHandlerMapping, @see
+		// AbstractHandlerMapping#getHandler,
+		// therefore requires separate configuration
+		properties = "spring.config.location=classpath:/application-cors-per-route-config.yml")
 @DirtiesContext
-@ActiveProfiles(profiles = "cors-per-route-config")
 public class CorsPerRouteTests extends BaseWebClientTests {
 
 	@Test
@@ -97,13 +99,60 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void testIndependentCorsConfigurationForSamePath() {
+		// Test first route with same path but different cors config (via different host)
+		testClient.options()
+			.uri("/shared-path")
+			.header("Origin", "route1-domain.com")
+			.header("Host", "route1.host.example")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("route1-domain.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactlyInAnyOrder(HttpMethod.GET);
+				assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+					.isEqualTo(100L);
+			});
+
+		// Test second route with same path but different cors config (via different host)
+		testClient.options()
+			.uri("/shared-path")
+			.header("Origin", "route2-domain.com")
+			.header("Host", "route2.host.example")
+			.header("Access-Control-Request-Method", "POST")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("route2-domain.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactlyInAnyOrder(HttpMethod.POST);
+				assertThat(responseHeaders.getAccessControlMaxAge()).as(missingHeader(ACCESS_CONTROL_MAX_AGE))
+					.isEqualTo(200L);
+			});
+	}
+
+	@Test
 	public void testPreFlightForbiddenCorsRequest() {
-		testClient.get()
+		testClient.options()
 			.uri("/cors")
 			.header("Origin", "domain.com")
 			.header("Access-Control-Request-Method", "GET")
 			.exchange()
-			.expectBody(Map.class)
+			.expectBody()
 			.consumeWith(result -> {
 				assertThat(result.getResponseBody()).isNull();
 				assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -132,7 +181,7 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
 
-		@Value("${test.uri}")
+		@Value("${test.uri:http://httpbin.org:80}")
 		String uri;
 
 		@Bean
@@ -146,6 +195,24 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 							.metadata(Map.of("cors",
 									Map.of("allowedOrigins", "another-domain.com", "allowedMethods",
 											HttpMethod.GET.name(), "maxAge", 50)))
+							.uri(uri))
+				.route("cors_route_same_path_1",
+						r -> r.host("route1.host.example")
+							.and()
+							.path("/shared-path/**")
+							.filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
+							.metadata(Map.of("cors",
+									Map.of("allowedOrigins", "route1-domain.com", "allowedMethods",
+											HttpMethod.GET.name(), "maxAge", 100)))
+							.uri(uri))
+				.route("cors_route_same_path_2",
+						r -> r.host("route2.host.example")
+							.and()
+							.path("/shared-path/**")
+							.filters(f -> f.stripPrefix(1).prefixPath("/httpbin"))
+							.metadata(Map.of("cors",
+									Map.of("allowedOrigins", "route2-domain.com", "allowedMethods",
+											HttpMethod.POST.name(), "maxAge", 200)))
 							.uri(uri))
 				.build();
 		}
