@@ -7,13 +7,12 @@ tracker for issues and merging pull requests into master. If you want
 to contribute even something trivial please do not hesitate, but
 follow the guidelines below.
 
-## Sign the Contributor License Agreement
-Before we accept a non-trivial patch or pull request we will need you to sign the
-[Contributor License Agreement](https://cla.pivotal.io/sign/spring).
-Signing the contributor's agreement does not grant anyone commit rights to the main
-repository, but it does mean that we can accept your contributions, and you will get an
-author credit if we do.  Active contributors might be asked to join the core team, and
-given the ability to merge pull requests.
+## Sign off commits with the Developer Certificate of Origin
+For all non-trivial patches or pull requests we need every commit to include a
+"Signed-off-by" trailer confirming that you agree to the
+[Developer Certificate of Origin](https://developercertificate.org/). See the
+[`git` documentation](https://git-scm.com/docs/git-commit#Documentation/git-commit.txt--s)
+if you are unfamiliar with how to do this.
 
 ## Code of Conduct
 This project adheres to the Contributor Covenant [Code of conduct](https://github.com/spring-cloud/spring-cloud-build/blob/main/docs/modules/ROOT/partials/code-of-conduct.adoc). By participating, you  are expected to uphold this code. Please report
