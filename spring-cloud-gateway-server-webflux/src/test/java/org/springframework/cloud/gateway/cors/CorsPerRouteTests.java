@@ -152,7 +152,7 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 			.header("Origin", "domain.com")
 			.header("Access-Control-Request-Method", "GET")
 			.exchange()
-			.expectBody()
+			.expectBody(Map.class)
 			.consumeWith(result -> {
 				assertThat(result.getResponseBody()).isNull();
 				assertThat(result.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -181,7 +181,7 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
 
-		@Value("${test.uri:http://httpbin.org:80}")
+		@Value("${test.uri}")
 		String uri;
 
 		@Bean
