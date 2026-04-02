@@ -24,7 +24,7 @@ boolean test(ServerRequest request)
 
 For this example, we will show the implementation of a predicate to test that a particular HTTP headers is part of the HTTP request.
 
-The `RequestPredicate` implementations in Spring WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicates.html[`RequestPredicates`] and in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-mvc/src/main/java/org/springframework/cloud/gateway/server/mvc/predicate/GatewayRequestPredicates.java[GatewayRequestPredicates] are all implemented as `static` methods. We will do the same here.
+The `RequestPredicate` implementations in Spring WebMvc.fn https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/function/RequestPredicates.html[`RequestPredicates`] and in https://github.com/spring-cloud/spring-cloud-gateway/blob/main/spring-cloud-gateway-server-webmvc/src/main/java/org/springframework/cloud/gateway/server/mvc/predicate/GatewayRequestPredicates.java[GatewayRequestPredicates] are all implemented as `static` methods. We will do the same here.
 
 .SampleRequestPredicates.java
 [source,java]
