@@ -128,20 +128,30 @@ public abstract class GatewayRequestPredicates {
 		return RequestPredicates.methods(methods);
 	}
 
+	/**
+	 * Return a {@code RequestPredicate} that tests the request host against the given
+	 * host pattern.
+	 * @param pattern the host pattern to match
+	 * @return a predicate that tests against the given host pattern
+	 */
 	public static RequestPredicate host(String pattern) {
 		Objects.requireNonNull(pattern, "'pattern' must not be null");
 		return hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern);
 	}
 
+	/**
+	 * Return a {@code RequestPredicate} that tests the request host against the given
+	 * host patterns.
+	 * @param patterns the list of patterns to match
+	 * @return a predicate that tests against the given host patterns
+	 */
 	@Shortcut(type = Type.LIST)
 	public static RequestPredicate host(String... patterns) {
 		Assert.notEmpty(patterns, "'patterns' must not be empty");
-		RequestPredicate requestPredicate = hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[0]);
-		// I'm sure there's a functional way to do this, I'm just tired...
-		for (int i = 1; i < patterns.length; i++) {
-			requestPredicate = requestPredicate.or(hostPredicates(DEFAULT_HOST_INSTANCE).apply(patterns[i]));
-		}
-		return requestPredicate;
+		return Arrays.stream(patterns)
+			.map(pattern -> hostPredicates(DEFAULT_HOST_INSTANCE).apply(pattern))
+			.reduce(RequestPredicate::or)
+			.orElseThrow();
 	}
 
 	/**
@@ -180,12 +190,7 @@ public abstract class GatewayRequestPredicates {
 	@Shortcut(type = Type.LIST)
 	public static RequestPredicate path(String... patterns) {
 		Assert.notEmpty(patterns, "'patterns' must not be empty");
-		RequestPredicate requestPredicate = RequestPredicates.path(patterns[0]);
-		// I'm sure there's a functional way to do this, I'm just tired...
-		for (int i = 1; i < patterns.length; i++) {
-			requestPredicate = requestPredicate.or(RequestPredicates.path(patterns[i]));
-		}
-		return requestPredicate;
+		return Arrays.stream(patterns).map(RequestPredicates::path).reduce(RequestPredicate::or).orElseThrow();
 	}
 
 	/**
