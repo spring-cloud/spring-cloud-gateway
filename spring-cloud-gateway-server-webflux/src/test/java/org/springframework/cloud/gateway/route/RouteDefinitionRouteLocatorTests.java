@@ -200,6 +200,41 @@ public class RouteDefinitionRouteLocatorTests {
 		}).expectComplete().verify();
 	}
 
+	@Test
+	public void uriWithMappingShouldAddSetPathFilter() {
+		// 1. Setup
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays
+			.asList(new org.springframework.cloud.gateway.filter.factory.SetPathGatewayFilterFactory());
+
+		GatewayProperties gatewayProperties = new GatewayProperties();
+
+		// Standard way to create the definition
+		RouteDefinition definition = new RouteDefinition();
+		definition.setId("sugar_test");
+		definition.setUri(URI.create("https://example.com/foo/bar"));
+		definition.setPredicates(Arrays.asList(new PredicateDefinition("Host=*.example.com")));
+
+		gatewayProperties.setRoutes(Arrays.asList(definition));
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+
+		// 2. Initialize the Locator
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, new ConfigurationService(null, () -> null, () -> null));
+
+		// 3. Verify
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			assertThat(route.getUri().toString()).isEqualTo("https://example.com:443");
+
+			List<GatewayFilter> filters = route.getFilters();
+			assertThat(filters).hasSize(1);
+			assertThat(getFilterClassName(filters.get(0))).contains("SetPath");
+		}).expectComplete().verify();
+	}
+
 	private List<RouteDefinition> containsInvalidRoutes() {
 		RouteDefinition foo = new RouteDefinition();
 		foo.setId("foo");
