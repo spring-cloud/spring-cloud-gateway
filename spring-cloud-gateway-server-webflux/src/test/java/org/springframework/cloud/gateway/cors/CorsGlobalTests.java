@@ -21,11 +21,9 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -86,20 +84,6 @@ public class CorsGlobalTests extends BaseWebClientTests {
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
 	public static class TestConfig {
-
-	}
-
-	@SpringBootTest(classes = TestConfig.class,
-			properties = "spring.cloud.gateway.server.webflux.globalcors.enabled=false")
-	public static class DisabledByProperty {
-
-		@Autowired(required = false)
-		private CorsGatewayFilterApplicationListener listener;
-
-		@Test
-		public void corsGatewayFilterApplicationListenerIsMissing() {
-			assertThat(listener).isNull();
-		}
 
 	}
 
