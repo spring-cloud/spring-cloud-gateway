@@ -376,3 +376,40 @@ spring:
 
 This route matches if the `X-Forwarded-For` header contains, for example, `192.168.1.10`.
 
+
+[[read-body-route-predicate-factory]]
+== The ReadBody Route Predicate Factory
+
+The `ReadBody` route predicate factory reads the request body and applies a user-provided
+predicate against it. The body is cached in memory after the first read, so subsequent
+evaluations do not need to deserialize it again.
+
+NOTE: This predicate can only be configured programmatically via the Java DSL.
+It cannot be configured via YAML because the `predicate` parameter requires a Java
+`Predicate` lambda, which cannot be expressed in a configuration file.
+
+The following example configures a ReadBody route predicate:
+
+.GatewayConfig.java
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("read-body-route", r -> r
+            .readBody(String.class, body -> body.contains("yes"))
+            .uri("https://example.org"))
+        .build();
+}
+----
+
+In the preceding example, the predicate checks whether the request body (deserialized as
+a `String`) contains the word `yes`. If so, the route matches and the request is forwarded
+to `https://example.org`.
+
+The `readBody` method accepts two parameters:
+
+* `inClass` - the class to deserialize the request body into (for example, `String.class`
+or a custom request DTO class).
+* `predicate` - a Java `Predicate<T>` that receives the deserialized body and returns
+`true` if the route should match.
