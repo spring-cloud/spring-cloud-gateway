@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
@@ -51,6 +52,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.Conventions;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.RequestEntity.BodyBuilder;
@@ -142,6 +144,10 @@ public class ProxyExchange<T> {
 
 	private @Nullable URI uri;
 
+	private String uriTemplate;
+
+	private Map<String, ?> uriVariables;
+
 	private RestTemplate rest;
 
 	private @Nullable Object body;
@@ -231,6 +237,8 @@ public class ProxyExchange<T> {
 	 */
 	public ProxyExchange<T> uri(URI uri) {
 		this.uri = uri;
+		this.uriTemplate = null;
+		this.uriVariables = null;
 		return this;
 	}
 
@@ -246,6 +254,21 @@ public class ProxyExchange<T> {
 		catch (URISyntaxException e) {
 			throw new IllegalStateException("Cannot create URI", e);
 		}
+	}
+
+	/**
+	 * Sets the uri for the backend call using a URI template with variables. When a
+	 * template is provided, the downstream {@link RestTemplate} call preserves the
+	 * template pattern for observability (e.g. Micrometer URI tags).
+	 * @param uriTemplate the URI template (e.g. {@code "http://service/foos/{id}"})
+	 * @param uriVariables the variables to expand in the template
+	 * @return this for convenience
+	 */
+	public ProxyExchange<T> uri(String uriTemplate, Map<String, ?> uriVariables) {
+		this.uriTemplate = uriTemplate;
+		this.uriVariables = uriVariables;
+		this.uri = rest.getUriTemplateHandler().expand(uriTemplate, uriVariables);
+		return this;
 	}
 
 	public @Nullable String path() {
@@ -382,6 +405,11 @@ public class ProxyExchange<T> {
 		Type type = this.responseType;
 		if (type instanceof TypeVariable || type instanceof WildcardType) {
 			type = Object.class;
+		}
+		if (this.uriTemplate != null && this.uriVariables != null) {
+			return rest.exchange(this.uriTemplate, Objects.requireNonNull(requestEntity.getMethod()),
+					new HttpEntity<>(requestEntity.getBody(), requestEntity.getHeaders()),
+					ParameterizedTypeReference.forType(type), this.uriVariables);
 		}
 		return rest.exchange(requestEntity, ParameterizedTypeReference.forType(type));
 	}
