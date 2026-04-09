@@ -144,9 +144,9 @@ public class ProxyExchange<T> {
 
 	private @Nullable URI uri;
 
-	private String uriTemplate;
+	private @Nullable String uriTemplate;
 
-	private Map<String, ?> uriVariables;
+	private @Nullable Map<String, ?> uriVariables;
 
 	private RestTemplate rest;
 
