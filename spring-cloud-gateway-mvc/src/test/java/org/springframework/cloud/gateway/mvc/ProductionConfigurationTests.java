@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,9 @@ public class ProductionConfigurationTests {
 	@Autowired
 	private TestApplication application;
 
+	@Autowired
+	private MeterRegistry meterRegistry;
+
 	@LocalServerPort
 	private int port;
 
@@ -84,6 +88,17 @@ public class ProductionConfigurationTests {
 	@Test
 	public void get() {
 		assertThat(rest.getForObject("/proxy/0", Foo.class).getName()).isEqualTo("bye");
+	}
+
+	@Test
+	public void getWithUriTemplate() {
+		assertThat(rest.getForObject("/proxy/template/0", Foo.class).getName()).isEqualTo("bye");
+	}
+
+	@Test
+	public void getWithUriTemplatePreservesUriTagForObservability() {
+		rest.getForObject("/proxy/template/0", Foo.class);
+		assertThat(meterRegistry.find("http.client.requests").tag("uri", "/foos/{id}").timer()).isNotNull();
 	}
 
 	@Test
@@ -361,6 +376,11 @@ public class ProductionConfigurationTests {
 			@GetMapping("/proxy/{id}")
 			public ResponseEntity<?> proxyFoos(@PathVariable Integer id, ProxyExchange<?> proxy) {
 				return proxy.uri(home.toString() + "/foos/" + id).get();
+			}
+
+			@GetMapping("/proxy/template/{id}")
+			public ResponseEntity<?> proxyWithTemplate(@PathVariable Integer id, ProxyExchange<?> proxy) {
+				return proxy.uri(home.toString() + "/foos/{id}", Map.of("id", String.valueOf(id))).get();
 			}
 
 			@GetMapping("/proxy/path/**")
