@@ -49,6 +49,12 @@ public class PrefixPathGatewayFilterFactoryTest {
 	}
 
 	@Test
+	public void testEmptyPrefixPath() {
+		testPrefixPathFilter("", "/bar", "/bar");
+		testPrefixPathFilter("", "/hello%20world", "/hello%20world");
+	}
+
+	@Test
 	public void testPrefixPathWithVariable() {
 		HashMap<String, String> variables = new HashMap<>();
 		variables.put("id", "foo");
