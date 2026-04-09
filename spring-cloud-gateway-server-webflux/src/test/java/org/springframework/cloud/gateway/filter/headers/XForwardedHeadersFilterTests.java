@@ -32,6 +32,8 @@ import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -377,6 +379,28 @@ public class XForwardedHeadersFilterTests {
 
 		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+	}
+
+	@Test
+	public void trustedProxiesUsesNativeRequestRemoteAddress() throws Exception {
+		MockServerHttpRequest nativeRequest = MockServerHttpRequest.get("http://localhost:8080/get")
+			.remoteAddress(new InetSocketAddress("10.0.0.1", 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.build();
+		ServerHttpRequest request = new ServerHttpRequestDecorator(nativeRequest) {
+			@Override
+			public InetSocketAddress getRemoteAddress() {
+				return new InetSocketAddress("192.168.0.1", 80);
+			}
+		};
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("10\\.0\\.0\\..*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.1");
 	}
 
 	// : verify that existing x-forwarded-* headers are not forwarded
