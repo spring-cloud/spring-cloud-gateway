@@ -7,6 +7,3 @@ on:
 jobs:
   build:
     uses: spring-cloud/spring-cloud-github-actions/.github/workflows/pr.yml@main
-    secrets:
-      ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-      ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
