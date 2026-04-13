@@ -34,6 +34,7 @@ import reactor.core.publisher.Flux;
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
+import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -104,6 +105,9 @@ class CorsGatewayFilterApplicationListenerTests {
 	@Captor
 	private ArgumentCaptor<Map<String, CorsConfiguration>> corsConfigurations;
 
+	@Captor
+	private ArgumentCaptor<Map<String, CorsConfiguration>> routeCorsConfigurations;
+
 	private GlobalCorsProperties globalCorsProperties;
 
 	private CorsGatewayFilterApplicationListener listener;
@@ -150,12 +154,76 @@ class CorsGatewayFilterApplicationListenerTests {
 		return config;
 	}
 
+	@Test
+	void testOnApplicationEvent_hostOnlyRoutes_storesRouteCorsConfigurations() {
+
+		String hostA = "hosta.example.com";
+		String hostB = "hostb.example.com";
+		String originA = "https://originA.com";
+		String originB = "https://originB.com";
+		String routeIdA = "host-route-a";
+		String routeIdB = "host-route-b";
+
+		Route routeA = buildHostRoute(routeIdA, hostA, originA);
+		Route routeB = buildHostRoute(routeIdB, hostB, originB);
+
+		when(routeLocator.getRoutes()).thenReturn(Flux.just(routeA, routeB));
+
+		listener.onApplicationEvent(new RefreshRoutesResultEvent(this));
+
+		Awaitility.await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+
+			verify(handlerMapping).setRouteCorsConfigurations(routeCorsConfigurations.capture());
+
+			Map<String, CorsConfiguration> routeConfigs = routeCorsConfigurations.getValue();
+			assertThat(routeConfigs).containsKeys(routeIdA, routeIdB);
+			assertThat(routeConfigs.get(routeIdA).getAllowedOrigins()).containsExactly(originA);
+			assertThat(routeConfigs.get(routeIdB).getAllowedOrigins()).containsExactly(originB);
+		});
+	}
+
+	@Test
+	void testOnApplicationEvent_pathRoutes_alsoStoresRouteCorsConfigurations() {
+
+		Route route1 = buildRoute(ROUTE_ID_1, ROUTE_PATH_1, ORIGIN_ROUTE_1);
+		Route route2 = buildRoute(ROUTE_ID_2, ROUTE_PATH_2, ORIGIN_ROUTE_2);
+
+		when(routeLocator.getRoutes()).thenReturn(Flux.just(route1, route2));
+
+		listener.onApplicationEvent(new RefreshRoutesResultEvent(this));
+
+		Awaitility.await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+
+			verify(handlerMapping).setRouteCorsConfigurations(routeCorsConfigurations.capture());
+			verify(handlerMapping).setCorsConfigurations(corsConfigurations.capture());
+
+			Map<String, CorsConfiguration> routeConfigs = routeCorsConfigurations.getValue();
+			assertThat(routeConfigs).containsKeys(ROUTE_ID_1, ROUTE_ID_2);
+			assertThat(routeConfigs.get(ROUTE_ID_1).getAllowedOrigins()).containsExactly(ORIGIN_ROUTE_1);
+			assertThat(routeConfigs.get(ROUTE_ID_2).getAllowedOrigins()).containsExactly(ORIGIN_ROUTE_2);
+
+			// path-based configurations should still work
+			Map<String, CorsConfiguration> pathConfigs = corsConfigurations.getValue();
+			assertThat(pathConfigs).containsKeys(ROUTE_PATH_1, ROUTE_PATH_2);
+		});
+	}
+
 	private Route buildRoute(String id, String path, String allowedOrigin) {
 
 		return Route.async()
 			.id(id)
 			.uri(ROUTE_URI)
 			.predicate(new PathRoutePredicateFactory().apply(config -> config.setPatterns(List.of(path))))
+			.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
+			.build();
+	}
+
+	private Route buildHostRoute(String id, String host, String allowedOrigin) {
+
+		return Route.async()
+			.id(id)
+			.uri(ROUTE_URI)
+			.predicate(new HostRoutePredicateFactory().apply(config -> config.setPatterns(List.of(host))))
 			.metadata(METADATA_KEY, Map.of(ALLOWED_ORIGINS_KEY, List.of(allowedOrigin)))
 			.build();
 	}
