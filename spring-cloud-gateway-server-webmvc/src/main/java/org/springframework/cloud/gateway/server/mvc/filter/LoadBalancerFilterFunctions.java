@@ -50,6 +50,9 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.common.MvcUtils.getApplicationContext;
 
+/**
+ * @author Samuel Schnegg
+ */
 public abstract class LoadBalancerFilterFunctions {
 
 	private static final Log log = LogFactory.getLog(LoadBalancerFilterFunctions.class);
@@ -122,7 +125,7 @@ public abstract class LoadBalancerFilterFunctions {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
 						new CompletionContext<>(CompletionContext.Status.FAILED, e, lbRequest, defaultResponse)));
 
-				throw new RuntimeException(e);
+				throw e;
 			}
 		};
 	}
