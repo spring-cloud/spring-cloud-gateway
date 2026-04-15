@@ -72,7 +72,7 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 
 	@Override
 	public String getName() {
-		return "http.client.requests";
+		return "spring.cloud.gateway.http.client.requests";
 	}
 
 	@Override
