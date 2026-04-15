@@ -91,8 +91,7 @@ public abstract class LoadBalancerFilterFunctions {
 					.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
 				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
 						"Unable to find instance for " + serviceId);
-				// throw NotFoundException.create(properties.isUse404(), "Unable to
-				// find
+				// throw NotFoundException.create(properties.isUse404(), "Unable to find
 				// instance for " + serviceId);
 			}
 
@@ -110,8 +109,7 @@ public abstract class LoadBalancerFilterFunctions {
 				log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
 			}
 			MvcUtils.setRequestUrl(request, requestUrl);
-			// exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR,
-			// response);
+			// exchange.getAttributes().put(GATEWAY_LOADBALANCER_RESPONSE_ATTR, response);
 			DefaultResponse defaultResponse = new DefaultResponse(serviceInstance);
 
 			supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onStartRequest(lbRequest, defaultResponse));
@@ -129,9 +127,7 @@ public abstract class LoadBalancerFilterFunctions {
 
 				throw e;
 			}
-
 		};
-
 	}
 
 	private static String getHint(LoadBalancerClientFactory clientFactory, String serviceId) {
