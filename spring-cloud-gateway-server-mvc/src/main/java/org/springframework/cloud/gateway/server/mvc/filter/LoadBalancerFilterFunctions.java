@@ -121,7 +121,7 @@ public abstract class LoadBalancerFilterFunctions {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle.onComplete(
 						new CompletionContext<>(CompletionContext.Status.FAILED, e, lbRequest, defaultResponse)));
 
-				throw new RuntimeException(e);
+				throw e;
 			}
 		};
 	}
