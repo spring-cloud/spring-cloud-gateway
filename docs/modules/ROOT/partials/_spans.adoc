@@ -8,7 +8,7 @@ Below you can find a list of all spans declared by this project.
 
 > Observation created when sending a request through the gateway.
 
-**Span name** `http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`).
+**Span name** `spring.cloud.gateway.http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`).
 
 Fully qualified name of the enclosing class `org.springframework.cloud.gateway.filter.headers.observation.GatewayDocumentedObservation`.
 
