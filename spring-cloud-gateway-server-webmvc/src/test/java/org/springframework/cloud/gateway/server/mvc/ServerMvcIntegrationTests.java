@@ -1218,14 +1218,8 @@ public class ServerMvcIntegrationTests {
 
 			};
 
-			var throwingExceptionFilter = new HandlerFilterFunction<ServerResponse, ServerResponse>() {
-
-				@Override
-				public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next)
-						throws Exception {
-					throw new IOException("A custom exception");
-				}
-
+			var throwingExceptionFilter = (HandlerFilterFunction<ServerResponse, ServerResponse>) (request, next) -> {
+				throw new IOException("A custom exception");
 			};
 
 			// @formatter:off
