@@ -70,6 +70,14 @@ public class DefaultGatewayObservationConvention implements GatewayObservationCo
 		return KeyValues.of(URI.withValue(context.getRequest().getURI().toString()));
 	}
 
+	/**
+	 * The {@code spring.cloud.gateway.} prefix avoids a metric name collision with
+	 * Spring Web's {@code DefaultClientRequestObservationConvention}, which uses
+	 * {@code http.client.requests} for {@code WebClient} requests with a different
+	 * low-cardinality label set. Without it, Prometheus refuses to register one of
+	 * the two meters and a metric series is dropped.
+	 * @see <a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/3153">gh-3153</a>
+	 */
 	@Override
 	public String getName() {
 		return "spring.cloud.gateway.http.client.requests";
