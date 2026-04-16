@@ -262,6 +262,12 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 										+ ", corresponding session:" + session.getId() + ", packet: "
 										+ webSocketMessage.getPayloadAsText());
 							}
+						}).doOnError(throwable -> {
+							if (log.isWarnEnabled()) {
+								log.warn("Error receiving WebSocket message from client session: "
+										+ session.getId() + ", proxySession: "
+										+ proxySession.getId(), throwable);
+							}
 						}));
 					// .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
@@ -270,6 +276,12 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 								log.trace("session(send from backend): " + session.getId()
 										+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
 										+ webSocketMessage.getPayloadAsText());
+							}
+						}).doOnError(throwable -> {
+							if (log.isWarnEnabled()) {
+								log.warn("Error receiving WebSocket message from backend proxySession: "
+										+ proxySession.getId() + ", session: "
+										+ session.getId(), throwable);
 							}
 						}));
 					// .log("sessionSend", Level.FINE);
