@@ -35,7 +35,7 @@ public class BodyInserterContext implements BodyInserter.Context {
 	}
 
 	public BodyInserterContext(ExchangeStrategies exchangeStrategies) {
-		this.exchangeStrategies = exchangeStrategies; // TODO: support custom strategies
+		this.exchangeStrategies = exchangeStrategies;
 	}
 
 	@Override

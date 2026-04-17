@@ -56,6 +56,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.boot.reactor.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.reactor.netty.NettyServerCustomizer;
 import org.springframework.boot.reactor.netty.autoconfigure.NettyReactiveWebServerFactoryCustomizer;
@@ -578,8 +579,9 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	public ModifyRequestBodyGatewayFilterFactory modifyRequestBodyGatewayFilterFactory(
-			ServerCodecConfigurer codecConfigurer) {
-		return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer.getReaders());
+			ServerCodecConfigurer codecConfigurer, ObjectProvider<CodecCustomizer> codecCustomizers) {
+		return new ModifyRequestBodyGatewayFilterFactory(codecConfigurer.getReaders(),
+				codecCustomizers.orderedStream().toList());
 	}
 
 	@Bean
@@ -592,8 +594,9 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public ModifyResponseBodyGatewayFilterFactory modifyResponseBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
-			Set<MessageBodyEncoder> bodyEncoders) {
-		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(), bodyDecoders, bodyEncoders);
+			Set<MessageBodyEncoder> bodyEncoders, ObjectProvider<CodecCustomizer> codecCustomizers) {
+		return new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(), bodyDecoders, bodyEncoders,
+				codecCustomizers.orderedStream().toList());
 	}
 
 	@Bean
@@ -625,9 +628,9 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public RemoveJsonAttributesResponseBodyGatewayFilterFactory removeJsonAttributesResponseBodyGatewayFilterFactory(
 			ServerCodecConfigurer codecConfigurer, Set<MessageBodyDecoder> bodyDecoders,
-			Set<MessageBodyEncoder> bodyEncoders) {
-		return new RemoveJsonAttributesResponseBodyGatewayFilterFactory(
-				new ModifyResponseBodyGatewayFilterFactory(codecConfigurer.getReaders(), bodyDecoders, bodyEncoders));
+			Set<MessageBodyEncoder> bodyEncoders, ObjectProvider<CodecCustomizer> codecCustomizers) {
+		return new RemoveJsonAttributesResponseBodyGatewayFilterFactory(new ModifyResponseBodyGatewayFilterFactory(
+				codecConfigurer.getReaders(), bodyDecoders, bodyEncoders, codecCustomizers.orderedStream().toList()));
 	}
 
 	@Bean

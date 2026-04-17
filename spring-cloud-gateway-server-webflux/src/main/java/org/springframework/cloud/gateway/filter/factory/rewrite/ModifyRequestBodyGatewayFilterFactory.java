@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -37,6 +38,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -55,14 +57,29 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
+	private final ExchangeStrategies exchangeStrategies;
+
 	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+		this.exchangeStrategies = ExchangeStrategies.withDefaults();
 	}
 
 	public ModifyRequestBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders) {
 		super(Config.class);
 		this.messageReaders = messageReaders;
+		this.exchangeStrategies = ExchangeStrategies.withDefaults();
+	}
+
+	public ModifyRequestBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
+			List<CodecCustomizer> codecCustomizers) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
+
+		ExchangeStrategies.Builder exchangeStrategiesBuilder = ExchangeStrategies.builder();
+		exchangeStrategiesBuilder
+			.codecs((codecs) -> codecCustomizers.forEach((customizer) -> customizer.customize(codecs)));
+		this.exchangeStrategies = exchangeStrategiesBuilder.build();
 	}
 
 	@Override
@@ -98,7 +115,7 @@ public class ModifyRequestBodyGatewayFilterFactory
 					headers.set(HttpHeaders.CONTENT_TYPE, config.getContentType());
 				}
 				CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange, headers);
-				return bodyInserter.insert(outputMessage, new BodyInserterContext())
+				return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies))
 					// .log("modify_request", Level.INFO)
 					.then(Mono.defer(() -> {
 						ServerHttpRequest decorator = decorate(exchange, headers, outputMessage);

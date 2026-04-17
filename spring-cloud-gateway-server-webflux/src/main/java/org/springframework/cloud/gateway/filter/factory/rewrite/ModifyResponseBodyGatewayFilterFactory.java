@@ -28,6 +28,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
@@ -46,6 +47,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.server.ServerWebExchange;
 
 import static java.util.function.Function.identity;
@@ -68,6 +70,8 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 	private final List<HttpMessageReader<?>> messageReaders;
 
+	private final ExchangeStrategies exchangeStrategies;
+
 	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders) {
 		super(Config.class);
@@ -76,6 +80,23 @@ public class ModifyResponseBodyGatewayFilterFactory
 			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
 		this.messageBodyEncoders = messageBodyEncoders.stream()
 			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+		this.exchangeStrategies = ExchangeStrategies.withDefaults();
+	}
+
+	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
+			Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders,
+			List<CodecCustomizer> codecCustomizers) {
+		super(Config.class);
+		this.messageReaders = messageReaders;
+		this.messageBodyDecoders = messageBodyDecoders.stream()
+			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
+		this.messageBodyEncoders = messageBodyEncoders.stream()
+			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+
+		ExchangeStrategies.Builder exchangeStrategiesBuilder = ExchangeStrategies.builder();
+		exchangeStrategiesBuilder
+			.codecs((codecs) -> codecCustomizers.forEach((customizer) -> customizer.customize(codecs)));
+		this.exchangeStrategies = exchangeStrategiesBuilder.build();
 	}
 
 	@Override
@@ -237,7 +258,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getResponse().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies)).then(Mono.defer(() -> {
 				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
 				HttpHeaders headers = getDelegate().getHeaders();
 				if (!headers.containsHeader(HttpHeaders.TRANSFER_ENCODING)
