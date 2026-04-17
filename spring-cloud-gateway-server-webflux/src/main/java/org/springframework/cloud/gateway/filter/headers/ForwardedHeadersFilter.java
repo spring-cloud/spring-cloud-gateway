@@ -138,10 +138,11 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 
-		if (request.getRemoteAddress() != null
-				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
+		InetSocketAddress peerAddress = ForwardedHeadersFilterUtils.extractPeerRemoteAddress(request);
+
+		if (peerAddress != null && !trustedProxies.isTrusted(peerAddress.getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
-					request.getRemoteAddress()));
+					peerAddress));
 			return input;
 		}
 
@@ -177,25 +178,24 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			forwarded.put("host", host);
 		}
 
-		InetSocketAddress remoteAddress = request.getRemoteAddress();
 		// TODO: only add if "remoteAddress" value matches trustedProxies
-		if (remoteAddress != null) {
+		if (peerAddress != null) {
 			// If remoteAddress is unresolved, calling getHostAddress() would cause a
 			// NullPointerException.
 			String forValue;
-			if (remoteAddress.isUnresolved()) {
-				forValue = remoteAddress.getHostName();
+			if (peerAddress.isUnresolved()) {
+				forValue = peerAddress.getHostName();
 			}
 			else {
-				InetAddress address = remoteAddress.getAddress();
-				forValue = remoteAddress.getAddress().getHostAddress();
+				InetAddress address = peerAddress.getAddress();
+				forValue = peerAddress.getAddress().getHostAddress();
 				if (address instanceof Inet6Address) {
 					forValue = "[" + forValue + "]";
 				}
 			}
 			if (trustedProxies.isTrusted(forValue)) {
 				// only add for value if trusted
-				int port = remoteAddress.getPort();
+				int port = peerAddress.getPort();
 				if (port >= 0) {
 					forValue = forValue + ":" + port;
 				}
