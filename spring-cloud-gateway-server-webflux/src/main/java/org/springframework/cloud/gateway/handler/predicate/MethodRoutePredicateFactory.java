@@ -56,6 +56,9 @@ public class MethodRoutePredicateFactory extends AbstractRoutePredicateFactory<M
 			@Override
 			public boolean test(ServerWebExchange exchange) {
 				HttpMethod requestMethod = exchange.getRequest().getMethod();
+				if (requestMethod == null) {
+                	return false;
+          		}
 				return stream(config.getMethods()).anyMatch(httpMethod -> httpMethod == requestMethod);
 			}
 
