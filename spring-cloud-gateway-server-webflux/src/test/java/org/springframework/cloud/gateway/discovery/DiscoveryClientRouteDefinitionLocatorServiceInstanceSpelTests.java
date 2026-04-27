@@ -36,9 +36,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Failures are not always the outer or innermost throwable: Reactor may wrap the signal, and Spring SpEL often
- * wraps an {@link org.springframework.expression.AccessException} inside {@link SpelEvaluationException}, so the
- * assertion walks the {@linkplain Throwable#getCause() cause chain}.
+ * Failures are not always the outer or innermost throwable: Reactor may wrap the signal,
+ * and Spring SpEL often wraps an {@link org.springframework.expression.AccessException}
+ * inside {@link SpelEvaluationException}, so the assertion walks the
+ * {@linkplain Throwable#getCause() cause chain}.
  */
 public class DiscoveryClientRouteDefinitionLocatorServiceInstanceSpelTests {
 
@@ -100,7 +101,6 @@ public class DiscoveryClientRouteDefinitionLocatorServiceInstanceSpelTests {
 				return metadata;
 			}
 		};
-
 
 		ReactiveDiscoveryClient discoveryClient = mock(ReactiveDiscoveryClient.class);
 		when(discoveryClient.getServices()).thenReturn(Flux.just("my-service"));
