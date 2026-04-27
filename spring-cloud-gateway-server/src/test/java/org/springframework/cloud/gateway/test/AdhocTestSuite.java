@@ -113,6 +113,7 @@ import static org.junit.Assume.assumeThat;
 		org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocatorTests.class,
 		org.springframework.cloud.gateway.discovery.ReactiveGatewayDiscoveryClientAutoConfigurationTests.class,
 		org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocatorIntegrationTests.class,
+		org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocatorServiceInstanceSpelTests.class,
 		org.springframework.cloud.gateway.support.ShortcutConfigurableTests.class,
 		org.springframework.cloud.gateway.support.ipresolver.XForwardedRemoteAddressResolverTest.class,
 		org.springframework.cloud.gateway.cors.CorsGlobalTests.class,
