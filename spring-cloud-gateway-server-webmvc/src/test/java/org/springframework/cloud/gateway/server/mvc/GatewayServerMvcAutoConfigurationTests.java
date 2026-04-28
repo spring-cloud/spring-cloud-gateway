@@ -16,9 +16,13 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.lang.reflect.Field;
+import java.net.http.HttpClient;
 import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -48,6 +52,9 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.task.VirtualThreadTaskExecutor;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -170,6 +177,75 @@ public class GatewayServerMvcAutoConfigurationTests {
 	}
 
 	@Test
+	void virtualThreadJdkClientHttpRequestFactoryNotRegisteredByDefault() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.run(context -> assertThat(context).doesNotHaveBean("gatewayVirtualThreadJdkClientHttpRequestFactory"));
+	}
+
+	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
+	void virtualThreadJdkClientHttpRequestFactoryRegisteredWhenVirtualThreadsEnabled() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.withPropertyValues("spring.threads.virtual.enabled=true")
+			.run(context -> {
+				assertThat(context).hasBean("gatewayVirtualThreadJdkClientHttpRequestFactory");
+				ClientHttpRequestFactory factory = context.getBean("gatewayVirtualThreadJdkClientHttpRequestFactory",
+						ClientHttpRequestFactory.class);
+				assertThat(factory).isInstanceOf(JdkClientHttpRequestFactory.class);
+				HttpClient httpClient = extractHttpClient((JdkClientHttpRequestFactory) factory);
+				assertThat(httpClient.executor()).isPresent();
+				assertThat(httpClient.executor().get()).isInstanceOf(VirtualThreadTaskExecutor.class);
+			});
+	}
+
+	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
+	void virtualThreadJdkClientHttpRequestFactoryNotRegisteredWhenFactoryIsNotJdk() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.withPropertyValues("spring.threads.virtual.enabled=true", "spring.http.clients.imperative.factory=simple")
+			.run(context -> assertThat(context).doesNotHaveBean("gatewayVirtualThreadJdkClientHttpRequestFactory"));
+	}
+
+	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
+	void virtualThreadJdkClientHttpRequestFactoryBacksOffWhenUserProvidesOne() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class))
+			.withPropertyValues("spring.threads.virtual.enabled=true")
+			.withUserConfiguration(UserClientHttpRequestFactoryConfig.class)
+			.run(context -> {
+				assertThat(context).doesNotHaveBean("gatewayVirtualThreadJdkClientHttpRequestFactory");
+				assertThat(context).hasBean("userClientHttpRequestFactory");
+			});
+	}
+
+	private static HttpClient extractHttpClient(JdkClientHttpRequestFactory factory) {
+		try {
+			Field field = JdkClientHttpRequestFactory.class.getDeclaredField("httpClient");
+			field.setAccessible(true);
+			return (HttpClient) field.get(factory);
+		}
+		catch (ReflectiveOperationException ex) {
+			throw new IllegalStateException("Could not read httpClient from JdkClientHttpRequestFactory", ex);
+		}
+	}
+
+	@Test
 	void loadBalancerFunctionHandlerAdded() {
 		new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
@@ -193,6 +269,18 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {
+
+	}
+
+	@org.springframework.context.annotation.Configuration(proxyBeanMethods = false)
+	static class UserClientHttpRequestFactoryConfig {
+
+		@org.springframework.context.annotation.Bean
+		ClientHttpRequestFactory userClientHttpRequestFactory() {
+			return (uri, httpMethod) -> {
+				throw new UnsupportedOperationException("test factory");
+			};
+		}
 
 	}
 

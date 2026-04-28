@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.net.http.HttpClient;
 import java.util.Map;
 import java.util.Objects;
 
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.http.client.HttpRedirects;
@@ -63,13 +65,18 @@ import org.springframework.cloud.gateway.server.mvc.predicate.PredicateBeanFacto
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateDiscoverer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.task.VirtualThreadTaskExecutor;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -111,6 +118,37 @@ public class GatewayServerMvcAutoConfiguration {
 			// for backwards compatibility if user overrode
 			requestFactoryProvider.ifAvailable(restClientBuilder::requestFactory);
 		};
+	}
+
+	/**
+	 * When Spring Boot virtual threads are enabled
+	 * (<code>spring.threads.virtual.enabled=true</code>) and the JDK {@link HttpClient}
+	 * is the chosen outbound HTTP factory, the JDK HttpClient does not by default
+	 * propagate the virtual-threads configuration to its internal request executor. It
+	 * falls back to {@code Executors.newCachedThreadPool()}, which spawns platform
+	 * threads (named {@code HttpClient-N-Worker-M}) and caps proxy throughput well below
+	 * what the virtual-thread Tomcat front end can sustain. See <a href=
+	 * "https://github.com/spring-cloud/spring-cloud-gateway/issues/4150">#4150</a>.
+	 *
+	 * <p>
+	 * This bean explicitly wires the JDK HttpClient with a virtual-thread-per-task
+	 * executor so outbound proxy calls run on virtual threads end-to-end. It is only
+	 * registered when the user has not provided their own
+	 * {@link ClientHttpRequestFactory} and the JDK HttpClient would actually be used
+	 * (either explicitly via {@code spring.http.clients.imperative.factory=jdk} or by
+	 * auto-detection when no higher-priority client like Apache, Jetty, or Reactor Netty
+	 * is on the classpath).
+	 */
+	@Bean
+	@ConditionalOnMissingBean(ClientHttpRequestFactory.class)
+	@ConditionalOnClass(name = "java.net.http.HttpClient")
+	@ConditionalOnProperty(prefix = "spring.threads.virtual", name = "enabled", havingValue = "true")
+	@Conditional(GatewayJdkHttpClientFactoryCondition.class)
+	public ClientHttpRequestFactory gatewayVirtualThreadJdkClientHttpRequestFactory() {
+		HttpClient httpClient = HttpClient.newBuilder()
+			.executor(new VirtualThreadTaskExecutor("gateway-jdk-http-"))
+			.build();
+		return new JdkClientHttpRequestFactory(httpClient);
 	}
 
 	@Bean
@@ -293,6 +331,26 @@ public class GatewayServerMvcAutoConfiguration {
 					System.setProperty("jdk.httpclient.allowRestrictedHeaders", restrictedHeaders + ",host");
 				}
 			}
+		}
+
+	}
+
+	/**
+	 * Matches when the JDK {@link HttpClient} is the chosen outbound factory: either
+	 * {@code spring.http.clients.imperative.factory=jdk} is set explicitly, or no
+	 * higher-priority client (Apache, Jetty, Reactor Netty) is on the classpath so
+	 * {@link GatewayHttpClientEnvironmentPostProcessor} would auto-detect JDK.
+	 */
+	static class GatewayJdkHttpClientFactoryCondition implements Condition {
+
+		@Override
+		public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+			Environment env = context.getEnvironment();
+			String factory = env.getProperty(GatewayHttpClientEnvironmentPostProcessor.SPRING_HTTP_FACTORY_PROPERTY);
+			if (StringUtils.hasText(factory)) {
+				return Factory.JDK.name().equalsIgnoreCase(factory);
+			}
+			return !GatewayHttpClientEnvironmentPostProcessor.HIGHER_PRIORITY;
 		}
 
 	}
