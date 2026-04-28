@@ -87,10 +87,12 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 		routeLocator.getRoutes().collectList().subscribe(routes -> {
 			// pre-populate with pre-existing global cors configurations to combine with.
 			Map<String, CorsConfiguration> corsConfigurations = new LinkedHashMap<>();
+			Map<String, CorsConfiguration> routeCorsConfigurations = new LinkedHashMap<>();
 
 			routes.forEach(route -> {
 				Optional<CorsConfiguration> corsConfiguration = getCorsConfiguration(route);
 				corsConfiguration.ifPresent(configuration -> {
+					routeCorsConfigurations.put(route.getId(), configuration);
 					String pathPredicate = getPathPredicate(route);
 					corsConfigurations.put(pathPredicate, configuration);
 				});
@@ -101,6 +103,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 					corsConfigurations.put(path, config);
 				}
 			});
+			routePredicateHandlerMapping.setRouteCorsConfigurations(routeCorsConfigurations);
 			routePredicateHandlerMapping.setCorsConfigurations(corsConfigurations);
 		});
 	}
