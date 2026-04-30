@@ -113,6 +113,7 @@
 ** xref:spring-cloud-gateway-server-webmvc/httpheadersfilters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/writing-custom-predicates-and-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/working-with-servlets-and-filters.adoc[]
+** xref:spring-cloud-gateway-server-webmvc/tls-and-ssl.adoc[]
 
 // begin Gateway Proxy Exchange
 

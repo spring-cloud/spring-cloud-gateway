@@ -1,0 +1,93 @@
+[[tls-and-ssl]]
+= TLS and SSL
+
+Spring Cloud MVC Gateway uses Spring Boot's `RestClient` infrastructure for backend proxy calls.
+TLS/SSL configuration for those backend calls is provided through Spring Boot `spring.http.clients` and `spring.ssl.bundle` properties.
+
+This means Spring Cloud MVC Gateway does not expose a separate `spring.mvc.gateway.httpclient.ssl` namespace.
+Instead, it reuses the standard Spring Boot RestClient SSL bundle support, which is the correct way to configure TLS/SSL for the gateway's backend HTTP client.
+
+The feature request described property names like:
+
+[source]
+----
+spring.mvc.gateway.httpclient.ssl.key-store=classpath:keystore.jks
+spring.mvc.gateway.httpclient.ssl.key-store-password=changeit
+spring.mvc.gateway.httpclient.ssl.trust-store=classpath:truststore.jks
+spring.mvc.gateway.httpclient.ssl.trust-store-password=changeit
+spring.mvc.gateway.httpclient.ssl.protocol=TLS
+----
+
+Spring Cloud MVC Gateway supports the equivalent configuration through Spring Boot RestClient SSL bundle properties:
+
+[source]
+----
+spring.http.clients.ssl.bundle=mybundle
+spring.ssl.bundle.jks.mybundle.key-store.location=classpath:keystore.jks
+spring.ssl.bundle.jks.mybundle.key-store-password=changeit
+spring.ssl.bundle.jks.mybundle.trust-store.location=classpath:truststore.jks
+spring.ssl.bundle.jks.mybundle.trust-store-password=changeit
+----
+
+This page documents the supported approach for Spring Cloud MVC Gateway.
+
+== Configure an SSL bundle
+
+The following example configures an SSL bundle named `mybundle` and instructs Spring HTTP clients to use it.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    clients:
+      ssl:
+        bundle: mybundle
+
+spring:
+  ssl:
+    bundle:
+      jks:
+        mybundle:
+          key-store:
+            location: classpath:keystore.jks
+          key-store-password: changeit
+          trust-store:
+            location: classpath:truststore.jks
+          trust-store-password: changeit
+----
+
+This configuration is processed by Spring Boot and applies to the `RestClient` used by Spring Cloud MVC Gateway.
+
+== Configure PEM certificates
+
+You can also configure an SSL bundle using PEM-formatted certificates and keys.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    clients:
+      ssl:
+        bundle: mybundle
+
+spring:
+  ssl:
+    bundle:
+      pem:
+        mybundle:
+          keystore:
+            certificate: classpath:client-cert.pem
+            key: classpath:client-key.pem
+          trust-store:
+            certificate: classpath:truststore.pem
+----
+
+== Related Spring Boot settings
+
+For more details, see the Spring Boot documentation for RestClient SSL configuration.
+
+* https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.rest-client.restclient.ssl
+
+These properties let you configure key stores, trust stores, protocols, and other SSL/TLS settings for backend HTTP calls made by Spring Cloud MVC Gateway.
