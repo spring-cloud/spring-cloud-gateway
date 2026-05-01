@@ -119,6 +119,7 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestHostHeaderGate
 import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripContextPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.GzipMessageBodyResolver;
@@ -722,6 +723,12 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnEnabledFilter
 	public SetStatusGatewayFilterFactory setStatusGatewayFilterFactory() {
 		return new SetStatusGatewayFilterFactory();
+	}
+
+	@Bean
+	@ConditionalOnEnabledFilter
+	public StripContextPathGatewayFilterFactory stripContextPathGatewayFilterFactory() {
+		return new StripContextPathGatewayFilterFactory();
 	}
 
 	@Bean
