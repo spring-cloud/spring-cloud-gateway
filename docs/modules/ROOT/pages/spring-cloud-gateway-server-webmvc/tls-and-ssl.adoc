@@ -7,7 +7,9 @@ TLS/SSL configuration for those backend calls is handled through Spring Boot's `
 NOTE: The `spring.cloud.gateway.mvc.http-client.ssl-bundle` property is deprecated since Spring Cloud Gateway 4.2.0
 in favor of `spring.http.client.ssl.bundle`.
 
-== Configure an SSL Bundle (JKS)
+== Examples
+
+=== Configure an SSL Bundle (JKS)
 
 Define a JKS-based SSL bundle and reference it via `spring.http.client.ssl.bundle`:
 
@@ -33,9 +35,9 @@ spring:
             password: changeit
 ----
 
-== Configure PEM Certificates
+=== Configure PEM Certificates
 
-You can also configure an SSL bundle using PEM-formatted certificates and private keys:
+Below is an example of how to configure an SSL bundle using PEM-formatted certificates and private keys:
 
 .application.yml
 [source,yaml]
