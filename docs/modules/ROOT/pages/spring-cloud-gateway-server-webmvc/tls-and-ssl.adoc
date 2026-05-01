@@ -11,7 +11,7 @@ in favor of `spring.http.client.ssl.bundle`.
 
 === Configure an SSL Bundle (JKS)
 
-Define a JKS-based SSL bundle and reference it via `spring.http.client.ssl.bundle`:
+Below is an example of how to define a JKS-based SSL bundle and reference:
 
 .application.yml
 [source,yaml]
