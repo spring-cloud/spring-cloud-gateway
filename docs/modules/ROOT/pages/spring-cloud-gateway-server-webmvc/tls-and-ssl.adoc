@@ -1,0 +1,66 @@
+[[tls-and-ssl]]
+= TLS and SSL
+
+Spring Cloud MVC Gateway uses Spring Boot's `RestClient` infrastructure for backend proxy calls.
+TLS/SSL configuration for those backend calls is handled through Spring Boot's `spring.http.client` and `spring.ssl.bundle` properties.
+
+NOTE: The `spring.cloud.gateway.mvc.http-client.ssl-bundle` property is deprecated since Spring Cloud Gateway 4.2.0
+in favor of `spring.http.client.ssl.bundle`.
+
+== Examples
+
+=== Configure an SSL Bundle (JKS)
+
+Below is an example of how to define a JKS-based SSL bundle and reference:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    client:
+      ssl:
+        bundle: mybundle
+      connect-timeout: 5s
+      read-timeout: 30s
+  ssl:
+    bundle:
+      jks:
+        mybundle:
+          key-store:
+            location: classpath:keystore.jks
+            password: changeit
+          trust-store:
+            location: classpath:truststore.jks
+            password: changeit
+----
+
+=== Configure PEM Certificates
+
+Below is an example of how to configure an SSL bundle using PEM-formatted certificates and private keys:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    client:
+      ssl:
+        bundle: mybundle
+  ssl:
+    bundle:
+      pem:
+        mybundle:
+          keystore:
+            certificate: classpath:client-cert.pem
+            key: classpath:client-key.pem
+          truststore:
+            certificate: classpath:ca-cert.pem
+----
+
+== Related Spring Boot Documentation
+
+For full details on SSL bundle configuration and available properties, see:
+
+* https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.web.spring.http.client.ssl.bundle[spring.http.client.ssl.bundle reference]
+* https://docs.spring.io/spring-boot/reference/features/ssl.html[Spring Boot SSL documentation]
