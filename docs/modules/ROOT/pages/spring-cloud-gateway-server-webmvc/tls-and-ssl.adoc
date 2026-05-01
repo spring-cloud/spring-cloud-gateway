@@ -2,77 +2,49 @@
 = TLS and SSL
 
 Spring Cloud MVC Gateway uses Spring Boot's `RestClient` infrastructure for backend proxy calls.
-TLS/SSL configuration for those backend calls is provided through Spring Boot `spring.http.clients` and `spring.ssl.bundle` properties.
+TLS/SSL configuration for those backend calls is handled through Spring Boot's `spring.http.client` and `spring.ssl.bundle` properties.
 
-This means Spring Cloud MVC Gateway does not expose a separate `spring.mvc.gateway.httpclient.ssl` namespace.
-Instead, it reuses the standard Spring Boot RestClient SSL bundle support, which is the correct way to configure TLS/SSL for the gateway's backend HTTP client.
+NOTE: The `spring.cloud.gateway.mvc.http-client.ssl-bundle` property is deprecated since Spring Cloud Gateway 4.2.0
+in favor of `spring.http.client.ssl.bundle`.
 
-The feature request described property names like:
+== Configure an SSL Bundle (JKS)
 
-[source]
-----
-spring.mvc.gateway.httpclient.ssl.key-store=classpath:keystore.jks
-spring.mvc.gateway.httpclient.ssl.key-store-password=changeit
-spring.mvc.gateway.httpclient.ssl.trust-store=classpath:truststore.jks
-spring.mvc.gateway.httpclient.ssl.trust-store-password=changeit
-spring.mvc.gateway.httpclient.ssl.protocol=TLS
-----
-
-Spring Cloud MVC Gateway supports the equivalent configuration through Spring Boot RestClient SSL bundle properties:
-
-[source]
-----
-spring.http.clients.ssl.bundle=mybundle
-spring.ssl.bundle.jks.mybundle.key-store.location=classpath:keystore.jks
-spring.ssl.bundle.jks.mybundle.key-store-password=changeit
-spring.ssl.bundle.jks.mybundle.trust-store.location=classpath:truststore.jks
-spring.ssl.bundle.jks.mybundle.trust-store-password=changeit
-----
-
-This page documents the supported approach for Spring Cloud MVC Gateway.
-
-== Configure an SSL bundle
-
-The following example configures an SSL bundle named `mybundle` and instructs Spring HTTP clients to use it.
+Define a JKS-based SSL bundle and reference it via `spring.http.client.ssl.bundle`:
 
 .application.yml
 [source,yaml]
 ----
 spring:
   http:
-    clients:
+    client:
       ssl:
         bundle: mybundle
-
-spring:
+      connect-timeout: 5s
+      read-timeout: 30s
   ssl:
     bundle:
       jks:
         mybundle:
           key-store:
             location: classpath:keystore.jks
-          key-store-password: changeit
+            password: changeit
           trust-store:
             location: classpath:truststore.jks
-          trust-store-password: changeit
+            password: changeit
 ----
 
-This configuration is processed by Spring Boot and applies to the `RestClient` used by Spring Cloud MVC Gateway.
+== Configure PEM Certificates
 
-== Configure PEM certificates
-
-You can also configure an SSL bundle using PEM-formatted certificates and keys.
+You can also configure an SSL bundle using PEM-formatted certificates and private keys:
 
 .application.yml
 [source,yaml]
 ----
 spring:
   http:
-    clients:
+    client:
       ssl:
         bundle: mybundle
-
-spring:
   ssl:
     bundle:
       pem:
@@ -80,14 +52,13 @@ spring:
           keystore:
             certificate: classpath:client-cert.pem
             key: classpath:client-key.pem
-          trust-store:
-            certificate: classpath:truststore.pem
+          truststore:
+            certificate: classpath:ca-cert.pem
 ----
 
-== Related Spring Boot settings
+== Related Spring Boot Documentation
 
-For more details, see the Spring Boot documentation for RestClient SSL configuration.
+For full details on SSL bundle configuration and available properties, see:
 
-* https://docs.spring.io/spring-boot/docs/current/reference/html/io.html#io.rest-client.restclient.ssl
-
-These properties let you configure key stores, trust stores, protocols, and other SSL/TLS settings for backend HTTP calls made by Spring Cloud MVC Gateway.
+* https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.web.spring.http.client.ssl.bundle[spring.http.client.ssl.bundle reference]
+* https://docs.spring.io/spring-boot/reference/features/ssl.html[Spring Boot SSL documentation]
