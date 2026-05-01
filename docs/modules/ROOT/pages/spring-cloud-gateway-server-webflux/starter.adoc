@@ -14,3 +14,5 @@ If you are unfamiliar with these projects, we suggest you begin by reading their
 IMPORTANT: Spring Cloud Gateway requires the Netty runtime provided by Spring Boot and Spring Webflux.
 It does not work in a traditional Servlet Container or when built as a WAR.
 
+
+NOTE: When using the JsonToGrpc filter, the following dependencies are required: grpc-stub (1.51.0) and grpc-protobuf (1.51.0).
