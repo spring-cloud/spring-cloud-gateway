@@ -83,7 +83,6 @@ import org.springframework.cloud.gateway.filter.RemoveCachedBodyFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.filter.WebsocketRoutingFilter;
 import org.springframework.cloud.gateway.filter.WeightCalculatorWebFilter;
-import org.springframework.cloud.gateway.filter.cors.CorsGatewayFilterApplicationListener;
 import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddRequestHeadersIfNotPresentGatewayFilterFactory;
@@ -207,6 +206,7 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  * @author Alberto C. Ríos
  * @author Olga Maciaszek-Sharma
  * @author FuYiNan Guo
+ * @author Nan Chiu
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.enabled", matchIfMissing = true)
@@ -290,15 +290,6 @@ public class GatewayAutoConfiguration {
 	@Bean
 	public GlobalCorsProperties globalCorsProperties() {
 		return new GlobalCorsProperties();
-	}
-
-	@Bean
-	@ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.globalcors.enabled", matchIfMissing = true)
-	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
-			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
-			RouteLocator routeLocator) {
-		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
-				routeLocator);
 	}
 
 	@Bean
