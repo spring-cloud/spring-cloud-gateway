@@ -18,11 +18,13 @@ package org.springframework.cloud.gateway.config;
 
 import java.util.Set;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.boot.webflux.autoconfigure.HttpHandlerAutoConfiguration;
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.function.context.config.ContextFunctionCatalogAutoConfiguration;
@@ -45,8 +47,10 @@ class GatewayFunctionAutoConfiguration {
 	@ConditionalOnEnabledGlobalFilter
 	@ConditionalOnBean(FunctionCatalog.class)
 	public FunctionRoutingFilter functionRoutingFilter(FunctionCatalog functionCatalog,
-			ServerCodecConfigurer codecConfigurer, Set<MessageBodyEncoder> messageBodyEncoders) {
-		return new FunctionRoutingFilter(functionCatalog, codecConfigurer.getReaders(), messageBodyEncoders);
+			ServerCodecConfigurer codecConfigurer, Set<MessageBodyEncoder> messageBodyEncoders,
+			ObjectProvider<CodecCustomizer> codecCustomizers) {
+		return new FunctionRoutingFilter(functionCatalog, codecConfigurer.getReaders(), messageBodyEncoders,
+				codecCustomizers.orderedStream().toList());
 	}
 
 }

@@ -29,6 +29,7 @@ import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
 import org.springframework.cloud.gateway.filter.factory.rewrite.CachedBodyOutputMessage;
@@ -50,6 +51,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeType;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -71,12 +73,28 @@ public class FunctionRoutingFilter implements GlobalFilter, Ordered {
 
 	private final Map<String, MessageBodyEncoder> messageBodyEncoders;
 
+	private final ExchangeStrategies exchangeStrategies;
+
 	public FunctionRoutingFilter(FunctionCatalog functionCatalog, List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyEncoder> messageBodyEncoders) {
 		this.functionCatalog = functionCatalog;
 		this.messageReaders = messageReaders;
 		this.messageBodyEncoders = messageBodyEncoders.stream()
 			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+		this.exchangeStrategies = ExchangeStrategies.withDefaults();
+	}
+
+	public FunctionRoutingFilter(FunctionCatalog functionCatalog, List<HttpMessageReader<?>> messageReaders,
+			Set<MessageBodyEncoder> messageBodyEncoders, List<CodecCustomizer> codecCustomizers) {
+		this.functionCatalog = functionCatalog;
+		this.messageReaders = messageReaders;
+		this.messageBodyEncoders = messageBodyEncoders.stream()
+			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
+
+		ExchangeStrategies.Builder exchangeStrategiesBuilder = ExchangeStrategies.builder();
+		exchangeStrategiesBuilder
+			.codecs((codecs) -> codecCustomizers.forEach((customizer) -> customizer.customize(codecs)));
+		this.exchangeStrategies = exchangeStrategiesBuilder.build();
 	}
 
 	@Override
@@ -149,7 +167,7 @@ public class FunctionRoutingFilter implements GlobalFilter, Ordered {
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getResponse().getHeaders());
 
-			return bodyInserter.insert(outputMessage, new BodyInserterContext()).then(Mono.defer(() -> {
+			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies)).then(Mono.defer(() -> {
 				ServerHttpResponse response = exchange.getResponse();
 				Mono<DataBuffer> messageBody = writeBody(response, outputMessage, outClass);
 				HttpHeaders responseHeaders = response.getHeaders();
