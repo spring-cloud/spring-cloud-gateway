@@ -20,6 +20,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,7 +63,8 @@ public class PrefixPathGatewayFilterFactory
 	@Override
 	public GatewayFilter apply(Config config) {
 		return new GatewayFilter() {
-			final UriTemplate uriTemplate = new UriTemplate(config.prefix);
+			final UriTemplate uriTemplate = new UriTemplate(
+					Objects.requireNonNull(config.prefix, "prefix must not be null"));
 
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -91,7 +93,7 @@ public class PrefixPathGatewayFilterFactory
 
 			@Override
 			public String toString() {
-				return filterToStringCreator(PrefixPathGatewayFilterFactory.this).append("prefix", config.getPrefix())
+				return filterToStringCreator(PrefixPathGatewayFilterFactory.this).append(PREFIX_KEY, config.getPrefix())
 					.toString();
 			}
 		};
