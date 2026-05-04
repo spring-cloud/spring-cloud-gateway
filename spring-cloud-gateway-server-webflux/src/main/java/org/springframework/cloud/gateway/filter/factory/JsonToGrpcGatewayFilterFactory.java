@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
@@ -89,6 +91,8 @@ public class JsonToGrpcGatewayFilterFactory
 
 	private final ResourceLoader resourceLoader;
 
+	private final ConcurrentMap<String, ManagedChannel> managedChannelCache = new ConcurrentHashMap<>();
+
 	public JsonToGrpcGatewayFilterFactory(GrpcSslConfigurer grpcSslConfigurer, ResourceLoader resourceLoader) {
 		super(Config.class);
 		this.grpcSslConfigurer = grpcSslConfigurer;
@@ -120,6 +124,19 @@ public class JsonToGrpcGatewayFilterFactory
 
 		int order = NettyWriteResponseFilter.WRITE_RESPONSE_FILTER_ORDER - 1;
 		return new OrderedGatewayFilter(filter, order);
+	}
+
+	private ManagedChannel createChannelChannel(String host, int port) {
+		String key = host + ":" + port;
+		return managedChannelCache.computeIfAbsent(key, k -> {
+			NettyChannelBuilder builder = NettyChannelBuilder.forAddress(host, port);
+			try {
+				return grpcSslConfigurer.configureSsl(builder);
+			}
+			catch (SSLException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
 	public static class Config {
@@ -315,17 +332,6 @@ public class JsonToGrpcGatewayFilterFactory
 		private Function<Object, DataBuffer> wrapGRPCResponse() {
 			return jsonResponse -> new NettyDataBufferFactory(new PooledByteBufAllocator())
 				.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
-		}
-
-		// We are creating this on every call, should optimize?
-		private ManagedChannel createChannelChannel(String host, int port) {
-			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
-			try {
-				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
-			}
-			catch (SSLException e) {
-				throw new RuntimeException(e);
-			}
 		}
 
 	}
