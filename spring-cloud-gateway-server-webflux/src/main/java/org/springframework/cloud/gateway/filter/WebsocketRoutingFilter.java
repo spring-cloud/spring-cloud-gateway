@@ -173,6 +173,14 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		}
 	}
 
+	private static void logReceiveError(String fromLabel, String fromId, String toLabel, String toId,
+			Throwable throwable) {
+		if (log.isWarnEnabled()) {
+			log.warn("Error receiving WebSocket message from " + fromLabel + ": " + fromId + ", " + toLabel + ": "
+					+ toId, throwable);
+		}
+	}
+
 	private static class ProxyWebSocketHandler implements WebSocketHandler {
 
 		private final WebSocketClient client;
@@ -262,13 +270,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 										+ ", corresponding session:" + session.getId() + ", packet: "
 										+ webSocketMessage.getPayloadAsText());
 							}
-						}).doOnError(throwable -> {
-							if (log.isWarnEnabled()) {
-								log.warn("Error receiving WebSocket message from client session: "
-										+ session.getId() + ", proxySession: "
-										+ proxySession.getId(), throwable);
-							}
-						}));
+						})
+							.doOnError(throwable -> logReceiveError("client session", session.getId(), "proxySession",
+									proxySession.getId(), throwable)));
 					// .log("proxySessionSend", Level.FINE);
 					Mono<Void> serverSessionSend = session
 						.send(proxySession.receive().doOnNext(WebSocketMessage::retain).doOnNext(webSocketMessage -> {
@@ -277,13 +281,9 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 										+ ", corresponding proxySession:" + proxySession.getId() + " packet: "
 										+ webSocketMessage.getPayloadAsText());
 							}
-						}).doOnError(throwable -> {
-							if (log.isWarnEnabled()) {
-								log.warn("Error receiving WebSocket message from backend proxySession: "
-										+ proxySession.getId() + ", session: "
-										+ session.getId(), throwable);
-							}
-						}));
+						})
+							.doOnError(throwable -> logReceiveError("backend proxySession", proxySession.getId(),
+									"session", session.getId(), throwable)));
 					// .log("sessionSend", Level.FINE);
 					// Ensure closeStatus from one propagates to the other
 					Mono.when(serverClose, proxyClose).subscribe();
