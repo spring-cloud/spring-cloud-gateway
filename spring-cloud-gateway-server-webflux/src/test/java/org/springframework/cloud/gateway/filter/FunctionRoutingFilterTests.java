@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.gateway.test.TestCodecCustomizerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -57,9 +59,23 @@ public class FunctionRoutingFilterTests extends BaseWebClientTests {
 			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo("HELLO"));
 	}
 
+	@Test
+	public void codecCustomizerWorksWithFunctionRouting() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
+
+		testClient.post()
+			.uri(uri)
+			.bodyValue(Map.of("codec", "v1"))
+			.header("Host", "www.codeccustomizerworks.org")
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectBody(String.class)
+			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo("{\"codec\":\"v3\"}"));
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
+	@Import({ DefaultTestConfig.class, TestCodecCustomizerConfiguration.class })
 	public static class TestConfig {
 
 		@Bean
@@ -68,10 +84,17 @@ public class FunctionRoutingFilterTests extends BaseWebClientTests {
 		}
 
 		@Bean
+		Function<Object, Object> passThrough() {
+			return o -> o;
+		}
+
+		@Bean
 		public RouteLocator testRouteLocator(RouteLocatorBuilder builder) {
 			return builder.routes()
 				.route("function_routing_filter_java_test",
 						r -> r.path("/").and().host("www.functionroutingfilterjava.org").uri("fn://upper"))
+				.route("function_routing_codec_customizer_test",
+						r -> r.path("/").and().host("www.codeccustomizerworks.org").uri("fn://passThrough"))
 				.build();
 		}
 
