@@ -2,7 +2,7 @@
 = Actuator API
 
 The `/gateway` actuator endpoint lets you monitor and interact with a Spring Cloud Gateway application.
-The `/gateway` actuator endpoint has its access disabled by default. To enable the endpoint you need to set the access to https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.controlling-access['read-only' or 'unrestricted'] and https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.exposing[exposed it over HTTP or JMX] in the application properties.
+The `/gateway' actuator endpoint has its access disabled by default.  To enable the endpoint you need to set the access to https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.controlling-access['read-only' or 'unrestricted'] and https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.exposing[exposed it over HTTP or JMX] in the application properties.
 The following listing shows how to do so:
 
 .application.properties
@@ -12,13 +12,11 @@ management.endpoint.gateway.access=read-only
 management.endpoints.web.exposure.include=gateway
 ----
 
-[WARNING]
-====
-It is suggested that you set `management.endpoint.gateway.access` to `read-only`.
-This will disable the ability to refresh, create, and delete routes.
-If you need the ability to create, refresh, and delete routes using the actuator endpoint you need to set `management.endpoint.gateway.access` to `unrestricted` OR set `management.endpoint.gateway.enabled=true`.
-If you enable the ability to create, delete, and refresh routes via the actuator endpoint you should take the proper steps to make sure your actuator endpoints are https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.security[secured].
-====
+WARNING: It is suggested that you set `management.endpoint.gateway.access` to `read-only`.  This will disable the ability
+to refresh, create, and delete routes.  If you need the ability to create, refresh, and delete routes using the actuator
+endpoint you need to set `management.endpoint.gateway.access` to `unrestricted` OR set `management.endpoint.gateway.enabled=true`.
+If you enable the ability to create, delete, and refresh routes via the actuator endpoint you should take the proper steps to
+make sure your actuator endpoints are https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.security[secured].
 
 This endpoint provides an overview of what is available on the child actuator endpoint and the available methods for each reference. The resulting response is similar to the following:
 
@@ -93,7 +91,7 @@ This feature is enabled by default. To disable it, set the following property:
 .application.properties
 [source,properties]
 ----
-spring.cloud.gateway.actuator.verbose.enabled=false
+spring.cloud.gateway.server.webflux.actuator.verbose.enabled=false
 ----
 
 This will default to `true` in a future release.
@@ -103,7 +101,7 @@ This will default to `true` in a future release.
 
 This section details how to retrieve route filters, including:
 
-* <<gateway-global-filters>>
+* xref:spring-cloud-gateway-server-webflux/actuator-api.adoc#gateway-global-filters[Global Filters]
 * <<gateway-route-filters>>
 
 [[gateway-global-filters]]
@@ -111,7 +109,6 @@ This section details how to retrieve route filters, including:
 
 To retrieve the xref:spring-cloud-gateway-server-webflux/global-filters.adoc[global filters] applied to all routes, make a `GET` request to `/actuator/gateway/globalfilters`. The resulting response is similar to the following:
 
-[source,json]
 ----
 {
   "org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter@77856cc5": 10100,
@@ -130,11 +127,9 @@ For each global filter, there is a string representation of the filter object (f
 
 [[gateway-route-filters]]
 === Route Filters
-
 To retrieve the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories.adoc[`GatewayFilter` factories] applied to routes, make a `GET` request to `/actuator/gateway/routefilters`.
 The resulting response is similar to the following:
 
-[source,json]
 ----
 {
   "[AddRequestHeaderGatewayFilterFactory@570ed9c configClass = AbstractNameValueGatewayFilterFactory.NameValueConfig]": null,
@@ -157,27 +152,26 @@ To clear the routes with specific metadata values, add the Query parameter `meta
 If an error is produced during the asynchronous refresh, the refresh will not modify the existing routes.
 
 Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` will only refresh the routes whose `group` metadata is `group-1`: `first_route` and `third_route`.
-
 [source,json]
 ----
 [{
   "route_id": "first_route",
   "route_object": {
-    "predicate": "..."
+    "predicate": "...",
   },
   "metadata": { "group": "group-1" }
 },
 {
   "route_id": "second_route",
   "route_object": {
-    "predicate": "..."
+    "predicate": "...",
   },
   "metadata": { "group": "group-2" }
 },
 {
   "route_id": "third_route",
   "route_object": {
-    "predicate": "..."
+    "predicate": "...",
   },
   "metadata": { "group": "group-1" }
 }]
@@ -189,7 +183,6 @@ Sending `POST` request to `/actuator/gateway/refresh?metadata=group:group-1` wil
 To retrieve the routes defined in the gateway, make a `GET` request to `/actuator/gateway/routes`.
 The resulting response is similar to the following (verbose format, which is the default):
 
-[source,json]
 ----
 [{
   "predicate": "Paths: [/first], match trailing slash: true",
@@ -209,267 +202,160 @@ The resulting response is similar to the following (verbose format, which is the
 }]
 ----
 
-[NOTE]
-====
-When `spring.cloud.gateway.actuator.verbose.enabled=false`, the response uses an internal non-verbose format where predicates and filters are shown as raw Java class strings instead of human-readable descriptions.
-Verbose mode is enabled by default and is the recommended setting.
-====
+NOTE: When `spring.cloud.gateway.server.webflux.actuator.verbose.enabled=false`, predicates and filters are shown as raw Java class strings instead of human-readable descriptions.
 
 The response contains the details of all the routes defined in the gateway.
 The following table describes the structure of each element (each is a route) of the response:
 
+[cols="3,2,4"]
 |===
 | Path | Type | Description
 
-| `route_id`
+|`route_id`
 | String
 | The route ID.
 
-| `predicate`
+|`predicate`
 | String
 | A human-readable string representation of the route predicates (verbose format).
 
-| `filters`
+|`filters`
 | Array
 | The xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories.adoc[`GatewayFilter` factories] applied to the route.
 
-| `uri`
+|`uri`
 | String
 | The destination URI of the route.
 
-| `order`
+|`order`
 | Number
 | The route order.
+
 |===
 
 [[gateway-retrieving-information-about-a-particular-route]]
 == Retrieving Information about a Particular Route
 
-To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/{id}` (for example, `/actuator/gateway/routes/first_route`).
+To retrieve information about a single route, make a `GET` request to `/actuator/gateway/routes/\{id}` (for example, `/actuator/gateway/routes/first_route`).
 The resulting response is similar to the following:
 
-[source,json]
 ----
 {
   "route_id": "first_route",
-  "predicate": "(Paths: [/first], match trailing slash: true && Methods: [GET])",
+  "predicate": "(Paths: [/first], match trailing slash: true)",
   "filters": [],
   "uri": "https://www.uri-destination.org",
   "order": 0
 }
 ----
 
-[NOTE]
-====
-The response format for `GET /actuator/gateway/routes/{id}` represents predicates as a single human-readable string.
-This is different from the shortcut DSL string format required when creating routes via `POST`.
-See <<creating-and-deleting-a-particular-route-definition>> for the correct POST request body format.
-====
+NOTE: The response format for `GET /actuator/gateway/routes/{id}` represents predicates as a single human-readable string. This is different from the shortcut DSL string format required when creating routes via `POST`. See <<creating-and-deleting-a-particular-route-definition>> for the correct POST request body format.
 
 The following table describes the structure of the response:
 
+[cols="3,2,4"]
 |===
 | Path | Type | Description
 
-| `route_id`
+|`route_id`
 | String
 | The route ID.
 
-| `predicate`
+|`predicate`
 | String
 | A human-readable string representation of the route predicates.
 
-| `filters`
+|`filters`
 | Array
 | The collection of filters applied to the route.
 
-| `uri`
+|`uri`
 | String
 | The destination URI of the route.
 
-| `order`
+|`order`
 | Number
 | The route order.
+
 |===
 
 [[creating-and-deleting-a-particular-route-definition]]
 == Creating and Deleting a Particular Route Definition
 
-[WARNING]
-====
-Only routes created through the actuator endpoint can be modified or deleted via these endpoints.
+WARNING: Only routes created through the actuator endpoint can be modified or deleted via these endpoints.
 Routes defined in application configuration (for example, `application.yml` or via `@Bean`) are read-only from the actuator's perspective.
-Attempting to delete a configuration-defined route currently returns `200 OK` without actually removing the route, with no error message returned.
-====
+Attempting to delete a configuration-defined route will return `404 Not Found`.
 
-[[creating-a-route]]
-=== Creating a Route
-
-To create a route, make a `POST` request to `/actuator/gateway/routes/{id_route_to_create}`.
-
-[IMPORTANT]
-====
-The request body uses a *shortcut DSL string format* for `predicates` and `filters` — this is different from the structured object format returned by `GET /actuator/gateway/routes/{id}`.
-====
-
+To create a route definition, make a `POST` request to `/actuator/gateway/routes/\{id_route_to_create}` with a JSON body specifying the route fields.
+Predicates and filters must be provided as shortcut DSL strings (for example, `"Path=/foo/**"` or `"StripPrefix=1"`), which is different from the structured format returned by `GET /actuator/gateway/routes/\{id}`.
 The following example shows the correct request format:
 
-[source,bash]
 ----
-curl -i -X POST \
-  http://localhost:8080/actuator/gateway/routes/my-route \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "predicates": ["Path=/mypath/**"],
-    "filters": ["StripPrefix=1"],
-    "uri": "http://backend-service:8080",
-    "order": 0
-  }'
+{
+  "predicates": ["Path=/mypath/**", "Weight=mygroup,20"],
+  "filters": ["StripPrefix=1"],
+  "uri": "http://backend-service:8080",
+  "order": 0
+}
 ----
 
 A successful creation returns `201 Created`.
+After creating a route, call `POST /actuator/gateway/refresh` to apply the change without restarting the application.
 
-NOTE: After creating a route, call `POST /actuator/gateway/refresh` to apply the change without restarting the application.
-
-The following table describes the fields of the request body:
-
-|===
-| Field | Type | Description
-
-| `predicates`
-| Array of Strings
-| Route predicates in shortcut DSL format (for example, `"Path=/foo/**"`, `"Method=GET"`, `"Host=**.example.org"`, `"Weight=mygroup,20"`).
-
-| `filters`
-| Array of Strings
-| Filters in shortcut DSL format (for example, `"StripPrefix=1"`, `"AddRequestHeader=X-My-Header, MyValue"`, `"RewritePath=/old,/new"`).
-
-| `uri`
-| String
-| The destination URI of the route (for example, `"http://backend:8080"` or `"lb://my-service"`).
-
-| `order`
-| Number
-| (Optional) Route priority order. Lower values have higher priority. Defaults to `0`.
-
-| `metadata`
-| Object
-| (Optional) Arbitrary key-value metadata associated with the route (for example, `{"group": "my-group"}`).
-|===
-
-[[updating-a-route]]
-=== Updating a Route
-
-There is no dedicated `PUT` operation for updating a route.
-To update an existing actuator-managed route, delete it first and then recreate it with the new definition.
-
-[WARNING]
-====
-Do *not* `POST` to an existing route ID without first deleting it.
+WARNING: Do *not* `POST` to an existing route ID without first deleting it.
 Doing so duplicates the route definition internally, which causes a `500 Internal Server Error` on subsequent `GET /actuator/gateway/routes` requests.
-====
+To update an existing actuator-managed route, you must delete it first and then recreate it:
 
-The following example shows the correct update workflow:
+. Send `DELETE` to `/actuator/gateway/routes/\{id}`.
+. Send `POST` to `/actuator/gateway/routes/\{id}` with the updated definition.
+. Send `POST` to `/actuator/gateway/refresh`.
 
-[source,bash]
-----
-# Step 1: Delete the existing route
-curl -i -X DELETE http://localhost:8080/actuator/gateway/routes/my-route
-
-# Step 2: Recreate it with the updated definition
-curl -i -X POST \
-  http://localhost:8080/actuator/gateway/routes/my-route \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "predicates": ["Path=/mypath/**"],
-    "filters": ["StripPrefix=2"],
-    "uri": "http://backend-service:8080"
-  }'
-
-# Step 3: Refresh the route cache to apply changes
-curl -i -X POST http://localhost:8080/actuator/gateway/refresh
-----
-
-[[deleting-a-route]]
-=== Deleting a Route
-
-To delete a route, make a `DELETE` request to `/actuator/gateway/routes/{id_route_to_delete}`:
-
-[source,bash]
-----
-curl -i -X DELETE http://localhost:8080/actuator/gateway/routes/my-route
-----
-
+To delete a route definition, make a `DELETE` request to `/actuator/gateway/routes/\{id_route_to_delete}`.
 A successful deletion returns `200 OK`.
-
-NOTE: After deleting a route, call `POST /actuator/gateway/refresh` to apply the change without restarting the application.
+After deleting a route, call `POST /actuator/gateway/refresh` to apply the change without restarting the application.
 
 [[creating-multiple-route-definitions]]
-== Creating Multiple Route Definitions
+== Creating multiple Route Definitions
 
-To create multiple route definitions in a single request, make a `POST` request to `/actuator/gateway/routes` with a JSON array body.
-Each entry must include the route `id` and uses the same shortcut DSL string format for `predicates` and `filters` as described in <<creating-a-route>>.
+To create multiple route definitions in a single request, make a `POST` request to `/gateway/routes` with a JSON body that specifies the fields of the route, including the route id (see xref:spring-cloud-gateway-server-webflux/actuator-api.adoc#gateway-retrieving-information-about-a-particular-route[Retrieving Information about a Particular Route]).
 
-[source,bash]
-----
-curl -i -X POST \
-  http://localhost:8080/actuator/gateway/routes \
-  -H 'Content-Type: application/json' \
-  -d '[
-    {
-      "id": "route-one",
-      "predicates": ["Path=/service-one/**"],
-      "filters": ["StripPrefix=1"],
-      "uri": "http://service-one:8080"
-    },
-    {
-      "id": "route-two",
-      "predicates": ["Path=/service-two/**"],
-      "filters": ["StripPrefix=1"],
-      "uri": "http://service-two:8080"
-    }
-  ]'
-----
+The route definitions will be discarded if any route raises an error during the creation of the routes.
 
-NOTE: The route definitions will be discarded entirely if any route raises an error during creation.
+[[recap:-the-list-of-all-endpoints]]
+== Recap: The List of All endpoints
 
-[[recap-the-list-of-all-endpoints]]
-== Recap: The List of All Endpoints
+The following table below summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
 
-The following table summarizes the Spring Cloud Gateway actuator endpoints (note that each endpoint has `/actuator/gateway` as the base-path):
-
+[cols="2,2,5"]
 |===
 | ID | HTTP Method | Description
 
-| `globalfilters`
-| GET
+|`globalfilters`
+|GET
 | Displays the list of global filters applied to the routes.
 
-| `routefilters`
-| GET
+|`routefilters`
+|GET
 | Displays the list of `GatewayFilter` factories applied to a particular route.
 
-| `refresh`
-| POST
-| Clears the routes cache. Required after creating, updating, or deleting a route.
+|`refresh`
+|POST
+| Clears the routes cache.
 
-| `routes`
-| GET
+|`routes`
+|GET
 | Displays the list of routes defined in the gateway.
 
-| `routes`
-| POST
-| Creates multiple new actuator-managed routes in a single request. Uses shortcut DSL string format.
-
-| `routes/{id}`
-| GET
+|`routes/\{id}`
+|GET
 | Displays information about a particular route.
 
-| `routes/{id}`
-| POST
-| Creates a new actuator-managed route. Uses shortcut DSL string format for predicates and filters. Returns `201 Created` on success.
+|`routes/\{id}`
+|POST
+| Adds a new route to the gateway. Uses shortcut DSL string format for predicates and filters. Returns `201 Created` on success.
 
-| `routes/{id}`
-| DELETE
-| Removes an existing actuator-managed route. Routes defined in application configuration cannot be removed via this endpoint (returns `200 OK` without effect).
+|`routes/\{id}`
+|DELETE
+| Removes an existing route from the gateway. Routes defined in application configuration cannot be removed via this endpoint (returns `404 Not Found`).
+
 |===
