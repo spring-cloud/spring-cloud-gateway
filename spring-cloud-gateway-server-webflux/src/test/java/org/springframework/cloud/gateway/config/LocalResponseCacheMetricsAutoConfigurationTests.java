@@ -25,9 +25,13 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory.CacheMetricsListener;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheProperties;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheUtils;
+import org.springframework.cloud.gateway.filter.factory.cache.ResponseCacheManagerFactory;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author LivingLikeKrillin
  */
-class LocalResponseCacheMetricsAutoConfigurationTests {
+public class LocalResponseCacheMetricsAutoConfigurationTests {
 
 	@Test
 	void metricsListenerCreatedWhenMeterRegistryPresent() {
@@ -58,6 +62,19 @@ class LocalResponseCacheMetricsAutoConfigurationTests {
 			.withConfiguration(AutoConfigurations.of(LocalResponseCacheAutoConfiguration.class,
 					LocalResponseCacheMetricsAutoConfiguration.class))
 			.withPropertyValues(GatewayProperties.PREFIX + ".filter.local-response-cache.enabled=true")
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(CacheMetricsListener.class);
+			});
+	}
+
+	@Test
+	void metricsListenerNotCreatedWhenGatewayDisabled() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(LocalResponseCacheAutoConfiguration.class,
+					LocalResponseCacheMetricsAutoConfiguration.class))
+			.withUserConfiguration(MeterRegistryConfig.class)
+			.withPropertyValues(GatewayProperties.PREFIX + ".filter.local-response-cache.enabled=true",
+					GatewayProperties.PREFIX + ".enabled=false")
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(CacheMetricsListener.class);
 			});
@@ -128,6 +145,26 @@ class LocalResponseCacheMetricsAutoConfigurationTests {
 				assertThat(context).hasSingleBean(CacheMetricsListener.class);
 				assertThat(registry.find("cache.size").tag("cache", "response-cache").gauge()).isNotNull();
 			});
+	}
+
+	@Test
+	void perRouteCacheMetricsRegisteredViaFilterFactory() {
+		SimpleMeterRegistry registry = new SimpleMeterRegistry();
+		CacheMetricsListener listener = (cache,
+				cacheName) -> io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics.monitor(registry, cache,
+						cacheName, java.util.Collections.emptyList());
+
+		Duration ttl = Duration.ofMinutes(5);
+		ResponseCacheManagerFactory cacheManagerFactory = new ResponseCacheManagerFactory(new CacheKeyGenerator());
+		LocalResponseCacheGatewayFilterFactory factory = new LocalResponseCacheGatewayFilterFactory(cacheManagerFactory,
+				ttl, null, new LocalResponseCacheProperties.RequestOptions(), new CaffeineCacheManager(), listener);
+
+		LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration routeConfig = new LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration();
+		routeConfig.setRouteId("my-route");
+		routeConfig.setTimeToLive(ttl);
+		factory.apply(routeConfig);
+
+		assertThat(registry.find("cache.size").tag("cache", "my-route-cache").gauge()).isNotNull();
 	}
 
 	@Configuration(proxyBeanMethods = false)
