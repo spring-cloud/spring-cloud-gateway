@@ -18,8 +18,6 @@ package org.springframework.cloud.gateway.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,8 +51,6 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnEnabledFilter(LocalResponseCacheGatewayFilterFactory.class)
 public class LocalResponseCacheAutoConfiguration {
 
-	private static final Log LOGGER = LogFactory.getLog(LocalResponseCacheAutoConfiguration.class);
-
 	private static final String RESPONSE_CACHE_NAME = "response-cache";
 
 	/* for testing */ static final String RESPONSE_CACHE_MANAGER_NAME = "gatewayCacheManager";
@@ -86,7 +82,7 @@ public class LocalResponseCacheAutoConfiguration {
 			ObjectProvider<CacheMetricsListener> metricsListenerProvider) {
 		CacheMetricsListener listener = metricsListenerProvider.getIfAvailable(() -> CacheMetricsListener.NOOP);
 		return new LocalResponseCacheGatewayFilterFactory(responseCacheManagerFactory, properties.getTimeToLive(),
-				properties.getSize(), properties.getRequest(), listener);
+				properties.getSize(), properties.getRequest(), new CaffeineCacheManager(), listener);
 	}
 
 	@Bean

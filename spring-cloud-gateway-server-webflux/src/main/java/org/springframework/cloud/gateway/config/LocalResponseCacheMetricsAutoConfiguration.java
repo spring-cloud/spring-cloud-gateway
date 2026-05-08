@@ -33,13 +33,6 @@ import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCache
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Auto-configuration for LocalResponseCache metrics. Registers Caffeine cache metrics
- * with the {@link MeterRegistry} when both the cache infrastructure and Micrometer are
- * available.
- *
- * @author LivingLikeKrillin
- */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ Caffeine.class, CaffeineCacheManager.class, MeterRegistry.class, MetricsAutoConfiguration.class })
 @ConditionalOnBean(MeterRegistry.class)
@@ -49,7 +42,7 @@ import org.springframework.context.annotation.Configuration;
 public class LocalResponseCacheMetricsAutoConfiguration {
 
 	@Bean
-	CacheMetricsListener localResponseCacheMetricsListener(MeterRegistry meterRegistry) {
+	public CacheMetricsListener localResponseCacheMetricsListener(MeterRegistry meterRegistry) {
 		return (cache, cacheName) -> CaffeineCacheMetrics.monitor(meterRegistry, cache, cacheName,
 				Collections.emptyList());
 	}

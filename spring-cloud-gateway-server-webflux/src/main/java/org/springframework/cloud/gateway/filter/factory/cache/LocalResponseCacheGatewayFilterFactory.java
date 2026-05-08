@@ -80,13 +80,6 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
-			CacheMetricsListener cacheMetricsListener) {
-		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager(),
-				cacheMetricsListener);
-	}
-
-	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
-			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
 			CaffeineCacheManager caffeineCacheManager, CacheMetricsListener cacheMetricsListener) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
@@ -129,18 +122,11 @@ public class LocalResponseCacheGatewayFilterFactory
 		return List.of("timeToLive", "size");
 	}
 
-	/**
-	 * Listener notified when a new Caffeine cache is created, allowing external
-	 * components (e.g., metrics) to observe cache instances.
-	 */
 	@FunctionalInterface
 	public interface CacheMetricsListener {
 
 		void onCacheCreated(com.github.benmanes.caffeine.cache.Cache<?, ?> cache, String cacheName);
 
-		/**
-		 * No-op implementation used when metrics infrastructure is not available.
-		 */
 		CacheMetricsListener NOOP = (cache, cacheName) -> {
 		};
 
