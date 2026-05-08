@@ -70,7 +70,7 @@ public class FunctionRoutingFilterTests extends BaseWebClientTests {
 			.accept(MediaType.APPLICATION_JSON)
 			.exchange()
 			.expectBody(String.class)
-			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo("{\"codec\":\"v3\"}"));
+			.consumeWith(res -> assertThat(res.getResponseBody()).isEqualTo("{\"codec\":\"v2\"}"));
 	}
 
 	@EnableAutoConfiguration
