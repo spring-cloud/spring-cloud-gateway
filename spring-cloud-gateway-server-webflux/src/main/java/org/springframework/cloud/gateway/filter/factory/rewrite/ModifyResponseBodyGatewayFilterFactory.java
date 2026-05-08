@@ -72,6 +72,11 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 	private final ExchangeStrategies exchangeStrategies;
 
+	/**
+	 * @deprecated Use {@link #ModifyResponseBodyGatewayFilterFactory(List, Set, Set, List)} instead,
+	 * which supports CodecCustomizer for consistent encoder/decoder.
+	 */
+	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders) {
 		super(Config.class);

@@ -59,12 +59,22 @@ public class ModifyRequestBodyGatewayFilterFactory
 
 	private final ExchangeStrategies exchangeStrategies;
 
+	/**
+	 * @deprecated Use {@link #ModifyRequestBodyGatewayFilterFactory(List, List)} instead,
+	 * which supports CodecCustomizer for consistent encoder/decoder.
+	 */
+	@Deprecated
 	public ModifyRequestBodyGatewayFilterFactory() {
 		super(Config.class);
 		this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
 		this.exchangeStrategies = ExchangeStrategies.withDefaults();
 	}
 
+	/**
+	 * @deprecated Use {@link #ModifyRequestBodyGatewayFilterFactory(List, List)} instead,
+	 * which supports CodecCustomizer for consistent encoder/decoder.
+	 */
+	@Deprecated
 	public ModifyRequestBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders) {
 		super(Config.class);
 		this.messageReaders = messageReaders;

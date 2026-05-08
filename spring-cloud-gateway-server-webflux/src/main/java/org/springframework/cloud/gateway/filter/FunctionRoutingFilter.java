@@ -75,6 +75,11 @@ public class FunctionRoutingFilter implements GlobalFilter, Ordered {
 
 	private final ExchangeStrategies exchangeStrategies;
 
+	/**
+	 * @deprecated Use {@link #FunctionRoutingFilter(FunctionCatalog, List, Set, List)} instead,
+	 * which supports CodecCustomizer for consistent encoder/decoder.
+	 */
+	@Deprecated
 	public FunctionRoutingFilter(FunctionCatalog functionCatalog, List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyEncoder> messageBodyEncoders) {
 		this.functionCatalog = functionCatalog;
