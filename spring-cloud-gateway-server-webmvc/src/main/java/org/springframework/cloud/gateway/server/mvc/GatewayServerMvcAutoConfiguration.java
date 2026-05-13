@@ -35,6 +35,7 @@ import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfigu
 import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties.Apiversion;
 import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayCorsConfigurationSourceBuilder;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcPropertiesBeanDefinitionRegistrar;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcRuntimeHintsProcessor;
@@ -74,6 +75,8 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.ApiVersionConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -200,6 +203,14 @@ public class GatewayServerMvcAutoConfiguration {
 			matchIfMissing = true)
 	public WeightCalculatorFilter weightCalculatorFilter() {
 		return new WeightCalculatorFilter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = GatewayMvcProperties.PREFIX, name = "cors.enabled", matchIfMissing = true)
+	public CorsFilter corsFilter(GatewayMvcProperties properties) {
+		CorsConfigurationSource corsConfigurationSource = GatewayCorsConfigurationSourceBuilder.build(properties);
+		return new CorsFilter(corsConfigurationSource);
 	}
 
 	@Bean
