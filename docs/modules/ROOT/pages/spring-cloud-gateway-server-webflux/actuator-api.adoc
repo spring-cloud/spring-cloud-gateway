@@ -249,7 +249,7 @@ The resulting response is similar to the following:
 }
 ----
 
-NOTE: The response format for `GET /actuator/gateway/routes/{id}` represents predicates as a single human-readable string. This is different from the shortcut DSL string format required when creating routes via `POST`. See <<creating-and-deleting-a-particular-route-definition>> for the correct POST request body format.
+NOTE: The response format for `GET /actuator/gateway/routes/\{id}` represents predicates as a single human-readable string. This is different from the shortcut DSL string format required when creating routes via `POST`. See <<creating-and-deleting-a-particular-route-definition>> for the correct POST request body format.
 
 The following table describes the structure of the response:
 
