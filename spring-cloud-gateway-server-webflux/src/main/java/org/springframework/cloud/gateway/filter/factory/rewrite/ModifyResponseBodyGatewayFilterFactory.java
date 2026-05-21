@@ -72,20 +72,9 @@ public class ModifyResponseBodyGatewayFilterFactory
 
 	private final ExchangeStrategies exchangeStrategies;
 
-	/**
-	 * @deprecated Use {@link #ModifyResponseBodyGatewayFilterFactory(List, Set, Set, List)} instead,
-	 * which supports CodecCustomizer for consistent encoder/decoder.
-	 */
-	@Deprecated
 	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
 			Set<MessageBodyDecoder> messageBodyDecoders, Set<MessageBodyEncoder> messageBodyEncoders) {
-		super(Config.class);
-		this.messageReaders = messageReaders;
-		this.messageBodyDecoders = messageBodyDecoders.stream()
-			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
-		this.messageBodyEncoders = messageBodyEncoders.stream()
-			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
-		this.exchangeStrategies = ExchangeStrategies.withDefaults();
+		this(messageReaders, messageBodyDecoders, messageBodyEncoders, List.of());
 	}
 
 	public ModifyResponseBodyGatewayFilterFactory(List<HttpMessageReader<?>> messageReaders,
@@ -97,11 +86,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 			.collect(Collectors.toMap(MessageBodyDecoder::encodingType, identity()));
 		this.messageBodyEncoders = messageBodyEncoders.stream()
 			.collect(Collectors.toMap(MessageBodyEncoder::encodingType, identity()));
-
-		ExchangeStrategies.Builder exchangeStrategiesBuilder = ExchangeStrategies.builder();
-		exchangeStrategiesBuilder
-			.codecs((codecs) -> codecCustomizers.forEach((customizer) -> customizer.customize(codecs)));
-		this.exchangeStrategies = exchangeStrategiesBuilder.build();
+		this.exchangeStrategies = BodyInserterContext.buildExchangeStrategies(codecCustomizers);
 	}
 
 	@Override

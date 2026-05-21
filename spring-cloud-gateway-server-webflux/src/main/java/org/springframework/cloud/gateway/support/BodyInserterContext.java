@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.boot.http.codec.CodecCustomizer;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 
@@ -36,6 +38,20 @@ public class BodyInserterContext implements BodyInserter.Context {
 
 	public BodyInserterContext(ExchangeStrategies exchangeStrategies) {
 		this.exchangeStrategies = exchangeStrategies;
+	}
+
+	/**
+	 * Build an {@link ExchangeStrategies} instance and apply all registered
+	 * {@link CodecCustomizer CodecCustomizers}.
+	 */
+	public static ExchangeStrategies buildExchangeStrategies(List<CodecCustomizer> codecCustomizers) {
+		if (ObjectUtils.isEmpty(codecCustomizers)) {
+			return ExchangeStrategies.withDefaults();
+		}
+		ExchangeStrategies.Builder exchangeStrategiesBuilder = ExchangeStrategies.builder();
+		exchangeStrategiesBuilder
+			.codecs((codecs) -> codecCustomizers.forEach((customizer) -> customizer.customize(codecs)));
+		return exchangeStrategiesBuilder.build();
 	}
 
 	@Override
