@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.gateway.test.TestCodecCustomizerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
@@ -42,7 +44,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Junghoon Song
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.http.codecs.max-in-memory-size=13")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.http.codecs.max-in-memory-size=15")
 @DirtiesContext
 public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTests {
 
@@ -109,9 +111,26 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 			.isEqualTo("FOO_BAR_BAZ");
 	}
 
+	@Test
+	public void codecCustomizerWorksWithModifyRequestBody() {
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.codeccustomizerworks.org")
+			.header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+			.body(BodyInserters.fromValue("request"))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.OK)
+			.expectBody()
+			.jsonPath("headers.Content-Type")
+			.isEqualTo(MediaType.APPLICATION_JSON_VALUE)
+			.jsonPath("data")
+			.isEqualTo("{\"codec\":\"v2\"}");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
+	@Import({ DefaultTestConfig.class, TestCodecCustomizerConfiguration.class })
 	public static class TestConfig {
 
 		@Value("${test.uri}")
@@ -156,6 +175,14 @@ public class ModifyRequestBodyGatewayFilterFactoryTests extends BaseWebClientTes
 							}, (swe, body) -> {
 								return Mono.just(body.replaceAll(" ", "_").toUpperCase(Locale.ROOT));
 							}))
+							.uri(uri))
+				.route("modify_request_body_codec_customizer_test",
+						r -> r.order(-1)
+							.host("**.codeccustomizerworks.org")
+							.filters(f -> f.modifyRequestBody(String.class, Object.class,
+									MediaType.APPLICATION_JSON_VALUE, (serverWebExchange, body) -> {
+										return Mono.just(Map.of("codec", "v1"));
+									}))
 							.uri(uri))
 				.build();
 		}

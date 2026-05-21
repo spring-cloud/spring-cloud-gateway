@@ -30,6 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.cloud.gateway.test.TestCodecCustomizerConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -101,9 +102,22 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 			.isEqualTo("Content Too Large");
 	}
 
+	@Test
+	public void codecCustomizerWorksWithModifyResponseBody() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/").build(true).toUri();
+
+		testClient.get()
+			.uri(uri)
+			.header("Host", "www.codeccustomizerworks.org")
+			.accept(MediaType.APPLICATION_JSON)
+			.exchange()
+			.expectBody()
+			.json("{\"codec\":\"v2\"}");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
-	@Import(DefaultTestConfig.class)
+	@Import({ DefaultTestConfig.class, TestCodecCustomizerConfiguration.class })
 	public static class TestConfig {
 
 		@Value("${test.uri}")
@@ -141,6 +155,16 @@ public class ModifyResponseBodyGatewayFilterFactoryTests extends BaseWebClientTe
 								.modifyResponseBody(String.class, String.class, MediaType.TEXT_PLAIN_VALUE,
 										(webExchange, originalResponse) -> {
 											return Mono.just("Modified response");
+										}))
+							.uri(uri))
+				.route("modify_response_body_codec_customizer_test",
+						r -> r.path("/")
+							.and()
+							.host("www.codeccustomizerworks.org")
+							.filters(f -> f.prefixPath("/httpbin")
+								.modifyResponseBody(String.class, Object.class, MediaType.APPLICATION_JSON_VALUE,
+										(webExchange, originalResponse) -> {
+											return Mono.just(Map.of("codec", "v1"));
 										}))
 							.uri(uri))
 				.build();
