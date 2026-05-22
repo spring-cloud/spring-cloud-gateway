@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.web.util.UriTemplate;
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -32,7 +31,7 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import wiremock.org.apache.commons.lang3.StringUtils;
+import org.springframework.web.util.UriTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -105,14 +104,13 @@ public class PrefixPathGatewayFilterFactoryTest {
 	@Test
 	public void testNullPrefixThrowsException() {
 		PrefixPathGatewayFilterFactory factory = new PrefixPathGatewayFilterFactory();
-		assertThatThrownBy(() -> factory.apply(c -> c.setPrefix(null)))
-				.isInstanceOf(NullPointerException.class)
-				.hasMessage("prefix must not be null");
+		assertThatThrownBy(() -> factory.apply(c -> c.setPrefix(null))).isInstanceOf(NullPointerException.class)
+			.hasMessage("prefix must not be null");
 	}
 
 	@Test
 	public void emptyPathDoesNotThrowException() {
-		assertThatNoException().isThrownBy(() -> new UriTemplate(StringUtils.EMPTY));
+		assertThatNoException().isThrownBy(() -> new UriTemplate(""));
 	}
 
 }

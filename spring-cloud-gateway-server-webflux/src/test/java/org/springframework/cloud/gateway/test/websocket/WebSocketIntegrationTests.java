@@ -258,9 +258,10 @@ public class WebSocketIntegrationTests {
 	@Test
 	public void clientClosing() throws Exception {
 		this.client
-				.execute(getUrl("/client-close"),
-						session -> session.receive()
-								.flatMap(msg -> session.close(CloseStatus.create(4999, "client-close"))).then())
+			.execute(getUrl("/client-close"),
+					session -> session.receive()
+						.flatMap(msg -> session.close(CloseStatus.create(4999, "client-close")))
+						.then())
 			.block(Duration.ofMillis(5000));
 		assertThat(serverCloseStatusSink.asMono().block(Duration.ofMillis(5000)))
 			.isEqualTo(CloseStatus.create(4999, "client-close"));
@@ -393,7 +394,7 @@ public class WebSocketIntegrationTests {
 		@Override
 		public Mono<Void> handle(WebSocketSession session) {
 			return session.send(Mono.just(session.textMessage("ready")))
-					.then(session.closeStatus().doOnNext(serverCloseStatusSink::tryEmitValue).then());
+				.then(session.closeStatus().doOnNext(serverCloseStatusSink::tryEmitValue).then());
 		}
 
 	}
