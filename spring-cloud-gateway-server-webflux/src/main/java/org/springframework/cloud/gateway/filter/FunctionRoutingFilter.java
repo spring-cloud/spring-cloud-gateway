@@ -159,25 +159,26 @@ public class FunctionRoutingFilter implements GlobalFilter, Ordered {
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getResponse().getHeaders());
 
-			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies)).then(Mono.defer(() -> {
-				ServerHttpResponse response = exchange.getResponse();
-				Mono<DataBuffer> messageBody = writeBody(response, outputMessage, outClass);
-				HttpHeaders responseHeaders = response.getHeaders();
-				if (!responseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
-						|| responseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
-					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-				}
-				responseHeaders.addAll(newResponseHeaders);
+			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies))
+				.then(Mono.defer(() -> {
+					ServerHttpResponse response = exchange.getResponse();
+					Mono<DataBuffer> messageBody = writeBody(response, outputMessage, outClass);
+					HttpHeaders responseHeaders = response.getHeaders();
+					if (!responseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+							|| responseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
+						messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+					}
+					responseHeaders.addAll(newResponseHeaders);
 
-				// TODO: deal with content type
-				/*
-				 * if (StringUtils.hasText(config.newContentType)) {
-				 * headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType); }
-				 */
+					// TODO: deal with content type
+					/*
+					 * if (StringUtils.hasText(config.newContentType)) {
+					 * headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType); }
+					 */
 
-				// TODO: fail if isStreamingMediaType?
-				return response.writeWith(messageBody);
-			}));
+					// TODO: fail if isStreamingMediaType?
+					return response.writeWith(messageBody);
+				}));
 		});
 	}
 

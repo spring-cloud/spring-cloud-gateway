@@ -248,21 +248,22 @@ public class ModifyResponseBodyGatewayFilterFactory
 			BodyInserter bodyInserter = BodyInserters.fromPublisher(modifiedBody, outClass);
 			CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(exchange,
 					exchange.getResponse().getHeaders());
-			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies)).then(Mono.defer(() -> {
-				Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
-				HttpHeaders headers = getDelegate().getHeaders();
-				if (!headers.containsHeader(HttpHeaders.TRANSFER_ENCODING)
-						|| headers.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
-					messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
-				}
+			return bodyInserter.insert(outputMessage, new BodyInserterContext(exchangeStrategies))
+				.then(Mono.defer(() -> {
+					Mono<DataBuffer> messageBody = writeBody(getDelegate(), outputMessage, outClass);
+					HttpHeaders headers = getDelegate().getHeaders();
+					if (!headers.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+							|| headers.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
+						messageBody = messageBody.doOnNext(data -> headers.setContentLength(data.readableByteCount()));
+					}
 
-				if (StringUtils.hasText(config.newContentType)) {
-					headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
-				}
+					if (StringUtils.hasText(config.newContentType)) {
+						headers.set(HttpHeaders.CONTENT_TYPE, config.newContentType);
+					}
 
-				// TODO: fail if isStreamingMediaType?
-				return getDelegate().writeWith(messageBody);
-			}));
+					// TODO: fail if isStreamingMediaType?
+					return getDelegate().writeWith(messageBody);
+				}));
 		}
 
 		@Override
