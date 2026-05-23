@@ -21,6 +21,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
+
 import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.gateway.handler.predicate.GatewayPredicate;
@@ -82,6 +83,23 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 			}
 		}
 
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof DefaultAsyncPredicate)) {
+				return false;
+			}
+			DefaultAsyncPredicate<?> that = (DefaultAsyncPredicate<?>) o;
+			return Objects.equals(this.delegate, that.delegate);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(this.delegate);
+		}
+
 	}
 
 	class NegateAsyncPredicate<T> implements AsyncPredicate<T> {
@@ -95,12 +113,29 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Mono.from(predicate.apply(t)).map(b -> !b);
+			return Mono.from(predicate.apply(t)).map(result -> !result);
 		}
 
 		@Override
 		public String toString() {
 			return String.format("!(%s)", this.predicate);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof NegateAsyncPredicate)) {
+				return false;
+			}
+			NegateAsyncPredicate<?> that = (NegateAsyncPredicate<?>) o;
+			return Objects.equals(this.predicate, that.predicate);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(this.predicate);
 		}
 
 	}
@@ -120,7 +155,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
+			return Mono.from(left.apply(t))
+					.flatMap(result -> !result ? Mono.just(false) : Mono.from(right.apply(t)));
 		}
 
 		@Override
@@ -132,6 +168,23 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		@Override
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof AndAsyncPredicate)) {
+				return false;
+			}
+			AndAsyncPredicate<?> that = (AndAsyncPredicate<?>) o;
+			return Objects.equals(this.left, that.left) && Objects.equals(this.right, that.right);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.left, this.right);
 		}
 
 	}
@@ -151,7 +204,8 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public Publisher<Boolean> apply(T t) {
-			return Mono.from(left.apply(t)).flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
+			return Mono.from(left.apply(t))
+					.flatMap(result -> result ? Mono.just(true) : Mono.from(right.apply(t)));
 		}
 
 		@Override
@@ -163,6 +217,23 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		@Override
 		public String toString() {
 			return String.format("(%s || %s)", this.left, this.right);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof OrAsyncPredicate)) {
+				return false;
+			}
+			OrAsyncPredicate<?> that = (OrAsyncPredicate<?>) o;
+			return Objects.equals(this.left, that.left) && Objects.equals(this.right, that.right);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.left, this.right);
 		}
 
 	}
