@@ -372,7 +372,8 @@ public class ProxyExchange<T> {
 		Objects.requireNonNull(requestEntity.getMethod(), "Method must not be null");
 		RequestBodySpec builder = rest.method(requestEntity.getMethod())
 			.uri(requestEntity.getUrl())
-			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()));
+			.headers(headers -> addHeaders(headers, requestEntity.getHeaders()))
+			.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()));
 		WebClient.ResponseSpec result;
 		if (requestEntity.getBody() instanceof Publisher) {
 			@SuppressWarnings("unchecked")
@@ -384,12 +385,10 @@ public class ProxyExchange<T> {
 		}
 		else {
 			if (hasBody) {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders()))
-					.body(exchange.getRequest().getBody(), DataBuffer.class)
-					.retrieve();
+				result = builder.body(exchange.getRequest().getBody(), DataBuffer.class).retrieve();
 			}
 			else {
-				result = builder.headers(headers -> addHeaders(headers, exchange.getRequest().getHeaders())).retrieve();
+				result = builder.retrieve();
 			}
 		}
 		return result.onStatus(HttpStatusCode::isError, t -> Mono.empty())
