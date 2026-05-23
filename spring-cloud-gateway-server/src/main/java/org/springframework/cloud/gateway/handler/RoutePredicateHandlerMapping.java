@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.function.Function;
 
 import reactor.core.publisher.Mono;
@@ -27,6 +29,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -50,6 +53,8 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	private final Integer managementPort;
 
 	private final ManagementPortType managementPortType;
+
+	private volatile Map<String, CorsConfiguration> routeCorsConfigurations = Collections.emptyMap();
 
 	public RoutePredicateHandlerMapping(FilteringWebHandler webHandler, RouteLocator routeLocator,
 			GlobalCorsProperties globalCorsProperties, Environment environment) {
@@ -105,6 +110,30 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 						logger.trace("No RouteDefinition found for [" + getExchangeDesc(exchange) + "]");
 					}
 				})));
+		});
+	}
+
+	public void setRouteCorsConfigurations(Map<String, CorsConfiguration> routeCorsConfigurations) {
+		this.routeCorsConfigurations = routeCorsConfigurations;
+	}
+
+	@Override
+	public void setCorsConfigurations(Map<String, CorsConfiguration> corsConfigurations) {
+		if (this.routeCorsConfigurations.isEmpty()) {
+			super.setCorsConfigurations(corsConfigurations);
+			return;
+		}
+		UrlBasedCorsConfigurationSource pathBasedSource = new UrlBasedCorsConfigurationSource(getPathPatternParser());
+		pathBasedSource.setCorsConfigurations(corsConfigurations);
+		setCorsConfigurationSource(exchange -> {
+			Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+			if (route != null) {
+				CorsConfiguration routeConfig = this.routeCorsConfigurations.get(route.getId());
+				if (routeConfig != null) {
+					return routeConfig;
+				}
+			}
+			return pathBasedSource.getCorsConfiguration(exchange);
 		});
 	}
 

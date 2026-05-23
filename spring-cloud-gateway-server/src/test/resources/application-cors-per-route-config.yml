@@ -26,3 +26,21 @@ spring:
                 - GET
                 - PUT
               allowedHeaders: '*'
+        - id: cors_host_a
+          uri: ${test.uri}
+          predicates:
+            - Host=hosta.example.com
+          metadata:
+            cors:
+              allowedOrigins: 'https://origin-a.com'
+              allowedMethods:
+                - GET
+        - id: cors_host_b
+          uri: ${test.uri}
+          predicates:
+            - Host=hostb.example.com
+          metadata:
+            cors:
+              allowedOrigins: 'https://origin-b.com'
+              allowedMethods:
+                - POST
