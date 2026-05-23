@@ -8,3 +8,12 @@ Spring Cloud Gateway includes many built-in GatewayFilter Factories.
 
 NOTE: For more detailed examples of how to use any of the following filters, take a look at the https://github.com/spring-cloud/spring-cloud-gateway/tree/main/spring-cloud-gateway-server-webflux/src/test/java/org/springframework/cloud/gateway/filter/factory[unit tests].
 
+
+== JsonToGrpc Filter Dependencies
+The following dependencies are required for the JsonToGrpc filter:
++---
+| Dependency | Version |
++===+
+| grpc-stub | 1.51.0 |
+| grpc-protobuf | 1.51.0 |
++---+
