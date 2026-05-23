@@ -30,6 +30,7 @@ import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilde
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
 import org.springframework.boot.http.client.autoconfigure.HttpClientsProperties;
 import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientsProperties;
+import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -48,6 +49,8 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -190,9 +193,44 @@ public class GatewayServerMvcAutoConfigurationTests {
 			.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
 	}
 
+	@Test
+	void gatewayRestClientCustomizerHasOrderAnnotation() throws NoSuchMethodException {
+		Order order = GatewayServerMvcAutoConfiguration.class
+			.getMethod("gatewayRestClientCustomizer", org.springframework.beans.factory.ObjectProvider.class)
+			.getAnnotation(Order.class);
+		assertThat(order).isNotNull();
+		assertThat(order.value()).isEqualTo(0);
+	}
+
+	@Test
+	void customRestClientCustomizerCanOverrideGatewayCustomizer() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withUserConfiguration(CustomRestClientCustomizerConfig.class)
+			.run(context -> {
+				assertThat(context).hasSingleBean(GatewayServerMvcAutoConfiguration.class);
+				assertThat(context.getBeansOfType(RestClientCustomizer.class)).hasSize(2);
+			});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {
+
+	}
+
+	static class CustomRestClientCustomizerConfig {
+
+		@Bean
+		@Order(1)
+		RestClientCustomizer customRestClientCustomizer() {
+			return restClientBuilder -> {
+				// Custom customizer that runs after gateway customizer
+			};
+		}
 
 	}
 
