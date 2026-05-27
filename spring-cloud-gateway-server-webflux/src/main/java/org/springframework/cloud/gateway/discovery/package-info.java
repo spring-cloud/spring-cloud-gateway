@@ -15,7 +15,27 @@
  */
 
 /**
- * TODO: package javadoc.
+ * Service discovery integration for Spring Cloud Gateway.
+ *
+ * <p>
+ * This package provides support for dynamic route discovery using Spring Cloud's
+ * {@link org.springframework.cloud.client.discovery.DiscoveryClient}. It enables
+ * automatic route creation based on registered service instances in service registries
+ * such as Eureka, Consul, or Kubernetes.
+ * </p>
+ *
+ * <p>
+ * Key components:
+ * <ul>
+ * <li>{@link org.springframework.cloud.gateway.discovery.DiscoveryClientRouteDefinitionLocator}
+ * - Locates route definitions from discovered services</li>
+ * <li>{@link org.springframework.cloud.gateway.discovery.GatewayDiscoveryClientAutoConfiguration}
+ * - Auto-configuration for discovery client integration</li>
+ * </ul>
+ * </p>
+ *
+ * @see org.springframework.cloud.client.discovery.DiscoveryClient
+ * @see org.springframework.cloud.gateway.route.RouteDefinitionLocator
  */
 @NullMarked
 package org.springframework.cloud.gateway.discovery;
