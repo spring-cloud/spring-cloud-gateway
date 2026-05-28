@@ -237,7 +237,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		if (isForEnabled()) {
 			String remoteAddr = null;
-			if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
+			if (request.getRemoteAddress() != null) {
+				// Support unresolved addresses (getAddress() may be null)
 				remoteAddr = request.getRemoteAddress().getHostString();
 			}
 			// match xforwarded for against trusted proxies
