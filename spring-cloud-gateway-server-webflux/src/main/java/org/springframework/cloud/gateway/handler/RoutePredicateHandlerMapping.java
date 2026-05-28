@@ -16,6 +16,11 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
@@ -41,8 +46,14 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 /**
  * @author Spencer Gibb
+ * @author Fredrich Ombico
+ * @author Abel Salgado Romero
+ * @author Yavor Chamov
+ * @author Nan Chiu
  */
 public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
+
+	private static final String CORS_METADATA_KEY = "cors";
 
 	private final FilteringWebHandler webHandler;
 
@@ -109,13 +120,87 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		});
 	}
 
+	/**
+	 * Returns CORS configuration for the current request.
+	 *
+	 * <p>
+	 * Retrieves route-level CORS config from the matched route's metadata. If present,
+	 * returns it directly (route-specific CORS takes precedence). Otherwise, falls back
+	 * to global CORS configurations.
+	 * </p>
+	 *
+	 * <p>
+	 * Route-level CORS is defined in route metadata under key {@code "cors"} with
+	 * properties: allowedOrigins, allowedOriginPatterns, allowedMethods, allowedHeaders,
+	 * exposedHeaders, allowCredentials, maxAge.
+	 * </p>
+	 * @param handler the handler to check (never {@code null})
+	 * @param exchange the current exchange
+	 * @return the CORS configuration for the handler, or {@code null} if none
+	 */
 	@Override
 	protected @Nullable CorsConfiguration getCorsConfiguration(Object handler, ServerWebExchange exchange) {
-		// TODO: support cors configuration via properties on a route see gh-229
-		// see RequestMappingHandlerMapping.initCorsConfiguration()
-		// also see
-		// https://github.com/spring-projects/spring-framework/blob/master/spring-web/src/test/java/org/springframework/web/cors/reactive/CorsWebFilterTests.java
-		return super.getCorsConfiguration(handler, exchange);
+		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
+		if (route == null) {
+			return super.getCorsConfiguration(handler, exchange);
+		}
+		// Route-level CORS config is associated with the matched route, return directly
+		// if present
+		Optional<CorsConfiguration> corsConfiguration = getCorsConfiguration(route);
+
+		return corsConfiguration.orElseGet(() -> super.getCorsConfiguration(handler, exchange));
+	}
+
+	@SuppressWarnings("unchecked")
+	private Optional<CorsConfiguration> getCorsConfiguration(Route route) {
+		Map<String, Object> corsMetadata = (Map<String, Object>) route.getMetadata().get(CORS_METADATA_KEY);
+		if (corsMetadata != null) {
+			final CorsConfiguration corsConfiguration = new CorsConfiguration();
+
+			findValue(corsMetadata, "allowCredentials")
+				.ifPresent(value -> corsConfiguration.setAllowCredentials((Boolean) value));
+			findValue(corsMetadata, "allowedHeaders")
+				.ifPresent(value -> corsConfiguration.setAllowedHeaders(asList(value)));
+			findValue(corsMetadata, "allowedMethods")
+				.ifPresent(value -> corsConfiguration.setAllowedMethods(asList(value)));
+			findValue(corsMetadata, "allowedOriginPatterns")
+				.ifPresent(value -> corsConfiguration.setAllowedOriginPatterns(asList(value)));
+			findValue(corsMetadata, "allowedOrigins")
+				.ifPresent(value -> corsConfiguration.setAllowedOrigins(asList(value)));
+			findValue(corsMetadata, "exposedHeaders")
+				.ifPresent(value -> corsConfiguration.setExposedHeaders(asList(value)));
+			findValue(corsMetadata, "maxAge").ifPresent(value -> corsConfiguration.setMaxAge(asLong(value)));
+
+			return Optional.of(corsConfiguration);
+		}
+
+		return Optional.empty();
+	}
+
+	private Optional<Object> findValue(Map<String, Object> metadata, String key) {
+		Object value = metadata.get(key);
+		return Optional.ofNullable(value);
+	}
+
+	private List<String> asList(Object value) {
+		if (value instanceof String) {
+			return Arrays.asList((String) value);
+		}
+		if (value instanceof Map) {
+			return new ArrayList<>(((Map<?, String>) value).values());
+		}
+		else {
+			return (List<String>) value;
+		}
+	}
+
+	private Long asLong(Object value) {
+		if (value instanceof Integer) {
+			return ((Integer) value).longValue();
+		}
+		else {
+			return (Long) value;
+		}
 	}
 
 	// TODO: get desc from factory?
