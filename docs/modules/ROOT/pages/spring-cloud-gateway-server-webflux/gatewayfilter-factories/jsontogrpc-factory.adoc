@@ -22,6 +22,18 @@ src/main/resources/proto/hello.proto
 
 NOTE: `streaming` is not supported.
 
+=== Required Dependencies
+
+To use the `JsonToGrpc` filter, add the following dependencies:
+
+[source,xml]
+----
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-protobuf</artifactId>
+</dependency>
+----
+
 
 *application.yml.*
 
