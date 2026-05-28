@@ -41,6 +41,7 @@
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/setrequestheader-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/setresponseheader-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/setstatus-factory.adoc[]
+*** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/stripcontextpath-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/stripprefix-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/retry-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestsize-factory.adoc[]

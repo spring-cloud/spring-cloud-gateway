@@ -108,6 +108,7 @@ public class DisableBuiltInFiltersTests {
 					"spring.cloud.gateway.server.webflux.filter.rewrite-request-parameter.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.set-status.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.save-session.enabled=false",
+					"spring.cloud.gateway.server.webflux.filter.strip-context-path.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.strip-prefix.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.request-header-to-request-uri.enabled=false",
 					"spring.cloud.gateway.server.webflux.filter.request-size.enabled=false",
