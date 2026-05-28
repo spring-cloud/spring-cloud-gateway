@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -220,11 +222,11 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
+		InetSocketAddress remoteAddress = getRemoteAddress(request);
 
-		if (request.getRemoteAddress() != null
-				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
+		if (remoteAddress != null && !trustedProxies.isTrusted(remoteAddress.getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
-					request.getRemoteAddress()));
+					remoteAddress));
 			return input;
 		}
 
@@ -237,8 +239,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		if (isForEnabled()) {
 			String remoteAddr = null;
-			if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
-				remoteAddr = request.getRemoteAddress().getHostString();
+			if (remoteAddress != null && remoteAddress.getAddress() != null) {
+				remoteAddr = remoteAddress.getHostString();
 			}
 			// match xforwarded for against trusted proxies
 			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), trustedProxies::isTrusted);
@@ -337,6 +339,11 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		else if (value != null && shouldWrite.test(value)) {
 			headers.set(name, value);
 		}
+	}
+
+	private InetSocketAddress getRemoteAddress(ServerHttpRequest request) {
+		ServerHttpRequest nativeRequest = ServerHttpRequestDecorator.getNativeRequest(request);
+		return nativeRequest.getRemoteAddress();
 	}
 
 	private int getDefaultPort(String scheme) {
