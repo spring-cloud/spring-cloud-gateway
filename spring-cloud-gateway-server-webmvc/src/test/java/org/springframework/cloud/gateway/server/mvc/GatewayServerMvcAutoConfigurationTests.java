@@ -48,6 +48,7 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.filter.CorsFilter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -188,6 +189,27 @@ public class GatewayServerMvcAutoConfigurationTests {
 					RestClientAutoConfiguration.class))
 			.withClassLoader(new FilteredClassLoader(LoadBalancerClient.class))
 			.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
+	}
+
+	@Test
+	void corsFilterAddedWhenPropertiesEnabled() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.run(context -> assertThat(context).hasSingleBean(CorsFilter.class));
+	}
+
+	@Test
+	void corsFilterNotAddedWhenPropertiesDisabled() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.cors.enabled=false")
+			.run(context -> assertThat(context).doesNotHaveBean(CorsFilter.class));
 	}
 
 	@SpringBootConfiguration
