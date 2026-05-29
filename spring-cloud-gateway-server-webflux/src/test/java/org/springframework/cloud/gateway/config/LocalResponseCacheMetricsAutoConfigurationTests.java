@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.config;
 
 import java.time.Duration;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
@@ -165,6 +167,88 @@ public class LocalResponseCacheMetricsAutoConfigurationTests {
 		factory.apply(routeConfig);
 
 		assertThat(registry.find("cache.size").tag("cache", "my-route-cache").gauge()).isNotNull();
+	}
+
+	@Test
+	void metricsKeepTrackingCurrentCacheAcrossReplacement() {
+		SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(LocalResponseCacheMetricsAutoConfiguration.class))
+			.withBean(MeterRegistry.class, () -> registry)
+			.run(context -> {
+				CacheMetricsListener listener = context.getBean(CacheMetricsListener.class);
+
+				Cache<Object, Object> firstCache = Caffeine.newBuilder().recordStats().build();
+				listener.onCacheCreated(firstCache, "my-route-cache");
+				firstCache.put("a", "1");
+				firstCache.put("b", "2");
+
+				Cache<Object, Object> secondCache = Caffeine.newBuilder().recordStats().build();
+				listener.onCacheCreated(secondCache, "my-route-cache");
+				for (int i = 0; i < 5; i++) {
+					secondCache.put("key-" + i, "value-" + i);
+				}
+
+				Gauge sizeGauge = registry.find("cache.size").tag("cache", "my-route-cache").gauge();
+				assertThat(sizeGauge).isNotNull();
+				assertThat(sizeGauge.value()).isEqualTo(5.0);
+
+				long meterCount = registry.getMeters()
+					.stream()
+					.filter(m -> "cache.size".equals(m.getId().getName()))
+					.filter(m -> "my-route-cache".equals(m.getId().getTag("cache")))
+					.count();
+				assertThat(meterCount).isEqualTo(1);
+			});
+	}
+
+	@Test
+	void perRouteMetricsSurviveRouteRefresh() {
+		SimpleMeterRegistry registry = new SimpleMeterRegistry();
+
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(LocalResponseCacheMetricsAutoConfiguration.class))
+			.withBean(MeterRegistry.class, () -> registry)
+			.run(context -> {
+				CacheMetricsListener listener = context.getBean(CacheMetricsListener.class);
+				Duration ttl = Duration.ofMinutes(5);
+				ResponseCacheManagerFactory cacheManagerFactory = new ResponseCacheManagerFactory(
+						new CacheKeyGenerator());
+				CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+				LocalResponseCacheGatewayFilterFactory factory = new LocalResponseCacheGatewayFilterFactory(
+						cacheManagerFactory, ttl, null, new LocalResponseCacheProperties.RequestOptions(), cacheManager,
+						listener);
+
+				LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration routeConfig = new LocalResponseCacheGatewayFilterFactory.RouteCacheConfiguration();
+				routeConfig.setRouteId("my-route");
+				routeConfig.setTimeToLive(ttl);
+
+				factory.apply(routeConfig);
+				factory.apply(routeConfig);
+
+				org.springframework.cache.Cache currentCache = cacheManager.getCache("my-route-cache");
+				assertThat(currentCache).isNotNull();
+				for (int i = 0; i < 5; i++) {
+					currentCache.put("key-" + i, "value-" + i);
+				}
+				currentCache.get("key-0");
+				currentCache.get("missing");
+
+				Gauge sizeGauge = registry.find("cache.size").tag("cache", "my-route-cache").gauge();
+				assertThat(sizeGauge).isNotNull();
+				assertThat(sizeGauge.value()).isEqualTo(5.0);
+				assertThat(registry.find("cache.gets")
+					.tag("cache", "my-route-cache")
+					.tag("result", "hit")
+					.functionCounter()
+					.count()).isEqualTo(1.0);
+				assertThat(registry.find("cache.gets")
+					.tag("cache", "my-route-cache")
+					.tag("result", "miss")
+					.functionCounter()
+					.count()).isEqualTo(1.0);
+			});
 	}
 
 	@Configuration(proxyBeanMethods = false)
