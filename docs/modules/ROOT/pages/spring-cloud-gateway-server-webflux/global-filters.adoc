@@ -94,6 +94,15 @@ NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `
 
 WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
 
+When `spring-boot-starter-actuator` is on the classpath and `spring.cloud.gateway.server.webflux.metrics.enabled` is `true` (the default), the global cache exposes the following standard Micrometer cache meters, tagged with `cache=response-cache`:
+
+* `cache.size`
+* `cache.gets` (with `result` tag of `hit` or `miss`)
+* `cache.puts`
+* `cache.evictions`
+
+See xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/local-cache-response-filter.adoc#local-cache-response-filter-metrics[the LocalResponseCache filter docs] for the per-route equivalent.
+
 [[forward-routing-filter]]
 == Forward Routing Filter
 
