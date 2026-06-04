@@ -16,12 +16,15 @@
 
 package org.springframework.cloud.gateway.tests.grpc;
 
+import java.net.Socket;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
 
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
@@ -152,7 +155,27 @@ public class GRPCApplicationTests {
 	}
 
 	private TrustManager[] createTrustAllTrustManager() {
-		return new TrustManager[] { new X509TrustManager() {
+		return new TrustManager[] { new X509ExtendedTrustManager() {
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+
+			}
+
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+
+			}
+
+			@Override
+			public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+
+			}
+
+			@Override
+			public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) throws CertificateException {
+
+			}
+
 			public X509Certificate[] getAcceptedIssuers() {
 				return new X509Certificate[0];
 			}
