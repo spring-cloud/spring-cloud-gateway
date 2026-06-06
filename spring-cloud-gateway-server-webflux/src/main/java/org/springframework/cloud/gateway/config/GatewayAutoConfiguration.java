@@ -370,7 +370,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter
 	@ConditionalOnProperty(name = "server.http2.enabled", matchIfMissing = true)
-	@ConditionalOnClass(name = "io.grpc.Channel")
+	@ConditionalOnClass(name = "io.grpc.netty.NettyChannelBuilder")
 	public JsonToGrpcGatewayFilterFactory jsonToGRPCFilterFactory(GrpcSslConfigurer gRPCSSLContext,
 			ResourceLoader resourceLoader) {
 		return new JsonToGrpcGatewayFilterFactory(gRPCSSLContext, resourceLoader);
@@ -379,7 +379,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledFilter(JsonToGrpcGatewayFilterFactory.class)
 	@ConditionalOnMissingBean(GrpcSslConfigurer.class)
-	@ConditionalOnClass(name = "io.grpc.Channel")
+	@ConditionalOnClass(name = "io.grpc.netty.NettyChannelBuilder")
 	public GrpcSslConfigurer grpcSslConfigurer(HttpClientProperties properties, SslBundles bundles)
 			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory
