@@ -30,6 +30,7 @@
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/removerequestparameter-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/removeresponseheader-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestheadersize-factory.adoc[]
+*** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestheadertorequesturi-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestratelimiter-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/rewritelocationresponseheader-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/rewritepath-factory.adoc[]

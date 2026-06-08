@@ -1,0 +1,25 @@
+[[requestheadertorequesturi-gatewayfilter-factory]]
+= `RequestHeaderToRequestUri` `GatewayFilter` Factory
+:page-section-summary-toc: 1
+
+WARNING: The `RequestHeaderToRequestUri` `GatewayFilter` factory is intended within trusted environments.   Ensure the header used by this filter (e.g., `X-CF-Forwarded-Url`) is stripped from inbound client requests before reaching the gateway, so only the internal routing layer can set it.
+
+The `RequestHeaderToRequestUri` `GatewayFilter` factory takes a `name` parameter, which is the name of the request header whose value will be used to override the request URI.
+If the header is present and contains a valid URI, the filter replaces the downstream request URI with the value of that header.
+If the header is absent or the value is not a valid URI, the request proceeds with the original URI unchanged.
+The following listing configures a `RequestHeaderToRequestUri` `GatewayFilter`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: requestheadertorequesturi_route
+        uri: https://example.org
+        filters:
+        - RequestHeaderToRequestUri=X-CF-Forwarded-Url
+----
+
+In this example, if the incoming request contains a header `X-CF-Forwarded-Url: https://other.example.org/path`, the downstream request will be made to `https://other.example.org/path` instead of `https://example.org`.
