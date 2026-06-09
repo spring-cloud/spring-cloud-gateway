@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.filter.headers;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -220,11 +221,11 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
+		InetSocketAddress peerAddress = ForwardedHeadersFilterUtils.extractPeerRemoteAddress(request);
 
-		if (request.getRemoteAddress() != null
-				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
+		if (peerAddress != null && !trustedProxies.isTrusted(peerAddress.getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
-					request.getRemoteAddress()));
+					peerAddress));
 			return input;
 		}
 
@@ -237,8 +238,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 		if (isForEnabled()) {
 			String remoteAddr = null;
-			if (request.getRemoteAddress() != null && request.getRemoteAddress().getAddress() != null) {
-				remoteAddr = request.getRemoteAddress().getHostString();
+			if (peerAddress != null && peerAddress.getAddress() != null) {
+				remoteAddr = peerAddress.getHostString();
 			}
 			// match xforwarded for against trusted proxies
 			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), trustedProxies::isTrusted);
