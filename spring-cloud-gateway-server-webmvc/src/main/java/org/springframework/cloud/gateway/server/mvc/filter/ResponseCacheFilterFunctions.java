@@ -16,6 +16,9 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.HandlerFunction;
+import org.springframework.web.servlet.function.ServerRequest;
+import org.springframework.web.servlet.function.ServerResponse;
 
 /**
  * The central interface that enables the caching of certain HTTP responses, thereby
@@ -29,6 +32,35 @@ import org.springframework.web.servlet.function.HandlerFilterFunction;
 public abstract class ResponseCacheFilterFunctions {
 
 	private ResponseCacheFilterFunctions() {
+	}
+
+	/**
+	 * A {@link HandlerFilterFunction} implementation that allows to cache certain HTTP
+	 * responses.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class ResponseCacheFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
+
+		@Override
+		public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
+			// FIXME implement me...
+
+			// If the request is not cacheable, simple continue with the next filter.
+
+			// FIXME Should we remember that this filter is now applied?
+
+			// If the request should be revalidated continue with the request an put the
+			// response in the cache.
+
+			// Check if a response for this request is already cached.
+			// If not, continue with the request an put the response in the cache.
+			// If so, return the cached response but update the metatdata built based on
+			// the request.
+
+			return next.handle(request);
+		}
+
 	}
 
 	/**
