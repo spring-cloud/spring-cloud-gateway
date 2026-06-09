@@ -15,8 +15,20 @@
  */
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import java.time.Duration;
+import static org.springframework.http.HttpHeaders.CACHE_CONTROL;
+import static org.springframework.http.HttpHeaders.VARY;
+import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.PARTIAL_CONTENT;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -82,6 +94,71 @@ public abstract class ResponseCacheFilterFunctions {
 
 		FilterSupplier() {
 			super(ResponseCacheFilterFunctions.class);
+		}
+
+	}
+
+	/**
+	 * A set of servlet related utilities to ease the implementation of the
+	 * {@link ResponseCacheFilterFunctions response cache filter functions}.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	abstract static class ServletUtils {
+
+		private ServletUtils() {
+		}
+
+		static boolean shouldRevalidate(ServerRequest request) {
+			return Optional.ofNullable(request.headers().asHttpHeaders().getCacheControl())
+				.map(v -> v.matches(".*(\s|,|^)no-cache(\\s|,|$).*"))
+				.orElse(false);
+		}
+
+		static boolean isCacheable(ServerRequest request) {
+			return isGetMethod(request) && !hasBody(request) && isCacheControlAllowed(request);
+		}
+
+		static boolean isCacheControlAllowed(ServerRequest request) {
+			return isCacheControlAllowed(request.headers().header(CACHE_CONTROL));
+		}
+
+		static boolean isCacheControlAllowed(ServerResponse response) {
+			return isCacheControlAllowed(response.headers().get(CACHE_CONTROL));
+		}
+
+		static boolean hasBody(ServerRequest request) {
+			// FIXME What if no Content-Length header is present? Should we assume that
+			// the request has no body or should we read
+			// the body to determine if it has content?
+			return request.headers().contentLength().orElse(0L) > 0;
+		}
+
+		static boolean isGetMethod(ServerRequest request) {
+			return HttpMethod.GET.equals(request.method());
+		}
+
+		static boolean isCacheable(ServerResponse response) {
+			List<HttpStatus> cacheableStatusCodes = List.of(OK, PARTIAL_CONTENT, MOVED_PERMANENTLY);
+			return hasStatusCode(response, cacheableStatusCodes) && isCacheControlAllowed(response)
+					&& !isVaryWildcard(response);
+		}
+
+		static boolean hasStatusCode(ServerResponse response, List<HttpStatus> statusCodes) {
+			return statusCodes.contains(response.statusCode());
+		}
+
+		static boolean isVaryWildcard(ServerResponse response) {
+			HttpHeaders headers = response.headers();
+			List<String> varyValues = headers.getOrEmpty(VARY);
+			return varyValues.stream().anyMatch("*"::equals);
+		}
+
+		private static boolean isCacheControlAllowed(@Nullable List<String> headerValues) {
+			if (headerValues == null) {
+				return false;
+			}
+			return headerValues.stream().noneMatch(List.of("private", "no-store")::contains);
 		}
 
 	}
