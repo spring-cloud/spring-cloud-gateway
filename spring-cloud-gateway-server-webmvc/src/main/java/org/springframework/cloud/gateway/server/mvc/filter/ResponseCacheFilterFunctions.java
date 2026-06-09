@@ -21,14 +21,19 @@ import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.PARTIAL_CONTENT;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
@@ -94,6 +99,77 @@ public abstract class ResponseCacheFilterFunctions {
 
 		FilterSupplier() {
 			super(ResponseCacheFilterFunctions.class);
+		}
+
+	}
+
+	/**
+	 * A factory that allows to create {@link CacheKey cache-keys} based on a
+	 * {@link ServerRequest} and additional context related information.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class CacheKeyFactory {
+
+		private final ThreadLocal<MessageDigest> messageDigest;
+
+		CacheKeyFactory() {
+			this.messageDigest = ThreadLocal.withInitial(() -> {
+				try {
+					return MessageDigest.getInstance("MD5");
+				}
+				catch (NoSuchAlgorithmException e) {
+					throw new RuntimeException("Caught exception while creating CacheKeyCalculator!", e);
+				}
+			});
+		}
+
+		CacheKey from(ServerRequest request, @Nullable String prefix) {
+			return from(request, List.of(), prefix);
+		}
+
+		CacheKey from(ServerRequest request, List<String> headers, @Nullable String prefix) {
+			byte[] digest = messageDigest.get().digest(calculate(request, headers));
+			return new CacheKey(prefix, Base64.getEncoder().encodeToString(digest));
+		}
+
+		private byte[] calculate(ServerRequest request, List<String> headers) {
+			// FIXME implement me...
+			return null;
+		}
+
+		static class CacheKey {
+
+			private final String value;
+
+			CacheKey(@Nullable String prefix, String value) {
+				this.value = "%s%s".formatted(StringUtils.hasText(prefix) ? "%s_".formatted(prefix) : "", value);
+			}
+
+			String getValue() {
+				return value;
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(value);
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) {
+					return true;
+				}
+				if (obj == null) {
+					return false;
+				}
+				if (getClass() != obj.getClass()) {
+					return false;
+				}
+				CacheKey other = (CacheKey) obj;
+				return Objects.equals(value, other.value);
+			}
+
 		}
 
 	}
