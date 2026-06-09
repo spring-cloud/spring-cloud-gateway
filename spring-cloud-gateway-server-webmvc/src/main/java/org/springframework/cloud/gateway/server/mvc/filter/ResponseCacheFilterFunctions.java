@@ -15,6 +15,9 @@
  */
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.time.Duration;
+
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -32,6 +35,11 @@ import org.springframework.web.servlet.function.ServerResponse;
 public abstract class ResponseCacheFilterFunctions {
 
 	private ResponseCacheFilterFunctions() {
+	}
+
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> responseCache(Duration timeToLive,
+			DataSize cacheSize) {
+		return new ResponseCacheFilter();
 	}
 
 	/**
