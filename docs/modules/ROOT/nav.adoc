@@ -75,6 +75,7 @@
 ** xref:spring-cloud-gateway-server-webmvc/java-routes-api.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/gateway-request-predicates.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/gateway-handler-filter-functions.adoc[]
+*** xref:spring-cloud-gateway-server-webmvc/filters/adaptcachedbody.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/addrequestheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/addrequestheadersifnotpresent.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/addrequestparameter.adoc[]

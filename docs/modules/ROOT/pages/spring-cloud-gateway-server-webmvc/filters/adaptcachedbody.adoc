@@ -1,0 +1,67 @@
+[[adaptcachedbody-filter]]
+= `AdaptCachedBody` Filter
+
+The `AdaptCachedBody` filter makes a previously cached request body available for
+re-reading by downstream filters and the proxied route.
+
+In a servlet environment, an `HttpServletRequest` input stream can only be read once.
+If a before filter needs to inspect or transform the request body (for example, to
+compute an HMAC signature), and the same body must also reach the downstream service,
+the body must be cached first.
+
+This is done in two steps:
+
+1. Read and cache the body with `MvcUtils.cacheAndReadBody(request, BodyType.class)`.
+2. Wrap the request so subsequent reads return the cached bytes, using `adaptCachedBody()`.
+
+NOTE: This filter can be configured only by using the Java DSL.
+
+The following example reads the raw request body as a `String` inside a custom before
+filter, and then uses `adaptCachedBody` to ensure the body is also forwarded to the
+downstream service:
+
+.RouteConfiguration.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.adaptCachedBody;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctionsCachedBody() {
+        return route("cached_body_route")
+            .route(path("/api/**"), http())
+            .before(uri("https://example.org"))
+            .before(request -> {
+                // Read the body and store it in the request attributes.
+                // Subsequent calls to request.body() or servletRequest().getInputStream()
+                // will see the cached bytes.
+                Optional<String> body = MvcUtils.cacheAndReadBody(request, String.class); // <1>
+                body.ifPresent(b -> {
+                    // e.g. validate an HMAC, log, or transform
+                });
+                return request;
+            })
+            .before(adaptCachedBody())   // <2>
+            .build();
+    }
+}
+----
+<1> `cacheAndReadBody` consumes the original `InputStream` and stores the bytes as a
+    request attribute. The deserialized body is returned; subsequent calls to
+    `cacheAndReadBody` return the cached bytes without re-reading the stream.
+<2> `adaptCachedBody` wraps the request with an `HttpServletRequestWrapper` backed by
+    the cached bytes, so the downstream service (and any further filters) can read the
+    body from `getInputStream()` as if it had never been consumed.
+
+[IMPORTANT]
+====
+`adaptCachedBody` must be registered *after* `cacheAndReadBody` has been called.
+If it is registered before the body has been cached (i.e., when no cached bytes
+exist under `CACHED_REQUEST_BODY_ATTR`), the filter is a no-op and the downstream
+service will receive an empty body.
+====
