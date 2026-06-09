@@ -1,0 +1,72 @@
+[[spring-security]]
+= Spring Security Integration
+
+Spring Cloud Gateway Server WebFlux works with https://spring.io/projects/spring-security[Spring Security] to secure routes and relay tokens to downstream services.
+
+== Dependencies
+
+To add Spring Security to the gateway, include one or more of the following starters:
+
+.pom.xml
+[source,xml]
+----
+<!-- Core security (authentication and authorization) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+<!-- OAuth2 login and token relay to downstream services -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+
+<!-- Resource server: validate JWT or opaque tokens on each request -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+----
+
+== Default Behavior
+
+When `spring-boot-starter-security` is on the classpath, Spring Boot auto-configures a `SecurityWebFilterChain` that requires *all* requests to be authenticated.
+You must provide an explicit `SecurityWebFilterChain` bean to open up specific paths or apply custom rules.
+
+The following example allows health-check endpoints without authentication and requires a valid JWT on all other requests:
+
+.RouteSecurityConfiguration.java
+[source,java]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+
+@Configuration
+@EnableWebFluxSecurity
+public class RouteSecurityConfiguration {
+
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers("/actuator/health/**").permitAll()
+                        .anyExchange().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .build();
+    }
+}
+----
+
+== Token Relay
+
+When the gateway acts as an OAuth2 client, it can forward the currently authenticated user's access token to downstream services.
+See the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/tokenrelay-factory.adoc[TokenRelay GatewayFilter Factory] documentation for usage and required dependencies.
+
+== Further Reading
+
+See the https://docs.spring.io/spring-security/reference/reactive/index.html[Spring Security Reactive Web Applications] reference for full details on `SecurityWebFilterChain`, method security, and OAuth2 integration.

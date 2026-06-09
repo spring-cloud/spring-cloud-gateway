@@ -51,6 +51,7 @@
 ** xref:spring-cloud-gateway-server-webflux/global-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/httpheadersfilters.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/tls-and-ssl.adoc[]
+** xref:spring-cloud-gateway-server-webflux/spring-security.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/http-client.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/configuration.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/route-metadata-configuration.adoc[]
@@ -115,6 +116,7 @@
 ** xref:spring-cloud-gateway-server-webmvc/writing-custom-predicates-and-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/working-with-servlets-and-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/tls-and-ssl.adoc[]
+** xref:spring-cloud-gateway-server-webmvc/spring-security.adoc[]
 
 // begin Gateway Proxy Exchange
 
