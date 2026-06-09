@@ -12,5 +12,25 @@ In addition to custom `HandlerFunctions` for HTTP forwarding, Spring Cloud Gatew
 
 There are additional `*FilterFunctions` classes for optional filters that are documented along with each filter.
 
+[[gateway-http-client]]
+== HTTP Client
+
+Spring Cloud Gateway Server MVC uses Spring Boot's `RestClient` to forward proxied requests to downstream services.
+The HTTP client library is selected automatically from what is on the classpath, in order of priority:
+
+1. https://hc.apache.org/httpcomponents-client-5.x/[Apache HttpComponents 5] (`org.apache.hc.client5:httpclient5`)
+2. https://eclipse.dev/jetty/[Jetty HttpClient] (`org.eclipse.jetty:jetty-client`)
+3. JDK `HttpClient` (available since Java 11 — used when neither of the above is present)
+
+You can also set `spring.http.clients.imperative.factory` explicitly to `apache`, `jetty`, or `jdk`.
+
+[WARNING]
+====
+`SimpleClientHttpRequestFactory` (backed by `java.net.HttpURLConnection`) is *not* supported by Spring Cloud Gateway Server MVC.
+`HttpURLConnection` throws an exception (such as `java.io.FileNotFoundException`) on 4xx/5xx responses rather than returning the response body, which prevents the gateway from correctly forwarding error responses to the client.
+
+Do not declare a `ClientHttpRequestFactory` bean (or set `spring.http.clients.imperative.factory=simple`) that results in `SimpleClientHttpRequestFactory` being used.
+If you need to customize the HTTP client, configure one of the supported implementations listed above instead.
+====
 
 WARNING: Any path defined on a route URI will be ignored.
