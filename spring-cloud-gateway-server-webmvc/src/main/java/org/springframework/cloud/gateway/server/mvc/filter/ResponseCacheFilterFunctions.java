@@ -25,14 +25,18 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.cache.Cache;
+import org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.CacheKeyFactory.CacheKey;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.StringUtils;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -99,6 +103,113 @@ public abstract class ResponseCacheFilterFunctions {
 
 		FilterSupplier() {
 			super(ResponseCacheFilterFunctions.class);
+		}
+
+	}
+
+	/**
+	 * Allows registration and access to a specific {@link ResponseCacheManager}.
+	 * <p>
+	 * Allows access to a {@link ResponseCacheManager} that is to be used for a specific
+	 * route.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class ResponseCacheManagerRegistry {
+
+		void register(String id, ResponseCacheManager manager) {
+			// FIXME implement me...
+		}
+
+		ResponseCacheManager get(String id) {
+			// FIXME implement me...
+			return null;
+		}
+
+	}
+
+	/**
+	 * Allows responses and their metadata to be cached.
+	 * <p>
+	 * Builds on the cache abstraction provided by Spring, enabling flexible configuration
+	 * of the underlying cache.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class ResponseCacheManager {
+
+		private final Cache cache;
+
+		ResponseCacheManager(Cache cache) {
+			this.cache = cache;
+		}
+
+		<T> Optional<T> get(CacheKey key, Class<T> type) {
+			T entry = null;
+			try {
+				entry = cache.get(key, type);
+			}
+			catch (Exception e) {
+				// FIXME log
+			}
+			return Optional.ofNullable(entry);
+		}
+
+		void put(CacheKey key, Object object) {
+			cache.put(key, object);
+		}
+
+	}
+
+	/**
+	 * Represents the metadata of a cached HTTP response.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class CachedResponseMetadata {
+
+		private final List<String> headers;
+
+		CachedResponseMetadata(List<String> headers) {
+			this.headers = headers;
+		}
+
+		List<String> getHeaders() {
+			return headers;
+		}
+
+	}
+
+	/**
+	 * Represents a cached HTTP response.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class CachedResponse {
+
+		// FIXME Add the body
+		private final HttpStatusCode statusCode;
+
+		private final HttpHeaders headers;
+
+		private final Date timestamp;
+
+		CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, Date timestamp) {
+			this.statusCode = statusCode;
+			this.headers = headers;
+			this.timestamp = timestamp;
+		}
+
+		public HttpStatusCode getStatusCode() {
+			return statusCode;
+		}
+
+		public HttpHeaders getHeaders() {
+			return headers;
+		}
+
+		public Date getTimestamp() {
+			return timestamp;
 		}
 
 	}
