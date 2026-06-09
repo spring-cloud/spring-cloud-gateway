@@ -15,6 +15,8 @@
  */
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import org.springframework.web.servlet.function.HandlerFilterFunction;
+
 /**
  * The central interface that enables the caching of certain HTTP responses, thereby
  * reducing latency and overhead for the upstream server.
@@ -27,6 +29,21 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 public abstract class ResponseCacheFilterFunctions {
 
 	private ResponseCacheFilterFunctions() {
+	}
+
+	/**
+	 * A {@link FilterSupplier} implementation that provides all
+	 * {@link HandlerFilterFunction handler filter functions} available to be able to
+	 * cache HTTP responses.
+	 *
+	 * @author Ingo Griebsch
+	 */
+	static class FilterSupplier extends SimpleFilterSupplier {
+
+		FilterSupplier() {
+			super(ResponseCacheFilterFunctions.class);
+		}
+
 	}
 
 }
