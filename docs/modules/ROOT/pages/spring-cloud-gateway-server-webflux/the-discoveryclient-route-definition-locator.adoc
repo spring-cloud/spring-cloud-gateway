@@ -19,7 +19,14 @@ The default filter is a rewrite path filter with the regex `/serviceId/?(?<remai
 This strips the service ID from the path before the request is sent downstream.
 
 If you want to customize the predicates or filters used by the `DiscoveryClient` routes, set `spring.cloud.gateway.discovery.locator.predicates[x]` and `spring.cloud.gateway.discovery.locator.filters[y]`.
-When doing so, you need to make sure to include the default predicate and filter shown earlier, if you want to retain that functionality.
+
+[IMPORTANT]
+====
+Setting `spring.cloud.gateway.discovery.locator.filters` *replaces* the entire default filter list.
+If you only add your own filters without re-declaring `RewritePath`, the service ID will *not* be stripped from the path and requests will fail with a `404` on the downstream service.
+Always include the default `RewritePath` filter when defining custom filters, as shown in the examples below.
+====
+
 The following examples shows what this looks like in properties and yaml format:
 
 .application.properties
