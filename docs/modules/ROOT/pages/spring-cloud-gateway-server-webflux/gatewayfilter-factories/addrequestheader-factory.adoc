@@ -21,6 +21,17 @@ spring:
 
 This listing adds `X-Request-red:blue` header to the downstream request's headers for all matching requests.
 
+NOTE: The shortcut notation (`AddRequestHeader=Name, Value`) parses the value on the first comma, so header values that contain a comma must use the expanded (`name`/`value` args) form:
++
+[source,yaml]
+----
+filters:
+  - name: AddRequestHeader
+    args:
+      name: X-My-Header
+      value: "Value, with comma"
+----
+
 `AddRequestHeader` is aware of the URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
 The following example configures an `AddRequestHeader` `GatewayFilter` that uses a variable:
