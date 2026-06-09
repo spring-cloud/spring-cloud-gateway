@@ -76,18 +76,44 @@ public abstract class ResponseCacheFilterFunctions {
 			// FIXME implement me...
 
 			// If the request is not cacheable, simple continue with the next filter.
+			if (!ServletUtils.isCacheable(request)) {
+				return next.handle(request);
+			}
 
 			// FIXME Should we remember that this filter is now applied?
 
 			// If the request should be revalidated continue with the request an put the
 			// response in the cache.
+			if (ServletUtils.shouldRevalidate(request)) {
+				return cacheResponse(next.handle(request));
+			}
 
 			// Check if a response for this request is already cached.
+			Optional<CachedResponse> cachedResponse = obtainCachedResponse(request);
+
 			// If not, continue with the request an put the response in the cache.
 			// If so, return the cached response but update the metatdata built based on
 			// the request.
+			if (cachedResponse.isEmpty()) {
+				return cacheResponse(next.handle(request));
+			}
 
-			return next.handle(request);
+			return createResponse(cachedResponse.get());
+		}
+
+		private ServerResponse createResponse(CachedResponse cachedResponse) {
+			// FIXME implement me...
+			return null;
+		}
+
+		private ServerResponse cacheResponse(ServerResponse response) {
+			// FIXME implement me...
+			return response;
+		}
+
+		private Optional<CachedResponse> obtainCachedResponse(ServerRequest request) {
+			// FIXME implement me...
+			return null;
 		}
 
 	}
