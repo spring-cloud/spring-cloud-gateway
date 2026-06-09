@@ -57,3 +57,15 @@ The opposite situation can also apply.
 //However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gateway configuration, the prefix is stripped and the resulting scheme from the route URL overrides the `ServiceInstance` configuration.
 
 TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
+
+[[loadbalancer-restclient-warning]]
+== Do Not Use `@LoadBalanced` RestClient with the Gateway
+
+Spring Cloud Gateway Server MVC creates its own internal `RestClient` for proxying requests.
+This client must *not* be annotated with `@LoadBalanced`; the gateway's `lb()` filter (or the `lb://` URI scheme) is responsible for all load-balanced routing.
+
+If you define a custom `@LoadBalanced RestClient.Builder` bean in the same application context, Spring Cloud LoadBalancer will intercept every outbound request from that client — including the gateway's internal proxy calls — and attempt service discovery before the `lb()` filter has resolved the target.
+The result is an `IllegalArgumentException: Service Instance cannot be null` at runtime.
+
+Only use `@LoadBalanced` on `RestClient` beans that your own application code calls directly.
+For gateway routes, rely exclusively on the `lb()` filter or `lb://` URI scheme for load-balanced forwarding.
