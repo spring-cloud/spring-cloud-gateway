@@ -61,6 +61,8 @@ import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterF
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCResponseHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveForwardedHeadersFilter;
+import org.springframework.cloud.gateway.filter.headers.RemoveXForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.GatewayFilterSpec;
@@ -350,7 +352,9 @@ public class GatewayAutoConfigurationTests {
 					ServerPropertiesConfig.class))
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(XForwardedHeadersFilter.class)
-					.doesNotHaveBean(ForwardedHeadersFilter.class);
+					.doesNotHaveBean(ForwardedHeadersFilter.class)
+					.hasSingleBean(RemoveXForwardedHeadersFilter.class)
+					.hasSingleBean(RemoveForwardedHeadersFilter.class);
 			});
 	}
 
@@ -365,7 +369,9 @@ public class GatewayAutoConfigurationTests {
 					"spring.cloud.gateway.server.webflux.trusted-proxies=.*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(XForwardedHeadersFilter.class)
-					.hasSingleBean(ForwardedHeadersFilter.class);
+					.hasSingleBean(ForwardedHeadersFilter.class)
+					.doesNotHaveBean(RemoveXForwardedHeadersFilter.class)
+					.doesNotHaveBean(RemoveForwardedHeadersFilter.class);
 			});
 	}
 

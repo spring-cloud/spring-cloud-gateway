@@ -38,9 +38,11 @@ import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfigurati
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveXForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -190,6 +192,38 @@ public class GatewayServerMvcAutoConfigurationTests {
 			.run(context -> assertThat(context).doesNotHaveBean("lbHandlerFunctionDefinition"));
 	}
 
+	@Test
+	public void forwardedHeaderFiltersNotEnabledByDefault() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class)
+							.doesNotHaveBean(XForwardedRequestHeadersFilter.class)
+							.hasSingleBean(RemoveForwardedRequestHeadersFilter.class)
+							.hasSingleBean(RemoveXForwardedRequestHeadersFilter.class);
+				});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersEnabledWithProperties() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded.enabled=true",
+						"spring.cloud.gateway.server.webmvc.x-forwarded.enabled=true",
+						"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
+				.run(context -> {
+					assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class)
+							.hasSingleBean(XForwardedRequestHeadersFilter.class)
+							.doesNotHaveBean(RemoveForwardedRequestHeadersFilter.class)
+							.doesNotHaveBean(RemoveXForwardedRequestHeadersFilter.class);
+				});
+	}
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {

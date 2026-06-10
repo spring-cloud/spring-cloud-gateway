@@ -46,9 +46,11 @@ import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeade
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.RequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.HttpHeadersFilter.ResponseHttpHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveContentLengthRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHopByHopResponseHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.RemoveHttp2StatusResponseHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.RemoveXForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.TrustedProxies;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
@@ -136,6 +138,12 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
+	@Conditional(TrustedProxies.NotForwardedTrustedProxiesCondition.class)
+	public RemoveForwardedRequestHeadersFilter removeForwardedRequestHeadersFilter() {
+		return new RemoveForwardedRequestHeadersFilter();
+	}
+
+	@Bean
 	@ConditionalOnMissingBean
 	public GatewayMvcProperties gatewayMvcProperties() {
 		return new GatewayMvcProperties();
@@ -216,6 +224,12 @@ public class GatewayServerMvcAutoConfiguration {
 	@Bean
 	public XForwardedRequestHeadersFilterProperties xForwardedRequestHeadersFilterProperties() {
 		return new XForwardedRequestHeadersFilterProperties();
+	}
+
+	@Bean
+	@Conditional(TrustedProxies.NotXForwardedTrustedProxiesCondition.class)
+	public RemoveXForwardedRequestHeadersFilter removeXForwardedRequestHeadersFilter() {
+		return new RemoveXForwardedRequestHeadersFilter();
 	}
 
 	@Bean

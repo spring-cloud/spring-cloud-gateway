@@ -39,6 +39,8 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.RemoveForwardedRequestHeadersFilter.removeForwardedHeaders;
+
 /**
  * Filter that creates RFC 7239 compliant Forwarded headers to send to downstream
  * services.
@@ -156,7 +158,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 				&& !trustedProxies.isTrusted(request.servletRequest().getRemoteAddr())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.servletRequest().getRemoteHost()));
-			return input;
+			return removeForwardedHeaders(input, request);
 		}
 
 		HttpHeaders original = input;
