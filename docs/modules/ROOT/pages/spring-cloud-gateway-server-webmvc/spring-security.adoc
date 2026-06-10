@@ -1,0 +1,88 @@
+[[spring-security]]
+= Spring Security Integration
+
+Spring Cloud Gateway Server MVC can integrate with https://spring.io/projects/spring-security[Spring Security] to add authentication, authorization, and other security features to your gateway.
+
+[[spring-security-dependencies]]
+== Including Spring Security
+
+To include Spring Security in your Spring Cloud Gateway Server MVC project, add the following dependency:
+
+.pom.xml
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+----
+
+.build.gradle
+[source,groovy]
+----
+implementation 'org.springframework.boot:spring-boot-starter-security'
+----
+
+Once Spring Security is on the classpath, a default `SecurityFilterChain` bean is auto-configured that denies all requests unless explicitly permitted.
+You must configure your own `SecurityFilterChain` bean to specify your desired security rules.
+See the https://docs.spring.io/spring-security/reference/servlet/configuration/java.html[Spring Security Servlet documentation] for details.
+
+[[spring-security-firewall]]
+== HTTP Firewall
+
+When Spring Security is included, an `HttpFirewall` is applied to all incoming requests.
+By default, Spring Security configures a `StrictHttpFirewall`, which rejects requests that contain potentially dangerous patterns in the URL, such as:
+
+* URL-encoded characters (e.g., `%2F` for `/`)
+* Semi-colon characters
+* Normalized path traversal sequences
+
+Because Spring Cloud Gateway acts as a reverse proxy, legitimate downstream requests may contain URL patterns that the default firewall rejects.
+For example, when proxying requests whose paths include URL-encoded characters, you must relax the corresponding firewall restrictions.
+
+To customize the firewall rules, configure a custom `StrictHttpFirewall` bean:
+
+.SecurityConfiguration.java
+[source,java]
+----
+@Configuration
+@EnableWebSecurity
+public class SecurityConfiguration {
+
+    @Bean
+    public StrictHttpFirewall httpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedPercent(true);
+        firewall.setAllowUrlEncodedSlash(true);
+        return firewall;
+    }
+
+    @Bean
+    public SecurityFilterChain springSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().authenticated())
+                .build();
+    }
+}
+----
+
+NOTE: Be cautious when relaxing firewall restrictions.
+Only allow URL-encoded characters that are required for your specific routing rules.
+Overly permissive firewall settings may expose your application to security vulnerabilities.
+See the https://docs.spring.io/spring-security/reference/servlet/exploits/firewall.html[Spring Security HTTP Firewall documentation] for a complete reference.
+
+[[spring-security-filter-ordering]]
+== Filter Ordering with Spring Security
+
+Spring Cloud Gateway Server MVC relies on Spring MVC's `DispatcherServlet` and servlet filters.
+When using Spring Security, the `SecurityFilterChain` is applied via a `DelegatingFilterProxy` registered at `Ordered.HIGHEST_PRECEDENCE`.
+If you have custom gateway filters or servlet filters, ensure they are ordered correctly relative to Spring Security's filter chain.
+
+See xref:spring-cloud-gateway-server-webmvc/working-with-servlets-and-filters.adoc[Working with Servlets and Servlet Filters] for details on filter ordering.
+
+[[spring-security-oauth2]]
+== OAuth2 and Token Relay
+
+Spring Cloud Gateway Server MVC supports OAuth2 login and token relay to downstream services.
+See the xref:spring-cloud-gateway-server-webmvc/filters/tokenrelay.adoc[`TokenRelay` Filter] documentation for details.

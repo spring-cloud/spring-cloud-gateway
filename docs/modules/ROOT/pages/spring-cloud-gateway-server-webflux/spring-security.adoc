@@ -1,0 +1,81 @@
+[[spring-security]]
+= Spring Security Integration
+
+Spring Cloud Gateway Server WebFlux can integrate with https://spring.io/projects/spring-security[Spring Security] to add authentication, authorization, and other security features to your gateway.
+
+[[spring-security-dependencies]]
+== Including Spring Security
+
+To include Spring Security in your Spring Cloud Gateway Server WebFlux project, add the following dependency:
+
+.pom.xml
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+----
+
+.build.gradle
+[source,groovy]
+----
+implementation 'org.springframework.boot:spring-boot-starter-security'
+----
+
+Once Spring Security is on the classpath, a default `SecurityWebFilterChain` bean is auto-configured that denies all requests unless explicitly permitted.
+You must configure your own `SecurityWebFilterChain` bean to specify your desired security rules.
+See the https://docs.spring.io/spring-security/reference/reactive/configuration/webflux.html[Spring Security WebFlux documentation] for details.
+
+[[spring-security-firewall]]
+== HTTP Firewall
+
+When Spring Security is included, a `ServerWebExchangeFirewall` is applied to all incoming requests.
+By default, Spring Security configures a `StrictServerWebExchangeFirewall`, which rejects requests that contain potentially dangerous patterns in the URL, such as:
+
+* URL-encoded characters (e.g., `%2F` for `/`)
+* Semi-colon characters
+* Normalized path traversal sequences
+
+Because Spring Cloud Gateway acts as a reverse proxy, legitimate downstream requests may contain URL patterns that the default firewall rejects.
+For example, when using the xref:spring-cloud-gateway-server-webflux/request-predicates-factories.adoc[`Path` predicate], URL-encoded characters in the path must be allowed through the firewall.
+
+To relax the firewall rules, configure a custom `StrictServerWebExchangeFirewall` bean:
+
+.SecurityConfiguration.java
+[source,java]
+----
+@Configuration
+@EnableWebFluxSecurity
+public class SecurityConfiguration {
+
+    @Bean
+    public StrictServerWebExchangeFirewall httpFirewall() {
+        StrictServerWebExchangeFirewall firewall = new StrictServerWebExchangeFirewall();
+        firewall.setAllowUrlEncodedPercent(true);
+        firewall.setAllowUrlEncodedSlash(true);
+        return firewall;
+    }
+
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http,
+            StrictServerWebExchangeFirewall firewall) {
+        return http
+                .httpFirewall(firewall)
+                .authorizeExchange(exchanges -> exchanges
+                        .anyExchange().authenticated())
+                .build();
+    }
+}
+----
+
+NOTE: Be cautious when relaxing firewall restrictions.
+Only allow URL-encoded characters that are required for your specific routing rules.
+Overly permissive firewall settings may expose your application to security vulnerabilities.
+See the https://docs.spring.io/spring-security/reference/servlet/exploits/firewall.html[Spring Security HTTP Firewall documentation] for a complete reference.
+
+[[spring-security-oauth2]]
+== OAuth2 and Token Relay
+
+Spring Cloud Gateway Server WebFlux supports OAuth2 login and token relay to downstream services.
+See the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/tokenrelay-factory.adoc[`TokenRelay` `GatewayFilter` Factory] documentation for details.
