@@ -3,6 +3,48 @@
 
 The JSONToGRPC GatewayFilter Factory converts a JSON payload to a gRPC request.
 
+[[jsontogrpc-dependencies]]
+== Required Dependencies
+
+The `JsonToGrpc` filter depends on gRPC and Protobuf libraries that are not included transitively.
+You must add the following dependencies to your project:
+
+.pom.xml
+[source,xml]
+----
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-netty</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-protobuf</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-stub</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java-util</artifactId>
+</dependency>
+----
+
+.build.gradle
+[source,groovy]
+----
+implementation 'io.grpc:grpc-netty'
+implementation 'io.grpc:grpc-protobuf'
+implementation 'io.grpc:grpc-stub'
+implementation 'com.google.protobuf:protobuf-java-util'
+----
+
+The filter is only auto-configured when `io.grpc.Channel` is present on the classpath.
+If the dependencies are not present, the filter will not be available and attempts to use it will fail at startup or with a `NoClassDefFoundError` at request time.
+
+NOTE: The gRPC and Protobuf versions are managed by the Spring Cloud Gateway BOM.
+If you import `spring-cloud-dependencies` or `spring-cloud-starter-parent`, no explicit version is required.
+
 The filter takes the following arguments:
 
 * `service`: Short name of the service that handles the request.
