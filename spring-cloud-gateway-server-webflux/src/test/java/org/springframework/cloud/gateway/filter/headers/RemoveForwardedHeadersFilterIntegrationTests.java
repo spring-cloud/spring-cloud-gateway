@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ import static org.springframework.cloud.gateway.test.TestUtils.getMap;
  * @author Spencer Gibb
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.server.webflux.forwarded.enabled=true", "spring.cloud.gateway.server.webflux.x-forwarded.enabled=true",
+		properties = { "spring.cloud.gateway.server.webflux.forwarded.enabled=true",
+				"spring.cloud.gateway.server.webflux.x-forwarded.enabled=true",
 				"logging.level.org.springframework.cloud.gateway.filter.headers=TRACE" })
 @DirtiesContext
 public class RemoveForwardedHeadersFilterIntegrationTests extends BaseWebClientTests {
@@ -64,9 +65,8 @@ public class RemoveForwardedHeadersFilterIntegrationTests extends BaseWebClientT
 			.expectBody(Map.class)
 			.consumeWith(result -> {
 				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-				assertThat(headers).doesNotContainKeys(FORWARDED_HEADER,
-						X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
-						X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+				assertThat(headers).doesNotContainKeys(FORWARDED_HEADER, X_FORWARDED_FOR_HEADER,
+						X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 			});
 	}
 

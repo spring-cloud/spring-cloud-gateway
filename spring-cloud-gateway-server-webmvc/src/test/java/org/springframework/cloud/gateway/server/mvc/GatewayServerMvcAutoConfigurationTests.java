@@ -195,35 +195,36 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@Test
 	public void forwardedHeaderFiltersNotEnabledByDefault() {
 		new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
-						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
-						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-				.run(context -> {
-					assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class)
-							.doesNotHaveBean(XForwardedRequestHeadersFilter.class)
-							.hasSingleBean(RemoveForwardedRequestHeadersFilter.class)
-							.hasSingleBean(RemoveXForwardedRequestHeadersFilter.class);
-				});
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(XForwardedRequestHeadersFilter.class)
+					.hasSingleBean(RemoveForwardedRequestHeadersFilter.class)
+					.hasSingleBean(RemoveXForwardedRequestHeadersFilter.class);
+			});
 	}
 
 	@Test
 	public void forwardedHeaderFiltersEnabledWithProperties() {
 		new ApplicationContextRunner()
-				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
-						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
-						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
-						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-				.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded.enabled=true",
-						"spring.cloud.gateway.server.webmvc.x-forwarded.enabled=true",
-						"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
-				.run(context -> {
-					assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class)
-							.hasSingleBean(XForwardedRequestHeadersFilter.class)
-							.doesNotHaveBean(RemoveForwardedRequestHeadersFilter.class)
-							.doesNotHaveBean(RemoveXForwardedRequestHeadersFilter.class);
-				});
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded.enabled=true",
+					"spring.cloud.gateway.server.webmvc.x-forwarded.enabled=true",
+					"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
+			.run(context -> {
+				assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class)
+					.hasSingleBean(XForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(RemoveForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(RemoveXForwardedRequestHeadersFilter.class);
+			});
 	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {

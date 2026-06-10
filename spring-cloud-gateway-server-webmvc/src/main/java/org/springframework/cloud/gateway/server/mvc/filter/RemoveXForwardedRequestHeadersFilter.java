@@ -35,7 +35,8 @@ public class RemoveXForwardedRequestHeadersFilter implements HttpHeadersFilter.R
 	}
 
 	static HttpHeaders removeXForwardedHeaders(HttpHeaders input, ServerRequest serverRequest) {
-		return TrustedProxies.filterHeaders(input, serverRequest, key -> !key.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
+		return TrustedProxies.filterHeaders(input, serverRequest,
+				key -> !key.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
 	}
 
 }

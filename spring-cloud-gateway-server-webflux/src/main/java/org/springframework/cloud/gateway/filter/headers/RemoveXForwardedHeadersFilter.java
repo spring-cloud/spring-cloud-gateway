@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2013-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
-
 public class RemoveXForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	@Override
@@ -36,7 +35,8 @@ public class RemoveXForwardedHeadersFilter implements HttpHeadersFilter, Ordered
 	}
 
 	static HttpHeaders removeXForwardedHeaders(HttpHeaders input, ServerWebExchange exchange) {
-		return TrustedProxies.filterHeaders(input, exchange, key -> !key.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
+		return TrustedProxies.filterHeaders(input, exchange,
+				key -> !key.toLowerCase(Locale.ROOT).startsWith("x-forwarded-"));
 	}
 
 }

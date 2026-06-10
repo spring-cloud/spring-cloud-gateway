@@ -382,17 +382,17 @@ public class XForwardedHeadersFilterTests {
 	@Test
 	public void xForwardedHeadersNotTrustedXForwardedNotAdded() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
-				.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
-				.header(HttpHeaders.HOST, "myhost")
-				.header(X_FORWARDED_FOR_HEADER, "127.0.0.1")
-				.build();
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.header(X_FORWARDED_FOR_HEADER, "127.0.0.1")
+			.build();
 
 		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("11\\.0\\.0\\..*");
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers).doesNotContainKeys(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER,
-				X_FORWARDED_PROTO_HEADER);
+		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 	}
 
 	// : verify that existing x-forwarded-* headers are not forwarded

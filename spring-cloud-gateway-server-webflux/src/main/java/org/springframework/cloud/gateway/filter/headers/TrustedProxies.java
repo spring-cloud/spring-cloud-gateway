@@ -65,7 +65,8 @@ public interface TrustedProxies {
 	 * @param inclusionPredicate the predicate to test for header inclusion.
 	 * @return filtered HttpHeaders.
 	 */
-	static HttpHeaders filterHeaders(HttpHeaders input, ServerWebExchange exchange, Predicate<String> inclusionPredicate) {
+	static HttpHeaders filterHeaders(HttpHeaders input, ServerWebExchange exchange,
+			Predicate<String> inclusionPredicate) {
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers that match predicate
@@ -77,7 +78,6 @@ public interface TrustedProxies {
 
 		return updated;
 	}
-
 
 	class ForwardedTrustedProxiesCondition extends AllNestedConditions {
 
@@ -147,7 +147,7 @@ public interface TrustedProxies {
 			super(ConfigurationPhase.REGISTER_BEAN);
 		}
 
-		@ConditionalOnProperty(value = HttpServerProperties.PREFIX + ".customizer-enabled")
+		@ConditionalOnProperty(HttpServerProperties.PREFIX + ".customizer-enabled")
 		static class OnPropertyEnabled {
 
 		}

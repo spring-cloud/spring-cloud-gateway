@@ -43,6 +43,7 @@ import org.springframework.web.servlet.function.ServerRequest;
 
 @FunctionalInterface
 public interface TrustedProxies {
+
 	/**
 	 * Property name.
 	 */
