@@ -116,7 +116,6 @@
 |spring.cloud.gateway.server.webflux.httpclient.websocket.max-frame-payload-length |  | Max frame payload length.
 |spring.cloud.gateway.server.webflux.httpclient.websocket.proxy-ping | `+++true+++` | Proxy ping frames to downstream services, defaults to true.
 |spring.cloud.gateway.server.webflux.httpclient.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpClient.
-|spring.cloud.gateway.server.webflux.httpserver.customizer-enabled | `+++false+++` | Enables Gateway Customizer for Netty HttpServer, the default is false.
 |spring.cloud.gateway.server.webflux.httpserver.wiretap | `+++false+++` | Enables wiretap debugging for Netty HttpServer.
 |spring.cloud.gateway.server.webflux.loadbalancer.use404 | `+++false+++` | 
 |spring.cloud.gateway.server.webflux.metrics.enabled | `+++false+++` | Enables the collection of metrics data.
