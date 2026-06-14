@@ -20,7 +20,7 @@ spring:
               predicates:
               - Path=/**
               filters:
-              - PreserveHostHeader
+              - preserveHost
 ----
 
 .GatewaySampleApplication.java
