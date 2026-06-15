@@ -1,0 +1,114 @@
+[[spring-security]]
+= Spring Security Integration
+
+Spring Cloud Gateway Server MVC works with https://spring.io/projects/spring-security[Spring Security] to secure routes and relay tokens to downstream services.
+
+== Dependencies
+
+To add Spring Security to the gateway, include one or more of the following starters:
+
+.pom.xml
+[source,xml]
+----
+<!-- Core security (authentication and authorization) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+
+<!-- OAuth2 login and token relay to downstream services -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+
+<!-- Resource server: validate JWT or opaque tokens on each request -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+----
+
+== Default Behavior
+
+When `spring-boot-starter-security` is on the classpath, Spring Boot auto-configures a `SecurityFilterChain` that requires *all* requests to be authenticated.
+Provide an explicit `SecurityFilterChain` bean to customize access rules for your gateway routes.
+
+The following example allows health-check endpoints without authentication and requires a valid JWT on all other requests:
+
+.RouteSecurityConfiguration.java
+[source,java]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class RouteSecurityConfiguration {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers("/actuator/health/**").permitAll()
+                    .anyRequest().authenticated())
+            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+        return http.build();
+    }
+}
+----
+
+[[spring-security-http-firewall]]
+== HTTP Firewall
+
+Spring Security includes a `StrictHttpFirewall` that rejects HTTP requests whose URLs contain certain characters — such as encoded path separators (`%2F`), double forward slashes (`//`), or backslashes.
+These patterns can be legitimate in a gateway that proxies requests to downstream services that accept such paths.
+
+If the gateway is rejecting requests with a `400 Bad Request` before any route is matched, the `StrictHttpFirewall` may be blocking them.
+You can relax it as follows:
+
+.RouteSecurityConfiguration.java
+[source,java]
+----
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
+
+@Configuration
+@EnableWebSecurity
+public class RouteSecurityConfiguration {
+
+    @Bean
+    public HttpFirewall relaxedHttpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedSlash(true);         // allow %2F in path
+        firewall.setAllowUrlEncodedDoubleSlash(true);   // allow %2F%2F
+        firewall.setAllowBackSlash(true);               // allow \ in path
+        return firewall;
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.httpFirewall(relaxedHttpFirewall());
+    }
+}
+----
+
+[CAUTION]
+====
+Only relax the `StrictHttpFirewall` when your downstream services explicitly require it and your threat model accounts for the implications.
+See the https://docs.spring.io/spring-security/reference/servlet/exploits/firewall.html[Spring Security HTTP Firewall] reference for details.
+====
+
+== Token Relay
+
+When the gateway acts as an OAuth2 client, it can forward the currently authenticated user's access token to downstream services.
+See the xref:spring-cloud-gateway-server-webmvc/filters/tokenrelay.adoc[TokenRelay filter] documentation for usage and required dependencies.
+
+== Further Reading
+
+See the https://docs.spring.io/spring-security/reference/servlet/index.html[Spring Security Servlet Applications] reference for full details on `SecurityFilterChain`, method security, and OAuth2 integration.
