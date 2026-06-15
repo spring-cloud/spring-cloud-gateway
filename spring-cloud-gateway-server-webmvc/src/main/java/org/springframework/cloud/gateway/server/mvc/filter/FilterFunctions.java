@@ -97,8 +97,19 @@ public interface FilterFunctions {
 		return ofRequestProcessor(BeforeFilterFunctions.prefixPath(prefix));
 	}
 
+	/*
+	 * The original name of this method should have been {@code preserveHostHeader()} so
+	 * it matches the WebFlux version. Deprecate this method and remove it in the next
+	 * major.
+	 */
+	@Deprecated(forRemoval = true)
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHost() {
+		return preserveHostHeader();
+	}
+
+	@Shortcut
+	static HandlerFilterFunction<ServerResponse, ServerResponse> preserveHostHeader() {
 		return ofRequestProcessor(BeforeFilterFunctions.preserveHostHeader());
 	}
 
