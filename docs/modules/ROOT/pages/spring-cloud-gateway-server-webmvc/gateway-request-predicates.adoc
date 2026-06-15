@@ -690,6 +690,128 @@ class RouteConfiguration {
 
 This route would forward ~80% of traffic to https://weighthigh.org and ~20% of traffic to https://weightlow.org.
 
+[[version-request-predicate]]
+== The Version Request Predicate
+
+The `version` predicate matches requests based on the API version extracted from the incoming
+request.
+The version is resolved and parsed by the `ApiVersionStrategy` that is configured through
+Spring Framework's API versioning support (`spring.mvc.apiversion.*`).
+
+[[version-request-predicate-version-strategy]]
+=== Configuring the API Version Strategy
+
+Before using the `version` predicate you must configure at least one version resolver so that
+Spring (and Gateway MVC) knows how to extract the version from each incoming request.
+The following example configures version resolution from an HTTP header, a query parameter, and
+an `application/json` media-type parameter:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  mvc:
+    apiversion:
+      use:
+        header: X-API-Version          # extract version from this header
+        query-parameter: apiVersion    # or from this query parameter
+        media-type-parameter:          # or from the named media-type parameter
+          "[application/json]": version
+      required: false                  # allow requests without an explicit version
+----
+
+To extract the version from a path segment instead, set `path-segment` to the zero-based
+index of the segment that carries the version:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  mvc:
+    apiversion:
+      use:
+        path-segment: 1    # /v1/users → version = "1"
+----
+
+[[version-request-predicate-usage]]
+=== Using the Version Predicate
+
+The predicate accepts a single `version` argument and supports two forms:
+
+* **Fixed version** — the route matches only requests whose resolved version equals the given
+  version exactly.
+* **Baseline version** (`version+`) — the route matches requests whose resolved version is
+  greater than or equal to the given version.
+
+The following example configures a fixed-version route predicate:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+          - id: version_13_route
+            uri: https://example.org
+            predicates:
+            - Path=/api/**
+            - Version=1.3
+----
+
+This route matches only requests that carry exactly version `1.3`.
+
+The following example uses a baseline version:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+          - id: version_11_plus_route
+            uri: https://example.org
+            predicates:
+            - Path=/api/**
+            - Version=1.1+
+----
+
+This route matches requests with version `1.1` or any later version (for example `1.2`, `1.5`,
+or `2.0`).
+A baseline version lets a single route continue to serve requests across multiple API
+versions until a breaking change makes a new route necessary.
+
+The predicate can also be used in the Java DSL with
+`GatewayRequestPredicates.version(String)`:
+
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.version;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> gatewayRouterFunctions() {
+        return route("version_13_route")
+            .route(version("1.3"), http())
+            .before(uri("https://example.org"))
+            .build();
+    }
+}
+----
+
+NOTE: If no `ApiVersionStrategy` bean is present (that is, no `spring.mvc.apiversion.use.*`
+property is set), the `version` predicate always passes — any request without a resolved
+version is treated as matching.
+
 ////
 TODO: XForwardedRemoteAddr predicate
 [[xforwarded-remote-addr-request-predicate]]
