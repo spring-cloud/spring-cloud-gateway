@@ -71,15 +71,23 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientResponse);
 		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
 			.build((req, httpServletResponse) -> {
-				try (clientResponse) {
-					// get input stream from request attribute in case it was
-					// modified.
-					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
-							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
-					Objects.requireNonNull(inputStream, "input stream cannot be null");
+				// get input stream from request attribute in case it was
+				// modified.
+				InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
+						MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+				Objects.requireNonNull(inputStream, "input stream cannot be null");
+				IOException copyException = null;
+				try {
 					// copy body from request to clientHttpRequest
 					RestClientProxyExchange.this.copyResponseBody(clientResponse, inputStream,
 							httpServletResponse.getOutputStream());
+				}
+				catch (IOException ex) {
+					copyException = ex;
+					throw ex;
+				}
+				finally {
+					RestClientProxyExchange.this.closeResponse(clientResponse, inputStream, copyException);
 				}
 				return null;
 			});
