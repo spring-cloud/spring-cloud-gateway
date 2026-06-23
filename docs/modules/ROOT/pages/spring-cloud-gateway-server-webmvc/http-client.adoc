@@ -1,0 +1,62 @@
+[[http-client]]
+= HTTP Client
+
+Spring Cloud Gateway Server MVC uses Spring Boot's `RestClient` infrastructure to forward requests to backend services.
+The underlying `ClientHttpRequestFactory` is resolved from the application context, driven by `spring.http.clients.imperative.factory`.
+
+IMPORTANT: `SimpleClientHttpRequestFactory` (backed by `java.net.HttpURLConnection`) is **not suitable** for the WebMVC gateway.
+`HttpURLConnection` throws a `java.io.IOException` (such as `FileNotFoundException` for 404 responses) instead of providing the response body for 4xx/5xx status codes.
+The gateway cannot forward error responses correctly in this case, and the client will receive an `HTTP 500` instead of the actual upstream error status.
+
+== Selecting an HTTP Client
+
+Use one of the following supported implementations:
+
+=== JDK HttpClient (recommended, no extra dependency)
+
+Set the factory to `jdk` to use Java's built-in `HttpClient` (available since Java 11):
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    clients:
+      imperative:
+        factory: jdk
+----
+
+=== OkHttp
+
+Add `com.squareup.okhttp3:okhttp` to your classpath. The factory is selected automatically when `okhttp3.OkHttpClient` is on the classpath, or you can set it explicitly:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    clients:
+      imperative:
+        factory: okhttp
+----
+
+=== Apache HttpComponents
+
+Add `org.apache.httpcomponents.client5:httpclient5` to your classpath, or set the factory explicitly:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  http:
+    clients:
+      imperative:
+        factory: apache
+----
+
+NOTE: If you have OkHttp or Apache HttpComponents on the classpath, Spring Boot's auto-detection will prefer them over `SimpleClientHttpRequestFactory`, so the IMPORTANT notice above only applies when running without any of those libraries.
+
+== Related Documentation
+
+* xref:spring-cloud-gateway-server-webmvc/tls-and-ssl.adoc[TLS and SSL] – configure SSL bundles for backend calls
+* https://docs.spring.io/spring-boot/reference/io/rest-client.html#io.rest-client.restclient[Spring Boot RestClient documentation]
