@@ -6,7 +6,7 @@ The `Retry` `GatewayFilter` factory supports the following parameters:
 * `retries`: The number of retries that should be attempted.
 * `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
 * `methods`: The HTTP methods that should be retried, represented by using `org.springframework.http.HttpMethod`.
-* `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
+* `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`. When both `series` and `statuses` are set, a response is retried only if it matches the series AND is listed in `statuses`. To retry based on specific status codes without any series restriction, set `series` to an empty list (or `null` in YAML).
 * `exceptions`: A list of thrown exceptions that should be retried.
 * `backoff`: The configured exponential backoff for the retries.
 Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
