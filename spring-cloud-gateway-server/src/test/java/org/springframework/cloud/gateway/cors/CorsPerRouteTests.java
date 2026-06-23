@@ -97,6 +97,50 @@ public class CorsPerRouteTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void testPreFlightCorsRequestHostPredicateA() {
+		testClient.options()
+			.uri("/anything")
+			.header("Origin", "https://origin-a.com")
+			.header("Host", "hosta.example.com")
+			.header("Access-Control-Request-Method", "GET")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("https://origin-a.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactly(HttpMethod.GET);
+			});
+	}
+
+	@Test
+	public void testPreFlightCorsRequestHostPredicateB() {
+		testClient.options()
+			.uri("/anything")
+			.header("Origin", "https://origin-b.com")
+			.header("Host", "hostb.example.com")
+			.header("Access-Control-Request-Method", "POST")
+			.exchange()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				assertThat(result.getResponseBody()).isNull();
+				assertThat(result.getStatus()).isEqualTo(HttpStatus.OK);
+
+				HttpHeaders responseHeaders = result.getResponseHeaders();
+				assertThat(responseHeaders.getAccessControlAllowOrigin()).as(missingHeader(ACCESS_CONTROL_ALLOW_ORIGIN))
+					.isEqualTo("https://origin-b.com");
+				assertThat(responseHeaders.getAccessControlAllowMethods())
+					.as(missingHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+					.containsExactly(HttpMethod.POST);
+			});
+	}
+
+	@Test
 	public void testPreFlightForbiddenCorsRequest() {
 		testClient.get()
 			.uri("/cors")
