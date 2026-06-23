@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
@@ -39,6 +40,11 @@ public abstract class AbstractGatewayDiscoverer {
 	protected volatile MultiValueMap<String, OperationMethod> operations = new LinkedMultiValueMap<>();
 
 	public <T extends Supplier<Collection<Method>>, R> void doDiscover(Class<T> supplierClass, Class<R> returnType) {
+		doDiscover(supplierClass, returnType, (type, method) -> type.isAssignableFrom(method.getReturnType()));
+	}
+
+	public <T extends Supplier<Collection<Method>>, R> void doDiscover(Class<T> supplierClass, Class<R> returnType,
+			BiPredicate<Class<R>, Method> methodPredicate) {
 		List<T> suppliers = loadSuppliers(supplierClass);
 
 		List<Method> methods = new ArrayList<>();
@@ -59,8 +65,7 @@ public abstract class AbstractGatewayDiscoverer {
 		}
 
 		for (Method method : methods) {
-			// TODO: replace with a BiPredicate of some kind
-			if (returnType.isAssignableFrom(method.getReturnType())) {
+			if (methodPredicate.test(returnType, method)) {
 				addOperationMethod(method);
 			}
 		}
