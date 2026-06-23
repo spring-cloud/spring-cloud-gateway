@@ -40,7 +40,7 @@ public class GatewayRouteTagsProviderTests {
 
 	private static final Route ROUTE = Route.async().id(ROUTE_ID).uri(ROUTE_URI).predicate(swe -> true).build();
 
-	private static final Tags DEFAULT_TAGS = Tags.of("routeId", ROUTE_ID, "routeUri", ROUTE_URI);
+	private static final Tags DEFAULT_TAGS = Tags.of("route.id", ROUTE_ID, "route.uri", ROUTE_URI);
 
 	@Test
 	public void routeTags() {
