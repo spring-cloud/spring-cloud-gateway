@@ -17,9 +17,11 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -33,6 +35,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -111,6 +114,8 @@ public abstract class RetryFilterFunctions {
 
 		private boolean cacheBody = false;
 
+		private BackoffConfig backoff;
+
 		public int getRetries() {
 			return retries;
 		}
@@ -168,6 +173,76 @@ public abstract class RetryFilterFunctions {
 
 		public RetryConfig setCacheBody(boolean cacheBody) {
 			this.cacheBody = cacheBody;
+			return this;
+		}
+
+		public BackoffConfig getBackoff() {
+			return backoff;
+		}
+
+		public RetryConfig setBackoff(BackoffConfig backoff) {
+			this.backoff = backoff;
+			return this;
+		}
+
+		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor) {
+			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor);
+			return this;
+		}
+
+	}
+
+	public static class BackoffConfig {
+
+		private Duration firstBackoff = Duration.ofMillis(5);
+
+		private Duration maxBackoff;
+
+		private int factor = 2;
+
+		public BackoffConfig() {
+		}
+
+		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor) {
+			this.firstBackoff = firstBackoff;
+			this.maxBackoff = maxBackoff;
+			this.factor = factor;
+		}
+
+		public void validate() {
+			Objects.requireNonNull(this.firstBackoff, "firstBackoff must be present");
+			Assert.isTrue(this.firstBackoff.toMillis() >= 1, "firstBackoff must be >= 1ms");
+			Assert.isTrue(this.factor > 1, "factor must be greater than 1");
+			if (this.maxBackoff != null) {
+				Assert.isTrue(this.maxBackoff.compareTo(this.firstBackoff) > 0,
+						"maxBackoff must be greater than firstBackoff");
+			}
+		}
+
+		public Duration getFirstBackoff() {
+			return firstBackoff;
+		}
+
+		public BackoffConfig setFirstBackoff(Duration firstBackoff) {
+			this.firstBackoff = firstBackoff;
+			return this;
+		}
+
+		public Duration getMaxBackoff() {
+			return maxBackoff;
+		}
+
+		public BackoffConfig setMaxBackoff(Duration maxBackoff) {
+			this.maxBackoff = maxBackoff;
+			return this;
+		}
+
+		public int getFactor() {
+			return factor;
+		}
+
+		public BackoffConfig setFactor(int factor) {
+			this.factor = factor;
 			return this;
 		}
 
