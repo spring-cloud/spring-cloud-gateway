@@ -17,9 +17,11 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -111,6 +113,8 @@ public abstract class RetryFilterFunctions {
 
 		private boolean cacheBody = false;
 
+		private BackoffConfig backoff;
+
 		public int getRetries() {
 			return retries;
 		}
@@ -168,6 +172,83 @@ public abstract class RetryFilterFunctions {
 
 		public RetryConfig setCacheBody(boolean cacheBody) {
 			this.cacheBody = cacheBody;
+			return this;
+		}
+
+		public BackoffConfig getBackoff() {
+			return backoff;
+		}
+
+		public RetryConfig setBackoff(BackoffConfig backoff) {
+			this.backoff = backoff;
+			return this;
+		}
+
+		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor,
+				boolean basedOnPreviousValue) {
+			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor, basedOnPreviousValue);
+			return this;
+		}
+
+	}
+
+	public static class BackoffConfig {
+
+		private Duration firstBackoff = Duration.ofMillis(5);
+
+		private Duration maxBackoff;
+
+		private int factor = 2;
+
+		private boolean basedOnPreviousValue = true;
+
+		public BackoffConfig() {
+		}
+
+		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor, boolean basedOnPreviousValue) {
+			this.firstBackoff = firstBackoff;
+			this.maxBackoff = maxBackoff;
+			this.factor = factor;
+			this.basedOnPreviousValue = basedOnPreviousValue;
+		}
+
+		public void validate() {
+			Objects.requireNonNull(this.firstBackoff, "firstBackoff must be present");
+		}
+
+		public Duration getFirstBackoff() {
+			return firstBackoff;
+		}
+
+		public BackoffConfig setFirstBackoff(Duration firstBackoff) {
+			this.firstBackoff = firstBackoff;
+			return this;
+		}
+
+		public Duration getMaxBackoff() {
+			return maxBackoff;
+		}
+
+		public BackoffConfig setMaxBackoff(Duration maxBackoff) {
+			this.maxBackoff = maxBackoff;
+			return this;
+		}
+
+		public int getFactor() {
+			return factor;
+		}
+
+		public BackoffConfig setFactor(int factor) {
+			this.factor = factor;
+			return this;
+		}
+
+		public boolean isBasedOnPreviousValue() {
+			return basedOnPreviousValue;
+		}
+
+		public BackoffConfig setBasedOnPreviousValue(boolean basedOnPreviousValue) {
+			this.basedOnPreviousValue = basedOnPreviousValue;
 			return this;
 		}
 

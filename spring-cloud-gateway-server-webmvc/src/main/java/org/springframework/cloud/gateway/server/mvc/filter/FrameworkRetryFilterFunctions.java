@@ -17,15 +17,19 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.BackoffConfig;
 import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.backoff.BackOff;
+import org.springframework.util.backoff.ExponentialBackOff;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -55,6 +59,7 @@ public abstract class FrameworkRetryFilterFunctions {
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> frameworkRetry(
 			RetryFilterFunctions.RetryConfig config) {
+		validate(config);
 		return (request, next) -> {
 			CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy(config);
 
@@ -94,6 +99,22 @@ public abstract class FrameworkRetryFilterFunctions {
 		return config.getMethods().contains(method);
 	}
 
+	private static void validate(RetryFilterFunctions.RetryConfig config) {
+		if (config.getBackoff() != null) {
+			config.getBackoff().validate();
+		}
+	}
+
+	private static BackOff createBackOff(BackoffConfig backoff) {
+		ExponentialBackOff exponentialBackOff = new ExponentialBackOff(backoff.getFirstBackoff().toMillis(),
+				backoff.getFactor());
+		Duration maxBackoff = backoff.getMaxBackoff();
+		if (maxBackoff != null) {
+			exponentialBackOff.setMaxInterval(maxBackoff.toMillis());
+		}
+		return exponentialBackOff;
+	}
+
 	/**
 	 * Composite retry policy that combines exception-based and HTTP status-based retry
 	 * logic. Each instance is used for a single request execution, so we can use a
@@ -105,8 +126,17 @@ public abstract class FrameworkRetryFilterFunctions {
 
 		private int attemptCount = 0;
 
+		private final BackOff backOff;
+
 		CompositeRetryPolicy(RetryFilterFunctions.RetryConfig config) {
 			this.config = config;
+			this.backOff = config.getBackoff() != null ? createBackOff(config.getBackoff())
+					: RetryPolicy.withDefaults().getBackOff();
+		}
+
+		@Override
+		public BackOff getBackOff() {
+			return this.backOff;
 		}
 
 		@Override
