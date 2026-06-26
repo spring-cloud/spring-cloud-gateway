@@ -58,6 +58,11 @@ spring.cloud.gateway.server.webmvc:
             retries: 3
             series: SERVER_ERROR
             methods: GET,POST
+            backoff:
+              firstBackoff: 5ms
+              maxBackoff: 50ms
+              factor: 2
+              basedOnPreviousValue: false
         - name: CircuitBreaker
           args:
             id: mycb

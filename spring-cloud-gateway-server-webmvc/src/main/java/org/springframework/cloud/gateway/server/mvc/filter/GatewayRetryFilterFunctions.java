@@ -17,12 +17,14 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.BackoffConfig;
 import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.RetryConfig;
 import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.RetryException;
 import org.springframework.http.HttpMethod;
@@ -31,6 +33,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.CompositeRetryPolicy;
 import org.springframework.retry.policy.NeverRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
@@ -64,6 +67,7 @@ public abstract class GatewayRetryFilterFunctions {
 	}
 
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
+		validate(config);
 		RetryTemplateBuilder retryTemplateBuilder = RetryTemplate.builder();
 		CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
@@ -71,6 +75,7 @@ public abstract class GatewayRetryFilterFunctions {
 		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
 		compositeRetryPolicy
 			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
+		retryTemplateBuilder = configureBackoff(retryTemplateBuilder, config);
 		RetryTemplate retryTemplate = retryTemplateBuilder.customPolicy(compositeRetryPolicy).build();
 		return (request, next) -> retryTemplate.execute(context -> {
 			if (config.isCacheBody()) {
@@ -102,6 +107,23 @@ public abstract class GatewayRetryFilterFunctions {
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryConfig config) {
 		return config.getMethods().contains(method);
+	}
+
+	private static void validate(RetryConfig config) {
+		if (config.getBackoff() != null) {
+			config.getBackoff().validate();
+		}
+	}
+
+	private static RetryTemplateBuilder configureBackoff(RetryTemplateBuilder retryTemplateBuilder,
+			RetryConfig config) {
+		BackoffConfig backoff = config.getBackoff();
+		if (backoff == null) {
+			return retryTemplateBuilder;
+		}
+		Duration maxBackoff = backoff.getMaxBackoff() != null ? backoff.getMaxBackoff()
+				: Duration.ofMillis(ExponentialBackOffPolicy.DEFAULT_MAX_INTERVAL);
+		return retryTemplateBuilder.exponentialBackoff(backoff.getFirstBackoff(), backoff.getFactor(), maxBackoff);
 	}
 
 	public static class HttpRetryPolicy extends NeverRetryPolicy {

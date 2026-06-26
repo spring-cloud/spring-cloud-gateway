@@ -19,10 +19,10 @@ The `Retry` filter supports the following parameters:
 * `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
 * `exceptions`: A list of thrown exceptions that should be retried.
 * `cacheBody`: A flag to signal if the request body should be cached. If set to `true`, the `adaptCacheBody` filter must be used to send the cached body downstream.
-//* `backoff`: The configured exponential backoff for the retries.
-//Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
-//If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
-//If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
+* `backoff`: The configured exponential backoff for the retries.
+Retries are performed after a backoff interval of `firstBackoff * (factor ^ n)`, where `n` is the iteration.
+If `maxBackoff` is configured, the maximum backoff applied is limited to `maxBackoff`.
+If `basedOnPreviousValue` is true, the backoff is calculated by using `prevBackoff * factor`.
 
 The following defaults are configured for `Retry` filter, if enabled:
 
@@ -31,7 +31,7 @@ The following defaults are configured for `Retry` filter, if enabled:
 * `methods`: GET method
 * `exceptions`: `IOException`, `TimeoutException` and `RetryException`
 * `cacheBody`: `false`
-//* `backoff`: disabled
+* `backoff`: disabled
 
 WARNING: Setting `cacheBody` to `true` causes the gateway to read the whole body into memory. This should be used with caution.
 
@@ -57,12 +57,19 @@ spring:
                   series: SERVER_ERROR
                   methods: GET,POST
                   cacheBody: true
+                  backoff:
+                    firstBackoff: 100ms
+                    maxBackoff: 500ms
+                    factor: 2
+                    basedOnPreviousValue: false
               - name: AdaptCachedBody
 ----
 
 .GatewaySampleApplication.java
 [source,java]
 ----
+import java.time.Duration;
+
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.adaptCachedBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.retry;
@@ -81,7 +88,8 @@ class RouteConfiguration {
             .filter(retry(config -> config.setRetries(3)
                     .setSeries(Set.of(HttpStatus.Series.SERVER_ERROR))
                     .setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))
-                    .setCacheBody(true)))
+                    .setCacheBody(true)
+                    .setBackoff(Duration.ofMillis(100), Duration.ofMillis(500), 2, false)))
             .filter(adaptCachedBody())
             .build();
     }
@@ -143,4 +151,3 @@ spring:
 ----
 spring.cloud.gateway.server.webmvc.use-framework-retry-filter=true
 ----
-
