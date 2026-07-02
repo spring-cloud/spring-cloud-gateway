@@ -138,7 +138,7 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	@Conditional(TrustedProxies.NotForwardedTrustedProxiesCondition.class)
+	@Conditional(TrustedProxies.NotTrustedProxiesCondition.class)
 	public RemoveForwardedRequestHeadersFilter removeForwardedRequestHeadersFilter() {
 		return new RemoveForwardedRequestHeadersFilter();
 	}
@@ -227,7 +227,7 @@ public class GatewayServerMvcAutoConfiguration {
 	}
 
 	@Bean
-	@Conditional(TrustedProxies.NotXForwardedTrustedProxiesCondition.class)
+	@Conditional(TrustedProxies.NotTrustedProxiesCondition.class)
 	public RemoveXForwardedRequestHeadersFilter removeXForwardedRequestHeadersFilter() {
 		return new RemoveXForwardedRequestHeadersFilter();
 	}

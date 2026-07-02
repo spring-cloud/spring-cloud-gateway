@@ -141,6 +141,19 @@ public interface TrustedProxies {
 
 	}
 
+	class NotTrustedProxiesCondition extends NoneNestedConditions {
+
+		public NotTrustedProxiesCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnPropertyExists
+		static class OnTrustedProxiesNotEmpty {
+
+		}
+
+	}
+
 	class OnPropertyExistsCondition extends SpringBootCondition {
 
 		@Override

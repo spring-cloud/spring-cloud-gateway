@@ -225,6 +225,24 @@ public class GatewayServerMvcAutoConfigurationTests {
 			});
 	}
 
+	@Test
+	public void removeForwardedHeaderFiltersNotEnabledWhenTrustedProxiesConfigured() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false",
+					"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
+			.run(context -> {
+				assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(XForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(RemoveForwardedRequestHeadersFilter.class)
+					.doesNotHaveBean(RemoveXForwardedRequestHeadersFilter.class);
+			});
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {
