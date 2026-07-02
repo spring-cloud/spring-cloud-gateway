@@ -55,15 +55,24 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientHttpResponse);
 			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
 				.build((req, httpServletResponse) -> {
-					try (clientHttpResponse) {
-						// get input stream from request attribute in case it was
-						// modified.
-						InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
-								MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
-						Objects.requireNonNull(inputStream, "input stream cannot be null");
+					// get input stream from request attribute in case it was
+					// modified.
+					InputStream inputStream = MvcUtils.getAttribute(request.getServerRequest(),
+							MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+					Objects.requireNonNull(inputStream, "input stream cannot be null");
+					IOException copyException = null;
+					try {
 						// copy body from request to clientHttpRequest
 						ClientHttpRequestFactoryProxyExchange.this.copyResponseBody(clientHttpResponse, inputStream,
 								httpServletResponse.getOutputStream());
+					}
+					catch (IOException ex) {
+						copyException = ex;
+						throw ex;
+					}
+					finally {
+						ClientHttpRequestFactoryProxyExchange.this.closeResponse(clientHttpResponse, inputStream,
+								copyException);
 					}
 					return null;
 				});
