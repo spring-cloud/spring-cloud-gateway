@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Weigher;
+import io.github.bucket4j.BucketConfiguration;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -35,8 +36,6 @@ import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-
-import io.github.bucket4j.BucketConfiguration;
 
 @AutoConfiguration
 public class FilterAutoConfiguration {
@@ -117,7 +116,7 @@ public class FilterAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass({ Weigher.class, Caffeine.class/* , CaffeineCacheManager.class */ })
+	@ConditionalOnClass({ Weigher.class, Caffeine.class })
 	static class ResponseCacheFilterConfiguration {
 
 		@Bean

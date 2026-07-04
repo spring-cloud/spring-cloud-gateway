@@ -13,365 +13,695 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.cloud.gateway.server.mvc.filter;
 
-import static org.springframework.http.HttpHeaders.CACHE_CONTROL;
-import static org.springframework.http.HttpHeaders.VARY;
-import static org.springframework.http.HttpStatus.MOVED_PERMANENTLY;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.HttpStatus.PARTIAL_CONTENT;
-
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
-import java.util.Date;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Weigher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import org.springframework.cache.Cache;
-import org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.CacheKeyFactory.CacheKey;
+
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.util.StringUtils;
+import org.springframework.http.MediaType;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.unit.DataSize;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.function.AsyncServerResponse;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 /**
- * The central interface that enables the caching of certain HTTP responses, thereby
- * reducing latency and overhead for the upstream server.
- * <p>
- * I'm currently keeping all feature-specific code in this class. Whether and how the code
- * should be moved to separate classes and packages can be decided later.
+ * {@link HandlerFilterFunction HandlerFilterFunctions} that cache HTTP responses, so
+ * latency and upstream overhead are reduced. Mirrors the semantics of the WebFlux
+ * {@literal LocalResponseCache} filter.
  *
  * @author Ingo Griebsch
+ * @author Nikita Kibitkin
  */
 public abstract class ResponseCacheFilterFunctions {
+
+	private static final Duration DEFAULT_TIME_TO_LIVE = Duration.ofMinutes(5);
 
 	private ResponseCacheFilterFunctions() {
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> responseCache(Duration timeToLive,
-			DataSize cacheSize) {
-		return new ResponseCacheFilter();
+	@Shortcut
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> localResponseCache() {
+		return localResponseCache(null, null);
+	}
+
+	@Shortcut({ "timeToLive" })
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> localResponseCache(
+			@Nullable Duration timeToLive) {
+		return localResponseCache(timeToLive, null);
+	}
+
+	@Shortcut({ "timeToLive", "size" })
+	public static HandlerFilterFunction<ServerResponse, ServerResponse> localResponseCache(
+			@Nullable Duration timeToLive, @Nullable DataSize size) {
+		Duration ttl = timeToLive != null ? timeToLive : DEFAULT_TIME_TO_LIVE;
+		return new ResponseCacheFilter(
+				new ResponseCacheManager(new CacheKeyGenerator(), createCache(ttl, size), ttl, Clock.systemUTC()));
+	}
+
+	private static Cache<String, Object> createCache(Duration timeToLive, @Nullable DataSize size) {
+		Caffeine<Object, Object> caffeine = Caffeine.newBuilder().expireAfterWrite(timeToLive);
+		if (size != null) {
+			return caffeine.maximumWeight(size.toBytes()).weigher(new CachedResponseWeigher()).build();
+		}
+		return caffeine.build();
 	}
 
 	/**
-	 * A {@link HandlerFilterFunction} implementation that allows to cache certain HTTP
-	 * responses.
-	 *
-	 * @author Ingo Griebsch
+	 * A {@link HandlerFilterFunction} that serves responses from the local cache when
+	 * possible and populates the cache from the upstream response otherwise.
 	 */
 	static class ResponseCacheFilter implements HandlerFilterFunction<ServerResponse, ServerResponse> {
 
+		private final ResponseCacheManager responseCacheManager;
+
+		private volatile @Nullable List<MediaType> streamingMediaTypes;
+
+		ResponseCacheFilter(ResponseCacheManager responseCacheManager) {
+			this.responseCacheManager = responseCacheManager;
+		}
+
 		@Override
 		public ServerResponse filter(ServerRequest request, HandlerFunction<ServerResponse> next) throws Exception {
-			// FIXME implement me...
-
-			// If the request is not cacheable, simple continue with the next filter.
-			if (!ServletUtils.isCacheable(request)) {
+			if (!responseCacheManager.isRequestCacheable(request)) {
 				return next.handle(request);
 			}
-
-			// FIXME Should we remember that this filter is now applied?
-
-			// If the request should be revalidated continue with the request an put the
-			// response in the cache.
-			if (ServletUtils.shouldRevalidate(request)) {
-				return cacheResponse(next.handle(request));
+			if (responseCacheManager.isNoCacheRequest(request)) {
+				// no-cache: revalidate against the upstream, skip the cache entry update
+				return next.handle(request);
 			}
-
-			// Check if a response for this request is already cached.
-			Optional<CachedResponse> cachedResponse = obtainCachedResponse(request);
-
-			// If not, continue with the request an put the response in the cache.
-			// If so, return the cached response but update the metatdata built based on
-			// the request.
-			if (cachedResponse.isEmpty()) {
-				return cacheResponse(next.handle(request));
+			String metadataKey = responseCacheManager.resolveMetadataKey(request);
+			Optional<CachedResponse> cachedResponse = responseCacheManager.getFromCache(request, metadataKey);
+			if (cachedResponse.isPresent()) {
+				return responseCacheManager.processFromCache(metadataKey, cachedResponse.get());
 			}
-
-			return createResponse(cachedResponse.get());
+			ServerResponse response = next.handle(request);
+			if (response instanceof AsyncServerResponse) {
+				// an async response completes later and cannot be inspected or
+				// captured here
+				return response;
+			}
+			if (isStreamingResponse(request, response)) {
+				// a streaming body must not be buffered into the cache
+				return response;
+			}
+			return responseCacheManager.processFromUpstream(request, metadataKey, response);
 		}
 
-		private ServerResponse createResponse(CachedResponse cachedResponse) {
-			// FIXME implement me...
-			return null;
+		private boolean isStreamingResponse(ServerRequest request, ServerResponse response) {
+			MediaType contentType = response.headers().getContentType();
+			if (contentType == null) {
+				return false;
+			}
+			return streamingMediaTypes(request).stream().anyMatch(contentType::isCompatibleWith);
 		}
 
-		private ServerResponse cacheResponse(ServerResponse response) {
-			// FIXME implement me...
-			return response;
-		}
-
-		private Optional<CachedResponse> obtainCachedResponse(ServerRequest request) {
-			// FIXME implement me...
-			return null;
-		}
-
-	}
-
-	/**
-	 * A {@link FilterSupplier} implementation that provides all
-	 * {@link HandlerFilterFunction handler filter functions} available to be able to
-	 * cache HTTP responses.
-	 *
-	 * @author Ingo Griebsch
-	 */
-	static class FilterSupplier extends SimpleFilterSupplier {
-
-		FilterSupplier() {
-			super(ResponseCacheFilterFunctions.class);
-		}
-
-	}
-
-	/**
-	 * Allows registration and access to a specific {@link ResponseCacheManager}.
-	 * <p>
-	 * Allows access to a {@link ResponseCacheManager} that is to be used for a specific
-	 * route.
-	 *
-	 * @author Ingo Griebsch
-	 */
-	static class ResponseCacheManagerRegistry {
-
-		void register(String id, ResponseCacheManager manager) {
-			// FIXME implement me...
-		}
-
-		ResponseCacheManager get(String id) {
-			// FIXME implement me...
-			return null;
+		private List<MediaType> streamingMediaTypes(ServerRequest request) {
+			List<MediaType> mediaTypes = this.streamingMediaTypes;
+			if (mediaTypes == null) {
+				mediaTypes = MvcUtils.getApplicationContext(request)
+					.getBeanProvider(GatewayMvcProperties.class)
+					.getIfAvailable(GatewayMvcProperties::new)
+					.getStreamingMediaTypes();
+				this.streamingMediaTypes = mediaTypes;
+			}
+			return mediaTypes;
 		}
 
 	}
 
 	/**
-	 * Allows responses and their metadata to be cached.
-	 * <p>
-	 * Builds on the cache abstraction provided by Spring, enabling flexible configuration
-	 * of the underlying cache.
-	 *
-	 * @author Ingo Griebsch
+	 * Caches responses and their metadata and applies the cache related response header
+	 * mutations on both the cached and the upstream exchange path.
 	 */
 	static class ResponseCacheManager {
 
-		private final Cache cache;
+		private static final Log LOGGER = LogFactory.getLog(ResponseCacheManager.class);
 
-		ResponseCacheManager(Cache cache) {
+		private static final List<String> FORBIDDEN_CACHE_CONTROL_VALUES = List.of("private", "no-store");
+
+		private static final List<HttpStatusCode> STATUSES_TO_CACHE = List.of(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
+				HttpStatus.MOVED_PERMANENTLY);
+
+		private static final String VARY_WILDCARD = "*";
+
+		private static final Pattern NO_CACHE_PATTERN = Pattern.compile(".*(\\s|,|^)no-cache(\\s|,|$).*");
+
+		private static final String MAX_AGE_PREFIX = "max-age=";
+
+		private final CacheKeyGenerator cacheKeyGenerator;
+
+		private final Cache<String, Object> cache;
+
+		private final Duration timeToLive;
+
+		private final Clock clock;
+
+		ResponseCacheManager(CacheKeyGenerator cacheKeyGenerator, Cache<String, Object> cache, Duration timeToLive,
+				Clock clock) {
+			this.cacheKeyGenerator = cacheKeyGenerator;
 			this.cache = cache;
+			this.timeToLive = timeToLive;
+			this.clock = clock;
 		}
 
-		<T> Optional<T> get(CacheKey key, Class<T> type) {
-			T entry = null;
+		boolean isRequestCacheable(ServerRequest request) {
+			return HttpMethod.GET.equals(request.method()) && !hasRequestBody(request)
+					&& isCacheControlAllowed(request.headers().asHttpHeaders());
+		}
+
+		boolean isNoCacheRequest(ServerRequest request) {
+			String cacheControl = request.headers().asHttpHeaders().getCacheControl();
+			return cacheControl != null && NO_CACHE_PATTERN.matcher(cacheControl).matches();
+		}
+
+		String resolveMetadataKey(ServerRequest request) {
+			return cacheKeyGenerator.generateMetadataKey(request);
+		}
+
+		Optional<CachedResponse> getFromCache(ServerRequest request, String metadataKey) {
+			List<String> varyOnHeaders = getIfPresent(metadataKey) instanceof CachedResponseMetadata metadata
+					? metadata.varyOnHeaders() : Collections.emptyList();
+			String key = cacheKeyGenerator.generateKey(request, varyOnHeaders);
+			return getIfPresent(key) instanceof CachedResponse cachedResponse ? Optional.of(cachedResponse)
+					: Optional.empty();
+		}
+
+		ServerResponse processFromUpstream(ServerRequest request, String metadataKey, ServerResponse response) {
+			if (!isResponseCacheable(response)) {
+				return response;
+			}
+			CachedResponseMetadata metadata = new CachedResponseMetadata(response.headers().getVary());
+			String key = cacheKeyGenerator.generateKey(request, metadata.varyOnHeaders());
 			try {
-				entry = cache.get(key, type);
+				applyAfterCacheMutations(response.headers(), clock.instant());
 			}
-			catch (Exception e) {
-				// FIXME log
+			catch (UnsupportedOperationException ex) {
+				// the response implementation exposes read-only headers (e.g. a
+				// replacement built with ServerResponse.ok()); the entry is still
+				// cached and cache hits receive the mutations
 			}
-			return Optional.ofNullable(entry);
+			// the body cannot be read here without breaking the deferred proxy write,
+			// so capture the bytes while they are written and fill the cache afterwards
+			return new CachingServerResponse(response, this, metadataKey, metadata, key);
 		}
 
-		void put(CacheKey key, Object object) {
-			cache.put(key, object);
+		void cacheCapturedResponse(String metadataKey, CachedResponseMetadata metadata, String key,
+				HttpStatusCode statusCode, HttpHeaders headers, byte[] body) {
+			if (!STATUSES_TO_CACHE.contains(statusCode)) {
+				// the status was mutated after the response was wrapped (e.g. by an
+				// outer SetStatus filter)
+				return;
+			}
+			if (headers.getContentLength() > -1 && headers.getContentLength() != body.length) {
+				// the framing header does not match the written body, so something
+				// outside the filter altered the exchange; do not cache the anomaly
+				return;
+			}
+			putInCache(metadataKey, metadata);
+			putInCache(key, new CachedResponse(statusCode, headers, body, clock.instant()));
+		}
+
+		ServerResponse processFromCache(String metadataKey, CachedResponse cachedResponse) {
+			putInCache(metadataKey, new CachedResponseMetadata(cachedResponse.headers().getVary()));
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.addAll(cachedResponse.headers());
+			applyAfterCacheMutations(responseHeaders, cachedResponse.timestamp());
+			return GatewayServerResponse.status(cachedResponse.statusCode())
+				.headers(headers -> headers.addAll(responseHeaders))
+				.build((servletRequest, servletResponse) -> {
+					servletResponse.getOutputStream().write(cachedResponse.body());
+					return null;
+				});
+		}
+
+		private boolean isResponseCacheable(ServerResponse response) {
+			return STATUSES_TO_CACHE.contains(response.statusCode()) && isCacheControlAllowed(response.headers())
+					&& !isVaryWildcard(response.headers());
+		}
+
+		private void applyAfterCacheMutations(HttpHeaders headers, Instant cachedAt) {
+			headers.remove(HttpHeaders.PRAGMA);
+			headers.remove(HttpHeaders.EXPIRES);
+			long maxAgeInSeconds = calculateMaxAgeInSeconds(cachedAt);
+			rewriteCacheControlMaxAge(headers, maxAgeInSeconds);
+			reconcileCacheControlDirectives(headers, maxAgeInSeconds);
+		}
+
+		private long calculateMaxAgeInSeconds(Instant cachedAt) {
+			if (timeToLive.getSeconds() < 0) {
+				return 0;
+			}
+			Duration elapsed = Duration.between(cachedAt, clock.instant());
+			return Math.max(0, timeToLive.minus(elapsed).getSeconds());
+		}
+
+		private static void rewriteCacheControlMaxAge(HttpHeaders headers, long maxAgeInSeconds) {
+			List<String> cacheControlValues = headers.getOrEmpty(HttpHeaders.CACHE_CONTROL);
+			List<String> newCacheControlValues = new ArrayList<>();
+			boolean maxAgePresent = cacheControlValues.stream().anyMatch(value -> value.contains(MAX_AGE_PREFIX));
+			if (maxAgePresent) {
+				for (String value : cacheControlValues) {
+					if (value.contains(MAX_AGE_PREFIX)) {
+						value = value.replaceFirst("\\bmax-age=\\d+\\b", MAX_AGE_PREFIX + maxAgeInSeconds);
+					}
+					newCacheControlValues.add(value);
+				}
+			}
+			else {
+				newCacheControlValues.addAll(cacheControlValues);
+				newCacheControlValues.add(MAX_AGE_PREFIX + maxAgeInSeconds);
+			}
+			headers.remove(HttpHeaders.CACHE_CONTROL);
+			headers.addAll(HttpHeaders.CACHE_CONTROL, newCacheControlValues);
+		}
+
+		private static void reconcileCacheControlDirectives(HttpHeaders headers, long maxAgeInSeconds) {
+			String cacheControl = headers.getCacheControl();
+			if (cacheControl == null) {
+				return;
+			}
+			if (maxAgeInSeconds > 0) {
+				headers.setCacheControl(Arrays.stream(cacheControl.split("\\s*,\\s*"))
+					.filter(directive -> !directive.matches("must-revalidate|no-cache|no-store"))
+					.collect(Collectors.joining(",")));
+			}
+			else {
+				// 'max-age' is present, so appending directives with commas is safe
+				StringBuilder newCacheControl = new StringBuilder(cacheControl);
+				if (!cacheControl.contains("no-cache")) {
+					newCacheControl.append(",no-cache");
+				}
+				if (!cacheControl.contains("must-revalidate")) {
+					newCacheControl.append(",must-revalidate");
+				}
+				headers.setCacheControl(newCacheControl.toString());
+			}
+		}
+
+		private static boolean isCacheControlAllowed(HttpHeaders headers) {
+			return headers.getOrEmpty(HttpHeaders.CACHE_CONTROL)
+				.stream()
+				.noneMatch(FORBIDDEN_CACHE_CONTROL_VALUES::contains);
+		}
+
+		private static boolean isVaryWildcard(HttpHeaders headers) {
+			return headers.getOrEmpty(HttpHeaders.VARY).stream().anyMatch(VARY_WILDCARD::equals);
+		}
+
+		private static boolean hasRequestBody(ServerRequest request) {
+			return request.headers().asHttpHeaders().getContentLength() > 0;
+		}
+
+		private @Nullable Object getIfPresent(String key) {
+			try {
+				return cache.getIfPresent(key);
+			}
+			catch (RuntimeException e) {
+				LOGGER.error("Error reading from cache. Data will not come from cache.", e);
+				return null;
+			}
+		}
+
+		private void putInCache(String key, Object value) {
+			try {
+				cache.put(key, value);
+			}
+			catch (RuntimeException e) {
+				LOGGER.error("Error writing into cache. Data will not be cached.", e);
+			}
 		}
 
 	}
 
 	/**
-	 * Represents the metadata of a cached HTTP response.
-	 *
-	 * @author Ingo Griebsch
+	 * Creates cache keys based on a {@link ServerRequest} and the headers the cached
+	 * response varies on.
 	 */
-	static class CachedResponseMetadata {
+	static class CacheKeyGenerator {
 
-		private final List<String> headers;
+		private static final String KEY_SEPARATOR = ";";
 
-		CachedResponseMetadata(List<String> headers) {
-			this.headers = headers;
+		private static final String METADATA_KEY_PREFIX = "META_";
+
+		private final ThreadLocal<MessageDigest> messageDigest = ThreadLocal.withInitial(() -> {
+			try {
+				return MessageDigest.getInstance("MD5");
+			}
+			catch (NoSuchAlgorithmException e) {
+				throw new IllegalStateException("Error creating CacheKeyGenerator", e);
+			}
+		});
+
+		String generateMetadataKey(ServerRequest request) {
+			return METADATA_KEY_PREFIX + generateKey(request, Collections.emptyList());
 		}
 
-		List<String> getHeaders() {
-			return headers;
+		String generateKey(ServerRequest request, List<String> varyOnHeaders) {
+			byte[] digest = messageDigest.get().digest(generateRawKey(request, varyOnHeaders));
+			return Base64.getEncoder().encodeToString(digest);
+		}
+
+		private byte[] generateRawKey(ServerRequest request, List<String> varyOnHeaders) {
+			StringBuilder rawKey = new StringBuilder();
+			rawKey.append(request.uri()).append(KEY_SEPARATOR);
+			rawKey.append(headerKeyValue(request, HttpHeaders.AUTHORIZATION, KEY_SEPARATOR)).append(KEY_SEPARATOR);
+			rawKey.append(cookiesKeyValue(request)).append(KEY_SEPARATOR);
+			varyOnHeaders.stream()
+				.sorted()
+				.forEach(header -> rawKey.append(headerKeyValue(request, header, ",")).append(KEY_SEPARATOR));
+			return rawKey.toString().getBytes(StandardCharsets.UTF_8);
+		}
+
+		private static String headerKeyValue(ServerRequest request, String header, String valueSeparator) {
+			List<String> values = request.headers().asHttpHeaders().get(header);
+			if (values == null) {
+				return "";
+			}
+			return header + "=" + values.stream().sorted().collect(Collectors.joining(valueSeparator));
+		}
+
+		private static String cookiesKeyValue(ServerRequest request) {
+			MultiValueMap<String, Cookie> cookies = request.cookies();
+			if (CollectionUtils.isEmpty(cookies)) {
+				return "";
+			}
+			return cookies.values()
+				.stream()
+				.flatMap(Collection::stream)
+				.map(cookie -> cookie.getName() + "=" + cookie.getValue())
+				.sorted()
+				.collect(Collectors.joining(KEY_SEPARATOR));
 		}
 
 	}
 
 	/**
-	 * Represents a cached HTTP response.
+	 * A cached HTTP response.
 	 *
-	 * @author Ingo Griebsch
+	 * @param statusCode the status code of the cached response
+	 * @param headers the headers of the cached response, as received from the upstream
+	 * @param body the body of the cached response
+	 * @param timestamp the moment the response was cached
 	 */
-	static class CachedResponse {
-
-		// FIXME Add the body
-		private final HttpStatusCode statusCode;
-
-		private final HttpHeaders headers;
-
-		private final Date timestamp;
-
-		CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, Date timestamp) {
-			this.statusCode = statusCode;
-			this.headers = headers;
-			this.timestamp = timestamp;
-		}
-
-		public HttpStatusCode getStatusCode() {
-			return statusCode;
-		}
-
-		public HttpHeaders getHeaders() {
-			return headers;
-		}
-
-		public Date getTimestamp() {
-			return timestamp;
-		}
+	record CachedResponse(HttpStatusCode statusCode, HttpHeaders headers, byte[] body, Instant timestamp) {
 
 	}
 
 	/**
-	 * A factory that allows to create {@link CacheKey cache-keys} based on a
-	 * {@link ServerRequest} and additional context related information.
+	 * The metadata of a cached HTTP response.
 	 *
-	 * @author Ingo Griebsch
+	 * @param varyOnHeaders the request headers the cached response varies on
 	 */
-	static class CacheKeyFactory {
-
-		private final ThreadLocal<MessageDigest> messageDigest;
-
-		CacheKeyFactory() {
-			this.messageDigest = ThreadLocal.withInitial(() -> {
-				try {
-					return MessageDigest.getInstance("MD5");
-				}
-				catch (NoSuchAlgorithmException e) {
-					throw new RuntimeException("Caught exception while creating CacheKeyCalculator!", e);
-				}
-			});
-		}
-
-		CacheKey from(ServerRequest request, @Nullable String prefix) {
-			return from(request, List.of(), prefix);
-		}
-
-		CacheKey from(ServerRequest request, List<String> headers, @Nullable String prefix) {
-			byte[] digest = messageDigest.get().digest(calculate(request, headers));
-			return new CacheKey(prefix, Base64.getEncoder().encodeToString(digest));
-		}
-
-		private byte[] calculate(ServerRequest request, List<String> headers) {
-			// FIXME implement me...
-			return null;
-		}
-
-		static class CacheKey {
-
-			private final String value;
-
-			CacheKey(@Nullable String prefix, String value) {
-				this.value = "%s%s".formatted(StringUtils.hasText(prefix) ? "%s_".formatted(prefix) : "", value);
-			}
-
-			String getValue() {
-				return value;
-			}
-
-			@Override
-			public int hashCode() {
-				return Objects.hash(value);
-			}
-
-			@Override
-			public boolean equals(Object obj) {
-				if (this == obj) {
-					return true;
-				}
-				if (obj == null) {
-					return false;
-				}
-				if (getClass() != obj.getClass()) {
-					return false;
-				}
-				CacheKey other = (CacheKey) obj;
-				return Objects.equals(value, other.value);
-			}
-
-		}
+	record CachedResponseMetadata(List<String> varyOnHeaders) {
 
 	}
 
 	/**
-	 * A set of servlet related utilities to ease the implementation of the
-	 * {@link ResponseCacheFilterFunctions response cache filter functions}.
-	 *
-	 * @author Ingo Griebsch
+	 * A {@link ServerResponse} decorator that captures the bytes the delegate writes and
+	 * fills the cache once the delegate has been written successfully. Capturing at write
+	 * time keeps the regular (deferred) proxy write path intact and guarantees that the
+	 * cached body always belongs to the response that produced it.
 	 */
-	abstract static class ServletUtils {
+	private static final class CachingServerResponse implements GatewayServerResponse {
 
-		private ServletUtils() {
+		private final ServerResponse delegate;
+
+		private final ResponseCacheManager responseCacheManager;
+
+		private final String metadataKey;
+
+		private final CachedResponseMetadata metadata;
+
+		private final String key;
+
+		CachingServerResponse(ServerResponse delegate, ResponseCacheManager responseCacheManager, String metadataKey,
+				CachedResponseMetadata metadata, String key) {
+			this.delegate = delegate;
+			this.responseCacheManager = responseCacheManager;
+			this.metadataKey = metadataKey;
+			this.metadata = metadata;
+			this.key = key;
 		}
 
-		static boolean shouldRevalidate(ServerRequest request) {
-			return Optional.ofNullable(request.headers().asHttpHeaders().getCacheControl())
-				.map(v -> v.matches(".*(\s|,|^)no-cache(\\s|,|$).*"))
-				.orElse(false);
+		@Override
+		public HttpStatusCode statusCode() {
+			return delegate.statusCode();
 		}
 
-		static boolean isCacheable(ServerRequest request) {
-			return isGetMethod(request) && !hasBody(request) && isCacheControlAllowed(request);
+		@Override
+		public void setStatusCode(HttpStatusCode statusCode) {
+			// matches the SetStatus filter semantics: status mutation is only
+			// supported for gateway-produced responses
+			if (delegate instanceof GatewayServerResponse gatewayServerResponse) {
+				gatewayServerResponse.setStatusCode(statusCode);
+			}
 		}
 
-		static boolean isCacheControlAllowed(ServerRequest request) {
-			return isCacheControlAllowed(request.headers().header(CACHE_CONTROL));
+		@Override
+		public HttpHeaders headers() {
+			return delegate.headers();
 		}
 
-		static boolean isCacheControlAllowed(ServerResponse response) {
-			return isCacheControlAllowed(response.headers().get(CACHE_CONTROL));
+		@Override
+		public MultiValueMap<String, Cookie> cookies() {
+			return delegate.cookies();
 		}
 
-		static boolean hasBody(ServerRequest request) {
-			// FIXME What if no Content-Length header is present? Should we assume that
-			// the request has no body or should we read
-			// the body to determine if it has content?
-			return request.headers().contentLength().orElse(0L) > 0;
+		@Override
+		public @Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+				throws ServletException, IOException {
+			BodyCapturingResponseWrapper capturingResponse = new BodyCapturingResponseWrapper(response);
+			ModelAndView modelAndView;
+			try {
+				modelAndView = delegate.writeTo(request, capturingResponse, context);
+			}
+			finally {
+				// the capturing writer buffers; flush so the client receives the tail
+				// even when the write turns out not to be cacheable
+				capturingResponse.flushWriter();
+			}
+			if (isCompletedCacheableWrite(request, capturingResponse, modelAndView)) {
+				responseCacheManager.cacheCapturedResponse(metadataKey, metadata, key, delegate.statusCode(),
+						headersToCache(capturingResponse), capturingResponse.getCapturedBody());
+			}
+			else {
+				capturingResponse.stopCapturing();
+			}
+			return modelAndView;
 		}
 
-		static boolean isGetMethod(ServerRequest request) {
-			return HttpMethod.GET.equals(request.method());
-		}
-
-		static boolean isCacheable(ServerResponse response) {
-			List<HttpStatus> cacheableStatusCodes = List.of(OK, PARTIAL_CONTENT, MOVED_PERMANENTLY);
-			return hasStatusCode(response, cacheableStatusCodes) && isCacheControlAllowed(response)
-					&& !isVaryWildcard(response);
-		}
-
-		static boolean hasStatusCode(ServerResponse response, List<HttpStatus> statusCodes) {
-			return statusCodes.contains(response.statusCode());
-		}
-
-		static boolean isVaryWildcard(ServerResponse response) {
-			HttpHeaders headers = response.headers();
-			List<String> varyValues = headers.getOrEmpty(VARY);
-			return varyValues.stream().anyMatch("*"::equals);
-		}
-
-		private static boolean isCacheControlAllowed(@Nullable List<String> headerValues) {
-			if (headerValues == null) {
+		private boolean isCompletedCacheableWrite(HttpServletRequest request, BodyCapturingResponseWrapper response,
+				@Nullable ModelAndView modelAndView) {
+			if (modelAndView != null || request.isAsyncStarted()) {
+				// the body is produced outside this call (view rendering or async
+				// dispatch), so nothing was captured
 				return false;
 			}
-			return headerValues.stream().noneMatch(List.of("private", "no-store")::contains);
+			if (response.getStatus() != delegate.statusCode().value()) {
+				// the delegate answered differently than advertised, e.g. 304 Not
+				// Modified to a conditional request, so the captured body is not the
+				// full response
+				return false;
+			}
+			if (response.hasCaptureErrors()) {
+				// a swallowed writer error means the captured body may be truncated
+				return false;
+			}
+			return true;
+		}
+
+		private HttpHeaders headersToCache(BodyCapturingResponseWrapper response) {
+			HttpHeaders headers = new HttpHeaders();
+			headers.addAll(delegate.headers());
+			// some headers only exist on the servlet response, e.g. the Content-Type a
+			// message converter chose while writing a replacement response
+			if (headers.getContentType() == null && response.getContentType() != null) {
+				headers.set(HttpHeaders.CONTENT_TYPE, response.getContentType());
+			}
+			return headers;
+		}
+
+	}
+
+	/**
+	 * A {@link HttpServletResponseWrapper} that copies everything written to the response
+	 * body into a buffer while passing it through to the underlying response.
+	 */
+	private static final class BodyCapturingResponseWrapper extends HttpServletResponseWrapper {
+
+		private final ByteArrayOutputStream capturedBody = new ByteArrayOutputStream();
+
+		private volatile boolean capturing = true;
+
+		private @Nullable ServletOutputStream outputStream;
+
+		private @Nullable PrintWriter writer;
+
+		BodyCapturingResponseWrapper(HttpServletResponse response) {
+			super(response);
+		}
+
+		byte[] getCapturedBody() {
+			flushWriter();
+			return capturedBody.toByteArray();
+		}
+
+		boolean hasCaptureErrors() {
+			return writer != null && writer.checkError();
+		}
+
+		void flushWriter() {
+			if (writer != null) {
+				writer.flush();
+			}
+		}
+
+		void stopCapturing() {
+			// async writes (e.g. a locally produced SSE stream) may continue through
+			// this wrapper long after the routing call returned; without this the
+			// buffer would grow for the lifetime of the connection
+			capturing = false;
+			capturedBody.reset();
+		}
+
+		@Override
+		public ServletOutputStream getOutputStream() throws IOException {
+			if (outputStream == null) {
+				outputStream = new BodyCapturingOutputStream(super.getOutputStream());
+			}
+			return outputStream;
+		}
+
+		@Override
+		public PrintWriter getWriter() throws IOException {
+			if (writer == null) {
+				String characterEncoding = getCharacterEncoding();
+				Charset charset = characterEncoding != null ? Charset.forName(characterEncoding)
+						: StandardCharsets.ISO_8859_1;
+				writer = new PrintWriter(new OutputStreamWriter(getOutputStream(), charset));
+			}
+			return writer;
+		}
+
+		/**
+		 * A {@link ServletOutputStream} that tees everything written to it into the
+		 * capture buffer while capturing is active.
+		 */
+		private final class BodyCapturingOutputStream extends ServletOutputStream {
+
+			private final ServletOutputStream delegate;
+
+			BodyCapturingOutputStream(ServletOutputStream delegate) {
+				this.delegate = delegate;
+			}
+
+			@Override
+			public void write(int b) throws IOException {
+				delegate.write(b);
+				if (capturing) {
+					capturedBody.write(b);
+				}
+			}
+
+			@Override
+			public void write(byte[] b, int off, int len) throws IOException {
+				delegate.write(b, off, len);
+				if (capturing) {
+					capturedBody.write(b, off, len);
+				}
+			}
+
+			@Override
+			public void flush() throws IOException {
+				delegate.flush();
+			}
+
+			@Override
+			public void close() throws IOException {
+				delegate.close();
+			}
+
+			@Override
+			public boolean isReady() {
+				return delegate.isReady();
+			}
+
+			@Override
+			public void setWriteListener(WriteListener writeListener) {
+				delegate.setWriteListener(writeListener);
+			}
+
+		}
+
+	}
+
+	/**
+	 * Weighs cache entries by the size of the cached response body.
+	 */
+	private static final class CachedResponseWeigher implements Weigher<String, Object> {
+
+		@Override
+		public int weigh(String key, Object value) {
+			if (value instanceof CachedResponse cachedResponse) {
+				long contentLength = cachedResponse.headers().getContentLength();
+				return (int) Math.min(Integer.MAX_VALUE,
+						contentLength > -1 ? contentLength : cachedResponse.body().length);
+			}
+			return 0;
+		}
+
+	}
+
+	public static class FilterSupplier extends SimpleFilterSupplier {
+
+		public FilterSupplier() {
+			super(ResponseCacheFilterFunctions.class);
 		}
 
 	}
