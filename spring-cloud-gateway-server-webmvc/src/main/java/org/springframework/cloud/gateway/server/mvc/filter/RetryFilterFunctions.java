@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
@@ -114,7 +115,7 @@ public abstract class RetryFilterFunctions {
 
 		private boolean cacheBody = false;
 
-		private BackoffConfig backoff;
+		@Nullable private BackoffConfig backoff;
 
 		public int getRetries() {
 			return retries;
@@ -176,7 +177,7 @@ public abstract class RetryFilterFunctions {
 			return this;
 		}
 
-		public BackoffConfig getBackoff() {
+		@Nullable public BackoffConfig getBackoff() {
 			return backoff;
 		}
 
@@ -196,7 +197,7 @@ public abstract class RetryFilterFunctions {
 
 		private Duration firstBackoff = Duration.ofMillis(5);
 
-		private Duration maxBackoff;
+		@Nullable private Duration maxBackoff;
 
 		private int factor = 2;
 
@@ -228,7 +229,7 @@ public abstract class RetryFilterFunctions {
 			return this;
 		}
 
-		public Duration getMaxBackoff() {
+		@Nullable public Duration getMaxBackoff() {
 			return maxBackoff;
 		}
 
