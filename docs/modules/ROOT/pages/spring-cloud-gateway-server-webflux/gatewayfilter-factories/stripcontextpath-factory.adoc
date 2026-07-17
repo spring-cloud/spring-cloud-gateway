@@ -11,6 +11,8 @@ The following example configures a `StripContextPath` `GatewayFilter`:
 [source,yaml]
 ----
 spring:
+  webflux:
+    base-path: /context
   cloud:
     gateway:
       server:
@@ -24,5 +26,20 @@ spring:
             - StripContextPath
             - StripPrefix=1
 ----
+
+.GatewaySampleApplication.java
+[source,java]
+----
+@Bean
+public RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("strip_context_path_route", r -> r.path("/name/**")
+            .filters(f -> f.stripContextPath().stripPrefix(1))
+            .uri("https://example.org"))
+        .build();
+}
+----
+
+NOTE: When `spring.webflux.base-path` is set, the `Path` route predicate automatically prepends the base path to its patterns, so the patterns above are written without the `/context` prefix.
 
 With a context path of `/context`, a request to `/context/name/blue` first becomes `/name/blue`, and then `StripPrefix=1` sends `https://example.org/blue` downstream.
