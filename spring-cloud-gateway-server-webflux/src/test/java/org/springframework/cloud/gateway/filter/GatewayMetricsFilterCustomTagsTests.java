@@ -59,10 +59,10 @@ class GatewayMetricsFilterCustomTagsTests extends BaseWebClientTests {
 		// default tags
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
-		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.OK.value()));
-		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("http.status.code", String.valueOf(HttpStatus.OK.value()));
+		assertMetricsContainsTag("http.method", HttpMethod.GET.toString());
+		assertMetricsContainsTag("route.id", "default_path_to_httpbin");
+		assertMetricsContainsTag("route.uri", testUri);
 
 		// custom tags
 		assertMetricsContainsTag("custom1", "tag1");
