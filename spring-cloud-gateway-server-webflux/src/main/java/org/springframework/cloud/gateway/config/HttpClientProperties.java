@@ -209,6 +209,20 @@ public class HttpClientProperties {
 		private boolean metrics = false;
 
 		/**
+		 * Interval at which connection pools are regularly checked in the background, and
+		 * the pools that have been inactive for longer than {@code poolInactivity} are
+		 * disposed. If NULL, inactive pools are not disposed in the background.
+		 */
+		private Duration inactivePoolDisposeInterval = null;
+
+		/**
+		 * Duration of inactivity after which a connection pool is considered inactive and
+		 * eligible to be disposed by the background check. Only applies when
+		 * {@code inactivePoolDisposeInterval} is set.
+		 */
+		private Duration poolInactivity = null;
+
+		/**
 		 * Configures the leasing strategy for the pool (fifo or lifo), defaults to FIFO
 		 * which is Netty's default.
 		 */
@@ -278,6 +292,22 @@ public class HttpClientProperties {
 			this.metrics = metrics;
 		}
 
+		public Duration getInactivePoolDisposeInterval() {
+			return inactivePoolDisposeInterval;
+		}
+
+		public void setInactivePoolDisposeInterval(Duration inactivePoolDisposeInterval) {
+			this.inactivePoolDisposeInterval = inactivePoolDisposeInterval;
+		}
+
+		public Duration getPoolInactivity() {
+			return poolInactivity;
+		}
+
+		public void setPoolInactivity(Duration poolInactivity) {
+			this.poolInactivity = poolInactivity;
+		}
+
 		public LeasingStrategy getLeasingStrategy() {
 			return leasingStrategy;
 		}
@@ -291,7 +321,8 @@ public class HttpClientProperties {
 			return "Pool{" + "type=" + type + ", name='" + name + '\'' + ", maxConnections=" + maxConnections
 					+ ", acquireTimeout=" + acquireTimeout + ", maxIdleTime=" + maxIdleTime + ", maxLifeTime="
 					+ maxLifeTime + ", evictionInterval=" + evictionInterval + ", metrics=" + metrics
-					+ ", leasingStrategy=" + leasingStrategy + '}';
+					+ ", inactivePoolDisposeInterval=" + inactivePoolDisposeInterval + ", poolInactivity="
+					+ poolInactivity + ", leasingStrategy=" + leasingStrategy + '}';
 		}
 
 		public enum PoolType {
