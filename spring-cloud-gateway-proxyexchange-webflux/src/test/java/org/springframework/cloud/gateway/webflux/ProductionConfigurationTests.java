@@ -124,6 +124,16 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void postWithBodyForwardsIncomingHeaders() throws Exception {
+		ResponseEntity<Bar> response = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/proxy/0"))
+				.header("X-Custom", "incoming-header-value")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Collections.singletonMap("name", "foo")), Bar.class);
+		assertThat(response.getBody().getName()).contains("incoming-header-value");
+	}
+
+	@Test
 	public void postJsonWithWhitespace() {
 		var json = """
 				{
