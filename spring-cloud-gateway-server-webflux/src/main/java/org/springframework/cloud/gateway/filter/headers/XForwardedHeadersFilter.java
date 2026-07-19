@@ -261,22 +261,23 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			LinkedHashSet<URI> originalUris = exchange.getAttribute(GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
 			URI requestUri = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 
-			if (originalUris != null && requestUri != null) {
+			if (originalUris != null && !originalUris.isEmpty() && requestUri != null) {
 
-				originalUris.forEach(originalUri -> {
+				// only the first uri counts: it is the url as received from the client.
+				// later entries are intermediate snapshots added by each path-mutating
+				// filter and would produce overlapping prefixes (gh-4236)
+				URI originalUri = originalUris.iterator().next();
 
-					if (originalUri != null && originalUri.getPath() != null) {
-						String prefix = originalUri.getPath();
+				if (originalUri != null && originalUri.getPath() != null) {
 
-						// strip trailing slashes before checking if request path is end
-						// of original path
-						String originalUriPath = stripTrailingSlash(originalUri);
-						String requestUriPath = stripTrailingSlash(requestUri);
+					// strip trailing slashes before checking if request path is end
+					// of original path
+					String originalUriPath = stripTrailingSlash(originalUri);
+					String requestUriPath = stripTrailingSlash(requestUri);
 
-						updateRequest(updated, originalUri, originalUriPath, requestUriPath);
+					updateRequest(updated, originalUri, originalUriPath, requestUriPath);
 
-					}
-				});
+				}
 			}
 		}
 
