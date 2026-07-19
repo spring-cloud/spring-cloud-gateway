@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.net.URI;
 import java.util.Collections;
 
 import org.assertj.core.api.Assertions;
@@ -28,6 +29,7 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.tomcat.autoconfigure.servlet.TomcatServletWebServerAutoConfiguration;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration;
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.http.HttpHeaders;
@@ -39,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter.X_FORWARDED_FOR_HEADER;
 import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter.X_FORWARDED_HOST_HEADER;
 import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter.X_FORWARDED_PORT_HEADER;
+import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter.X_FORWARDED_PREFIX_HEADER;
 import static org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter.X_FORWARDED_PROTO_HEADER;
 
 /**
@@ -160,6 +163,46 @@ public class XForwardedRequestHeadersFilterTests {
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
 
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");
+	}
+
+	@Test
+	public void prefixToInferOnceWhenChainedPathFiltersProcessRequest() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost:8080/blue")
+			.remoteAddress("10.0.0.1:80")
+			.buildRequest(null);
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		// two chained path filters, e.g. StripPrefix=1 twice, add one entry each
+		MvcUtils.addOriginalRequestUrl(request, URI.create("http://localhost:8080/tenant/api/blue"));
+		MvcUtils.addOriginalRequestUrl(request, URI.create("http://localhost:8080/api/blue"));
+
+		XForwardedRequestHeadersFilter filter = new XForwardedRequestHeadersFilter(
+				new XForwardedRequestHeadersFilterProperties(), ".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		assertThat(headers.headerNames()).contains(X_FORWARDED_PREFIX_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/tenant/api");
+	}
+
+	@Test
+	public void prefixAppendedToExistingHeaderOnceWhenChainedPathFiltersProcessRequest() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost:8080/blue")
+			.remoteAddress("10.0.0.1:80")
+			.header(X_FORWARDED_PREFIX_HEADER, "/upstream")
+			.buildRequest(null);
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		MvcUtils.addOriginalRequestUrl(request, URI.create("http://localhost:8080/tenant/api/blue"));
+		MvcUtils.addOriginalRequestUrl(request, URI.create("http://localhost:8080/api/blue"));
+
+		XForwardedRequestHeadersFilter filter = new XForwardedRequestHeadersFilter(
+				new XForwardedRequestHeadersFilterProperties(), ".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/upstream,/tenant/api");
 	}
 
 }
