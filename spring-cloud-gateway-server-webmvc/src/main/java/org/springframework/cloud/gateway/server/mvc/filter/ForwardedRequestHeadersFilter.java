@@ -176,8 +176,8 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 			List<Forwarded> forwardeds = parse(forwardedHeader);
 
 			for (Forwarded f : forwardeds) {
-				// only add if "for" value matches trustedProxies
-				if (trustedProxies.isTrusted(f.get("for"))) {
+				// preserve existing forwarded entries that do not contain a "for" value
+				if (f.get("for") == null || trustedProxies.isTrusted(f.get("for"))) {
 					updated.add(FORWARDED_HEADER, f.toHeaderValue());
 				}
 			}
