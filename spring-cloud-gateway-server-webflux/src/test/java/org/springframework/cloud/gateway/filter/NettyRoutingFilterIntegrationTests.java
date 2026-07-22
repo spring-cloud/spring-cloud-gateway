@@ -125,8 +125,16 @@ public class NettyRoutingFilterIntegrationTests extends BaseWebClientTests {
 			.uri("/connect/delay/2")
 			.exchange()
 			.expectStatus()
-			.isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR)
+			.isEqualTo(HttpStatus.SERVICE_UNAVAILABLE)
 			.expectBody()
+			.jsonPath("$.status")
+			.isEqualTo(String.valueOf(HttpStatus.SERVICE_UNAVAILABLE.value()))
+			.jsonPath("$.error")
+			.isEqualTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase())
+			.jsonPath("$.path")
+			.isEqualTo("/connect/delay/2")
+			.jsonPath("$.message")
+			.exists()
 			.jsonPath("$.message")
 			.value(containsString("Connection refused"));
 
