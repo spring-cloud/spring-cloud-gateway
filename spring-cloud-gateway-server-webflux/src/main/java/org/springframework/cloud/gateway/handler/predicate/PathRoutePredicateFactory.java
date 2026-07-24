@@ -86,8 +86,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			// FIXME: 5.0.0 setMatchOptionalTrailingSeparator missing
-			// pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
 				String basePath = webFluxProperties.getBasePath();
 				boolean basePathIsNotBlank = StringUtils.hasText(basePath);
