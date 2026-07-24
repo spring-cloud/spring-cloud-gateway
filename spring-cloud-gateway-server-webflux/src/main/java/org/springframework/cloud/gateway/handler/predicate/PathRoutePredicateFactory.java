@@ -118,7 +118,8 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 						break;
 					}
 					else if (config.isMatchTrailingSlash() && path.value().endsWith("/")) {
-						PathContainer pathWithoutTrailingSlash = parsePath(path.value().substring(0, path.value().length() - 1));
+						PathContainer pathWithoutTrailingSlash = parsePath(
+								path.value().substring(0, path.value().length() - 1));
 						if (pathPattern.matches(pathWithoutTrailingSlash)) {
 							match = pathPattern;
 							pathForMatch = pathWithoutTrailingSlash;
