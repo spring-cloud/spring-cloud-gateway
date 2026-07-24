@@ -5,7 +5,13 @@ local timestamp_key = KEYS[2]
 
 local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
-local now = tonumber(ARGV[3]) or redis.call('TIME')[1]
+
+local now = tonumber(ARGV[3])
+if not now then
+  local redis_time = redis.call('TIME')
+  now = redis_time[1] + (redis_time[2] / 1000000)
+end
+
 local requested = tonumber(ARGV[4])
 
 local fill_time = capacity / rate
