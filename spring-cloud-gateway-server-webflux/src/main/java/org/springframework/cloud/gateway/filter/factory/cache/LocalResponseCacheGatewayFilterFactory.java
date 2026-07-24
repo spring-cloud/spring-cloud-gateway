@@ -84,9 +84,11 @@ public class LocalResponseCacheGatewayFilterFactory
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
 		String cacheName = config.getRouteId() + "-cache";
-		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+		if (!caffeineCacheManager.getCacheNames().contains(cacheName)) {
+			Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
+			caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+		}
 		Cache routeCache = caffeineCacheManager.getCache(cacheName);
 		Objects.requireNonNull(routeCache, "Cache " + cacheName + " not found");
 		return new ResponseCacheGatewayFilter(
