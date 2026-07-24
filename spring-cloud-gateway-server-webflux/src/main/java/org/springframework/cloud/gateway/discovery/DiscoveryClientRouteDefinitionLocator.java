@@ -75,7 +75,7 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		else {
 			routeIdPrefix = discoveryClientName + "_";
 		}
-		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
 	}
 
 	@Override
