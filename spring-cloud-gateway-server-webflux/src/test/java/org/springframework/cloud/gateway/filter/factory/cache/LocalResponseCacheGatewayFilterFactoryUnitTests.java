@@ -73,6 +73,41 @@ public class LocalResponseCacheGatewayFilterFactoryUnitTests {
 		assertThat(firstCache).isNotSameAs(secondCache);
 	}
 
+	@Test
+	void applyBuildsNewCacheWhenRouteCacheConfigurationChanges() {
+		CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+		LocalResponseCacheGatewayFilterFactory factory = createFactory(cacheManager);
+
+		RouteCacheConfiguration config = new RouteCacheConfiguration();
+		config.setRouteId("reconfigured-route");
+		config.setTimeToLive(Duration.ofMinutes(2));
+
+		factory.apply(config);
+		Cache cache = cacheManager.getCache("reconfigured-route-cache");
+
+		factory.apply(config.setTimeToLive(Duration.ofMillis(100)));
+
+		assertThat(cacheManager.getCache("reconfigured-route-cache")).isNotSameAs(cache);
+	}
+
+	@Test
+	void applyBuildsNewCacheWhenRouteHasNoId() {
+		CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+		LocalResponseCacheGatewayFilterFactory factory = createFactory(cacheManager);
+
+		RouteCacheConfiguration longLivedConfig = new RouteCacheConfiguration();
+		longLivedConfig.setTimeToLive(Duration.ofMinutes(2));
+		RouteCacheConfiguration shortLivedConfig = new RouteCacheConfiguration();
+		shortLivedConfig.setTimeToLive(Duration.ofMillis(100));
+
+		factory.apply(longLivedConfig);
+		Cache longLivedCache = cacheManager.getCache("null-cache");
+
+		factory.apply(shortLivedConfig);
+
+		assertThat(cacheManager.getCache("null-cache")).isNotSameAs(longLivedCache);
+	}
+
 	private LocalResponseCacheGatewayFilterFactory createFactory(CaffeineCacheManager cacheManager) {
 		return new LocalResponseCacheGatewayFilterFactory(new ResponseCacheManagerFactory(new CacheKeyGenerator()),
 				Duration.ofMinutes(5), DataSize.ofMegabytes(5), new LocalResponseCacheProperties().getRequest(),
