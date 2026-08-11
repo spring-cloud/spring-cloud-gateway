@@ -72,7 +72,7 @@ public class CachingRouteDefinitionLocatorTests {
 						throw new IllegalStateException(e);
 					}
 					return Flux.just(routeDef1, routeDef2);
-				}).subscribeOn(Schedulers.single())));
+				}).subscribeOn(Schedulers.boundedElastic())));
 
 		List<RouteDefinition> routes = locator.getRouteDefinitions().collectList().block();
 		assertThat(routes).containsExactlyInAnyOrder(routeDef1);
