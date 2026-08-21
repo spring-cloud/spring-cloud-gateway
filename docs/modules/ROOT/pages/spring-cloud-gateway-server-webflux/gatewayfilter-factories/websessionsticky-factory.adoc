@@ -1,0 +1,57 @@
+[[websessionsticky-factory]]
+= `WebSessionSticky` `GatewayFilter` Factory
+
+The `WebSessionSticky` filter enables per-route, server-side sticky load balancing using
+the gateway's own `WebSession` as the affinity store. When this filter is applied to a
+route, every client session is pinned to a specific backend instance for the duration of
+that session. If the pinned instance is deregistered or fails a health check, the
+gateway transparently selects a new instance and updates the session affinity — the
+client sees no error.
+
+This filter is the per-route, composable alternative to enabling sticky routing via the
+`sticky://` URI scheme in the
+xref:spring-cloud-gateway-server-webflux/global-filters.adoc#web-session-sticky-load-balancer-filter[WebSessionStickyLoadBalancerFilter].
+Use this factory when you want `lb://` to remain the URI scheme and need to mix sticky
+and non-sticky routes to the same service.
+
+NOTE: This filter requires `WebSessionStickyLoadBalancerFilter` to be enabled:
+`spring.cloud.gateway.global-filter.web-session-sticky-load-balancer.enabled=true`
+
+The following listing shows how to add the `WebSessionSticky` `GatewayFilter`:
+
+.application.yaml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          global-filter:
+            web-session-sticky-load-balancer:
+              enabled: true
+          routes:
+            - id: legacy-service-route
+              uri: lb://legacy-service
+              predicates:
+                - Path=/legacy/**
+              filters:
+                - WebSessionSticky
+            - id: stateless-route
+              uri: lb://legacy-service
+              predicates:
+                - Path=/api/**
+----
+
+In this example, requests matching `/legacy/**` are pinned to a single instance of
+`legacy-service` for each client session. Requests matching `/api/**` use standard
+round-robin load balancing.
+
+NOTE: Session affinity is stored server-side in the gateway `WebSession`. Unlike the
+cookie-based `RequestBasedStickySessionServiceInstanceListSupplier`, clients do not need
+to store or echo any instance-ID cookie. This is particularly useful for legacy backends
+that cannot achieve distributed session state.
+
+NOTE: If you run multiple gateway instances, ensure that the session store is shared
+(e.g. Spring Session backed by Redis) so that a client reaching a different gateway
+replica retains its affinity.
