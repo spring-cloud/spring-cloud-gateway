@@ -1,6 +1,22 @@
+test:
+  hostport: httpbin.org:80
+  #  hostport: localhost:5000
+  #  uri: http://${test.hostport}
+  uri: lb://testservice
+
 spring:
+  web:
+    error:
+      include-message: always
+  profiles:
+    group:
+      - logging
+
   cloud:
     gateway.server.webflux:
+      default-filters:
+        - AddResponseHeader=X-Response-Default-Foo, Default-Bar
+        - PrefixPath=/httpbin
       routes:
         - id: cors_preflight_test
           uri: ${test.uri}
@@ -26,3 +42,9 @@ spring:
                 - GET
                 - PUT
               allowedHeaders: '*'
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
