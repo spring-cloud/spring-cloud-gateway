@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
@@ -45,8 +47,60 @@ import static org.mockito.Mockito.verify;
 
 /**
  * @author shawyeok
+ * @author Hutiefang Hu
  */
 class FormFilterTests {
+
+	@Test
+	void updateContentLengthAfterRebuildingFormBody() throws ServletException, IOException {
+		byte[] originalBody = "formArg=!".getBytes(StandardCharsets.UTF_8);
+		MockHttpServletRequest request = MockMvcRequestBuilders.post(URI.create("http://localhost/test"))
+			.contentType("application/x-www-form-urlencoded")
+			.header(HttpHeaders.CONTENT_LENGTH, originalBody.length)
+			.content(originalBody)
+			.buildRequest(null);
+		HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+		FilterChain chain = Mockito.mock(FilterChain.class);
+
+		new FormFilter().doFilter(request, response, chain);
+
+		ArgumentCaptor<ServletRequest> captor = ArgumentCaptor.forClass(ServletRequest.class);
+		verify(chain).doFilter(captor.capture(), Mockito.eq(response));
+		HttpServletRequest wrappedRequest = (HttpServletRequest) captor.getValue();
+		byte[] rebuiltBody = "formArg=%21".getBytes(StandardCharsets.UTF_8);
+		assertThat(StreamUtils.copyToByteArray(wrappedRequest.getInputStream())).isEqualTo(rebuiltBody);
+		assertThat(wrappedRequest.getContentLength()).isEqualTo(rebuiltBody.length);
+		assertThat(wrappedRequest.getContentLengthLong()).isEqualTo(rebuiltBody.length);
+		assertThat(wrappedRequest.getHeader(HttpHeaders.CONTENT_LENGTH)).isEqualTo(String.valueOf(rebuiltBody.length));
+		assertThat(Collections.list(wrappedRequest.getHeaders(HttpHeaders.CONTENT_LENGTH)))
+			.containsExactly(String.valueOf(rebuiltBody.length));
+		assertThat(wrappedRequest.getIntHeader("content-length")).isEqualTo(rebuiltBody.length);
+		assertThat(Collections.list(wrappedRequest.getHeaderNames())).contains(HttpHeaders.CONTENT_LENGTH);
+	}
+
+	@Test
+	void preserveMissingContentLengthHeaderAfterRebuildingFormBody() throws ServletException, IOException {
+		MockHttpServletRequest request = MockMvcRequestBuilders.post(URI.create("http://localhost/test"))
+			.contentType("application/x-www-form-urlencoded")
+			.content("formArg=!")
+			.buildRequest(null);
+		request.removeHeader(HttpHeaders.CONTENT_LENGTH);
+		HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
+		FilterChain chain = Mockito.mock(FilterChain.class);
+
+		new FormFilter().doFilter(request, response, chain);
+
+		ArgumentCaptor<ServletRequest> captor = ArgumentCaptor.forClass(ServletRequest.class);
+		verify(chain).doFilter(captor.capture(), Mockito.eq(response));
+		HttpServletRequest wrappedRequest = (HttpServletRequest) captor.getValue();
+		int rebuiltContentLength = "formArg=%21".getBytes(StandardCharsets.UTF_8).length;
+		assertThat(wrappedRequest.getContentLength()).isEqualTo(rebuiltContentLength);
+		assertThat(wrappedRequest.getContentLengthLong()).isEqualTo(rebuiltContentLength);
+		assertThat(wrappedRequest.getHeader("content-length")).isNull();
+		assertThat(Collections.list(wrappedRequest.getHeaders("content-length"))).isEmpty();
+		assertThat(wrappedRequest.getIntHeader("content-length")).isEqualTo(-1);
+		assertThat(Collections.list(wrappedRequest.getHeaderNames())).doesNotContain(HttpHeaders.CONTENT_LENGTH);
+	}
 
 	@Test
 	void hideFormParameterFromParameterMap() throws ServletException, IOException {
