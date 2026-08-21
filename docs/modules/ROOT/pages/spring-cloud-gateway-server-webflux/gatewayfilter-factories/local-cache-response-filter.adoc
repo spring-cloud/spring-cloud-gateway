@@ -54,4 +54,24 @@ NOTE: To enable this feature, add `com.github.ben-manes.caffeine:caffeine` and `
 
 WARNING: If your project creates custom `CacheManager` beans, it will either need to be marked with `@Primary` or injected using `@Qualifier`.
 
+[[local-cache-response-filter-metrics]]
+== Metrics
+
+To expose cache metrics, add `spring-boot-starter-actuator` (and a Micrometer registry implementation such as `micrometer-registry-prometheus`) as project dependencies.
+When `spring.cloud.gateway.server.webflux.metrics.enabled` is `true` (the default), the gateway emits the standard Micrometer cache meters for every route-level cache created by the `LocalResponseCache` filter:
+
+* `cache.size`
+* `cache.gets` (with `result` tag of `hit` or `miss`)
+* `cache.puts`
+* `cache.evictions`
+
+Each meter is tagged with `cache=<routeId>-cache`, so a route declared with id `my-route` is observable via `cache.size{cache=my-route-cache}`.
+The gauges continue to reflect the current cache after a route refresh; the underlying Caffeine instance may be replaced by the gateway, but the meter binding stays valid.
+
+NOTE: Meters are only registered when a `MeterRegistry` bean is present on the application context.
+
+NOTE: Set `spring.cloud.gateway.server.webflux.metrics.enabled=false` to opt out.
+
+NOTE: `cache.puts` is sourced from Caffeine's `loadCount` and is incremented only by `LoadingCache`-style automatic loads. Because `LocalResponseCache` is populated by the response-cache filter without a `CacheLoader`, this meter remains at `0` in normal use; cache activity is best observed via `cache.size`, `cache.gets`, and `cache.evictions`.
+
 
