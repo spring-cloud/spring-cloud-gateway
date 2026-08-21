@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -1024,6 +1025,44 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void queryParamWithoutValueWorks() {
+		restClient.get()
+			.uri("/queryParamWithoutValue?myparam")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map responseBody = result.getResponseBody();
+				assertThat(responseBody).containsKey("args");
+				Map args = getMap(responseBody, "args");
+				assertThat(args).containsKey("myparam");
+				assertThat(args.get("myparam")).isEqualTo("");
+				String url = (String) responseBody.get("url");
+				assertThat(url).endsWith("/get?myparam");
+			});
+	}
+
+	@Test
+	public void queryParamWithEmptyValueWorks() {
+		restClient.get()
+			.uri("/get?myparam=")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map responseBody = result.getResponseBody();
+				assertThat(responseBody).containsKey("args");
+				Map args = getMap(responseBody, "args");
+				assertThat(args).containsKey("myparam");
+				assertThat(args.get("myparam")).isEqualTo("");
+				String url = (String) responseBody.get("url");
+				assertThat(url).endsWith("/get?myparam=");
+			});
+	}
+
+	@Test
 	public void clientResponseBodyAttributeWorks() {
 		restClient.get()
 			.uri("/anything/readresponsebody")
@@ -1688,6 +1727,30 @@ public class ServerMvcIntegrationTests {
 					})
 					.build();
 			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsEmptyQueryParamFilter() {
+			Function<ServerRequest, ServerRequest> transformQueryParamWithoutValue = request -> ServerRequest
+				.from(request)
+				.params(params -> {
+					// transform any query parameter with empty string value to not have
+					// any value at all
+					for (var param : params.entrySet()) {
+						if (param.getValue().size() == 1 && param.getValue().get(0).isEmpty()) {
+							params.put(param.getKey(), Collections.emptyList());
+						}
+					}
+				})
+				.build();
+			// @formatter:off
+			return route("testQueryParamWithoutValue")
+					.GET("/queryParamWithoutValue", http())
+					.before(transformQueryParamWithoutValue)
+					.filter(new HttpbinUriResolver())
+					.filter(setPath("/get"))
+					.build();
+            // @formatter:on
 		}
 
 		@Bean
