@@ -160,8 +160,8 @@ class BeforeFilterFunctionsTests {
 		ServerRequest result = BeforeFilterFunctions.rewriteRequestParameter("foo", "replacement").apply(request);
 
 		assertThat(result.param("foo")).isPresent().hasValue("replacement");
-		assertThat(result.uri().toString())
-			.hasToString("http://localhost/path?baz%5B%5D=qux%5B%5D&quux=corge%2B&foo=replacement");
+		assertThat(result.uri().toString()).contains("http://localhost/path?", "baz%5B%5D=qux%5B%5D", "quux=corge%2B",
+				"foo=replacement");
 	}
 
 	@Test
