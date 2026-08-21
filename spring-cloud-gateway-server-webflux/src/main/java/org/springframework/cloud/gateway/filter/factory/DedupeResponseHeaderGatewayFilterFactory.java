@@ -92,8 +92,11 @@ public class DedupeResponseHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange)
-					.then(Mono.fromRunnable(() -> dedupe(exchange.getResponse().getHeaders(), config)));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (!exchange.getResponse().isCommitted()) {
+						dedupe(exchange.getResponse().getHeaders(), config);
+					}
+				}));
 			}
 
 			@Override
