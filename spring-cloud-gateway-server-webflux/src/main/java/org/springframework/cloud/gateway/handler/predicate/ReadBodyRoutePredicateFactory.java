@@ -98,7 +98,8 @@ public class ReadBodyRoutePredicateFactory extends AbstractRoutePredicateFactory
 								.doOnNext(objectValue -> exchange.getAttributes()
 									.put(CACHE_REQUEST_BODY_OBJECT_KEY, objectValue))
 								.map(objectValue -> config.getPredicate() != null
-										&& config.getPredicate().test(objectValue)));
+										&& config.getPredicate().test(objectValue))
+								.defaultIfEmpty(config.getPredicate() != null && config.getPredicate().test(null)));
 				}
 			}
 
