@@ -5,6 +5,9 @@ The `SecureHeaders` `GatewayFilter` factory adds a number of headers to the resp
 
 The following headers (shown with their default values) are added:
 
+NOTE: If a `Content-Security-Policy` header is already present (for example, from an upstream service), the value configured by `SecureHeaders` is appended as an additional `Content-Security-Policy` header value.
+Other secure headers are only added when absent.
+
 * `X-Xss-Protection:1 (mode=block`)
 * `Strict-Transport-Security (max-age=631138519`)
 * `X-Frame-Options (DENY)`
