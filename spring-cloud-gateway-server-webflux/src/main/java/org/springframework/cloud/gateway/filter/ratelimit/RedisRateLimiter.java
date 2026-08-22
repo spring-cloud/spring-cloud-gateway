@@ -32,8 +32,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeansException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.ApplicationContext;
@@ -53,7 +51,6 @@ import org.springframework.validation.annotation.Validated;
  * @author Denis Cutic
  * @author Andrey Muchnik
  */
-@ConfigurationProperties(GatewayProperties.PREFIX + ".redis-rate-limiter")
 public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Config> implements ApplicationContextAware {
 
 	/**
@@ -103,33 +100,19 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	private @Nullable Config defaultConfig;
 
-	// configuration properties
-	/**
-	 * Whether or not to include headers containing rate limiter information, defaults to
-	 * true.
-	 */
-	private boolean includeHeaders = true;
-
-	/**
-	 * The name of the header that returns number of remaining requests during the current
-	 * second.
-	 */
-	private String remainingHeader = REMAINING_HEADER;
-
-	/** The name of the header that returns the replenish rate configuration. */
-	private String replenishRateHeader = REPLENISH_RATE_HEADER;
-
-	/** The name of the header that returns the burst capacity configuration. */
-	private String burstCapacityHeader = BURST_CAPACITY_HEADER;
-
-	/** The name of the header that returns the requested tokens configuration. */
-	private String requestedTokensHeader = REQUESTED_TOKENS_HEADER;
+	private final RedisRateLimiterProperties properties;
 
 	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate, RedisScript<List<Long>> script,
 			ConfigurationService configurationService) {
+		this(redisTemplate, script, configurationService, new RedisRateLimiterProperties());
+	}
+
+	public RedisRateLimiter(ReactiveStringRedisTemplate redisTemplate, RedisScript<List<Long>> script,
+			ConfigurationService configurationService, RedisRateLimiterProperties properties) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, configurationService);
 		this.redisTemplate = redisTemplate;
 		this.script = script;
+		this.properties = properties;
 		this.initialized.compareAndSet(false, true);
 	}
 
@@ -141,6 +124,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 */
 	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
+		this.properties = new RedisRateLimiterProperties();
 		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate).setBurstCapacity(defaultBurstCapacity);
 	}
 
@@ -170,44 +154,129 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return Arrays.asList(tokenKey, timestampKey);
 	}
 
+	/**
+	 * The externalized rate limiter properties bound from configuration.
+	 * @return the properties backing this rate limiter
+	 */
+	public RedisRateLimiterProperties getProperties() {
+		return properties;
+	}
+
+	/**
+	 * The per-route configuration is held by {@link RedisRateLimiterProperties} so that
+	 * {@code redis-rate-limiter.config.*} is bound onto the properties bean, which is
+	 * where the binding now lives. Reading through to it keeps a single source of truth
+	 * and picks up any rebinding on refresh.
+	 */
+	@Override
+	public Map<String, Config> getConfig() {
+		return properties.getConfig();
+	}
+
+	/**
+	 * @return whether rate limiter headers are included
+	 * @deprecated in favor of {@link RedisRateLimiterProperties#isIncludeHeaders()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public boolean isIncludeHeaders() {
-		return includeHeaders;
+		return properties.isIncludeHeaders();
 	}
 
+	/**
+	 * @param includeHeaders whether rate limiter headers are included
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#setIncludeHeaders(boolean)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setIncludeHeaders(boolean includeHeaders) {
-		this.includeHeaders = includeHeaders;
+		properties.setIncludeHeaders(includeHeaders);
 	}
 
+	/**
+	 * @return the remaining-requests header name
+	 * @deprecated in favor of {@link RedisRateLimiterProperties#getRemainingHeader()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public String getRemainingHeader() {
-		return remainingHeader;
+		return properties.getRemainingHeader();
 	}
 
+	/**
+	 * @param remainingHeader the remaining-requests header name
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#setRemainingHeader(String)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setRemainingHeader(String remainingHeader) {
-		this.remainingHeader = remainingHeader;
+		properties.setRemainingHeader(remainingHeader);
 	}
 
+	/**
+	 * @return the replenish-rate header name
+	 * @deprecated in favor of {@link RedisRateLimiterProperties#getReplenishRateHeader()}
+	 * via {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public String getReplenishRateHeader() {
-		return replenishRateHeader;
+		return properties.getReplenishRateHeader();
 	}
 
+	/**
+	 * @param replenishRateHeader the replenish-rate header name
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#setReplenishRateHeader(String)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setReplenishRateHeader(String replenishRateHeader) {
-		this.replenishRateHeader = replenishRateHeader;
+		properties.setReplenishRateHeader(replenishRateHeader);
 	}
 
+	/**
+	 * @return the burst-capacity header name
+	 * @deprecated in favor of {@link RedisRateLimiterProperties#getBurstCapacityHeader()}
+	 * via {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public String getBurstCapacityHeader() {
-		return burstCapacityHeader;
+		return properties.getBurstCapacityHeader();
 	}
 
+	/**
+	 * @param burstCapacityHeader the burst-capacity header name
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#setBurstCapacityHeader(String)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setBurstCapacityHeader(String burstCapacityHeader) {
-		this.burstCapacityHeader = burstCapacityHeader;
+		properties.setBurstCapacityHeader(burstCapacityHeader);
 	}
 
+	/**
+	 * @return the requested-tokens header name
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#getRequestedTokensHeader()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public String getRequestedTokensHeader() {
-		return requestedTokensHeader;
+		return properties.getRequestedTokensHeader();
 	}
 
+	/**
+	 * @param requestedTokensHeader the requested-tokens header name
+	 * @deprecated in favor of
+	 * {@link RedisRateLimiterProperties#setRequestedTokensHeader(String)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setRequestedTokensHeader(String requestedTokensHeader) {
-		this.requestedTokensHeader = requestedTokensHeader;
+		properties.setRequestedTokensHeader(requestedTokensHeader);
 	}
 
 	/**
@@ -313,11 +382,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
-		if (isIncludeHeaders()) {
-			headers.put(this.remainingHeader, tokensLeft.toString());
-			headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
-			headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
-			headers.put(this.requestedTokensHeader, String.valueOf(config.getRequestedTokens()));
+		if (properties.isIncludeHeaders()) {
+			headers.put(properties.getRemainingHeader(), tokensLeft.toString());
+			headers.put(properties.getReplenishRateHeader(), String.valueOf(config.getReplenishRate()));
+			headers.put(properties.getBurstCapacityHeader(), String.valueOf(config.getBurstCapacity()));
+			headers.put(properties.getRequestedTokensHeader(), String.valueOf(config.getRequestedTokens()));
 		}
 		return headers;
 	}
