@@ -375,8 +375,13 @@ public class XForwardedHeadersFilterTests {
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.1");
+		assertThat(headers.getFirst(X_FORWARDED_HOST_HEADER)).isEqualTo("localhost:8080");
+		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("8080");
+		assertThat(headers.getFirst(X_FORWARDED_PROTO_HEADER)).isEqualTo("http");
 	}
 
 	@Test
@@ -391,8 +396,14 @@ public class XForwardedHeadersFilterTests {
 
 		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
 
-		assertThat(headers.headerNames()).doesNotContain(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER, X_FORWARDED_HOST_HEADER,
 				X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.1");
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");
+		assertThat(headers.getFirst(X_FORWARDED_HOST_HEADER)).isEqualTo("localhost:8080");
+		assertThat(headers.getFirst(X_FORWARDED_PORT_HEADER)).isEqualTo("8080");
+		assertThat(headers.getFirst(X_FORWARDED_PROTO_HEADER)).isEqualTo("http");
 	}
 
 	// : verify that existing x-forwarded-* headers are not forwarded
