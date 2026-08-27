@@ -189,6 +189,24 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void postForwardBodyWithoutAcceptHeader() {
+		ResponseEntity<String> result = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars"))
+				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).contains("foo");
+	}
+
+	@Test
+	public void postForwardForgetBodyWithoutAcceptHeader() {
+		ResponseEntity<String> result = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/forget/bars"))
+				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).contains("foo");
+	}
+
+	@Test
 	public void postForwardBodyFoo() {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars"))
