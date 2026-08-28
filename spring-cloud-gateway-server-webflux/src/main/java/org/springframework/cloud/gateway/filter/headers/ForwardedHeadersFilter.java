@@ -140,14 +140,15 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 
+		HttpHeaders original = input;
+
 		if (request.getRemoteAddress() != null
 				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.getRemoteAddress()));
-			return removeForwardedHeaders(input, exchange);
+			original = removeForwardedHeaders(input, exchange);
 		}
 
-		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
@@ -195,14 +196,13 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 					forValue = "[" + forValue + "]";
 				}
 			}
-			if (trustedProxies.isTrusted(forValue)) {
-				// only add for value if trusted
-				int port = remoteAddress.getPort();
-				if (port >= 0) {
-					forValue = forValue + ":" + port;
-				}
-				forwarded.put("for", forValue);
+			// at this point remote address is trusted because of check at the beginning
+			// of the method
+			int port = remoteAddress.getPort();
+			if (port >= 0) {
+				forValue = forValue + ":" + port;
 			}
+			forwarded.put("for", forValue);
 		}
 
 		if (forwardedByEnabled) {
