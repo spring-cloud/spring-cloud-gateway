@@ -154,14 +154,16 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 
 	@Override
 	public HttpHeaders apply(HttpHeaders input, ServerRequest request) {
+
+		HttpHeaders original = input;
+
 		if (request.servletRequest().getRemoteAddr() != null
 				&& !trustedProxies.isTrusted(request.servletRequest().getRemoteAddr())) {
 			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
 					request.servletRequest().getRemoteHost()));
-			return removeForwardedHeaders(input, request);
+			original = removeForwardedHeaders(input, request);
 		}
 
-		HttpHeaders original = input;
 		HttpHeaders updated = new HttpHeaders();
 
 		// copy all headers except Forwarded
@@ -207,10 +209,8 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 					forValue = "[" + forValue + "]";
 				}
 			}
-			if (!trustedProxies.isTrusted(forValue)) {
-				// don't add for value
-				return;
-			}
+			// at this point remote address is trusted because of check at the beginning
+			// of the method
 			int port = remoteAddress.getPort();
 			if (port >= 0 && !forValue.endsWith(":" + port)) {
 				forValue = forValue + ":" + port;

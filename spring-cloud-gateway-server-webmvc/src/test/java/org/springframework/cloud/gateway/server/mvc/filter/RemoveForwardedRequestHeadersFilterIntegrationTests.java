@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public class RemoveForwardedRequestHeadersFilterIntegrationTests {
 	RestTestClient testClient;
 
 	@Test
-	public void forwardedHeadersRemoved() {
+	public void untrustedForwardedHeadersRemoved() {
 		testClient.get()
 			.uri("/headers")
 			.header(FORWARDED_HEADER, "for=12.34.56.78;host=example.com;proto=https, for=23.45.67.89")
@@ -80,9 +81,18 @@ public class RemoveForwardedRequestHeadersFilterIntegrationTests {
 			.expectBody(Map.class)
 			.consumeWith(result -> {
 				Map<String, Object> headers = getMap(result.getResponseBody(), "headers");
-				assertThat(headers).doesNotContainKeys(FORWARDED_HEADER, X_FORWARDED_FOR_HEADER,
-						X_FORWARDED_HOST_HEADER, X_FORWARDED_PORT_HEADER, X_FORWARDED_PROTO_HEADER);
+				// gateway forwarded headers are added, but all the forwarded headers from
+				// the request are removed.
+				assertThat(getString(headers, FORWARDED_HEADER)).doesNotContain("12.34.56.78", "23.45.67.89");
+				assertThat(getString(headers, X_FORWARDED_FOR_HEADER)).doesNotContain("192.168.0.2");
+				assertThat(getString(headers, X_FORWARDED_HOST_HEADER)).doesNotContain("example.com");
+				assertThat(getString(headers, X_FORWARDED_PORT_HEADER)).doesNotContain("443");
+				assertThat(getString(headers, X_FORWARDED_PROTO_HEADER)).doesNotContain("https");
 			});
+	}
+
+	private static @Nullable String getString(Map<String, Object> headers, String key) {
+		return (String) headers.get(key);
 	}
 
 	@EnableAutoConfiguration
