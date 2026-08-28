@@ -304,6 +304,7 @@ public class ForwardedHeadersFilterTests {
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
+		// check for appending the gateway's address
 		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
 			.containsEntry("proto", "http")
 			.containsEntry("for", "\"10.0.0.1:80\"");
@@ -328,13 +329,13 @@ public class ForwardedHeadersFilterTests {
 		assertThat(forwardeds).hasSize(1);
 		Forwarded forwarded = forwardeds.get(0);
 
+		// check for appending the gateway's address
 		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
 			.containsEntry("proto", "http")
 			.containsEntry("for", "\"10.0.0.1:80\"");
 
-		assertThat(headers.get(FORWARDED_HEADER)).noneMatch(value -> value.contains("127.0.0.1"));
-
-		assertThat(headers.get(FORWARDED_HEADER)).noneMatch(value -> value.contains("10.0.0.11"));
+		assertThat(headers.get(FORWARDED_HEADER)).noneMatch(value -> value.contains("127.0.0.1"))
+			.noneMatch(value -> value.contains("10.0.0.11"));
 	}
 
 	// verify that existing forwarded header is not forwarded if not trusted

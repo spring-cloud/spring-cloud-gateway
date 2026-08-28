@@ -196,6 +196,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 					forValue = "[" + forValue + "]";
 				}
 			}
+			// at this point remote address is trusted because of check at the beginning
+			// of the method
 			int port = remoteAddress.getPort();
 			if (port >= 0) {
 				forValue = forValue + ":" + port;
