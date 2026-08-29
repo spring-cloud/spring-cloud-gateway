@@ -40,5 +40,38 @@ static class Hello {
 
 NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
 
+[[modifyrequestbody-gatewayfilter-factory-headers]]
+== Modifying Request Headers
 
+This filter replaces the downstream request with a decorator whose headers are a *copy* of the request headers.
+The copy is taken before the `RewriteFunction` runs, and the decorator returns a new `HttpHeaders` instance on every call to `getHeaders()`.
+Two consequences follow.
+
+First, the `RewriteFunction` cannot change the request.
+Calling `exchange.mutate()` inside the rewrite function returns a new `ServerWebExchange` that this filter does not use, so headers set there are not sent downstream.
+Use a separate filter to change headers.
+
+Second, mutating the `HttpHeaders` returned by `exchange.getRequest().getHeaders()` in a filter placed after `ModifyRequestBody` has no effect, because the change is written to a copy that is then discarded.
+Unlike the underlying request, whose headers are read-only, this does not throw `UnsupportedOperationException`.
+
+To change headers after `ModifyRequestBody`, mutate the request:
+
+[source,java]
+----
+ServerHttpRequest request = exchange.getRequest()
+    .mutate()
+    .header("X-Example", "value")
+    .build();
+
+return chain.filter(exchange.mutate().request(request).build());
+----
+
+The following form is equivalent:
+
+[source,java]
+----
+return chain.filter(exchange.mutate().request(r -> r.header("X-Example", "value")).build());
+----
+
+Filter factories such as xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/addrequestheader-factory.adoc[`AddRequestHeader`] already mutate the request this way, so ordering them after `ModifyRequestBody` works as expected.
 
