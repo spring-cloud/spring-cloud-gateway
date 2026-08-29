@@ -35,6 +35,8 @@ import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 
@@ -55,6 +57,8 @@ public class CachingRouteLocator
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
 	private @Nullable ApplicationEventPublisher applicationEventPublisher;
+
+	private volatile boolean contextClosing = false;
 
 	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
@@ -85,6 +89,13 @@ public class CachingRouteLocator
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
+		// gh-2471: skip refresh once the ApplicationContext has started shutting
+		// down. RefreshRoutesEvent can still be published during shutdown (e.g.
+		// ConsulServiceRegistry.deregister()), and any bean lookup performed by
+		// the delegate at that point would fail with BeanCreationNotAllowedException.
+		if (contextClosing) {
+			return;
+		}
 		try {
 			if (this.cache.containsKey(CACHE_KEY) && event.isScoped()) {
 				final Mono<List<Route>> scopedRoutes = fetch(event.getMetadata()).collect(Collectors.toList())
@@ -138,6 +149,10 @@ public class CachingRouteLocator
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+		if (applicationEventPublisher instanceof ConfigurableApplicationContext context) {
+			ApplicationListener<ContextClosedEvent> shutdownListener = event -> this.contextClosing = true;
+			context.addApplicationListener(shutdownListener);
+		}
 	}
 
 }
