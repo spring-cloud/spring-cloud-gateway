@@ -179,12 +179,27 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 					// the content-length header.
 					// Remove the transfer-encoding header in the response if the
 					// content-length header is present.
-					response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+					filteredResponseHeaders.remove(HttpHeaders.TRANSFER_ENCODING);
 				}
 
 				exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.headerNames());
 
-				response.getHeaders().addAll(filteredResponseHeaders);
+				if (response.isCommitted()) {
+					// The response was already committed elsewhere in the filter chain
+					// before
+					// routing completed. response.getHeaders() becomes a
+					// ReadOnlyHttpHeaders once
+					// committed (see AbstractServerHttpResponse), so it can no longer be
+					// mutated --
+					// and headers can't reach the client past this point regardless.
+					if (log.isDebugEnabled()) {
+						log.debug("Response already committed, unable to write filtered response headers for "
+								+ exchange.getLogPrefix());
+					}
+				}
+				else {
+					response.getHeaders().addAll(filteredResponseHeaders);
+				}
 
 				return Mono.just(res);
 			}));
