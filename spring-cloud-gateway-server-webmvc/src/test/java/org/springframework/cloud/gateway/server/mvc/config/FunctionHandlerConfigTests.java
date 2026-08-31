@@ -78,6 +78,24 @@ public class FunctionHandlerConfigTests {
 			.isEqualTo("hello");
 	}
 
+	@Test
+	void unmatchedRouteReturnsNotFound() {
+		restClient.get().uri("/does-not-exist").exchange().expectStatus().isNotFound();
+	}
+
+	@Test
+	void automaticallyConfiguredFunctionRouteWorks() {
+		restClient.post()
+			.uri("/upper")
+			.accept(MediaType.TEXT_PLAIN)
+			.body("hello")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("HELLO");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
