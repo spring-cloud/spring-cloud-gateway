@@ -12,8 +12,9 @@
 
 	<properties>
 		<protoc.version>3.25.1</protoc.version>
-		<protobuf.version>4.33.6</protobuf.version>
-		<grpc.version>1.77.1</grpc.version>
+		<!-- Only used for the protoc grpc-java codegen plugin; the io.grpc artifacts
+		     themselves are managed by the Spring Boot BOM (grpc-bom). Keep in sync. -->
+		<grpc.version>1.83.1</grpc.version>
 	</properties>
 
 	<parent>
@@ -39,22 +40,18 @@
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-netty</artifactId>
-			<version>${grpc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-protobuf</artifactId>
-			<version>${grpc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java-util</artifactId>
-			<version>${protobuf.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-stub</artifactId>
-			<version>${grpc.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>tools.jackson.core</groupId>
