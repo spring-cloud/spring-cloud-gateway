@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.util.TestSocketUtils;
@@ -151,6 +152,51 @@ class NettyRoutingFilterTests extends BaseWebClientTests {
 			when(chain.filter(any())).thenReturn(Mono.empty());
 
 			StepVerifier.create(nettyRoutingFilter.filter(exchange, chain)).verifyComplete();
+		}
+		finally {
+			server.disposeNow();
+		}
+	}
+
+	@Test
+	// gh-4270
+	void transferEncodingIsRemovedWhenUpstreamSendsContentLength() {
+		String body = "issue4270";
+		DisposableServer server = HttpServer.create()
+			.port(port)
+			.host("127.0.0.1")
+			.route(routes -> routes.get("/issue4270-content-length", (request, response) -> {
+				response.header(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.length()));
+				return response.sendString(Mono.just(body));
+			}))
+			.bindNow();
+
+		try {
+			Route route = Route.async()
+				.id("issue4270-content-length")
+				.uri(URI.create("http://127.0.0.1:" + port))
+				.predicate(swe -> true)
+				.build();
+
+			ServerWebExchange exchange = MockServerWebExchange
+				.from(MockServerHttpRequest.get("http://localhost/issue4270-content-length").build());
+			exchange.getAttributes()
+				.put(GATEWAY_REQUEST_URL_ATTR, URI.create("http://127.0.0.1:" + port + "/issue4270-content-length"));
+			exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, route);
+
+			// A filter earlier in the chain may already have put Transfer-Encoding on the
+			// response. It is not valid alongside the Content-Length the upstream answers
+			// with, so the stale header has to be scrubbed from the response that is
+			// actually sent downstream, not from the copy of the upstream headers.
+			exchange.getResponse().getHeaders().add(HttpHeaders.TRANSFER_ENCODING, "chunked");
+
+			GatewayFilterChain chain = mock(GatewayFilterChain.class);
+			when(chain.filter(any())).thenReturn(Mono.empty());
+
+			StepVerifier.create(nettyRoutingFilter.filter(exchange, chain)).verifyComplete();
+
+			assertThat(exchange.getResponse().getHeaders().containsHeader(HttpHeaders.CONTENT_LENGTH)).isTrue();
+			assertThat(exchange.getResponse().getHeaders().containsHeader(HttpHeaders.TRANSFER_ENCODING)).isFalse();
 		}
 		finally {
 			server.disposeNow();

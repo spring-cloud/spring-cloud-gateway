@@ -173,31 +173,31 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				HttpHeaders filteredResponseHeaders = HttpHeadersFilter.filter(getHeadersFilters(), headers, exchange,
 						Type.RESPONSE);
 
-				if (!filteredResponseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
-						&& filteredResponseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
-					// It is not valid to have both the transfer-encoding header and
-					// the content-length header.
-					// Remove the transfer-encoding header in the response if the
-					// content-length header is present.
-					filteredResponseHeaders.remove(HttpHeaders.TRANSFER_ENCODING);
-				}
-
 				exchange.getAttributes().put(CLIENT_RESPONSE_HEADER_NAMES, filteredResponseHeaders.headerNames());
 
 				if (response.isCommitted()) {
 					// The response was already committed elsewhere in the filter chain
-					// before
-					// routing completed. response.getHeaders() becomes a
-					// ReadOnlyHttpHeaders once
-					// committed (see AbstractServerHttpResponse), so it can no longer be
-					// mutated --
-					// and headers can't reach the client past this point regardless.
+					// before routing completed. response.getHeaders() becomes a
+					// ReadOnlyHttpHeaders once committed (see
+					// AbstractServerHttpResponse),
+					// so it can no longer be mutated -- and headers can't reach the
+					// client
+					// past this point regardless.
 					if (log.isDebugEnabled()) {
 						log.debug("Response already committed, unable to write filtered response headers for "
 								+ exchange.getLogPrefix());
 					}
 				}
 				else {
+					if (!filteredResponseHeaders.containsHeader(HttpHeaders.TRANSFER_ENCODING)
+							&& filteredResponseHeaders.containsHeader(HttpHeaders.CONTENT_LENGTH)) {
+						// It is not valid to have both the transfer-encoding header and
+						// the content-length header.
+						// Remove the transfer-encoding header in the response if the
+						// content-length header is present.
+						response.getHeaders().remove(HttpHeaders.TRANSFER_ENCODING);
+					}
+
 					response.getHeaders().addAll(filteredResponseHeaders);
 				}
 
