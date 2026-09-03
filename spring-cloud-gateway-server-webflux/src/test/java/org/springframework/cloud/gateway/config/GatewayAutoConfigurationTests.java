@@ -57,6 +57,7 @@ import org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint;
 import org.springframework.cloud.gateway.actuate.GatewayLegacyControllerEndpoint;
 import org.springframework.cloud.gateway.config.GatewayAutoConfigurationTests.CustomHttpClientFactory.CustomSslConfigurer;
 import org.springframework.cloud.gateway.config.HttpClientProperties.Pool.LeasingStrategy;
+import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.GRPCRequestHeadersFilter;
@@ -314,6 +315,26 @@ public class GatewayAutoConfigurationTests {
 			.run(context -> {
 				assertThat(context).doesNotHaveBean(GRPCRequestHeadersFilter.class)
 					.doesNotHaveBean(GRPCResponseHeadersFilter.class);
+			});
+	}
+
+	@Test // gh-4169
+	public void grpcBeansNotConfiguredWhenGrpcNettyAbsent() {
+		// io.grpc.Channel comes from grpc-api, but the gRPC beans require grpc-netty
+		// (io.grpc.netty.NettyChannelBuilder). When grpc-api is present without
+		// grpc-netty the beans must back off rather than fail the context with
+		// NoClassDefFoundError: io/grpc/netty/NettyChannelBuilder.
+		new ReactiveWebApplicationContextRunner()
+			.withClassLoader(
+					new org.springframework.boot.test.context.FilteredClassLoader("io.grpc.netty.NettyChannelBuilder"))
+			.withConfiguration(AutoConfigurations.of(WebFluxAutoConfiguration.class, MetricsAutoConfiguration.class,
+					SimpleMetricsExportAutoConfiguration.class, GatewayAutoConfiguration.class,
+					HttpClientCustomizedConfig.class, ServerPropertiesConfig.class))
+			.withPropertyValues("server.http2.enabled=true")
+			.run(context -> {
+				assertThat(context).hasNotFailed();
+				assertThat(context).doesNotHaveBean(JsonToGrpcGatewayFilterFactory.class);
+				assertThat(context).doesNotHaveBean(GrpcSslConfigurer.class);
 			});
 	}
 
