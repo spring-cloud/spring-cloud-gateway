@@ -66,6 +66,18 @@ public class CorsGlobalTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void testPreFlightCorsRequestWithoutAccessControlRequestMethod() {
+		ClientResponse clientResponse = webClient.options()
+			.uri("/abc/123/function")
+			.header("Origin", "domain.com")
+			.exchangeToMono(Mono::just)
+			.block();
+
+		assertThat(clientResponse).isNotNull();
+		assertThat(clientResponse.statusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
 	public void testCorsRequest() {
 		ResponseEntity<String> response = webClient.get()
 			.uri("/abc/123/function")
