@@ -45,6 +45,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 
 /**
  * @author Spencer Gibb
+ * @author Seungbin Ko
  */
 public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 
@@ -92,12 +93,21 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 					if (connection == null) {
 						return Mono.empty();
 					}
+					ServerHttpResponse response = exchange.getResponse();
+					if (response.isCommitted()) {
+						if (log.isDebugEnabled()) {
+							log.debug("NettyWriteResponseFilter response already committed, discarding inbound: "
+									+ connection.channel().id().asShortText() + ", outbound: "
+									+ exchange.getLogPrefix());
+						}
+						cleanup(exchange);
+						return Mono.empty();
+					}
 					if (log.isTraceEnabled()) {
 						log.trace("NettyWriteResponseFilter start inbound: "
 								+ connection.channel().id().asShortText() + ", outbound: "
 								+ exchange.getLogPrefix());
 					}
-					ServerHttpResponse response = exchange.getResponse();
 
 					// TODO: needed?
 					final Flux<DataBuffer> body = connection
