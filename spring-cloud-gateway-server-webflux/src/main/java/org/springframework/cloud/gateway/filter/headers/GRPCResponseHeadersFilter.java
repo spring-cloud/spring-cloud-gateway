@@ -36,12 +36,15 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	private static final String GRPC_MESSAGE_HEADER = "grpc-message";
 
+	private static final String GRPC_STATUS_DETAILS_BIN_HEADER = "grpc-status-details-bin";
+
 	@Override
 	public HttpHeaders filter(HttpHeaders headers, ServerWebExchange exchange) {
 		ServerHttpResponse response = exchange.getResponse();
 		if (isGRPC(exchange)) {
 			String grpcStatus = getGrpcStatus(headers);
 			String grpcMessage = getGrpcMessage(headers);
+			String grpcStatusDetailsBin = getGrpcStatusDetailsBin(headers);
 			if (grpcStatus != null) {
 				while (response instanceof ServerHttpResponseDecorator) {
 					response = ((ServerHttpResponseDecorator) response).getDelegate();
@@ -51,6 +54,9 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 						.trailerHeaders(h -> {
 							h.set(GRPC_STATUS_HEADER, grpcStatus);
 							h.set(GRPC_MESSAGE_HEADER, grpcMessage);
+							if (grpcStatusDetailsBin != null) {
+								h.set(GRPC_STATUS_DETAILS_BIN_HEADER, grpcStatusDetailsBin);
+							}
 						});
 				}
 			}
@@ -67,6 +73,11 @@ public class GRPCResponseHeadersFilter implements HttpHeadersFilter, Ordered {
 	private @Nullable String getGrpcStatus(HttpHeaders headers) {
 		final String grpcStatusValue = headers.getFirst(GRPC_STATUS_HEADER);
 		return StringUtils.hasText(grpcStatusValue) ? grpcStatusValue : null;
+	}
+
+	private @Nullable String getGrpcStatusDetailsBin(HttpHeaders headers) {
+		final String grpcStatusDetailsBinValue = headers.getFirst(GRPC_STATUS_DETAILS_BIN_HEADER);
+		return StringUtils.hasText(grpcStatusDetailsBinValue) ? grpcStatusDetailsBinValue : null;
 	}
 
 	private String getGrpcMessage(HttpHeaders headers) {
