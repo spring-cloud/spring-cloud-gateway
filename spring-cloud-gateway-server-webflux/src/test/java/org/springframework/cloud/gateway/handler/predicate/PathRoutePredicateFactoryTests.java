@@ -37,6 +37,8 @@ import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.security.web.server.WebFilterChainProxy;
 import org.springframework.security.web.server.firewall.StrictServerWebExchangeFirewall;
 import org.springframework.test.annotation.DirtiesContext;
@@ -44,6 +46,7 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.getUriTemplateVariables;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, properties = "debug=true")
 @DirtiesContext
@@ -126,6 +129,48 @@ public class PathRoutePredicateFactoryTests extends BaseWebClientTests {
 			.valueEquals(HANDLER_MAPPER_HEADER, RoutePredicateHandlerMapping.class.getSimpleName())
 			.expectHeader()
 			.valueEquals(ROUTE_ID_HEADER, "path_regex");
+	}
+
+	@Test
+	public void trailingSlashMatchesWhenMatchTrailingSlashEnabled() {
+		Config config = new Config().setPatterns(Arrays.asList("/abc/{id}/function")).setMatchTrailingSlash(true);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/abc/123/function/").build());
+
+		assertThat(predicate.test(exchange)).isTrue();
+		assertThat(getUriTemplateVariables(exchange)).containsEntry("id", "123");
+	}
+
+	@Test
+	public void trailingSlashDoesNotMatchWhenMatchTrailingSlashDisabled() {
+		Config config = new Config().setPatterns(Arrays.asList("/abc/{id}/function")).setMatchTrailingSlash(false);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/abc/123/function/").build());
+
+		assertThat(predicate.test(exchange)).isFalse();
+	}
+
+	@Test
+	public void pathWithoutTrailingSlashDoesNotMatchPatternWithTrailingSlash() {
+		Config config = new Config().setPatterns(Arrays.asList("/abc/123/function/")).setMatchTrailingSlash(true);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/abc/123/function").build());
+
+		assertThat(predicate.test(exchange)).isFalse();
+	}
+
+	@Test
+	public void patternWithTrailingSlashMatchesPathWithTrailingSlash() {
+		Config config = new Config().setPatterns(Arrays.asList("/abc/{id}/function/")).setMatchTrailingSlash(true);
+		Predicate<ServerWebExchange> predicate = new PathRoutePredicateFactory(new WebFluxProperties()).apply(config);
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/abc/123/function/").build());
+
+		assertThat(predicate.test(exchange)).isTrue();
+		assertThat(getUriTemplateVariables(exchange)).containsEntry("id", "123");
 	}
 
 	@Test
