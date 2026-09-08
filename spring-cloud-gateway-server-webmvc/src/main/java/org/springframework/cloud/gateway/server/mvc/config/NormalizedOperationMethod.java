@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc.config;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,11 +105,40 @@ public class NormalizedOperationMethod implements OperationMethod {
 						map.put(fieldName, StringUtils.collectionToCommaDelimitedString(operationArgs.values()));
 						yield map;
 					}
-					default -> throw new IllegalArgumentException("Unknown Shortcut type " + shortcut.type());
+					case LIST_TAIL_FLAG -> normalizeListTailFlag(operationArgs, fieldOrder);
 				};
 			}
 		}
 		return operationArgs;
+	}
+
+	private static Map<String, Object> normalizeListTailFlag(Map<String, Object> operationArgs, String[] fieldOrder) {
+		// field order: list field name, then optional boolean tail flag.
+		// Unlike reactive GATHER_LIST_TAIL_FLAG (omits/nulls the flag when absent),
+		// always
+		// emit false so a primitive boolean param binds safely for the MVC invoker.
+		Assert.isTrue(fieldOrder != null && fieldOrder.length == 2,
+				"Shortcut Configuration Type LIST_TAIL_FLAG must have shortcutFieldOrder of size 2");
+		List<Object> values = new ArrayList<>(operationArgs.values());
+		Object flagValue = Boolean.FALSE;
+		if (!values.isEmpty()) {
+			int lastIdx = values.size() - 1;
+			Object lastValue = values.get(lastIdx);
+			if (lastValue == null) {
+				values = values.subList(0, lastIdx);
+			}
+			else {
+				String lastString = lastValue.toString();
+				if ("true".equalsIgnoreCase(lastString) || "false".equalsIgnoreCase(lastString)) {
+					values = values.subList(0, lastIdx);
+					flagValue = Boolean.valueOf(lastString);
+				}
+			}
+		}
+		Map<String, Object> map = new HashMap<>();
+		map.put(fieldOrder[0], new ArrayList<>(values));
+		map.put(fieldOrder[1], flagValue);
+		return map;
 	}
 
 	private String[] getFieldOrder(Shortcut shortcut) {

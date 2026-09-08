@@ -17,11 +17,13 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.net.URI;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
+import org.springframework.cloud.gateway.server.mvc.common.Shortcut.Type;
 import org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy;
 import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.FallbackHeadersConfig;
 import org.springframework.http.HttpHeaders;
@@ -146,6 +148,21 @@ public interface FilterFunctions {
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> removeResponseHeader(String name) {
 		return ofResponseProcessor(AfterFilterFunctions.removeResponseHeader(name));
+	}
+
+	/**
+	 * YAML / properties shortcut for
+	 * {@link AfterFilterFunctions#removeJsonAttributesResponseBody(List, boolean)}.
+	 * Supports {@code RemoveJsonAttributesResponseBody=id,color} and an optional trailing
+	 * boolean for recursive deletion ({@code ...,true}).
+	 * @param fieldList JSON attribute names to remove
+	 * @param deleteRecursively whether to remove nested attributes
+	 * @return the filter function
+	 */
+	@Shortcut(type = Type.LIST_TAIL_FLAG, fieldOrder = { "fieldList", "deleteRecursively" })
+	static HandlerFilterFunction<ServerResponse, ServerResponse> removeJsonAttributesResponseBody(
+			List<String> fieldList, boolean deleteRecursively) {
+		return ofResponseProcessor(AfterFilterFunctions.removeJsonAttributesResponseBody(fieldList, deleteRecursively));
 	}
 
 	@Shortcut
