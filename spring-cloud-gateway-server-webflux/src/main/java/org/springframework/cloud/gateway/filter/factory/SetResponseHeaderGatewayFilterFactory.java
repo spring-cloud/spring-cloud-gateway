@@ -39,8 +39,11 @@ public class SetResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String value = ServerWebExchangeUtils.expand(exchange, config.getValue());
 				String name = Objects.requireNonNull(config.name, "name must not be null");
-				return chain.filter(exchange)
-					.then(Mono.fromRunnable(() -> exchange.getResponse().getHeaders().set(name, value)));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (!exchange.getResponse().isCommitted()) {
+						exchange.getResponse().getHeaders().set(name, value);
+					}
+				}));
 			}
 
 			@Override

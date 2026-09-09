@@ -106,9 +106,11 @@ public class SecureHeadersGatewayFilterFactory
 				Set<String> headersToAddToResponse = assembleHeaders(originalConfig, properties);
 
 				Config config = originalConfig.withDefaults(properties);
-				return chain.filter(exchange)
-					.then(Mono
-						.fromRunnable(() -> applySecurityHeaders(responseHeaders, headersToAddToResponse, config)));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (!exchange.getResponse().isCommitted()) {
+						applySecurityHeaders(responseHeaders, headersToAddToResponse, config);
+					}
+				}));
 			}
 
 			@Override
