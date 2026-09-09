@@ -26,9 +26,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -91,6 +93,11 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 			HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
 			if (SAFE_METHODS.contains(httpMethod)
 					&& servletWebRequest.checkNotModified(headers().getETag(), lastModified)) {
+				// Not-modified short-circuit skips writeToInternal, which is where
+				// RestClientProxyExchange / ClientHttpRequestFactoryProxyExchange
+				// close the upstream ClientHttpResponse and return the connection
+				// to the pool (GH-4259).
+				closeClientResponse(request);
 				return null;
 			}
 			else {
@@ -99,6 +106,19 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 		}
 		catch (Throwable throwable) {
 			return handleError(throwable, request, response, context);
+		}
+	}
+
+	/**
+	 * Closes a proxied {@link ClientHttpResponse} stored on the request when the response
+	 * body will not be written (for example HTTP 304 Not Modified).
+	 * @param request the current servlet request
+	 */
+	private static void closeClientResponse(HttpServletRequest request) {
+		Object clientResponse = request.getAttribute(MvcUtils.CLIENT_RESPONSE_ATTR);
+		if (clientResponse instanceof ClientHttpResponse clientHttpResponse) {
+			clientHttpResponse.close();
+			request.removeAttribute(MvcUtils.CLIENT_RESPONSE_ATTR);
 		}
 	}
 
