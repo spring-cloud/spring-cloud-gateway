@@ -190,6 +190,58 @@ public class XForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void prefixToInferOnceWhenChainedPathFiltersProcessRequest() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://originalhost:8080/tenant/api/blue")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter(ALLOW_ALL_REGEX);
+		filter.setPrefixAppend(true);
+		filter.setPrefixEnabled(true);
+
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
+		// two chained path filters, e.g. StripPrefix=1 twice, add one entry each
+		originalUris
+			.add(UriComponentsBuilder.fromUriString("https://originalhost:8080/tenant/api/blue").build().toUri());
+		originalUris.add(UriComponentsBuilder.fromUriString("https://originalhost:8080/api/blue").build().toUri());
+		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
+		URI requestUri = UriComponentsBuilder.fromUriString("https://routedservice:8090/blue").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
+
+		assertThat(headers.headerNames()).contains(X_FORWARDED_PREFIX_HEADER);
+
+		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/tenant/api");
+	}
+
+	@Test
+	public void prefixAppendedToExistingHeaderOnceWhenChainedPathFiltersProcessRequest() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://originalhost:8080/tenant/api/blue")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(X_FORWARDED_PREFIX_HEADER, "/upstream")
+			.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter(ALLOW_ALL_REGEX);
+		filter.setPrefixAppend(true);
+		filter.setPrefixEnabled(true);
+
+		ServerWebExchange exchange = MockServerWebExchange.from(request);
+		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
+		originalUris
+			.add(UriComponentsBuilder.fromUriString("https://originalhost:8080/tenant/api/blue").build().toUri());
+		originalUris.add(UriComponentsBuilder.fromUriString("https://originalhost:8080/api/blue").build().toUri());
+		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
+		URI requestUri = UriComponentsBuilder.fromUriString("https://routedservice:8090/blue").build().toUri();
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), exchange);
+
+		assertThat(headers.getFirst(X_FORWARDED_PREFIX_HEADER)).isEqualTo("/upstream,/tenant/api");
+	}
+
+	@Test
 	public void prefixToInferWhenEqualsResource() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("https://originalhost:8080/resource/resource/")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
