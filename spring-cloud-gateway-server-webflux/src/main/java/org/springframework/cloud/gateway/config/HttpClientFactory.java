@@ -192,6 +192,11 @@ public class HttpClientFactory extends AbstractFactoryBean<HttpClient> {
 			builder.evictInBackground(pool.getEvictionInterval());
 			builder.metrics(pool.isMetrics());
 
+			if (pool.getInactivePoolDisposeInterval() != null && pool.getPoolInactivity() != null) {
+				builder.disposeInactivePoolsInBackground(pool.getInactivePoolDisposeInterval(),
+						pool.getPoolInactivity());
+			}
+
 			// Define the pool leasing strategy
 			if (pool.getLeasingStrategy() == FIFO) {
 				builder.fifo();
