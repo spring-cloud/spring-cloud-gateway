@@ -165,9 +165,16 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		List<Forwarded> forwardeds = parse(forwardedHeaders);
 
 		for (Forwarded f : forwardeds) {
-			// only add if "for" value matches trustedProxies
+			// Per RFC 7239 section 4, every Forwarded pair parameter, including
+			// "for", is optional, so an entry must not be dropped just because it
+			// has no "for" value. When a "for" value is present, still only keep
+			// the entry if it matches trustedProxies. Entries that reach this
+			// point already came from a request whose immediate remote address
+			// was trusted (untrusted remote addresses have all Forwarded headers
+			// stripped above), so this is only an extra check for the "for" value
+			// specifically, not a general trust gate.
 			String forValue = f.get("for");
-			if (forValue != null && trustedProxies.isTrusted(forValue)) {
+			if (forValue == null || trustedProxies.isTrusted(forValue)) {
 				updated.add(FORWARDED_HEADER, f.toHeaderValue());
 			}
 		}
