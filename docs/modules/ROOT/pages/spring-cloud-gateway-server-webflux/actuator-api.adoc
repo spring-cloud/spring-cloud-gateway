@@ -9,8 +9,13 @@ The following listing shows how to do so:
 [source,properties]
 ----
 management.endpoint.gateway.access=read-only
-management.endpoints.web.exposure.include=gateway
+management.endpoints.web.exposure.include=gateway,health
 ----
+
+NOTE: The actuator endpoints are not matched against the gateway routes.  Spring Boot maps them with its own
+handler mapping, which is ordered ahead of the gateway `RoutePredicateHandlerMapping`, so a catch-all route such
+as `+Path=/**+` does not shadow `+/actuator/**+`.  The order of the gateway handler mapping defaults to `1` and can`1` and can
+be changed with the `spring.cloud.gateway.handler-mapping.order` property.
 
 WARNING: It is suggested that you set `management.endpoint.gateway.access` to `read-only`.  This will disable the ability
 to refresh, create, and delete routes.  If you need the ability to create, refresh, and delete routes using the actuator
