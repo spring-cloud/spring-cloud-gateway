@@ -289,11 +289,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return exceeds;
 	}
 
-	@Deprecated
-	/**
-	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
-	 */
-	public void reset(ServerWebExchange exchange) {
+	private void reset(ServerWebExchange exchange) {
 		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		if (conn != null) {
 			trace("disposing response connection before next iteration");
