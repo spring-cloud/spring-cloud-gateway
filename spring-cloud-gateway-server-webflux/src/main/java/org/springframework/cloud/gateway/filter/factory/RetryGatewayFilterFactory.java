@@ -166,10 +166,20 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return retryableMethod;
 	}
 
+	/**
+	 * Checks elapsed-time-plus-{@code upcomingDelay} against {@code timeout}, rather than just
+	 * elapsed time, so we stop before waiting on a delay that would blow the budget rather than
+	 * only after it's already blown.
+	 */
 	private boolean withinTimeout(Instant start, @Nullable Duration timeout, Duration upcomingDelay) {
 		return timeout == null || Duration.between(start, Instant.now()).plus(upcomingDelay).compareTo(timeout) < 0;
 	}
 
+	/**
+	 * Exponential backoff for the given (1-based) iteration, capped at {@code maxBackoff} when
+	 * configured. Hand-rolled because there's no reactor-core backoff builder usable with
+	 * {@code repeatWhen}, which is what the status-code repeat path needs.
+	 */
 	private Duration computeBackoff(BackoffConfig backoff, long iteration) {
 		Duration next = backoff.getFirstBackoff().multipliedBy((long) Math.pow(backoff.getFactor(), iteration - 1));
 		Duration max = backoff.getMaxBackoff();
@@ -179,6 +189,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return next;
 	}
 
+	/**
+	 * Randomizes a backoff duration by +/- {@code randomFactor}, for the same reason as
+	 * {@link #computeBackoff}: no reactor-core built-in covers this for {@code repeatWhen}.
+	 */
 	private Duration applyJitter(Duration backoff, JitterConfig jitter) {
 		long jitterOffset = (long) (backoff.toMillis() * jitter.getRandomFactor());
 		long lowBound = Math.max(backoff.toMillis() - jitterOffset, 0);
@@ -186,6 +200,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return Duration.ofMillis(ThreadLocalRandom.current().nextLong(lowBound, highBound + 1));
 	}
 
+	/**
+	 * The backoff delay before the given iteration's attempt, or {@link Duration#ZERO} if no
+	 * backoff is configured. Callers should compute this once per iteration and reuse it for
+	 * both the {@link #withinTimeout} check and the actual delay, since jitter is randomized
+	 * and calling this twice would produce two different values.
+	 */
 	private Duration nextDelay(long iteration, RetryConfig retryConfig) {
 		BackoffConfig backoff = retryConfig.getBackoff();
 		if (backoff == null) {
