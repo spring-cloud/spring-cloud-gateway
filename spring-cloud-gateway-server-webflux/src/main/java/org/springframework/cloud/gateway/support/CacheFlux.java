@@ -67,7 +67,7 @@ import reactor.core.publisher.Signal;
  * @author Oleh Dokuka
  * @author Simon Baslé
  */
-public class CacheFlux {
+public final class CacheFlux {
 
 	private CacheFlux() {
 	}
