@@ -21,10 +21,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.support.CacheFlux;
 import org.springframework.context.ApplicationListener;
 
 /**
