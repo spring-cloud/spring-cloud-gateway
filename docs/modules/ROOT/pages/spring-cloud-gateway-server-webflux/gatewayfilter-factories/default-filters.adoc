@@ -17,3 +17,16 @@ spring:
       - PrefixPath=/httpbin
 ----
 
+[[default-and-route-filter-order]]
+== Order of Default Filters and Route Filters
+
+A filter which does not implement `Ordered` is given an order from its position in the list it is
+declared in, starting at `1`.  The default filters and the filters of a route are numbered
+independently and are then sorted with a stable sort, so a default filter and a route filter which
+share a position keep the order in which they were added, the default filter first.
+
+If `default-filters` declares `A`, `B`, `C` and `D`, and a route declares `X` and `Y`, the filters
+therefore run in the order `A`, `X`, `B`, `Y`, `C`, `D`.  `A` and `X` are both first in their own
+list and both have order `1`, `B` and `Y` both have order `2`, and so on.  A filter which does
+implement `Ordered` keeps its own order and is sorted into the same list.
+
