@@ -1,0 +1,16 @@
+spring.cloud.gateway.server.webmvc.routes:
+  - id: bean_context_test
+    uri: https://httpbin.org
+    predicates:
+      - name: Path
+        args:
+          pattern: /anything/bean-context
+    filters:
+      - name: HttpbinUriResolver
+      - name: CustomBeanFilter
+        args:
+          configured-argument: value
+
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: TRACE
