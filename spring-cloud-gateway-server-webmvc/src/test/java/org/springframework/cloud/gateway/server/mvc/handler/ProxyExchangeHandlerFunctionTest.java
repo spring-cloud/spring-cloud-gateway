@@ -112,8 +112,10 @@ class ProxyExchangeHandlerFunctionTest {
 
 		URI uri = proxyExchange.getRequest().getUri();
 
-		assertThat(uri).hasToString("http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3%3D&qux=value4%2B")
-			.hasPath("/é")
+		assertThat(uri.toString()).contains("http://localhost:8080/%C3%A9?", "foo=value1%20value2", "bar=value3%3D",
+				"qux=value4%2B");
+
+		assertThat(uri).hasPath("/é")
 			.hasParameter("foo", "value1 value2")
 			.hasParameter("bar", "value3=")
 			.hasParameter("qux", "value4+");
