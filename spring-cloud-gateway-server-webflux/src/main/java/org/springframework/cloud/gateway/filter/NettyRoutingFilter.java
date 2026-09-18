@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.filter;
 
+import java.net.ConnectException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -199,7 +201,18 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 						th -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, th.getMessage(), th));
 		}
 
+		responseFlux = responseFlux.onErrorMap(NettyRoutingFilter::isUnavailable,
+				th -> new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, th.getMessage(), th));
+
 		return responseFlux.then(chain.filter(exchange));
+	}
+
+	private static boolean isUnavailable(Throwable throwable) {
+		if (throwable instanceof ConnectException || throwable instanceof UnknownHostException) {
+			return true;
+		}
+		Throwable cause = throwable.getCause();
+		return cause != null && cause != throwable && isUnavailable(cause);
 	}
 
 	protected ByteBuf getByteBuf(DataBuffer dataBuffer) {
