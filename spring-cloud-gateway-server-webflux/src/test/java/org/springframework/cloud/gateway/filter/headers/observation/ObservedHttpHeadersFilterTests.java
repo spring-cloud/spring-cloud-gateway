@@ -99,11 +99,12 @@ public class ObservedHttpHeadersFilterTests extends SampleTestRunner {
 							.hasTag("spring.cloud.gateway.route.uri", "http://localhost:8080/")
 							.hasTag("spring.cloud.gateway.route.id", "foo"));
 			MeterRegistryAssert.then(meterRegistry)
-				.hasTimerWithNameAndTags("http.client.requests",
+				.hasTimerWithNameAndTags("spring.cloud.gateway.http.client.requests",
 						Tags.of("spring.cloud.gateway.route.id", "foo", "error", "none", "http.method", "GET",
 								"http.status_code", "200", "spring.cloud.gateway.route.uri", "http://localhost:8080/"))
-				.hasMeterWithNameAndTags("http.client.requests.active", Tags.of("spring.cloud.gateway.route.id", "foo",
-						"http.method", "GET", "spring.cloud.gateway.route.uri", "http://localhost:8080/"));
+				.hasMeterWithNameAndTags("spring.cloud.gateway.http.client.requests.active",
+						Tags.of("spring.cloud.gateway.route.id", "foo", "http.method", "GET",
+								"spring.cloud.gateway.route.uri", "http://localhost:8080/"));
 		};
 	}
 
