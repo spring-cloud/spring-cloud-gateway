@@ -387,12 +387,12 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 							.uri(uri))
 				.route("retry_with_backoff",
 						r -> r.host("**.retrywithbackoff.org").filters(f -> f.prefixPath("/httpbin").retry(config -> {
-							config.setRetries(2).setBackoff(Duration.ofMillis(100), null, 2, true);
+							config.setRetries(2).setBackoff(Duration.ofMillis(100), null, 2);
 						})).uri(uri))
 				.route("retry_with_backoff_jitter_timeout_test", r -> r.host("**.retrywithbackoffjittertimeout.org")
 					.filters(f -> f.prefixPath("/httpbin").retry(config -> {
 						config.setRetries(3)
-							.setBackoff(Duration.ofMillis(50), Duration.ofMillis(100), 2, true)
+							.setBackoff(Duration.ofMillis(50), Duration.ofMillis(100), 2)
 							.setJitter(0.1)
 							.setTimeout(Duration.ofMillis(1000));
 					}))
@@ -400,7 +400,7 @@ public class RetryGatewayFilterFactoryIntegrationTests extends BaseWebClientTest
 				.route("retry_with_backoff_timeout_test", r -> r.host("**.retrywithbackofftimeout.org")
 					.filters(f -> f.prefixPath("/httpbin").retry(config -> {
 						config.setRetries(3)
-							.setBackoff(Duration.ofMillis(100), null, 2, true)
+							.setBackoff(Duration.ofMillis(100), null, 2)
 							.setTimeout(Duration.ofMillis(200));
 					}))
 					.uri(uri))

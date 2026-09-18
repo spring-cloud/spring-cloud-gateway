@@ -437,9 +437,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return this;
 		}
 
-		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor,
-				boolean basedOnPreviousValue) {
-			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor, basedOnPreviousValue);
+		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor) {
+			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor);
 			return this;
 		}
 
@@ -508,16 +507,13 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private int factor = 2;
 
-		private boolean basedOnPreviousValue = true;
-
 		public BackoffConfig() {
 		}
 
-		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor, boolean basedOnPreviousValue) {
+		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor) {
 			this.firstBackoff = firstBackoff;
 			this.maxBackoff = maxBackoff;
 			this.factor = factor;
-			this.basedOnPreviousValue = basedOnPreviousValue;
 		}
 
 		public void validate() {
@@ -548,20 +544,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			this.factor = factor;
 		}
 
-		public boolean isBasedOnPreviousValue() {
-			return basedOnPreviousValue;
-		}
-
-		public void setBasedOnPreviousValue(boolean basedOnPreviousValue) {
-			this.basedOnPreviousValue = basedOnPreviousValue;
-		}
-
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("firstBackoff", firstBackoff)
 				.append("maxBackoff", maxBackoff)
 				.append("factor", factor)
-				.append("basedOnPreviousValue", basedOnPreviousValue)
 				.toString();
 		}
 
