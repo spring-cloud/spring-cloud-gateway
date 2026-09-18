@@ -32,8 +32,9 @@ import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
-import reactor.retry.Repeat;
-import reactor.retry.Retry;
+import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
+import reactor.util.retry.Retry;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -715,11 +716,11 @@ public class GatewayFilterSpec extends UriSpec {
 
 	/**
 	 * A filter that will retry failed requests.
-	 * @param repeat a {@link Repeat}
+	 * @param repeat a repeat function usable with {@link Flux#repeatWhen}
 	 * @param retry a {@link Retry}
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
-	public GatewayFilterSpec retry(Repeat<ServerWebExchange> repeat, Retry<ServerWebExchange> retry) {
+	public GatewayFilterSpec retry(Function<Flux<Long>, ? extends Publisher<?>> repeat, Retry retry) {
 		RetryGatewayFilterFactory filterFactory = getBean(RetryGatewayFilterFactory.class);
 		return filter(filterFactory.apply(this.routeBuilder.getId(), repeat, retry));
 	}
