@@ -68,3 +68,33 @@ spring:
           close-notify-flush-timeout-millis: 3000
           close-notify-read-timeout-millis: 0
 ----
+
+[[ssl-provider]]
+== SSL Provider and netty-tcnative
+
+Both the gateway server and the gateway HTTP client use Reactor Netty for TLS, so the SSL
+provider is chosen by Reactor Netty and not by the gateway itself.
+If `netty-tcnative` is on the classpath, the native `OPENSSL` provider is used.
+Otherwise, the `JDK` provider is used.
+No gateway-specific configuration is required to enable it:
+
+.pom.xml
+[source,xml]
+----
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-tcnative-boringssl-static</artifactId>
+</dependency>
+----
+
+The version is managed by the Netty BOM that Spring Boot imports, so it can be omitted.
+To force the JDK provider even when `netty-tcnative` is available, set
+`-Dio.netty.handler.ssl.noOpenSsl=true`.
+
+To verify which engine has been selected at runtime, enable `DEBUG` logging for
+`io.netty.handler.ssl.OpenSsl` and `reactor.netty.tcp.SslProvider`.
+
+TIP: See the Reactor Netty reference documentation for
+https://projectreactor.io/docs/netty/release/reference/http-server.html#ssl-and-tls[server]
+and https://projectreactor.io/docs/netty/release/reference/http-client.html#ssl-and-tls[client]
+SSL and TLS configuration details.
