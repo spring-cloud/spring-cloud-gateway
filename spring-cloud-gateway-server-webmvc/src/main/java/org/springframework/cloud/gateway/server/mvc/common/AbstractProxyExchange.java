@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
@@ -31,6 +33,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 
 public abstract class AbstractProxyExchange implements ProxyExchange {
+
+	private static final Log log = LogFactory.getLog(AbstractProxyExchange.class);
 
 	private final GatewayMvcProperties properties;
 
@@ -69,6 +73,27 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 			}
 			catch (IOException ex) {
 				copyException.addSuppressed(ex);
+			}
+			return;
+		}
+
+		clientResponse.close();
+	}
+
+	protected void closeUnwrittenResponse(Request request, ClientHttpResponse clientResponse) {
+		Objects.requireNonNull(request, "No Request specified");
+		Objects.requireNonNull(clientResponse, "No ClientResponse specified");
+
+		@Nullable InputStream inputStream = null;
+		if (MvcUtils.getAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR) == clientResponse) {
+			inputStream = MvcUtils.getAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR);
+		}
+		if (inputStream != null && isStreamingResponse(clientResponse)) {
+			try {
+				inputStream.close();
+			}
+			catch (IOException ex) {
+				log.debug("Failed to close streaming response body", ex);
 			}
 			return;
 		}
