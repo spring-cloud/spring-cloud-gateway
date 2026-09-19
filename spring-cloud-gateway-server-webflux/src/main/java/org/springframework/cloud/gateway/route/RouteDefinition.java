@@ -43,11 +43,9 @@ public class RouteDefinition {
 	private @Nullable String id;
 
 	@NotEmpty
-	@Valid
-	private List<PredicateDefinition> predicates = new ArrayList<>();
+	private List<@Valid PredicateDefinition> predicates = new ArrayList<>();
 
-	@Valid
-	private List<FilterDefinition> filters = new ArrayList<>();
+	private List<@Valid FilterDefinition> filters = new ArrayList<>();
 
 	private @Nullable URI uri;
 
