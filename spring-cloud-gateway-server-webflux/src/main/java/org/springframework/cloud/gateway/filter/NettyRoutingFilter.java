@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.netty.Connection;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
@@ -70,6 +71,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
 /**
  * @author Spencer Gibb
  * @author Biju Kunjummen
+ * @author Seungbin Ko
  */
 public class NettyRoutingFilter implements GlobalFilter, Ordered {
 
@@ -187,7 +189,15 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 				response.getHeaders().addAll(filteredResponseHeaders);
 
 				return Mono.just(res);
-			}));
+			})
+				// A cancelled exchange discards this response before anything subscribes
+				// to it, and the cleanup in NettyWriteResponseFilter has already run
+				// without finding a connection to dispose. Dispose it here instead.
+				//
+				// Must stay on the inner publisher: doOnDiscard writes a context entry
+				// that only upstream operators see. Downstream of the then() below it
+				// would also fire for successful exchanges, closing live connections.
+				.doOnDiscard(Connection.class, Connection::dispose));
 
 		Duration responseTimeout = getResponseTimeout(route);
 		if (responseTimeout != null) {
