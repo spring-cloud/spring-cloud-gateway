@@ -71,6 +71,7 @@
 
 * xref:spring-cloud-gateway-server-webmvc.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/starter.adoc[]
+** xref:spring-cloud-gateway-server-webmvc/http-client.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/glossary.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/how-it-works.adoc[]
 ** xref:spring-cloud-gateway-server-webmvc/java-routes-api.adoc[]
