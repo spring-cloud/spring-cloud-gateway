@@ -25,7 +25,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,6 +188,24 @@ public class ProductionConfigurationTests {
 	}
 
 	@Test
+	public void postForwardBodyWithoutAcceptHeader() {
+		ResponseEntity<String> result = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars"))
+				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).contains("foo");
+	}
+
+	@Test
+	public void postForwardForgetBodyWithoutAcceptHeader() {
+		ResponseEntity<String> result = rest
+			.exchange(RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/forget/bars"))
+				.body(Collections.singletonList(Collections.singletonMap("name", "foo"))), String.class);
+		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(result.getBody()).contains("foo");
+	}
+
+	@Test
 	public void postForwardBodyFoo() {
 		ResponseEntity<List<Bar>> result = rest.exchange(
 				RequestEntity.post(rest.getRestTemplate().getUriTemplateHandler().expand("/forward/body/bars"))
@@ -274,10 +291,6 @@ public class ProductionConfigurationTests {
 		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
-	@Disabled
-	// TODO This is broken due to a regression in Spring Framework 6.2.8,
-	// It will be fixed in 6.2.9 and boot 3.4.8
-	// See https://github.com/spring-projects/spring-framework/issues/35068
 	@Test
 	public void deleteWithBody() {
 		Foo foo = new Foo("to-be-deleted");
