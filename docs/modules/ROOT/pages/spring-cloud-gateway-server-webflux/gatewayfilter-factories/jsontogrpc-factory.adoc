@@ -3,6 +3,53 @@
 
 The JSONToGRPC GatewayFilter Factory converts a JSON payload to a gRPC request.
 
+[[jsontogrpc-dependencies]]
+== Required Dependencies
+
+The `JsonToGrpc` filter depends on several optional libraries that are *not* included by default.
+You must add them explicitly to your project:
+
+.Maven
+[source,xml]
+----
+<dependency>
+    <groupId>tools.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-protobuf</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-netty</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-protobuf</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-stub</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java-util</artifactId>
+</dependency>
+----
+
+.Gradle
+[source,groovy]
+----
+implementation 'tools.jackson.dataformat:jackson-dataformat-protobuf'
+implementation 'io.grpc:grpc-netty'
+implementation 'io.grpc:grpc-protobuf'
+implementation 'io.grpc:grpc-stub'
+implementation 'com.google.protobuf:protobuf-java-util'
+----
+
+[WARNING]
+====
+If any of these dependencies are missing you will see a `NoClassDefFoundError` at runtime (for example, `com/fasterxml/jackson/dataformat/protobuf/ProtobufFactory`) when a request hits the route.
+The versions are managed by the Spring Cloud Gateway BOM, so no version attributes are needed when using the BOM.
+====
+
 The filter takes the following arguments:
 
 * `service`: Short name of the service that handles the request.
