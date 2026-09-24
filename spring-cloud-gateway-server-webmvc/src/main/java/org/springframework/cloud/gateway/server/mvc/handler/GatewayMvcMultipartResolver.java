@@ -16,12 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
-import java.util.Collections;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
@@ -29,6 +31,9 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 
 /**
  * A MultipartResolver that does not resolve if the current request is a Gateway request.
+ *
+ * @author Spencer Gibb
+ * @author Arindam Singh
  */
 public class GatewayMvcMultipartResolver extends StandardServletMultipartResolver {
 
@@ -67,7 +72,13 @@ public class GatewayMvcMultipartResolver extends StandardServletMultipartResolve
 		@Override
 		public Map<String, String[]> getParameterMap() {
 			if (isGatewayRequest(getRequest())) {
-				return Collections.emptyMap();
+				MultiValueMap<String, String> queryParams =
+						MvcUtils.decodeQueryString(getRequest().getQueryString(), StandardCharsets.UTF_8);
+
+				return queryParams.entrySet()
+						.stream()
+						.collect(Collectors.toMap(
+								Map.Entry::getKey, e -> e.getValue().toArray(new String[0])));
 			}
 			return super.getParameterMap();
 		}
