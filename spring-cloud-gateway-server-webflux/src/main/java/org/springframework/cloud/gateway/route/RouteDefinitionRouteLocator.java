@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.route;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -179,6 +180,42 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	}
 
 	private List<GatewayFilter> getFilters(RouteDefinition routeDefinition) {
+
+		// --- GH-3293: URI Path Syntactic Sugar ---
+		URI uri = routeDefinition.getUri();
+		if (uri != null && org.springframework.util.StringUtils.hasText(uri.getPath()) && !"/".equals(uri.getPath())) {
+
+			String path = uri.getPath();
+
+			// check if SetPath already exists to avoid duplication
+			boolean hasSetPath = routeDefinition.getFilters()
+				.stream()
+				.anyMatch(f -> "SetPath".equalsIgnoreCase(f.getName()));
+
+			if (!hasSetPath) {
+				// 1. Create the FilterDefinition programmatically
+				FilterDefinition sugar = new FilterDefinition();
+				sugar.setName("SetPath");
+				// SetPath expects a parameter named 'template'
+				sugar.addArg("template", path);
+
+				// Add it at the beginning of the filter chain
+				routeDefinition.getFilters().add(0, sugar);
+
+				// 2. Strip the path from the URI to prevent double-pathing
+				// (e.g., http://example.com/foo -> http://example.com)
+				URI strippedUri = org.springframework.web.util.UriComponentsBuilder.fromUri(uri)
+					.replacePath(null)
+					.build()
+					.toUri();
+				routeDefinition.setUri(strippedUri);
+			}
+		}
+		// --- END GH-3293 ---
+
+		// ... existing code follows (List<GatewayFilter> filters = new ArrayList<>();
+		// etc.)
+
 		List<GatewayFilter> filters = new ArrayList<>();
 		Objects.requireNonNull(routeDefinition.getId(), "Route id must be set");
 		// TODO: support option to apply defaults after route specific filters?
