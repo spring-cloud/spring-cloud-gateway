@@ -16,11 +16,15 @@
 
 package org.springframework.cloud.gateway.filter.factory.cache;
 
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,14 +32,24 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junitpioneer.jupiter.RetryingTest;
+import reactor.core.publisher.Flux;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
+import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinition;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.CacheControl;
@@ -74,6 +88,9 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 	@SpringBootTest(properties = { "spring.cloud.gateway.server.webflux.filter.local-response-cache.enabled=true" },
 			webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 	public class UsingFilterParams extends BaseWebClientTests {
+
+		@Autowired
+		private ConfigurableApplicationContext applicationContext;
 
 		@RetryingTest(3)
 		void shouldNotCacheResponseWhenGetRequestHasBody() {
@@ -193,6 +210,51 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 					.expectBody()
 					.jsonPath("$.headers." + CUSTOM_HEADER)
 					.isEqualTo(customHeaderFromReq1));
+		}
+
+		@RetryingTest(3)
+		void shouldServeCachedResponseAfterRouteRefreshWhenCacheConfigurationIsUnchanged() {
+			String uri = "/" + UUID.randomUUID() + "/refreshable-cache/headers";
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
+
+			// A route refresh re-applies the filter factory. The cache configuration is
+			// unchanged, so the entries cached before the refresh must survive it.
+			refreshRoutes();
+			refreshRoutes();
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
+		}
+
+		private void refreshRoutes() {
+			CountDownLatch refreshed = new CountDownLatch(1);
+			ApplicationListener<RefreshRoutesResultEvent> listener = event -> refreshed.countDown();
+			applicationContext.addApplicationListener(listener);
+			try {
+				applicationContext.publishEvent(new RefreshRoutesEvent(this));
+				assertThat(refreshed.await(DURATION.toSeconds(), TimeUnit.SECONDS)).isTrue();
+			}
+			catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				throw new IllegalStateException("Interrupted while waiting for the route refresh", ex);
+			}
+			finally {
+				applicationContext.removeApplicationListener(listener);
+			}
 		}
 
 		@RetryingTest(3)
@@ -448,6 +510,28 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 									.localResponseCache(null, DataSize.ofBytes(1L)))
 								.uri(uri))
 					.build();
+			}
+
+			/**
+			 * The Java DSL does not set the route id on the filter configuration, so
+			 * routes built with {@link RouteLocatorBuilder} always get a new cache. A
+			 * route definition carries its id all the way to the filter configuration,
+			 * which is what a discovery-driven deployment looks like, so the refresh
+			 * behaviour has to be asserted on a route defined this way.
+			 */
+			@Bean
+			public RouteDefinitionLocator refreshableCacheRouteDefinitionLocator() {
+				RouteDefinition routeDefinition = new RouteDefinition();
+				routeDefinition.setId("refreshable_local_response_cache_test");
+				routeDefinition.setUri(URI.create(uri));
+				routeDefinition.setPredicates(List.of(new PredicateDefinition("Path=/{namespace}/refreshable-cache/**"),
+						new PredicateDefinition("Host={sub}.localresponsecache.org")));
+				FilterDefinition localResponseCache = new FilterDefinition();
+				localResponseCache.setName("LocalResponseCache");
+				localResponseCache.addArg("timeToLive", "2m");
+				routeDefinition.setFilters(List.of(new FilterDefinition("StripPrefix=2"),
+						new FilterDefinition("PrefixPath=/httpbin"), localResponseCache));
+				return () -> Flux.just(routeDefinition);
 			}
 
 		}
