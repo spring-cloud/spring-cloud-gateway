@@ -60,10 +60,10 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		testClient.get().uri("/headers").exchange().expectStatus().isOk();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SUCCESSFUL.name());
 		assertMetricsContainsTag("status", HttpStatus.OK.name());
-		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.OK.value()));
-		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("http.status.code", String.valueOf(HttpStatus.OK.value()));
+		assertMetricsContainsTag("http.method", HttpMethod.GET.toString());
+		assertMetricsContainsTag("route.id", "default_path_to_httpbin");
+		assertMetricsContainsTag("route.uri", testUri);
 	}
 
 	@Test
@@ -71,10 +71,10 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		testClient.get().uri("/badtargeturi").exchange().expectStatus().is5xxServerError();
 		assertMetricsContainsTag("outcome", HttpStatus.Series.SERVER_ERROR.name());
 		assertMetricsContainsTag("status", HttpStatus.INTERNAL_SERVER_ERROR.name());
-		assertMetricsContainsTag("httpStatusCode", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
-		assertMetricsContainsTag("httpMethod", HttpMethod.GET.toString());
-		assertMetricsContainsTag("routeId", "default_path_to_httpbin");
-		assertMetricsContainsTag("routeUri", testUri);
+		assertMetricsContainsTag("http.status.code", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+		assertMetricsContainsTag("http.method", HttpMethod.GET.toString());
+		assertMetricsContainsTag("route.id", "default_path_to_httpbin");
+		assertMetricsContainsTag("route.uri", testUri);
 	}
 
 	@Test
@@ -87,10 +87,10 @@ public class GatewayMetricsFilterTests extends BaseWebClientTests {
 		assertThat(response.getStatusCode().value()).isEqualTo(432);
 		assertMetricsContainsTag("outcome", "CUSTOM");
 		assertMetricsContainsTag("status", "432");
-		assertMetricsContainsTag("routeId", "test_custom_http_status_metrics");
-		assertMetricsContainsTag("routeUri", testUri);
-		assertMetricsContainsTag("httpStatusCode", "432");
-		assertMetricsContainsTag("httpMethod", HttpMethod.POST.toString());
+		assertMetricsContainsTag("route.id", "test_custom_http_status_metrics");
+		assertMetricsContainsTag("route.uri", testUri);
+		assertMetricsContainsTag("http.status.code", "432");
+		assertMetricsContainsTag("http.method", HttpMethod.POST.toString());
 	}
 
 	private void assertMetricsContainsTag(String tagKey, String tagValue) {
