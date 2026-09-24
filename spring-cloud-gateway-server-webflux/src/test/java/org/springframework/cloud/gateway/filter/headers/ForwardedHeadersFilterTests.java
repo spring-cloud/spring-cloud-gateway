@@ -121,6 +121,25 @@ public class ForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void forwardedHeaderWithoutForIsPreserved() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(FORWARDED_HEADER, "proto=http;host=example.com, for=23.45.67.89")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.get(FORWARDED_HEADER)).hasSize(3);
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds)
+			.anyMatch(forwarded -> "example.com".equals(forwarded.get("host")) && forwarded.get("for") == null);
+	}
+
+	@Test
 	public void noHostHeader() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
