@@ -342,9 +342,14 @@ public abstract class MvcUtils {
 	public static MultiValueMap<String, String> encodeQueryParams(MultiValueMap<String, String> params) {
 		MultiValueMap<String, String> encodedQueryParams = new LinkedMultiValueMap<>(params.size());
 		for (Map.Entry<String, List<String>> entry : params.entrySet()) {
-			for (String value : entry.getValue()) {
-				encodedQueryParams.add(UriUtils.encode(entry.getKey(), StandardCharsets.UTF_8),
-						UriUtils.encode(value, StandardCharsets.UTF_8));
+			String key = UriUtils.encode(entry.getKey(), StandardCharsets.UTF_8);
+			if (CollectionUtils.isEmpty(entry.getValue())) {
+				encodedQueryParams.put(key, entry.getValue());
+			}
+			else {
+				for (String value : entry.getValue()) {
+					encodedQueryParams.add(key, UriUtils.encode(value, StandardCharsets.UTF_8));
+				}
 			}
 		}
 		return CollectionUtils.unmodifiableMultiValueMap(encodedQueryParams);
