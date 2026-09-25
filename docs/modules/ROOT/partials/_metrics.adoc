@@ -11,9 +11,9 @@ Observation created when sending a request through the gateway.
 ____
 
 
-**Metric name** `http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `timer`.
+**Metric name** `spring.cloud.gateway.http.client.requests` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `timer`.
 
-**Metric name** `http.client.requests.active` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `long task timer`.
+**Metric name** `spring.cloud.gateway.http.client.requests.active` (defined by convention class `org.springframework.cloud.gateway.filter.headers.observation.DefaultGatewayObservationConvention`). **Type** `long task timer`.
 
 
 IMPORTANT: KeyValues that are added after starting the Observation might be missing from the *.active metrics.
