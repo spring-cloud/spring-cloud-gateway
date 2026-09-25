@@ -18,14 +18,19 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -104,6 +109,73 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 				REFERRER_POLICY_HEADER, CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER,
 				X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER);
 
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "all", "ALL", "aLl" })
+	public void doNotAddAnyHeaderWhenAllHeadersAreDisabled(String disabledHeaders) {
+		String prefix = "spring.cloud.gateway.server.webflux.filter.secure-headers";
+		SecureHeadersProperties properties = new Binder(new MapConfigurationPropertySource(
+				Map.of(prefix + ".enable", "permissions-policy", prefix + ".disable", disabledHeaders)))
+			.bindOrCreate(prefix, SecureHeadersProperties.class);
+
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders().headerNames()).isEmpty();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "all", "ALL", "aLl" })
+	public void routeConfigCanDisableAllHeaders(String disabledHeaders) {
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties());
+
+		Config config = new Binder(
+				new MapConfigurationPropertySource(Map.of("enable", "permissions-policy", "disable", disabledHeaders)))
+			.bindOrCreate("", Config.class);
+
+		filter = filterFactory.apply(config);
+
+		filter.filter(exchange, filterChain).block();
+
+		ServerHttpResponse response = captor.getValue().getResponse();
+		assertThat(response.getHeaders().headerNames()).isEmpty();
+	}
+
+	@Test
+	public void routeConfigOverridesGloballyDisabledAllHeaders() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		properties.setDisable(List.of("all"));
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		Config config = new Config();
+		config.setDisable(Set.of("strict-transport-security"));
+		config.setEnable(Set.of("permissions-policy"));
+		filter = filterFactory.apply(config);
+
+		filter.filter(exchange, filterChain).block();
+
+		assertThat(exchange.getResponse().getHeaders().headerNames()).containsOnly(X_XSS_PROTECTION_HEADER,
+				X_FRAME_OPTIONS_HEADER, X_CONTENT_TYPE_OPTIONS_HEADER, REFERRER_POLICY_HEADER,
+				CONTENT_SECURITY_POLICY_HEADER, X_DOWNLOAD_OPTIONS_HEADER, X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER,
+				PERMISSIONS_POLICY_HEADER);
+	}
+
+	@Test
+	public void disablingAllHeadersPreservesExistingResponseHeaders() {
+		SecureHeadersProperties properties = new SecureHeadersProperties();
+		properties.setDisable(List.of("all"));
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(properties);
+		filter = filterFactory.apply(new Config());
+		exchange.getResponse().getHeaders().set(X_FRAME_OPTIONS_HEADER, "SAMEORIGIN");
+
+		filter.filter(exchange, filterChain).block();
+
+		assertThat(exchange.getResponse().getHeaders().headerNames()).containsOnly(X_FRAME_OPTIONS_HEADER);
+		assertThat(exchange.getResponse().getHeaders().get(X_FRAME_OPTIONS_HEADER)).containsExactly("SAMEORIGIN");
 	}
 
 	@Test
