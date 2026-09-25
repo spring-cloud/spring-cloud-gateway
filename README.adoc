@@ -24,6 +24,36 @@ image::https://codecov.io/gh/spring-cloud/spring-cloud-gateway/branch/main/graph
 * API or configuration driven
 * Supports Spring Cloud `DiscoveryClient` for configuring Routes
 
+[[module-selection-guide]]
+= Module selection guide
+
+Use this quick guide to choose the artifact for your use case. For complete details and examples, see the https://docs.spring.io/spring-cloud-gateway/reference/[reference documentation].
+
+[cols="2,3,4"]
+|===
+| Module | What it is | Use it when
+
+| `spring-cloud-starter-gateway-server-webflux`
+| Spring Boot starter for the reactive gateway server.
+| You are building a new API gateway on Spring WebFlux and want auto-configuration for routes and filters.
+
+| `spring-cloud-starter-gateway-server-webmvc`
+| Spring Boot starter for the servlet-based gateway server.
+| You run on Spring MVC/servlet stack and need gateway features without moving to reactive WebFlux.
+
+| `spring-cloud-gateway-server-webflux`
+| Core WebFlux gateway module without starter auto-configuration.
+| You need fine-grained/manual configuration or embed gateway components in a custom setup.
+
+| `spring-cloud-gateway-proxyexchange-webflux`
+| `ProxyExchange` support for annotation-based WebFlux handlers.
+| You need programmatic/dynamic proxying from controller methods rather than route definitions.
+
+| `spring-cloud-gateway-proxyexchange-webmvc`
+| `ProxyExchange` support for annotation-based Spring MVC handlers.
+| You need programmatic/dynamic proxying in servlet-based MVC applications.
+|===
+
 [[building]]
 = Building
 
