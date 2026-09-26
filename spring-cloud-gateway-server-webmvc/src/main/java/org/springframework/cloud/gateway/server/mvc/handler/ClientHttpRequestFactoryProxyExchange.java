@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -42,6 +44,8 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 
 	@Override
 	public ServerResponse exchange(Request request) {
+		AtomicReference<Runnable> releaseResponse = new AtomicReference<>(() -> {
+		});
 		try {
 			Objects.requireNonNull(request.getUri(), "uri is required");
 			ClientHttpRequest clientHttpRequest = requestFactory.createRequest(request.getUri(), request.getMethod());
@@ -49,11 +53,17 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 			// copy body from request to clientHttpRequest
 			StreamUtils.copy(request.getServerRequest().servletRequest().getInputStream(), clientHttpRequest.getBody());
 			ClientHttpResponse clientHttpResponse = clientHttpRequest.execute();
+			AtomicBoolean closed = new AtomicBoolean();
+			releaseResponse.set(() -> {
+				if (closed.compareAndSet(false, true)) {
+					closeUnwrittenResponse(request, clientHttpResponse);
+				}
+			});
 			InputStream body = clientHttpResponse.getBody();
 			// put the body input stream in a request attribute so filters can read it.
 			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
 			MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientHttpResponse);
-			ServerResponse serverResponse = GatewayServerResponse.status(clientHttpResponse.getStatusCode())
+			ServerResponse serverResponse = new GatewayServerResponseBuilder(clientHttpResponse.getStatusCode())
 				.build((req, httpServletResponse) -> {
 					// get input stream from request attribute in case it was
 					// modified.
@@ -71,19 +81,26 @@ public class ClientHttpRequestFactoryProxyExchange extends AbstractProxyExchange
 						throw ex;
 					}
 					finally {
-						ClientHttpRequestFactoryProxyExchange.this.closeResponse(clientHttpResponse, inputStream,
-								copyException);
+						if (closed.compareAndSet(false, true)) {
+							ClientHttpRequestFactoryProxyExchange.this.closeResponse(clientHttpResponse, inputStream,
+									copyException);
+						}
 					}
 					return null;
-				});
+				}, releaseResponse.get());
 			ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientHttpResponse);
 			request.getResponseConsumers()
 				.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));
 			return serverResponse;
 		}
 		catch (IOException e) {
+			releaseResponse.get().run();
 			// TODO: log error?
 			throw new UncheckedIOException(e);
+		}
+		catch (RuntimeException e) {
+			releaseResponse.get().run();
+			throw e;
 		}
 	}
 

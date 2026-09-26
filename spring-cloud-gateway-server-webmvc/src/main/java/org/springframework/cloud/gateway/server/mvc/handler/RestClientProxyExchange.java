@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.cloud.gateway.server.mvc.common.AbstractProxyExchange;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
@@ -65,11 +66,28 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 	}
 
 	private ServerResponse doExchange(Request request, ClientHttpResponse clientResponse) throws IOException {
+		AtomicBoolean closed = new AtomicBoolean();
+		Runnable releaseResponse = () -> {
+			if (closed.compareAndSet(false, true)) {
+				closeUnwrittenResponse(request, clientResponse);
+			}
+		};
+		try {
+			return createServerResponse(request, clientResponse, closed, releaseResponse);
+		}
+		catch (IOException | RuntimeException ex) {
+			releaseResponse.run();
+			throw ex;
+		}
+	}
+
+	private ServerResponse createServerResponse(Request request, ClientHttpResponse clientResponse,
+			AtomicBoolean closed, Runnable releaseResponse) throws IOException {
 		InputStream body = clientResponse.getBody();
 		// put the body input stream in a request attribute so filters can read it.
 		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_INPUT_STREAM_ATTR, body);
 		MvcUtils.putAttribute(request.getServerRequest(), MvcUtils.CLIENT_RESPONSE_ATTR, clientResponse);
-		ServerResponse serverResponse = GatewayServerResponse.status(clientResponse.getStatusCode())
+		ServerResponse serverResponse = new GatewayServerResponseBuilder(clientResponse.getStatusCode())
 			.build((req, httpServletResponse) -> {
 				// get input stream from request attribute in case it was
 				// modified.
@@ -87,10 +105,12 @@ public class RestClientProxyExchange extends AbstractProxyExchange {
 					throw ex;
 				}
 				finally {
-					RestClientProxyExchange.this.closeResponse(clientResponse, inputStream, copyException);
+					if (closed.compareAndSet(false, true)) {
+						RestClientProxyExchange.this.closeResponse(clientResponse, inputStream, copyException);
+					}
 				}
 				return null;
-			});
+			}, releaseResponse);
 		ClientHttpResponseAdapter proxyExchangeResponse = new ClientHttpResponseAdapter(clientResponse);
 		request.getResponseConsumers()
 			.forEach(responseConsumer -> responseConsumer.accept(proxyExchangeResponse, serverResponse));

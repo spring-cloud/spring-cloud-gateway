@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -213,16 +215,45 @@ class GatewayServerResponseBuilder implements ServerResponse.BodyBuilder {
 		return GatewayStreamingServerResponse.create(this.statusCode, this.headers, this.cookies, streamConsumer, null);
 	}
 
+	ServerResponse build(WriteFunction writeFunction, Runnable completionCallback) {
+		Objects.requireNonNull(completionCallback, "Runnable must not be null");
+		return new WriteFunctionResponse(this.statusCode, this.headers, this.cookies, writeFunction,
+				completionCallback);
+	}
+
 	private static class WriteFunctionResponse extends AbstractGatewayServerResponse {
 
 		private final WriteFunction writeFunction;
 
+		private final @Nullable Runnable completionCallback;
+
 		WriteFunctionResponse(HttpStatusCode statusCode, HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
 				WriteFunction writeFunction) {
+
+			this(statusCode, headers, cookies, writeFunction, null);
+		}
+
+		WriteFunctionResponse(HttpStatusCode statusCode, HttpHeaders headers, MultiValueMap<String, Cookie> cookies,
+				WriteFunction writeFunction, @Nullable Runnable completionCallback) {
 
 			super(statusCode, headers, cookies);
 			Objects.requireNonNull(writeFunction, "WriteFunction must not be null");
 			this.writeFunction = writeFunction;
+			this.completionCallback = completionCallback;
+		}
+
+		@Override
+		public @Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+				throws ServletException, IOException {
+
+			try {
+				return super.writeTo(request, response, context);
+			}
+			finally {
+				if (this.completionCallback != null) {
+					this.completionCallback.run();
+				}
+			}
 		}
 
 		@Override
