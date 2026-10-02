@@ -25,8 +25,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiterProperties;
 import org.springframework.cloud.gateway.route.RedisRouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.support.ConfigurationService;
@@ -51,6 +53,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 @ConditionalOnBean(ReactiveRedisTemplate.class)
 @ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
 @ConditionalOnProperty(name = GatewayProperties.PREFIX + ".redis.enabled", matchIfMissing = true)
+@EnableConfigurationProperties(RedisRateLimiterProperties.class)
 class GatewayRedisAutoConfiguration {
 
 	@Bean
@@ -67,8 +70,8 @@ class GatewayRedisAutoConfiguration {
 	@ConditionalOnMissingBean
 	public RedisRateLimiter redisRateLimiter(ReactiveStringRedisTemplate redisTemplate,
 			@Qualifier(RedisRateLimiter.REDIS_SCRIPT_NAME) RedisScript<List<Long>> redisScript,
-			ConfigurationService configurationService) {
-		return new RedisRateLimiter(redisTemplate, redisScript, configurationService);
+			ConfigurationService configurationService, RedisRateLimiterProperties redisRateLimiterProperties) {
+		return new RedisRateLimiter(redisTemplate, redisScript, configurationService, redisRateLimiterProperties);
 	}
 
 	@Bean
