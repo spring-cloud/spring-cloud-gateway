@@ -92,10 +92,27 @@ public class ResponseCacheManager {
 	private static final List<HttpStatusCode> statusesToCache = Arrays.asList(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
 			HttpStatus.MOVED_PERMANENTLY);
 
+	/**
+	 * Looks up a cached response for a request.
+	 * @param request the request
+	 * @param metadataKey the metadata key
+	 * @return the cached response, if present
+	 * @deprecated in favor of {@link #getFromCache(ServerWebExchange, String)}, which
+	 * also scopes the lookup to the matched route
+	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
 	public Optional<CachedResponse> getFromCache(ServerHttpRequest request, String metadataKey) {
 		CachedResponseMetadata metadata = retrieveMetadata(metadataKey);
 		String key = cacheKeyGenerator.generateKey(request,
 				metadata != null ? metadata.varyOnHeaders() : Collections.emptyList());
+
+		return getFromCache(key);
+	}
+
+	public Optional<CachedResponse> getFromCache(ServerWebExchange exchange, String metadataKey) {
+		CachedResponseMetadata metadata = retrieveMetadata(metadataKey);
+		String key = resolveKey(exchange, metadata != null ? metadata.varyOnHeaders() : Collections.emptyList());
 
 		return getFromCache(key);
 	}
@@ -138,11 +155,11 @@ public class ResponseCacheManager {
 	}
 
 	public String resolveMetadataKey(ServerWebExchange exchange) {
-		return cacheKeyGenerator.generateMetadataKey(exchange.getRequest());
+		return cacheKeyGenerator.generateMetadataKey(exchange);
 	}
 
 	public String resolveKey(ServerWebExchange exchange, List<String> varyOnHeaders) {
-		return cacheKeyGenerator.generateKey(exchange.getRequest(), varyOnHeaders);
+		return cacheKeyGenerator.generateKey(exchange, varyOnHeaders);
 	}
 
 	Mono<Void> processFromCache(ServerWebExchange exchange, String metadataKey, CachedResponse cachedResponse) {

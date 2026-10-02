@@ -126,6 +126,43 @@ public class LocalResponseCacheGlobalFilterTests {
 		}
 
 		@Test
+		void shouldNotShareGlobalCacheBetweenRoutesMatchingTheSameUri() {
+			String uri = "/" + UUID.randomUUID() + "/global-cache-routes/headers";
+
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header("X-Route", "a")
+				.header(CUSTOM_HEADER, "1")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
+
+			// same URI, different route: must not be served route a's cached response
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header("X-Route", "b")
+				.header(CUSTOM_HEADER, "2")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("2");
+
+			// same route again: served from that route's cache
+			testClient.get()
+				.uri(uri)
+				.header("Host", "www.localresponsecache.org")
+				.header("X-Route", "a")
+				.header(CUSTOM_HEADER, "3")
+				.exchange()
+				.expectBody()
+				.jsonPath("$.headers." + CUSTOM_HEADER)
+				.isEqualTo("1");
+		}
+
+		@Test
 		void shouldNotReturnPragmaHeaderInNonCachedAndCachedResponses() {
 			shouldNotReturnHeader(HttpHeaders.PRAGMA);
 		}
@@ -168,6 +205,22 @@ public class LocalResponseCacheGlobalFilterTests {
 							r -> r.path("/{namespace}/global-cache/**")
 								.and()
 								.host("{sub}.localresponsecache.org")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin"))
+								.uri(uri))
+					.route("global_local_response_cache_route_a_java_test",
+							r -> r.path("/{namespace}/global-cache-routes/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.and()
+								.header("X-Route", "a")
+								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin"))
+								.uri(uri))
+					.route("global_local_response_cache_route_b_java_test",
+							r -> r.path("/{namespace}/global-cache-routes/**")
+								.and()
+								.host("{sub}.localresponsecache.org")
+								.and()
+								.header("X-Route", "b")
 								.filters(f -> f.stripPrefix(2).prefixPath("/httpbin"))
 								.uri(uri))
 					.build();
