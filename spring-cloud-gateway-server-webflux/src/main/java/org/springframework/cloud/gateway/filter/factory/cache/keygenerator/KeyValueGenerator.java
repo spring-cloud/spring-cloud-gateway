@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.cache.keygenerator;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * Function to calculate a key value based on a {@link ServerHttpRequest}.
@@ -26,9 +27,14 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
  */
 interface KeyValueGenerator {
 
-	/*
+	/**
 	 * Calls getKeyValue() and guards against null.
+	 * @param request the request
+	 * @return the key value, never null
+	 * @deprecated in favor of {@link #apply(ServerWebExchange)}
 	 */
+	@Deprecated
+	@SuppressWarnings("deprecation")
 	default String apply(ServerHttpRequest request) {
 		String key = getKeyValue(request);
 		if (key == null) {
@@ -37,6 +43,32 @@ interface KeyValueGenerator {
 		return key;
 	}
 
+	/*
+	 * Calls getKeyValue() and guards against null.
+	 */
+	default String apply(ServerWebExchange exchange) {
+		String key = getKeyValue(exchange);
+		if (key == null) {
+			return "";
+		}
+		return key;
+	}
+
+	/**
+	 * Calculates the key value for a request.
+	 * @param request the request
+	 * @return the key value
+	 * @deprecated in favor of {@link #getKeyValue(ServerWebExchange)}
+	 */
+	@Deprecated
 	String getKeyValue(ServerHttpRequest request);
+
+	/*
+	 * Defaults to the request based value. Override when the exchange is needed.
+	 */
+	@SuppressWarnings("deprecation")
+	default String getKeyValue(ServerWebExchange exchange) {
+		return getKeyValue(exchange.getRequest());
+	}
 
 }

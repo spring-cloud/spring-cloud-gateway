@@ -21,13 +21,19 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.CacheKeyGenerator;
+import org.springframework.cloud.gateway.filter.factory.cache.keygenerator.RouteIdKeyValueGenerator;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -204,6 +210,84 @@ class CacheKeyGeneratorTest {
 		var keyWithoutVary = cacheKeyGenerator.generateKey(withFirstVary, "X-MY-VARY-1");
 
 		assertThat(keyWithoutVary).isEqualTo(keyWithFirstVary);
+	}
+
+	@Test
+	void shouldGenerateDifferentKeyForSameUriWhenRoutesAreDifferent() {
+		var exchangeRouteA = exchangeForRoute("https://this", "route-a");
+		var exchangeRouteB = exchangeForRoute("https://this", "route-b");
+
+		assertThat(cacheKeyGenerator.generateKey(exchangeRouteA))
+			.isNotEqualTo(cacheKeyGenerator.generateKey(exchangeRouteB));
+		assertThat(cacheKeyGenerator.generateMetadataKey(exchangeRouteA))
+			.isNotEqualTo(cacheKeyGenerator.generateMetadataKey(exchangeRouteB));
+	}
+
+	@Test
+	void shouldGenerateSameKeyForSameUriWhenRouteIsTheSame() {
+		var exchange1 = exchangeForRoute("https://this", "route-a");
+		var exchange2 = exchangeForRoute("https://this", "route-a");
+
+		assertThat(cacheKeyGenerator.generateKey(exchange1)).isEqualTo(cacheKeyGenerator.generateKey(exchange2));
+		assertThat(cacheKeyGenerator.generateMetadataKey(exchange1))
+			.isEqualTo(cacheKeyGenerator.generateMetadataKey(exchange2));
+	}
+
+	@Test
+	void shouldGenerateDifferentKeyForSameRouteWhenUriIsDifferent() {
+		var exchange1 = exchangeForRoute("https://this/one", "route-a");
+		var exchange2 = exchangeForRoute("https://this/two", "route-a");
+
+		assertThat(cacheKeyGenerator.generateKey(exchange1)).isNotEqualTo(cacheKeyGenerator.generateKey(exchange2));
+	}
+
+	@Test
+	void shouldGenerateDifferentKeyForSameRouteWhenVaryHeadersAreDifferent() {
+		var exchange1 = MockServerWebExchange
+			.from(MockServerHttpRequest.get("https://this").header("X-MY-VARY", "VALUE1"));
+		var exchange2 = MockServerWebExchange
+			.from(MockServerHttpRequest.get("https://this").header("X-MY-VARY", "VALUE2"));
+		Stream.of(exchange1, exchange2).forEach(exchange -> setRoute(exchange, "route-a"));
+
+		assertThat(cacheKeyGenerator.generateKey(exchange1, "X-MY-VARY"))
+			.isNotEqualTo(cacheKeyGenerator.generateKey(exchange2, "X-MY-VARY"));
+	}
+
+	@Test
+	void shouldGenerateKeyForExchangeWithoutRoute() {
+		var exchange = MockServerWebExchange.from(MockServerHttpRequest.get("https://this"));
+
+		assertThat(cacheKeyGenerator.generateKey(exchange)).isNotBlank()
+			.isNotEqualTo(cacheKeyGenerator.generateKey(exchangeForRoute("https://this", "route-a")));
+	}
+
+	@Test
+	void shouldNotIncludeRouteInRequestBasedKey() {
+		var request = MockServerHttpRequest.get("https://this").build();
+
+		assertThat(cacheKeyGenerator.generateKey(request))
+			.isEqualTo(cacheKeyGenerator.generateKey(MockServerHttpRequest.get("https://this").build()))
+			.isNotEqualTo(cacheKeyGenerator.generateKey(exchangeForRoute("https://this", "route-a")));
+	}
+
+	@Test
+	void routeIdKeyValueGeneratorShouldReturnRouteId() {
+		var generator = new RouteIdKeyValueGenerator();
+
+		assertThat(generator.apply(exchangeForRoute("https://this", "route-a"))).isEqualTo("route-a");
+		assertThat(generator.apply(MockServerWebExchange.from(MockServerHttpRequest.get("https://this")))).isEmpty();
+		assertThat(generator.apply(MockServerHttpRequest.get("https://this").build())).isEmpty();
+	}
+
+	private static MockServerWebExchange exchangeForRoute(String uri, String routeId) {
+		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get(uri));
+		setRoute(exchange, routeId);
+		return exchange;
+	}
+
+	private static void setRoute(ServerWebExchange exchange, String routeId) {
+		Route route = Route.async().id(routeId).uri("http://localhost").predicate(serverWebExchange -> true).build();
+		exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR, route);
 	}
 
 	@Test

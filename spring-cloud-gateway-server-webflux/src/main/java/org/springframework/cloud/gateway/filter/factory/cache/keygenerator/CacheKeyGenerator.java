@@ -23,10 +23,12 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Marta Medio
@@ -42,7 +44,8 @@ public class CacheKeyGenerator {
 	private final ThreadLocal<MessageDigest> messageDigest;
 
 	/* for testing */ static final List<KeyValueGenerator> DEFAULT_KEY_VALUE_GENERATORS = List.of(
-			new UriKeyValueGenerator(), new HeaderKeyValueGenerator(HttpHeaders.AUTHORIZATION, KEY_SEPARATOR),
+			new RouteIdKeyValueGenerator(), new UriKeyValueGenerator(),
+			new HeaderKeyValueGenerator(HttpHeaders.AUTHORIZATION, KEY_SEPARATOR),
 			new CookiesKeyValueGenerator(KEY_SEPARATOR));
 
 	public CacheKeyGenerator() {
@@ -56,31 +59,70 @@ public class CacheKeyGenerator {
 		});
 	}
 
+	/**
+	 * Generates the metadata key for a request.
+	 * @param request the request
+	 * @param varyHeaders the headers the response varies on
+	 * @return the metadata key
+	 * @deprecated in favor of {@link #generateMetadataKey(ServerWebExchange, String...)},
+	 * which also scopes the key to the matched route
+	 */
+	@Deprecated
 	public String generateMetadataKey(ServerHttpRequest request, String... varyHeaders) {
 		return "META_" + generateKey(request, varyHeaders);
 	}
 
+	public String generateMetadataKey(ServerWebExchange exchange, String... varyHeaders) {
+		return "META_" + generateKey(exchange, varyHeaders);
+	}
+
+	/**
+	 * Generates the cache key for a request.
+	 * @param request the request
+	 * @param varyHeaders the headers the response varies on
+	 * @return the cache key
+	 * @deprecated in favor of {@link #generateKey(ServerWebExchange, String...)}, which
+	 * also scopes the key to the matched route
+	 */
+	@Deprecated
 	public String generateKey(ServerHttpRequest request, String... varyHeaders) {
 		return generateKey(request, varyHeaders != null ? Arrays.asList(varyHeaders) : Collections.emptyList());
 	}
 
+	public String generateKey(ServerWebExchange exchange, String... varyHeaders) {
+		return generateKey(exchange, varyHeaders != null ? Arrays.asList(varyHeaders) : Collections.emptyList());
+	}
+
+	/**
+	 * Generates the cache key for a request.
+	 * @param request the request
+	 * @param varyHeaders the headers the response varies on
+	 * @return the cache key
+	 * @deprecated in favor of {@link #generateKey(ServerWebExchange, List)}, which also
+	 * scopes the key to the matched route
+	 */
+	@Deprecated
 	public String generateKey(ServerHttpRequest request, List<String> varyHeaders) {
-		byte[] rawKey = generateRawKey(request, varyHeaders);
+		return generateKey(generator -> generator.apply(request), varyHeaders);
+	}
+
+	public String generateKey(ServerWebExchange exchange, List<String> varyHeaders) {
+		return generateKey(generator -> generator.apply(exchange), varyHeaders);
+	}
+
+	private String generateKey(Function<KeyValueGenerator, String> valueOf, List<String> varyHeaders) {
+		byte[] rawKey = generateRawKey(valueOf, varyHeaders);
 		byte[] digest = messageDigest.get().digest(rawKey);
 
 		return Base64.getEncoder().encodeToString(digest);
 	}
 
-	private Stream<KeyValueGenerator> getKeyValueGenerators(List<String> varyHeaders) {
-		return Stream.concat(DEFAULT_KEY_VALUE_GENERATORS.stream(),
+	private byte[] generateRawKey(Function<KeyValueGenerator, String> valueOf, List<String> varyHeaders) {
+		Stream<KeyValueGenerator> keyValueGenerators = Stream.concat(DEFAULT_KEY_VALUE_GENERATORS.stream(),
 				varyHeaders.stream().sorted().map(header -> new HeaderKeyValueGenerator(header, ",")));
-	}
-
-	private byte[] generateRawKey(ServerHttpRequest request, List<String> varyHeaders) {
-		Stream<KeyValueGenerator> keyValueGenerators = getKeyValueGenerators(varyHeaders);
 
 		final ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-		keyValueGenerators.map(generator -> generator.apply(request)).map(String::getBytes).forEach(bytes -> {
+		keyValueGenerators.map(valueOf).map(String::getBytes).forEach(bytes -> {
 			byteOutputStream.writeBytes(bytes);
 			byteOutputStream.writeBytes(KEY_SEPARATOR_BYTES);
 		});

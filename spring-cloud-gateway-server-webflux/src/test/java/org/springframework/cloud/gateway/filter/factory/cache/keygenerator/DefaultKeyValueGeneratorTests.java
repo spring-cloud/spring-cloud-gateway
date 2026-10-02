@@ -73,7 +73,10 @@ class DefaultKeyValueGeneratorTests {
 	}
 
 	public String apply(ServerHttpRequest request) {
+		// the route id is not available from a bare request and is covered in
+		// CacheKeyGeneratorTest
 		return CacheKeyGenerator.DEFAULT_KEY_VALUE_GENERATORS.stream()
+			.filter(generator -> !(generator instanceof RouteIdKeyValueGenerator))
 			.map(generator -> generator.apply(request))
 			.collect(Collectors.joining(CacheKeyGenerator.KEY_SEPARATOR));
 	}

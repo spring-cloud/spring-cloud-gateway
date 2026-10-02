@@ -83,7 +83,7 @@ public class ResponseCacheGatewayFilter implements GatewayFilter, Ordered {
 			cached = Optional.empty();
 		}
 		else {
-			cached = responseCacheManager.getFromCache(exchange.getRequest(), metadataKey);
+			cached = responseCacheManager.getFromCache(exchange, metadataKey);
 		}
 
 		return cached;
