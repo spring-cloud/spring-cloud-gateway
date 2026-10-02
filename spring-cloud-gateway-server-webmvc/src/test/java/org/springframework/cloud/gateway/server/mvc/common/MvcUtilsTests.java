@@ -17,11 +17,13 @@
 package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +62,13 @@ class MvcUtilsTests {
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
 		assertThat(MvcUtils.stripContextPath(request, "/path")).isEqualTo("/path");
+	}
+
+	@Test
+	void encodeQueryParamsKeepsParamWithoutValue() {
+		var queryParams = MultiValueMap.<String, String>fromMultiValue(Map.of("test", Collections.emptyList()));
+		var encoded = MvcUtils.encodeQueryParams(queryParams);
+		assertThat(encoded).isEqualTo(queryParams);
 	}
 
 }
