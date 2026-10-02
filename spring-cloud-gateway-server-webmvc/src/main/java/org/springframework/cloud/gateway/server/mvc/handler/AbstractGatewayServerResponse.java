@@ -26,9 +26,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -91,6 +93,11 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 			HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
 			if (SAFE_METHODS.contains(httpMethod)
 					&& servletWebRequest.checkNotModified(headers().getETag(), lastModified)) {
+				// the response body is not written, so the upstream client response,
+				// if any, must be released here. Otherwise pooled connections behind
+				// proxy exchanges are never returned and the pool can leak under
+				// conditional GET traffic. See gh-4259.
+				closeClientResponse(request);
 				return null;
 			}
 			else {
@@ -99,6 +106,13 @@ abstract class AbstractGatewayServerResponse extends GatewayErrorHandlingServerR
 		}
 		catch (Throwable throwable) {
 			return handleError(throwable, request, response, context);
+		}
+	}
+
+	private void closeClientResponse(HttpServletRequest request) {
+		ClientHttpResponse clientResponse = MvcUtils.getAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR);
+		if (clientResponse != null) {
+			clientResponse.close();
 		}
 	}
 
