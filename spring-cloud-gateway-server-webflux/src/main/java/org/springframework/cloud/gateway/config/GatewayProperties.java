@@ -50,8 +50,7 @@ public class GatewayProperties {
 	 * List of Routes.
 	 */
 	@NotNull
-	@Valid
-	private List<RouteDefinition> routes = new ArrayList<>();
+	private List<@Valid RouteDefinition> routes = new ArrayList<>();
 
 	/**
 	 * List of filter definitions that are applied to every route.
