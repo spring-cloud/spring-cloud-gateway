@@ -62,7 +62,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<bucket4j.version>8.20.0</bucket4j.version>
+		<bucket4j.version>8.21.0</bucket4j.version>
 		<blockhound.version>1.0.17.RELEASE</blockhound.version>
 		<java.version>17</java.version>
 		<junit-pioneer.version>2.3.0</junit-pioneer.version>
@@ -126,8 +126,10 @@
 			</dependency>
 			<dependency>
 				<groupId>com.bucket4j</groupId>
-				<artifactId>bucket4j_jdk17-core</artifactId>
+				<artifactId>bucket4j_jdk17-bom</artifactId>
 				<version>${bucket4j.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.bucket4j</groupId>
