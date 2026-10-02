@@ -44,6 +44,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -84,8 +85,100 @@ class RestClientProxyExchangeTests {
 		assertThatIOException().isThrownBy(
 				() -> serverResponse.writeTo(servletRequest, new ClientDisconnectedResponse(), Collections::emptyList))
 			.withMessage("client disconnected");
-		assertThat(clientResponse.closed).isFalse();
+		assertThat(clientResponse.closeCount).isZero();
 		assertThat(responseBody.closed).isTrue();
+	}
+
+	@Test
+	void writeToWhenBodyWrittenThenClosesClientResponseOnce() throws Exception {
+		TestClientHttpResponse clientResponse = new TestClientHttpResponse(new CloseAwareInputStream());
+		clientResponse.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/resource")
+			.buildRequest(null);
+
+		ServerResponse serverResponse = exchange(clientResponse, servletRequest,
+				RestClientProxyExchangeTests::copyHeaders);
+		MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+		serverResponse.writeTo(servletRequest, servletResponse, Collections::emptyList);
+
+		assertThat(servletResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+		assertThat(servletResponse.getContentAsString()).isEqualTo("d");
+		assertThat(clientResponse.closeCount).isOne();
+	}
+
+	@Test
+	void writeToWhenNotModifiedThenClosesClientResponse() throws Exception {
+		TestClientHttpResponse clientResponse = new TestClientHttpResponse(new CloseAwareInputStream());
+		clientResponse.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		clientResponse.getHeaders().setETag("\"v1\"");
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/resource")
+			.header(HttpHeaders.IF_NONE_MATCH, "\"v1\"")
+			.buildRequest(null);
+
+		ServerResponse serverResponse = exchange(clientResponse, servletRequest,
+				RestClientProxyExchangeTests::copyHeaders);
+		MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+		serverResponse.writeTo(servletRequest, servletResponse, Collections::emptyList);
+
+		assertThat(servletResponse.getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+		assertThat(clientResponse.closeCount).isOne();
+	}
+
+	@Test
+	void writeToWhenStreamingResponseNotModifiedThenClosesBodyOnly() throws Exception {
+		CloseAwareInputStream responseBody = new CloseAwareInputStream();
+		TestClientHttpResponse clientResponse = new TestClientHttpResponse(responseBody);
+		clientResponse.getHeaders().setETag("\"v1\"");
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/stream-sse-mvc")
+			.header(HttpHeaders.IF_NONE_MATCH, "\"v1\"")
+			.buildRequest(null);
+
+		ServerResponse serverResponse = exchange(clientResponse, servletRequest,
+				RestClientProxyExchangeTests::copyHeaders);
+		MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+		serverResponse.writeTo(servletRequest, servletResponse, Collections::emptyList);
+
+		assertThat(servletResponse.getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+		assertThat(clientResponse.closeCount).isZero();
+		assertThat(responseBody.closed).isTrue();
+	}
+
+	@Test
+	void exchangeWhenResponseConsumerFailsThenClosesClientResponse() {
+		TestClientHttpResponse clientResponse = new TestClientHttpResponse(new CloseAwareInputStream());
+		clientResponse.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/resource")
+			.buildRequest(null);
+
+		assertThatIllegalStateException().isThrownBy(() -> exchange(clientResponse, servletRequest, (response, sr) -> {
+			throw new IllegalStateException("consumer failed");
+		})).withMessage("consumer failed");
+		assertThat(clientResponse.closeCount).isOne();
+	}
+
+	private static ServerResponse exchange(TestClientHttpResponse clientResponse, MockHttpServletRequest servletRequest,
+			ProxyExchange.ResponseConsumer responseConsumer) {
+		RestClient restClient = mock(RestClient.class);
+		RestClient.RequestBodyUriSpec requestSpec = mock(RestClient.RequestBodyUriSpec.class);
+		when(restClient.method(HttpMethod.GET)).thenReturn(requestSpec);
+		when(requestSpec.uri(any(URI.class))).thenReturn(requestSpec);
+		when(requestSpec.headers(any())).thenReturn(requestSpec);
+		when(requestSpec.exchange(any(), eq(false))).thenAnswer((invocation) -> {
+			RestClient.RequestHeadersSpec.ExchangeFunction<ServerResponse> exchangeFunction = invocation.getArgument(0);
+			return exchangeFunction.exchange(mock(HttpRequest.class), clientResponse);
+		});
+
+		RestClientProxyExchange proxyExchange = new RestClientProxyExchange(restClient, new GatewayMvcProperties());
+		ServerRequest serverRequest = ServerRequest.create(servletRequest, Collections.emptyList());
+		ProxyExchange.Request request = proxyExchange.request(serverRequest)
+			.uri(URI.create("http://localhost:8781" + servletRequest.getRequestURI()))
+			.responseConsumer(responseConsumer)
+			.build();
+		return proxyExchange.exchange(request);
+	}
+
+	private static void copyHeaders(ProxyExchange.Response response, ServerResponse serverResponse) {
+		serverResponse.headers().putAll(response.getHeaders());
 	}
 
 	private static final class ClientDisconnectedResponse extends MockHttpServletResponse {
@@ -151,7 +244,7 @@ class RestClientProxyExchangeTests {
 
 		private final HttpHeaders headers = new HttpHeaders();
 
-		private boolean closed;
+		private int closeCount;
 
 		private TestClientHttpResponse(CloseAwareInputStream body) {
 			this.body = body;
@@ -180,7 +273,7 @@ class RestClientProxyExchangeTests {
 
 		@Override
 		public void close() {
-			this.closed = true;
+			this.closeCount++;
 		}
 
 		@Override
