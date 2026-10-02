@@ -86,8 +86,6 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 	public Predicate<ServerWebExchange> apply(Config config) {
 		final ArrayList<PathPattern> pathPatterns = new ArrayList<>();
 		synchronized (this.pathPatternParser) {
-			// FIXME: 5.0.0 setMatchOptionalTrailingSeparator missing
-			// pathPatternParser.setMatchOptionalTrailingSeparator(config.isMatchTrailingSlash());
 			config.getPatterns().forEach(pattern -> {
 				String basePath = webFluxProperties.getBasePath();
 				boolean basePathIsNotBlank = StringUtils.hasText(basePath);
@@ -110,17 +108,27 @@ public class PathRoutePredicateFactory extends AbstractRoutePredicateFactory<Pat
 							s -> parsePath(exchange.getRequest().getURI().getRawPath()));
 
 				PathPattern match = null;
+				PathContainer pathForMatch = path;
 				for (int i = 0; i < pathPatterns.size(); i++) {
 					PathPattern pathPattern = pathPatterns.get(i);
 					if (pathPattern.matches(path)) {
 						match = pathPattern;
 						break;
 					}
+					else if (config.isMatchTrailingSlash() && path.value().endsWith("/")) {
+						PathContainer pathWithoutTrailingSlash = parsePath(
+								path.value().substring(0, path.value().length() - 1));
+						if (pathPattern.matches(pathWithoutTrailingSlash)) {
+							match = pathPattern;
+							pathForMatch = pathWithoutTrailingSlash;
+							break;
+						}
+					}
 				}
 
 				if (match != null) {
 					traceMatch("Pattern", match.getPatternString(), path, true);
-					PathMatchInfo pathMatchInfo = match.matchAndExtract(path);
+					PathMatchInfo pathMatchInfo = match.matchAndExtract(pathForMatch);
 					if (pathMatchInfo != null) {
 						putUriTemplateVariables(exchange, pathMatchInfo.getUriVariables());
 					}
