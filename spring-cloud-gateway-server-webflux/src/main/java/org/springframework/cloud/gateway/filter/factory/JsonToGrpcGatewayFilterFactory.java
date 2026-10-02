@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLException;
@@ -57,6 +59,7 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.cloud.gateway.config.GrpcSslConfigurer;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -91,7 +94,7 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  * @author Alberto C. Ríos
  */
 public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config>
-		implements EnvironmentAware {
+		implements EnvironmentAware, DisposableBean {
 
 	private static Log log = LogFactory.getLog(JsonToGrpcGatewayFilterFactory.class);
 
@@ -111,6 +114,8 @@ public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory
 
 	private final ResourceLoader resourceLoader;
 
+	private final ConcurrentHashMap<String, ChannelHolder> channels = new ConcurrentHashMap<>();
+
 	@SuppressWarnings("NullAway")
 	private Environment environment = null;
 
@@ -123,6 +128,44 @@ public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory
 	@Override
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
+	}
+
+	@Override
+	public void destroy() {
+		channels.values().forEach(ChannelHolder::shutdown);
+		channels.clear();
+	}
+
+	/**
+	 * Returns the channel cached for the route, creating it if absent. If the route's
+	 * target host/port changed (e.g. after a route refresh), the old channel is replaced
+	 * and shut down.
+	 */
+	private ManagedChannel getManagedChannel(Route route) {
+		URI uri = route.getUri();
+		String host = uri.getHost();
+		int port = uri.getPort();
+		ChannelHolder holder = channels.compute(route.getId(), (id, existing) -> {
+			if (existing != null && existing.host().equals(host) && existing.port() == port) {
+				return existing;
+			}
+			if (existing != null) {
+				// graceful: lets in-flight calls on the old channel complete
+				existing.channel().shutdown();
+			}
+			return new ChannelHolder(host, port, createManagedChannel(host, port));
+		});
+		return holder.channel();
+	}
+
+	private ManagedChannel createManagedChannel(String host, int port) {
+		NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
+		try {
+			return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
+		}
+		catch (SSLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -269,7 +312,7 @@ public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory
 				.setRequestMarshaller(marshaller)
 				.setResponseMarshaller(marshaller)
 				.build();
-			Channel channel = createChannel();
+			Channel channel = getManagedChannel();
 			return channel.newCall(methodDescriptor, CallOptions.DEFAULT);
 		}
 
@@ -323,10 +366,10 @@ public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory
 			return null;
 		}
 
-		private ManagedChannel createChannel() {
+		private ManagedChannel getManagedChannel() {
 			Route route = (Route) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
-			URI requestURI = Objects.requireNonNull(route, "Route not found in exchange attributes").getUri();
-			return createChannelChannel(requestURI.getHost(), requestURI.getPort());
+			return JsonToGrpcGatewayFilterFactory.this
+				.getManagedChannel(Objects.requireNonNull(route, "Route not found in exchange attributes"));
 		}
 
 		private Function<JsonNode, DynamicMessage> callGRPCServer() {
@@ -369,17 +412,22 @@ public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory
 				.wrap(Objects.requireNonNull(new ObjectMapper().writeValueAsBytes(jsonResponse)));
 		}
 
-		// We are creating this on every call, should optimize?
-		private ManagedChannel createChannelChannel(String host, int port) {
-			NettyChannelBuilder nettyChannelBuilder = NettyChannelBuilder.forAddress(host, port);
+	}
+
+	private record ChannelHolder(String host, int port, ManagedChannel channel) {
+
+		void shutdown() {
+			channel.shutdown();
 			try {
-				return grpcSslConfigurer.configureSsl(nettyChannelBuilder);
+				if (!channel.awaitTermination(5, TimeUnit.SECONDS)) {
+					channel.shutdownNow();
+				}
 			}
-			catch (SSLException e) {
-				throw new RuntimeException(e);
+			catch (InterruptedException e) {
+				channel.shutdownNow();
+				Thread.currentThread().interrupt();
 			}
 		}
-
 	}
 
 }
