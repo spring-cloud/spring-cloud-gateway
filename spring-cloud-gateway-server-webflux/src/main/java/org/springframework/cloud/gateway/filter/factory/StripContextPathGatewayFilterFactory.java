@@ -57,7 +57,7 @@ public class StripContextPathGatewayFilterFactory extends AbstractGatewayFilterF
 					newPath = "/";
 				}
 
-				ServerHttpRequest newRequest = request.mutate().contextPath("").path(newPath).build();
+				ServerHttpRequest newRequest = request.mutate().contextPath(null).path(newPath).build();
 				exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, newRequest.getURI());
 
 				return chain.filter(exchange.mutate().request(newRequest).build());
