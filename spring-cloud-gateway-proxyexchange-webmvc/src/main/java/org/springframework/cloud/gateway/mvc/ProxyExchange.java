@@ -643,6 +643,28 @@ class ServletOutputToInputConverter extends HttpServletResponseWrapper {
 	}
 
 	@Override
+	public void setContentType(String type) {
+	}
+
+	@Override
+	public void setCharacterEncoding(String charset) {
+	}
+
+	@Override
+	public void setHeader(String name, String value) {
+		if (!HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+			super.setHeader(name, value);
+		}
+	}
+
+	@Override
+	public void addHeader(String name, String value) {
+		if (!HttpHeaders.CONTENT_TYPE.equalsIgnoreCase(name)) {
+			super.addHeader(name, value);
+		}
+	}
+
+	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
 		return new ServletOutputStream() {
 

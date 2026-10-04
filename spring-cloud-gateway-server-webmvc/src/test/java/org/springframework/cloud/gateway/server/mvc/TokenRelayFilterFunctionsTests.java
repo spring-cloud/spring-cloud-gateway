@@ -18,14 +18,16 @@ package org.springframework.cloud.gateway.server.mvc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.http.converter.autoconfigure.HttpMessageConverters;
 import org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -51,7 +53,9 @@ import static org.mockito.Mockito.when;
 
 public class TokenRelayFilterFunctionsTests {
 
-	private final List<HttpMessageConverter<?>> converters = new HttpMessageConverters().getConverters();
+	private final List<HttpMessageConverter<?>> converters = StreamSupport
+		.stream(HttpMessageConverters.forServer().registerDefaults().build().spliterator(), false)
+		.collect(Collectors.toList());
 
 	private MockHttpServletRequest request;
 

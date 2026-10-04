@@ -18,10 +18,13 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -29,14 +32,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
-import reactor.retry.Backoff;
-import reactor.retry.Jitter;
-import reactor.retry.Repeat;
-import reactor.retry.RepeatContext;
-import reactor.retry.Retry;
-import reactor.retry.RetryContext;
+import reactor.util.function.Tuples;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
+import reactor.util.retry.RetrySpec;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -79,110 +81,34 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	@Override
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
+		enableBodyCaching(retryConfig.getRouteId());
 
-		Repeat<ServerWebExchange> statusCodeRepeat = null;
-		if (!retryConfig.getStatuses().isEmpty() || !retryConfig.getSeries().isEmpty()) {
-			Predicate<RepeatContext<ServerWebExchange>> repeatPredicate = context -> {
-				ServerWebExchange exchange = context.applicationContext();
-				if (exceedsMaxIterations(exchange, retryConfig)) {
-					return false;
-				}
+		boolean hasStatusCodeRepeat = !retryConfig.getStatuses().isEmpty() || !retryConfig.getSeries().isEmpty();
+		boolean hasExceptionRetry = !retryConfig.getExceptions().isEmpty();
 
-				HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
+		GatewayFilter gatewayFilter = (exchange, chain) -> {
+			trace("Entering retry-filter");
 
-				boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
+			// chain.filter returns a Mono<Void>
+			Publisher<Void> publisher = chain.filter(exchange)
+				// .log("retry-filter", Level.INFO)
+				.doOnSuccess(aVoid -> updateIteration(exchange))
+				.doOnError(throwable -> updateIteration(exchange));
 
-				// null status code might mean a network exception?
-				if (!retryableStatusCode && statusCode != null) {
-					// try the series
-					retryableStatusCode = false;
-					for (int i = 0; i < retryConfig.getSeries().size(); i++) {
-						if (statusCode instanceof HttpStatus) {
-							HttpStatus httpStatus = (HttpStatus) statusCode;
-							if (httpStatus.series().equals(retryConfig.getSeries().get(i))) {
-								retryableStatusCode = true;
-								break;
-							}
-						}
-					}
-				}
-
-				final boolean finalRetryableStatusCode = retryableStatusCode;
-				trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
-						() -> finalRetryableStatusCode, () -> statusCode, retryConfig::getStatuses,
-						retryConfig::getSeries);
-
-				HttpMethod httpMethod = exchange.getRequest().getMethod();
-				boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
-
-				trace("retryableMethod: %b, httpMethod %s, configured methods %s", () -> retryableMethod,
-						() -> httpMethod, retryConfig::getMethods);
-				return retryableMethod && finalRetryableStatusCode;
-			};
-
-			statusCodeRepeat = Repeat.onlyIf(repeatPredicate)
-				.doOnRepeat(context -> reset(context.applicationContext()));
-
-			BackoffConfig backoff = retryConfig.getBackoff();
-			if (backoff != null) {
-				statusCodeRepeat = statusCodeRepeat.backoff(getBackoff(backoff));
+			if (hasExceptionRetry) {
+				// retryWhen returns a Mono<Void>
+				// retry needs to go before repeat
+				publisher = ((Mono<Void>) publisher).retryWhen(buildExceptionRetry(exchange, retryConfig));
 			}
-			JitterConfig jitter = retryConfig.getJitter();
-			if (jitter != null) {
-				statusCodeRepeat = statusCodeRepeat.jitter(getJitter(jitter));
+			if (hasStatusCodeRepeat) {
+				// repeatWhen returns a Flux<Void>
+				// so this needs to be last and the variable a Publisher<Void>
+				publisher = ((Mono<Void>) publisher).repeatWhen(buildStatusCodeRepeat(exchange, retryConfig));
 			}
-			Duration timeout = retryConfig.getTimeout();
-			if (timeout != null) {
-				statusCodeRepeat = statusCodeRepeat.timeout(timeout);
-			}
-		}
 
-		Retry<ServerWebExchange> exceptionRetry = null;
-		if (!retryConfig.getExceptions().isEmpty()) {
-			Predicate<RetryContext<ServerWebExchange>> retryContextPredicate = context -> {
+			return Mono.fromDirect(publisher);
+		};
 
-				ServerWebExchange exchange = context.applicationContext();
-
-				if (exceedsMaxIterations(exchange, retryConfig)) {
-					return false;
-				}
-
-				Throwable exception = context.exception();
-				for (Class<? extends Throwable> retryableClass : retryConfig.getExceptions()) {
-					if (retryableClass.isInstance(exception)
-							|| (exception != null && retryableClass.isInstance(exception.getCause()))) {
-						trace("exception or its cause is retryable %s, configured exceptions %s",
-								() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
-
-						HttpMethod httpMethod = exchange.getRequest().getMethod();
-						boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
-						trace("retryableMethod: %b, httpMethod %s, configured methods %s", () -> retryableMethod,
-								() -> httpMethod, retryConfig::getMethods);
-						return retryableMethod;
-					}
-				}
-				trace("exception or its cause is not retryable %s, configured exceptions %s",
-						() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
-				return false;
-			};
-			exceptionRetry = Retry.onlyIf(retryContextPredicate)
-				.doOnRetry(context -> reset(context.applicationContext()))
-				.retryMax(retryConfig.getRetries());
-			BackoffConfig backoff = retryConfig.getBackoff();
-			if (backoff != null) {
-				exceptionRetry = exceptionRetry.backoff(getBackoff(backoff));
-			}
-			JitterConfig jitter = retryConfig.getJitter();
-			if (jitter != null) {
-				exceptionRetry = exceptionRetry.jitter(getJitter(jitter));
-			}
-			Duration timeout = retryConfig.getTimeout();
-			if (timeout != null) {
-				exceptionRetry = exceptionRetry.timeout(timeout);
-			}
-		}
-
-		GatewayFilter gatewayFilter = apply(retryConfig.getRouteId(), statusCodeRepeat, exceptionRetry);
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -205,6 +131,160 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		};
 	}
 
+	private boolean isRetryableStatusCode(ServerWebExchange exchange, RetryConfig retryConfig) {
+		HttpStatusCode statusCode = exchange.getResponse().getStatusCode();
+
+		boolean retryableStatusCode = retryConfig.getStatuses().contains(statusCode);
+
+		// null status code might mean a network exception?
+		if (!retryableStatusCode && statusCode != null) {
+			// try the series
+			retryableStatusCode = false;
+			for (int i = 0; i < retryConfig.getSeries().size(); i++) {
+				if (statusCode instanceof HttpStatus) {
+					HttpStatus httpStatus = (HttpStatus) statusCode;
+					if (httpStatus.series().equals(retryConfig.getSeries().get(i))) {
+						retryableStatusCode = true;
+						break;
+					}
+				}
+			}
+		}
+
+		final boolean finalRetryableStatusCode = retryableStatusCode;
+		trace("retryableStatusCode: %b, statusCode %s, configured statuses %s, configured series %s",
+				() -> finalRetryableStatusCode, () -> statusCode, retryConfig::getStatuses, retryConfig::getSeries);
+		return retryableStatusCode;
+	}
+
+	private boolean isRetryableMethod(ServerWebExchange exchange, RetryConfig retryConfig) {
+		HttpMethod httpMethod = exchange.getRequest().getMethod();
+		boolean retryableMethod = retryConfig.getMethods().contains(httpMethod);
+
+		trace("retryableMethod: %b, httpMethod %s, configured methods %s", () -> retryableMethod, () -> httpMethod,
+				retryConfig::getMethods);
+		return retryableMethod;
+	}
+
+	/**
+	 * Checks elapsed-time-plus-{@code upcomingDelay} against {@code timeout}, rather than just
+	 * elapsed time, so we stop before waiting on a delay that would blow the budget rather than
+	 * only after it's already blown.
+	 */
+	private boolean withinTimeout(Instant start, @Nullable Duration timeout, Duration upcomingDelay) {
+		return timeout == null || Duration.between(start, Instant.now()).plus(upcomingDelay).compareTo(timeout) < 0;
+	}
+
+	/**
+	 * Exponential backoff for the given (1-based) iteration, capped at {@code maxBackoff} when
+	 * configured. Hand-rolled because there's no reactor-core backoff builder usable with
+	 * {@code repeatWhen}, which is what the status-code repeat path needs.
+	 */
+	private Duration computeBackoff(BackoffConfig backoff, long iteration) {
+		Duration next = backoff.getFirstBackoff().multipliedBy((long) Math.pow(backoff.getFactor(), iteration - 1));
+		Duration max = backoff.getMaxBackoff();
+		if (max != null && next.compareTo(max) > 0) {
+			return max;
+		}
+		return next;
+	}
+
+	/**
+	 * Randomizes a backoff duration by +/- {@code randomFactor}, for the same reason as
+	 * {@link #computeBackoff}: no reactor-core built-in covers this for {@code repeatWhen}.
+	 */
+	private Duration applyJitter(Duration backoff, JitterConfig jitter) {
+		long jitterOffset = (long) (backoff.toMillis() * jitter.getRandomFactor());
+		long lowBound = Math.max(backoff.toMillis() - jitterOffset, 0);
+		long highBound = backoff.toMillis() + jitterOffset;
+		return Duration.ofMillis(ThreadLocalRandom.current().nextLong(lowBound, highBound + 1));
+	}
+
+	/**
+	 * The backoff delay before the given iteration's attempt, or {@link Duration#ZERO} if no
+	 * backoff is configured. Callers should compute this once per iteration and reuse it for
+	 * both the {@link #withinTimeout} check and the actual delay, since jitter is randomized
+	 * and calling this twice would produce two different values.
+	 */
+	private Duration nextDelay(long iteration, RetryConfig retryConfig) {
+		BackoffConfig backoff = retryConfig.getBackoff();
+		if (backoff == null) {
+			return Duration.ZERO;
+		}
+		Duration delay = computeBackoff(backoff, iteration);
+		JitterConfig jitter = retryConfig.getJitter();
+		if (jitter != null) {
+			delay = applyJitter(delay, jitter);
+		}
+		return delay;
+	}
+
+	/**
+	 * The next 1-based iteration number, derived from {@link #RETRY_ITERATION_KEY} rather
+	 * than the value emitted by {@code repeatWhen}'s companion {@code Flux<Long>} (which
+	 * counts items emitted by the source and is always {@code 0} for a {@code Mono<Void>}).
+	 */
+	private long nextIteration(ServerWebExchange exchange) {
+		Integer currentIteration = exchange.getAttribute(RETRY_ITERATION_KEY);
+		return (currentIteration == null ? 0 : currentIteration) + 1;
+	}
+
+	private Function<Flux<Long>, Publisher<Long>> buildStatusCodeRepeat(ServerWebExchange exchange,
+			RetryConfig retryConfig) {
+		Instant start = Instant.now();
+		// the upcoming delay is computed once per iteration (up front) so the same value can be used both to
+		// decide whether it would blow the configured timeout budget, and, if not, as the actual delay applied
+		return companion -> companion.map(ignored -> nextIteration(exchange))
+			.map(iteration -> Tuples.of(iteration, nextDelay(iteration, retryConfig)))
+			.takeWhile(tuple -> !exceedsMaxIterations(exchange, retryConfig)
+					&& isRetryableStatusCode(exchange, retryConfig) && isRetryableMethod(exchange, retryConfig)
+					&& withinTimeout(start, retryConfig.getTimeout(), tuple.getT2()))
+			.doOnNext(tuple -> reset(exchange))
+			.concatMap(tuple -> tuple.getT2().isZero() ? Mono.just(tuple.getT1())
+					: Mono.delay(tuple.getT2()).thenReturn(tuple.getT1()));
+	}
+
+	private Retry buildExceptionRetry(ServerWebExchange exchange, RetryConfig retryConfig) {
+		Instant start = Instant.now();
+		Predicate<Throwable> predicate = exception -> {
+			if (exceedsMaxIterations(exchange, retryConfig) || !withinTimeout(start, retryConfig.getTimeout(),
+					nextDelay(nextIteration(exchange), retryConfig))) {
+				return false;
+			}
+
+			for (Class<? extends Throwable> retryableClass : retryConfig.getExceptions()) {
+				if (retryableClass.isInstance(exception)
+						|| (exception != null && retryableClass.isInstance(exception.getCause()))) {
+					trace("exception or its cause is retryable %s, configured exceptions %s",
+							() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
+					return isRetryableMethod(exchange, retryConfig);
+				}
+			}
+			trace("exception or its cause is not retryable %s, configured exceptions %s",
+					() -> getExceptionNameWithCause(exception), retryConfig::getExceptions);
+			return false;
+		};
+
+		BackoffConfig backoff = retryConfig.getBackoff();
+		if (backoff != null) {
+			RetryBackoffSpec spec = Retry.backoff(retryConfig.getRetries(), backoff.getFirstBackoff())
+				.multiplier(backoff.getFactor());
+			if (backoff.getMaxBackoff() != null) {
+				spec = spec.maxBackoff(backoff.getMaxBackoff());
+			}
+			JitterConfig jitter = retryConfig.getJitter();
+			spec = spec.jitter(jitter != null ? jitter.getRandomFactor() : 0d);
+			return spec.filter(predicate)
+				.doBeforeRetry(signal -> reset(exchange))
+				.onRetryExhaustedThrow((retrySpec, signal) -> signal.failure());
+		}
+
+		RetrySpec spec = Retry.max(retryConfig.getRetries());
+		return spec.filter(predicate)
+			.doBeforeRetry(signal -> reset(exchange))
+			.onRetryExhaustedThrow((retrySpec, signal) -> signal.failure());
+	}
+
 	private String getExceptionNameWithCause(Throwable exception) {
 		if (exception != null) {
 			StringBuilder builder = new StringBuilder(exception.getClass().getName());
@@ -219,15 +299,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		}
 	}
 
-	private Backoff getBackoff(BackoffConfig backoff) {
-		return Backoff.exponential(backoff.firstBackoff, backoff.maxBackoff, backoff.factor,
-				backoff.basedOnPreviousValue);
-	}
-
-	private Jitter getJitter(JitterConfig jitter) {
-		return Jitter.random(jitter.randomFactor);
-	}
-
 	public boolean exceedsMaxIterations(ServerWebExchange exchange, RetryConfig retryConfig) {
 		Integer iteration = exchange.getAttribute(RETRY_ITERATION_KEY);
 
@@ -238,11 +309,7 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		return exceeds;
 	}
 
-	@Deprecated
-	/**
-	 * Use {@link ServerWebExchangeUtils#reset(ServerWebExchange)}
-	 */
-	public void reset(ServerWebExchange exchange) {
+	private void reset(ServerWebExchange exchange) {
 		Connection conn = exchange.getAttribute(ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR);
 		if (conn != null) {
 			trace("disposing response connection before next iteration");
@@ -250,8 +317,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 		ServerWebExchangeUtils.reset(exchange);
 	}
 
-	public GatewayFilter apply(@Nullable String routeId, @Nullable Repeat<ServerWebExchange> repeat,
-			@Nullable Retry<ServerWebExchange> retry) {
+	public GatewayFilter apply(@Nullable String routeId, @Nullable Function<Flux<Long>, ? extends Publisher<?>> repeat,
+			@Nullable Retry retry) {
 		enableBodyCaching(routeId);
 		return (exchange, chain) -> {
 			trace("Entering retry-filter");
@@ -265,13 +332,12 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			if (retry != null) {
 				// retryWhen returns a Mono<Void>
 				// retry needs to go before repeat
-				publisher = ((Mono<Void>) publisher)
-					.retryWhen(reactor.util.retry.Retry.withThrowable(retry.withApplicationContext(exchange)));
+				publisher = ((Mono<Void>) publisher).retryWhen(retry);
 			}
 			if (repeat != null) {
 				// repeatWhen returns a Flux<Void>
 				// so this needs to be last and the variable a Publisher<Void>
-				publisher = ((Mono<Void>) publisher).repeatWhen(repeat.withApplicationContext(exchange));
+				publisher = ((Mono<Void>) publisher).repeatWhen(repeat);
 			}
 
 			return Mono.fromDirect(publisher);
@@ -371,9 +437,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			return this;
 		}
 
-		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor,
-				boolean basedOnPreviousValue) {
-			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor, basedOnPreviousValue);
+		public RetryConfig setBackoff(Duration firstBackoff, Duration maxBackoff, int factor) {
+			this.backoff = new BackoffConfig(firstBackoff, maxBackoff, factor);
 			return this;
 		}
 
@@ -442,16 +507,13 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 		private int factor = 2;
 
-		private boolean basedOnPreviousValue = true;
-
 		public BackoffConfig() {
 		}
 
-		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor, boolean basedOnPreviousValue) {
+		public BackoffConfig(Duration firstBackoff, Duration maxBackoff, int factor) {
 			this.firstBackoff = firstBackoff;
 			this.maxBackoff = maxBackoff;
 			this.factor = factor;
-			this.basedOnPreviousValue = basedOnPreviousValue;
 		}
 
 		public void validate() {
@@ -482,20 +544,11 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 			this.factor = factor;
 		}
 
-		public boolean isBasedOnPreviousValue() {
-			return basedOnPreviousValue;
-		}
-
-		public void setBasedOnPreviousValue(boolean basedOnPreviousValue) {
-			this.basedOnPreviousValue = basedOnPreviousValue;
-		}
-
 		@Override
 		public String toString() {
 			return new ToStringCreator(this).append("firstBackoff", firstBackoff)
 				.append("maxBackoff", maxBackoff)
 				.append("factor", factor)
-				.append("basedOnPreviousValue", basedOnPreviousValue)
 				.toString();
 		}
 

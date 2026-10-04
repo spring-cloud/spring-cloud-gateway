@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-gateway</artifactId>
-		<version>5.0.3-SNAPSHOT</version>
+		<version>5.1.0-SNAPSHOT</version>
 		<relativePath>..</relativePath> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>spring-cloud-gateway-server-webflux</artifactId>
@@ -22,7 +22,7 @@
 	<properties>
 		<main.basedir>${basedir}/..</main.basedir>
 		<grpc.version>1.77.1</grpc.version>
-		<protobuf.version>4.33.6</protobuf.version>
+		<protobuf.version>4.36.2</protobuf.version>
 		<context-propagation.version>1.0.0</context-propagation.version>
 	</properties>
 
@@ -99,10 +99,6 @@
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>io.projectreactor.addons</groupId>
-			<artifactId>reactor-extra</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor.kotlin</groupId>
@@ -361,7 +357,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.4.2</version>
+				<version>3.5.1</version>
 				<executions>
 					<execution>
 						<goals>

@@ -41,18 +41,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.gateway.filter.factory.JsonToGrpcGatewayFilterFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Alberto C. Ríos
  * @author Abel Salgado Romero
  */
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = JsonToGrpcGatewayFilterFactory.VALID_PROTO_DESCRIPTOR_PREFIXES_KEY
+		+ "=classpath:,classpath*:,file:src/main/proto", webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 public class JsonToGrpcApplicationTests {
 
@@ -83,10 +86,29 @@ public class JsonToGrpcApplicationTests {
 			.postForEntity("https://localhost:" + this.gatewayPort + "/json/hello", request, String.class)
 			.getBody();
 
-		Assertions.assertThat(response).isNotNull();
-		Assertions.assertThat(response).contains("{\"greeting\":\"Hello, Duff McKagan\"}");
+		Assertions.assertThat(response).isNotNull().contains("{\"greeting\":\"Hello, Duff McKagan\"}");
 	}
 
+	@Test
+	public void shouldFail() {
+		// Since GRPC server and GW run in same instance and don't know server port until
+		// test starts,
+		// we need to configure route dynamically using the actuator endpoint.
+		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
+		int grpcServerPort = gatewayPort + 1;
+		configurer.addRoute(grpcServerPort, "/json/hellofail",
+				"JsonToGrpc=HelloService,hello,file:src/main/proto/../hiddenproto/hello.pb");
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> request = new HttpEntity<>("{\"firstName\":\"Duff\", \"lastName\":\"McKagan\"}", headers);
+		Assertions.assertThatThrownBy(() -> {
+			restTemplate.postForEntity("https://localhost:" + this.gatewayPort + "/json/hellofail", request,
+					String.class);
+		}).isInstanceOf(HttpClientErrorException.NotFound.class);
+	}
+
+	@SuppressWarnings("deprecation")
 	private RestTemplate createUnsecureClient() {
 		TrustStrategy acceptingTrustStrategy = (cert, authType) -> true;
 		SSLContext sslContext;

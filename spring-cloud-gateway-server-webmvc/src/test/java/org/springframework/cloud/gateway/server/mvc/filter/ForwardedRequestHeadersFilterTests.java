@@ -299,7 +299,16 @@ public class ForwardedRequestHeadersFilterTests {
 
 		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
 
-		assertThat(headers.headerNames()).doesNotContain(FORWARDED_HEADER);
+		assertThat(headers.headerNames()).contains(FORWARDED_HEADER);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		// check for appending the gateway's address
+		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
+			.containsEntry("proto", "http")
+			.containsEntry("for", "\"10.0.0.1:80\"");
 	}
 
 	// verify that existing forwarded header is not forwarded if not trusted
@@ -329,7 +338,7 @@ public class ForwardedRequestHeadersFilterTests {
 	public void remoteAddressIsNullUnTrustedProxyNotAppended() throws Exception {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
 			.header(HttpHeaders.HOST, "myhost")
-			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=127.0.0.1")
+			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=88.0.0.1")
 			.buildRequest(null);
 		servletRequest.setRemoteAddr(null);
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
@@ -340,8 +349,18 @@ public class ForwardedRequestHeadersFilterTests {
 
 		assertThat(headers.headerNames()).contains(FORWARDED_HEADER);
 		List<String> forwardedHeaders = headers.get(FORWARDED_HEADER);
-		Optional<String> filtered = forwardedHeaders.stream().filter(value -> value.contains("127.0.0.1")).findFirst();
+		Optional<String> filtered = forwardedHeaders.stream().filter(value -> value.contains("88.0.0.1")).findFirst();
 		assertThat(filtered).isEmpty();
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		Forwarded forwarded = forwardeds.get(0);
+
+		// check for appending the gateway's address
+		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
+			.containsEntry("proto", "http")
+			.containsEntry("for", "\"127.0.0.1:80\"");
 	}
 
 	@Test

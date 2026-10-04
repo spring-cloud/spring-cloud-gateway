@@ -44,6 +44,8 @@ import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.netty.buffer.PooledByteBufAllocator;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -61,16 +63,22 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.NettyWriteResponseFilter;
 import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.PathUtils;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.core.ResolvableType;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.log.LogMessage;
 import org.springframework.http.codec.json.JacksonJsonDecoder;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.web.server.ServerWebExchange;
 
+import static org.springframework.cloud.gateway.config.GatewayProperties.PREFIX;
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
 /**
@@ -82,12 +90,29 @@ import static org.springframework.cloud.gateway.support.GatewayToStringStyler.fi
  *
  * @author Alberto C. Ríos
  */
-public class JsonToGrpcGatewayFilterFactory
-		extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config> {
+public class JsonToGrpcGatewayFilterFactory extends AbstractGatewayFilterFactory<JsonToGrpcGatewayFilterFactory.Config>
+		implements EnvironmentAware {
+
+	private static Log log = LogFactory.getLog(JsonToGrpcGatewayFilterFactory.class);
+
+	/**
+	 * The default list of valid proto descriptor prefixes.
+	 */
+	public static final List<String> DEFAULT_VALID_PREFIXES = List.of(ResourcePatternResolver.CLASSPATH_URL_PREFIX,
+			ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX);
+
+	/**
+	 * The configuration key for valid proto descriptor prefixes.
+	 */
+	public static final String VALID_PROTO_DESCRIPTOR_PREFIXES_KEY = PREFIX
+			+ ".json-to-grpc.valid-proto-descriptor-prefixes";
 
 	private final GrpcSslConfigurer grpcSslConfigurer;
 
 	private final ResourceLoader resourceLoader;
+
+	@SuppressWarnings("NullAway")
+	private Environment environment = null;
 
 	public JsonToGrpcGatewayFilterFactory(GrpcSslConfigurer grpcSslConfigurer, ResourceLoader resourceLoader) {
 		super(Config.class);
@@ -96,12 +121,39 @@ public class JsonToGrpcGatewayFilterFactory
 	}
 
 	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
+	@Override
 	public List<String> shortcutFieldOrder() {
 		return Arrays.asList("service", "method", "protoDescriptor");
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public GatewayFilter apply(Config config) {
+		List<String> validPrefixes = environment.getProperty(VALID_PROTO_DESCRIPTOR_PREFIXES_KEY, List.class,
+				DEFAULT_VALID_PREFIXES);
+		if (config.getProtoDescriptor() != null) {
+			List<Resource> validResources = validPrefixes.stream().map(resourceLoader::getResource).toList();
+			Resource descriptorFile = resourceLoader.getResource(config.getProtoDescriptor());
+			if (validResources.stream().noneMatch(resource -> {
+				try {
+					return PathUtils.checkResource(descriptorFile, resource, validResources);
+				}
+				catch (IOException e) {
+					// if it fails, it is not valid
+					log.debug(LogMessage.format("ProtoDescriptor is not valid %s for resource %s", descriptorFile,
+							resource), e);
+					return false;
+				}
+			})) {
+				throw new IllegalArgumentException(
+						String.format("Invalid proto-descriptor prefix: %s", config.getProtoDescriptor()));
+			}
+		}
+
 		GatewayFilter filter = new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {

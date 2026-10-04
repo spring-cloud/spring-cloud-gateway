@@ -56,6 +56,30 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 		return transferredBytes;
 	}
 
+	protected void closeResponse(ClientHttpResponse clientResponse, InputStream inputStream,
+			@Nullable IOException copyException) {
+		Objects.requireNonNull(clientResponse, "No ClientResponse specified");
+		Objects.requireNonNull(inputStream, "No InputStream specified");
+
+		if (copyException != null && isStreamingResponse(clientResponse)) {
+			// Avoid ClientHttpResponse.close(), which may drain an infinite stream
+			// before closing the response.
+			try {
+				inputStream.close();
+			}
+			catch (IOException ex) {
+				copyException.addSuppressed(ex);
+			}
+			return;
+		}
+
+		clientResponse.close();
+	}
+
+	private boolean isStreamingResponse(ClientHttpResponse clientResponse) {
+		return isStreamingMediaType(properties.getStreamingMediaTypes(), clientResponse.getHeaders().getContentType());
+	}
+
 	private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, @Nullable MediaType mediaType) {
 		for (var streamingMediaType : streamingMediaTypes) {
 			if (streamingMediaType.equalsTypeAndSubtype(mediaType)) {

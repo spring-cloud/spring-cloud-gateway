@@ -222,14 +222,17 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
 		ServerHttpRequest request = exchange.getRequest();
 
-		if (request.getRemoteAddress() != null
-				&& !trustedProxies.isTrusted(request.getRemoteAddress().getHostString())) {
-			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
-					request.getRemoteAddress()));
-			return removeXForwardedHeaders(input, exchange);
-		}
+		boolean trustedRemoteAddress = request.getRemoteAddress() == null
+				|| trustedProxies.isTrusted(request.getRemoteAddress().getHostString());
 
 		HttpHeaders original = input;
+
+		if (!trustedRemoteAddress) {
+			log.trace(LogMessage.format("Remote address not trusted. pattern %s remote address %s", trustedProxies,
+					request.getRemoteAddress()));
+			original = removeXForwardedHeaders(input, exchange);
+		}
+
 		HttpHeaders updated = new HttpHeaders();
 
 		for (Map.Entry<String, List<String>> entry : original.headerSet()) {
@@ -242,7 +245,12 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				remoteAddr = request.getRemoteAddress().getHostString();
 			}
 			// match xforwarded for against trusted proxies
-			write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), trustedProxies::isTrusted);
+			if (trustedRemoteAddress) {
+				write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), trustedProxies::isTrusted);
+			}
+			else {
+				write(updated, X_FORWARDED_FOR_HEADER, remoteAddr, isForAppend(), value -> true);
+			}
 		}
 
 		String proto = request.getURI().getScheme();

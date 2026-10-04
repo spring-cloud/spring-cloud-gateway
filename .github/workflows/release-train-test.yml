@@ -42,7 +42,7 @@ jobs:
         java-version: "17"
     - name: "Check Out Code"
       id: "check-out-code"
-      uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # v7.0.0
+      uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7.0.1
     - name: "Restore Build System Caches"
       id: "restore-build-system-caches"
       uses: "actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0

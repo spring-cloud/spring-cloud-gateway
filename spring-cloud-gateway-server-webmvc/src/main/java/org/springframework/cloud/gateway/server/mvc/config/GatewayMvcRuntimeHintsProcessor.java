@@ -83,11 +83,27 @@ public class GatewayMvcRuntimeHintsProcessor implements BeanFactoryInitializatio
 						getTypesToRegister(GATEWAY_MVC_PREDICATE_PACKAGE_NAME), PROPERTIES,
 						new HashSet<>(Collections.singletonList(FilterFunctions.class)))
 				.flatMap(Set::stream)
+				.filter(GatewayMvcRuntimeHintsProcessor::isRegistrableType)
 				.collect(Collectors.toSet());
 			typesToRegister.forEach(clazz -> hints.registerType(TypeReference.of(clazz),
 					hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS,
 							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)));
 		};
+	}
+
+	/**
+	 * Whether a reflection hint can be registered for the given class. Synthetic classes
+	 * and classes without a canonical name (anonymous, local and hidden classes) cannot
+	 * be expressed in reachability metadata and are rejected by
+	 * {@link TypeReference#of(Class)}. Such classes can be returned by the classpath scan
+	 * performed in {@code getClassesToAdd}: on JDK 24 and later, Spring's class metadata
+	 * is read with the JDK Class-File API, which reports compiler-generated classes such
+	 * as enum switch-map holders as independent, concrete candidates.
+	 * @param clazz the class to check
+	 * @return true if a hint can be registered for the class
+	 */
+	static boolean isRegistrableType(Class<?> clazz) {
+		return !clazz.isSynthetic() && clazz.getCanonicalName() != null;
 	}
 
 	private static Set<Class<?>> getTypesToRegister(String packageName) {
