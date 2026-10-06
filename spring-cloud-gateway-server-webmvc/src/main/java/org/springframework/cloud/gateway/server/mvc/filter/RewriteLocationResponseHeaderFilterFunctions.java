@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -45,7 +46,7 @@ Configuration parameters:
 - hostValue
 	A String. If provided, will be used to replace the host:port portion of the response Location header.
 	Default - The value of request Host header is used to replace.
-- protocols
+- protocolsRegex
 	A valid regex String, against which the protocol name will be matched. If not matched, the filter will do nothing.
 	Default - https?|ftps? (which is the same as http|https|ftp|ftps)
 
@@ -76,7 +77,7 @@ Example 3
 	  - name: RewriteLocationResponseHeader
 		args:
 		  stripVersion: NEVER_STRIP
-		  protocols: https|ftps # only replace host:port for https or ftps, but not http or ftp
+		  protocolsRegex: https|ftps # only replace host:port for https or ftps, but not http or ftp
 
 Host request header: api.example.com:443
 1. POST request path: /some/object/name
@@ -115,9 +116,14 @@ public abstract class RewriteLocationResponseHeaderFilterFunctions {
 			Consumer<RewriteLocationResponseHeaderConfig> configConsumer) {
 		RewriteLocationResponseHeaderConfig config = new RewriteLocationResponseHeaderConfig();
 		configConsumer.accept(config);
+		return rewriteLocationResponseHeader(config);
+	}
+
+	public static BiFunction<ServerRequest, ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			RewriteLocationResponseHeaderConfig config) {
 		return (request, response) -> {
 			String location = response.headers().getFirst(config.getLocationHeaderName());
-			String host = config.getHostValue() != null ? config.getHostValue()
+			String host = StringUtils.hasText(config.getHostValue()) ? config.getHostValue()
 					: request.headers().firstHeader(HttpHeaders.HOST);
 			String path = request.uri().getPath();
 			if (location != null && host != null) {
