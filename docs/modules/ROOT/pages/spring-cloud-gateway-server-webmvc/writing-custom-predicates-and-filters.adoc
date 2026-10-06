@@ -240,11 +240,13 @@ The above route will add a `X-Response-Id` header to the response. Note the use 
 
 == How To Register Custom Predicates and Filters for Configuration
 
-To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it a bean in the application context.
+To use custom Predicates and Filters in external configuration you need to create a special Supplier class and register it as a bean in the application context.
+Methods returned by the supplier can be static methods or instance methods on the supplier itself.
+Instance methods are invoked on the supplier bean, so they can use dependencies injected into that bean.
 
 === Registering Custom Predicates
 
-To register custom predicates you need to implement `PredicateSupplier`. The `PredicateDiscoverer` looks for static methods that return `RequestPredicates` to register.
+To register custom predicates you need to implement `PredicateSupplier`. The `PredicateDiscoverer` looks for methods that return `RequestPredicates` to register.
 
 SampleFilterSupplier.java
 [source,java]
@@ -291,7 +293,7 @@ org.springframework.cloud.gateway.server.mvc.predicate.PredicateSupplier=\
 
 === Registering Custom Filters
 
-The `SimpleFilterSupplier` allows for easily registering custom filters. The `FilterDiscoverer` looks for static methods that return `HandlerFilterFunction` to register. If you need more flexibility than `SimpleFilterSupplier` you can implement `FilterSupplier` directly.
+The `SimpleFilterSupplier` allows for easily registering custom static filters. The `FilterDiscoverer` looks for methods that return `HandlerFilterFunction` to register. If you need an instance method or more flexibility than `SimpleFilterSupplier`, you can implement `FilterSupplier` directly.
 
 .SampleFilterSupplier.java
 [source,java]

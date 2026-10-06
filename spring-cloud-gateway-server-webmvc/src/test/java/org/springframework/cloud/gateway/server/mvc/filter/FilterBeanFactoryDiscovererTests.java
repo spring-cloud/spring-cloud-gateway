@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.gateway.server.mvc.predicate;
+package org.springframework.cloud.gateway.server.mvc.filter;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,32 +24,31 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
-import org.springframework.cloud.gateway.server.mvc.test.TestPredicateSupplier;
+import org.springframework.cloud.gateway.server.mvc.test.TestFilterSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests for {@link PredicateBeanFactoryDiscoverer}.
+ * Tests for {@link FilterBeanFactoryDiscoverer}.
  *
  * @author zephyr45
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class PredicateBeanFactoryDiscovererTests {
+public class FilterBeanFactoryDiscovererTests {
 
 	@Autowired
-	PredicateBeanFactoryDiscoverer discoverer;
+	FilterBeanFactoryDiscoverer discoverer;
 
 	@Autowired
-	TestPredicateSupplier testPredicateSupplier;
+	TestFilterSupplier testFilterSupplier;
 
 	@Test
-	void contextLoads() {
+	void discoversInstanceMethodsOnSupplierBean() {
 		MultiValueMap<String, OperationMethod> operations = discoverer.getOperations();
-		assertThat(operations).isNotEmpty();
-		assertThat(operations.getFirst("alwaysTrue")).extracting(OperationMethod::getTarget)
-			.isSameAs(testPredicateSupplier);
+		assertThat(operations.getFirst("httpbinUriResolver")).extracting(OperationMethod::getTarget)
+			.isSameAs(testFilterSupplier);
 	}
 
 	@SpringBootConfiguration
@@ -57,8 +56,8 @@ public class PredicateBeanFactoryDiscovererTests {
 	static class Config {
 
 		@Bean
-		TestPredicateSupplier testPredicateSupplier() {
-			return new TestPredicateSupplier();
+		TestFilterSupplier testFilterSupplier() {
+			return new TestFilterSupplier();
 		}
 
 	}
