@@ -26,11 +26,11 @@ public class TestFilterSupplier extends SimpleFilterSupplier {
 		super(TestFilterSupplier.class);
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> localServerPortUriResolver() {
+	public HandlerFilterFunction<ServerResponse, ServerResponse> localServerPortUriResolver() {
 		return new LocalServerPortUriResolver();
 	}
 
-	public static HandlerFilterFunction<ServerResponse, ServerResponse> httpbinUriResolver() {
+	public HandlerFilterFunction<ServerResponse, ServerResponse> httpbinUriResolver() {
 		return new HttpbinUriResolver();
 	}
 

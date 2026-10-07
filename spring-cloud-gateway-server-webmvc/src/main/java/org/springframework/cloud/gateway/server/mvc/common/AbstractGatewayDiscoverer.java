@@ -17,21 +17,28 @@
 package org.springframework.cloud.gateway.server.mvc.common;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.DefaultOperationMethod;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.core.log.LogMessage;
+import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+/**
+ * Base class for discovering gateway operation methods from suppliers.
+ *
+ * @author zephyr45
+ */
 public abstract class AbstractGatewayDiscoverer {
 
 	protected final Log log = LogFactory.getLog(getClass());
@@ -41,10 +48,19 @@ public abstract class AbstractGatewayDiscoverer {
 	public <T extends Supplier<Collection<Method>>, R> void doDiscover(Class<T> supplierClass, Class<R> returnType) {
 		List<T> suppliers = loadSuppliers(supplierClass);
 
-		List<Method> methods = new ArrayList<>();
 		for (Supplier<Collection<Method>> supplier : suppliers) {
 			try {
-				methods.addAll(supplier.get());
+				for (Method method : supplier.get()) {
+					// TODO: replace with a BiPredicate of some kind
+					if (returnType.isAssignableFrom(method.getReturnType())) {
+						@Nullable Object target = Modifier.isStatic(method.getModifiers()) ? null : supplier;
+						if (target != null) {
+							Assert.isInstanceOf(method.getDeclaringClass(), target,
+									"Instance operation methods must be declared on their supplier bean: ");
+						}
+						addOperationMethod(method, target);
+					}
+				}
 			}
 			catch (NoClassDefFoundError e) {
 				if (log.isDebugEnabled()) {
@@ -57,17 +73,10 @@ public abstract class AbstractGatewayDiscoverer {
 				}
 			}
 		}
-
-		for (Method method : methods) {
-			// TODO: replace with a BiPredicate of some kind
-			if (returnType.isAssignableFrom(method.getReturnType())) {
-				addOperationMethod(method);
-			}
-		}
 	}
 
-	protected void addOperationMethod(Method method) {
-		OperationMethod operationMethod = new DefaultOperationMethod(method);
+	protected void addOperationMethod(Method method, @Nullable Object target) {
+		OperationMethod operationMethod = new DefaultOperationMethod(method, target);
 		String key = method.getName();
 		operations.add(key, operationMethod);
 		log.trace(LogMessage.format("Discovered %s", operationMethod));
