@@ -29,7 +29,7 @@ The `Mode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_RE
 * `ALWAYS_STRIP`: The version is always stripped, even if the original request path contains version.
 
 The `hostValue` parameter, if provided, is used to replace the `host:port` portion of the response `Location` header.
-If it is not provided, the value of the `Host` request header is used.
+If it is not provided or is blank, the value of the `Host` request header is used.
 
 The `protocols` parameter must be a valid regex `String`, against which the protocol name is matched.
 If it is not matched, the filter does nothing.

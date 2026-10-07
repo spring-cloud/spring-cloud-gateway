@@ -26,6 +26,7 @@ import reactor.core.publisher.Mono;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
@@ -155,7 +156,7 @@ public class RewriteLocationResponseHeaderGatewayFilterFactory
 
 	void rewriteLocation(ServerWebExchange exchange, Config config) {
 		final String location = exchange.getResponse().getHeaders().getFirst(config.getLocationHeaderName());
-		final String host = config.getHostValue() != null ? config.getHostValue()
+		final String host = StringUtils.hasText(config.getHostValue()) ? config.getHostValue()
 				: exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
 		final String path = exchange.getRequest().getURI().getPath();
 		if (location != null && host != null) {
