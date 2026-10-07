@@ -44,6 +44,7 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.lang.Nullable;
@@ -55,6 +56,7 @@ import org.springframework.util.StringUtils;
  * parameters and form parameters the same, but a proxy should not care.
  *
  * @author Spencer Gibb
+ * @author Hutiefang Hu
  */
 @SuppressWarnings("unchecked")
 public class FormFilter implements Filter, Ordered {
@@ -141,9 +143,10 @@ public class FormFilter implements Filter, Ordered {
 		}
 		writer.flush();
 
+		byte[] body = bos.toByteArray();
 		ByteArrayServletInputStream servletInputStream = new ByteArrayServletInputStream(
-				new ByteArrayInputStream(bos.toByteArray()));
-		return new FormContentRequestWrapper(request, queryParams) {
+				new ByteArrayInputStream(body));
+		return new FormContentRequestWrapper(request, queryParams, body.length) {
 			@Override
 			public ServletInputStream getInputStream() throws IOException {
 				return servletInputStream;
@@ -186,9 +189,50 @@ public class FormFilter implements Filter, Ordered {
 
 		private final MultiValueMap<String, String> queryParams;
 
-		FormContentRequestWrapper(HttpServletRequest request, MultiValueMap<String, String> params) {
+		private final int contentLength;
+
+		private final boolean contentLengthHeaderPresent;
+
+		FormContentRequestWrapper(HttpServletRequest request, MultiValueMap<String, String> params, int contentLength) {
 			super(request);
 			this.queryParams = params;
+			this.contentLength = contentLength;
+			this.contentLengthHeaderPresent = request.getHeader(HttpHeaders.CONTENT_LENGTH) != null;
+		}
+
+		@Override
+		public int getContentLength() {
+			return this.contentLength;
+		}
+
+		@Override
+		public long getContentLengthLong() {
+			return this.contentLength;
+		}
+
+		@Override
+		@Nullable
+		public String getHeader(String name) {
+			if (this.contentLengthHeaderPresent && HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)) {
+				return String.valueOf(this.contentLength);
+			}
+			return super.getHeader(name);
+		}
+
+		@Override
+		public Enumeration<String> getHeaders(String name) {
+			if (this.contentLengthHeaderPresent && HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)) {
+				return Collections.enumeration(List.of(String.valueOf(this.contentLength)));
+			}
+			return super.getHeaders(name);
+		}
+
+		@Override
+		public int getIntHeader(String name) {
+			if (this.contentLengthHeaderPresent && HttpHeaders.CONTENT_LENGTH.equalsIgnoreCase(name)) {
+				return this.contentLength;
+			}
+			return super.getIntHeader(name);
 		}
 
 		@Override
