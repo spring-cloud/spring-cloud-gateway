@@ -92,6 +92,27 @@ public class XForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void unresolvedRemoteAddressAddsXForwardedForHeader() {
+		// Create unresolved InetSocketAddress (this is the actual bug scenario)
+		InetSocketAddress unresolved = InetSocketAddress.createUnresolved("example.com", 80);
+
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
+			.remoteAddress(unresolved)
+			.header(HttpHeaders.HOST, "myhost")
+			.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter(ALLOW_ALL_REGEX);
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		// Verify header is present (this currently fails before your fix)
+		assertThat(headers.headerNames()).contains(X_FORWARDED_FOR_HEADER);
+
+		// Verify it uses host string (not null)
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("example.com");
+	}
+
+	@Test
 	public void defaultPort() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
