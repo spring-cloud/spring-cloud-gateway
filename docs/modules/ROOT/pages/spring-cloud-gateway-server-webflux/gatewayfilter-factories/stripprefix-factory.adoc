@@ -24,3 +24,5 @@ spring:
 
 When a request is made through the gateway to `/name/blue/red`, the request made to `nameservice` looks like `https://nameservice/red`.
 
+NOTE: If the request has a context path (for example, when `spring.webflux.base-path` is set or a forwarded prefix applies), add the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/stripcontextpath-factory.adoc[`StripContextPath` filter] before this filter to remove the context path first; otherwise, mutating the path fails with an invalid context path error.
+
