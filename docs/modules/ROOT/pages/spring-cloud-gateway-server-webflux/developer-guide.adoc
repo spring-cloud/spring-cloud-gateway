@@ -37,6 +37,54 @@ public class MyRoutePredicateFactory extends AbstractRoutePredicateFactory<MyRou
 
 }
 ----
+[[naming-custom-predicates-and-references-in-configuration]]
+=== Naming Custom Predicates And References In Configuration
+
+Custom route predicate factory class names should end in `RoutePredicateFactory`.
+
+For example, to reference a predicate named `My` in configuration files, the factory must be in a class named `MyRoutePredicateFactory`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          - id: my_route
+            uri: https://example.org
+            predicates:
+            - My=argument
+----
+
+Or using fully expanded arguments:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          - id: my_route
+            uri: https://example.org
+            predicates:
+            - name: My
+              args:
+                myArg: argument
+----
+
+The predicate factory must override `shortcutFieldOrder()` to define the order of shortcut arguments and `Config` fields must match the keys used in the `args` map.
+
+WARNING: It is possible to create a predicate named without the `RoutePredicateFactory` suffix.
+Such a predicate could be referenced by its full class name (minus the package) in configuration files.
+This is **not** a supported naming convention and this syntax may be removed in future releases.
+Please update the predicate name to be compliant.
+
 [[writing-custom-gatewayfilter-factories]]
 == Writing Custom GatewayFilter Factories
 
