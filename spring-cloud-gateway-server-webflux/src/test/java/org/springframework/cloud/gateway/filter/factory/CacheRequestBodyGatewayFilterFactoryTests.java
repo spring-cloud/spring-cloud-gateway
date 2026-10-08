@@ -33,6 +33,7 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -117,6 +118,23 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 	}
 
 	@Test
+	public void readBodyAndCacheRequestBodyShareObjectCache() {
+		testClient.post()
+			.uri("/post")
+			.header("Host", "www.cacheandreadbody.org")
+			.bodyValue(BODY_VALUE)
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(Map.class)
+			.consumeWith(result -> {
+				Map<?, ?> response = result.getResponseBody();
+				assertThat(response).isNotNull();
+				assertThat(response.get("data")).isEqualTo(BODY_VALUE);
+			});
+	}
+
+	@Test
 	public void toStringFormat() {
 		CacheRequestBodyGatewayFilterFactory.Config config = new CacheRequestBodyGatewayFilterFactory.Config();
 		config.setBodyClass(String.class);
@@ -160,6 +178,16 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 								.cacheRequestBody(String.class)
 								.filter(new AssertCachedRequestBodyGatewayFilter(BODY_CACHED_EXISTS)))
 							.uri(uri))
+				.route("read_body_and_cache_request_body_java_test",
+						r -> r.path("/post")
+							.and()
+							.host("**.cacheandreadbody.org")
+							.and()
+							.readBody(String.class, BODY_VALUE::equals)
+							.filters(f -> f.prefixPath("/httpbin")
+								.cacheRequestBody(String.class)
+								.filter(new AssertSeparatedCachedRequestBodyGatewayFilter(BODY_VALUE)))
+							.uri(uri))
 				.build();
 		}
 
@@ -185,6 +213,25 @@ public class CacheRequestBodyGatewayFilterFactoryTests extends BaseWebClientTest
 			else {
 				assertThat(body).isEqualTo(bodyExcepted);
 			}
+			return chain.filter(exchange);
+		}
+
+	}
+
+	private static class AssertSeparatedCachedRequestBodyGatewayFilter implements GatewayFilter {
+
+		private final String expectedBody;
+
+		AssertSeparatedCachedRequestBodyGatewayFilter(String expectedBody) {
+			this.expectedBody = expectedBody;
+		}
+
+		@Override
+		public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+			Object cachedBodyObject = exchange.getAttribute(ServerWebExchangeUtils.CACHE_REQUEST_BODY_OBJECT_ATTR);
+			Object cachedRequestBody = exchange.getAttribute(ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR);
+			assertThat(cachedBodyObject).isEqualTo(expectedBody);
+			assertThat(cachedRequestBody).isInstanceOf(DataBuffer.class);
 			return chain.filter(exchange);
 		}
 
