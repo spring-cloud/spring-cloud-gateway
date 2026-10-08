@@ -131,6 +131,8 @@ public class GatewayAutoConfigurationTests {
 					"spring.cloud.gateway.server.webflux.httpclient.pool.eviction-interval=10s",
 					"spring.cloud.gateway.server.webflux.httpclient.pool.type=fixed",
 					"spring.cloud.gateway.server.webflux.httpclient.pool.metrics=true",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.inactive-pool-dispose-interval=30s",
+					"spring.cloud.gateway.server.webflux.httpclient.pool.pool-inactivity=5m",
 					"spring.cloud.gateway.server.webflux.httpclient.pool.leasing-strategy=lifo",
 					"spring.cloud.gateway.server.webflux.httpclient.compression=true",
 					"spring.cloud.gateway.server.webflux.httpclient.wiretap=true",
@@ -147,6 +149,8 @@ public class GatewayAutoConfigurationTests {
 				assertThat(properties.isCompression()).isEqualTo(true);
 				assertThat(properties.getPool().getEvictionInterval()).hasSeconds(10);
 				assertThat(properties.getPool().isMetrics()).isEqualTo(true);
+				assertThat(properties.getPool().getInactivePoolDisposeInterval()).hasSeconds(30);
+				assertThat(properties.getPool().getPoolInactivity()).hasMinutes(5);
 				assertThat(properties.getPool().getLeasingStrategy()).isEqualTo(LeasingStrategy.LIFO);
 				assertThat(properties.getSsl().getSslBundle()).isEqualTo("mybundle");
 
