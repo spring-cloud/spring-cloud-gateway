@@ -47,6 +47,7 @@
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/requestsize-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/setrequesthostheader-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/tokenrelay-factory.adoc[]
+*** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/websessionsticky-factory.adoc[]
 *** xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/default-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/global-filters.adoc[]
 ** xref:spring-cloud-gateway-server-webflux/httpheadersfilters.adoc[]
