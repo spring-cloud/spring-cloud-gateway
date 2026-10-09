@@ -38,6 +38,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -62,6 +63,9 @@ public class JsonToGrpcApplicationTests {
 	@LocalServerPort
 	private int gatewayPort;
 
+	@Autowired
+	private GRPCApplication.GRPCServer grpcServer;
+
 	private RestTemplate restTemplate;
 
 	@BeforeEach
@@ -75,8 +79,7 @@ public class JsonToGrpcApplicationTests {
 		// test starts,
 		// we need to configure route dynamically using the actuator endpoint.
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
-		int grpcServerPort = gatewayPort + 1;
-		configurer.addRoute(grpcServerPort, "/json/hello",
+		configurer.addRoute(grpcServer.getPort(), "/json/hello",
 				"JsonToGrpc=HelloService,hello,file:src/main/proto/hello.pb");
 
 		HttpHeaders headers = new HttpHeaders();
@@ -95,8 +98,7 @@ public class JsonToGrpcApplicationTests {
 		// test starts,
 		// we need to configure route dynamically using the actuator endpoint.
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
-		int grpcServerPort = gatewayPort + 1;
-		configurer.addRoute(grpcServerPort, "/json/hellofail",
+		configurer.addRoute(grpcServer.getPort(), "/json/hellofail",
 				"JsonToGrpc=HelloService,hello,file:src/main/proto/../hiddenproto/hello.pb");
 
 		HttpHeaders headers = new HttpHeaders();
