@@ -5,6 +5,9 @@ When the request size is greater than the permissible limit, the `RequestSize` `
 The filter takes a `maxSize` parameter.
 The `maxSize` is a `DataSize` type, so values can be defined as a number followed by an optional `DataUnit` suffix such as 'KB' or 'MB'. The default is 'B' for bytes.
 It is the permissible size limit of the request defined in bytes.
+
+WARNING: The `RequestSize` gateway filter only considers the request's `Content-Length`-header and will not restrict requests (using `chunked` transfer encoding or HTTP/2) if `Content-Length` is omitted.
+
 The following listing configures a `RequestSize` `GatewayFilter`:
 
 .application.yml
