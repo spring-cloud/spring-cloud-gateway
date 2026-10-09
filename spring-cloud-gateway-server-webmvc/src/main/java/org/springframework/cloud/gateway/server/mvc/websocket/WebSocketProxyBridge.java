@@ -28,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.util.StringUtils;
 import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.SubProtocolCapable;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketMessage;
@@ -42,6 +41,11 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
  * <p>
  * The backend is connected before the client handshake completes, so messages the
  * backend sends in between are buffered until the client session is established.
+ *
+ * <p>
+ * Text, binary and pong messages are relayed. Ping messages are not: the servlet
+ * WebSocket API never delivers them to the application, and the container answers each
+ * ping with a pong itself.
  */
 class WebSocketProxyBridge {
 
@@ -137,10 +141,6 @@ class WebSocketProxyBridge {
 
 		@Override
 		public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws IOException {
-			// the container answers pings itself, so pongs are not relayed
-			if (message instanceof PongMessage) {
-				return;
-			}
 			// sending while holding the lock keeps buffered messages in order
 			synchronized (lock) {
 				if (clientSession == null) {
@@ -211,9 +211,6 @@ class WebSocketProxyBridge {
 
 		@Override
 		public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws IOException {
-			if (message instanceof PongMessage) {
-				return;
-			}
 			WebSocketSession backend = backendSession;
 			if (backend != null) {
 				backend.sendMessage(message);

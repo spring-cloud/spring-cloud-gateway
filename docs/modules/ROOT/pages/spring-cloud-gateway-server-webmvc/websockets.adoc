@@ -56,6 +56,8 @@ class RouteConfiguration {
 
 The gateway connects to the backend before it completes the client's handshake. The client is offered the subprotocol the backend accepted, and gets `502 Bad Gateway` if the backend cannot be reached.
 
+Text, binary and pong messages are relayed in both directions. Ping messages are not relayed: the servlet WebSocket API does not deliver them to applications, and the container answers each ping with a pong itself. A client that pings the gateway gets a reply even if the backend is slow or unresponsive. To check that the backend itself is alive, use application-level heartbeat messages.
+
 Request filters such as `StripPrefix`, `AddRequestHeader` and `TokenRelay` apply to the handshake. Headers added by response filters are set on the handshake response. Once the connection is established, messages are relayed as they are. Filters that act on a response body, as well as retry and circuit breaker filters, do not apply.
 
 [[websocket-allowed-origins]]
