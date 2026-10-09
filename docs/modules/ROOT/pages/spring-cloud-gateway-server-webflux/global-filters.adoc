@@ -194,6 +194,28 @@ spring:
             - Path=/websocket/**
 ----
 
+[[websocket-allowed-origins]]
+=== Allowed Origins
+
+Browsers do not enforce CORS on WebSocket handshakes, so the websocket routing filter checks the `Origin` header itself. By default, only same-origin handshakes and handshakes without an `Origin` header (such as those from non-browser clients) are accepted. Cross-origin handshakes are rejected with a `403 Forbidden` response.
+
+To accept handshakes from other origins, set `spring.cloud.gateway.server.webflux.websocket.allowed-origins` to a list of specific origins, such as `https://example.com`, or set `spring.cloud.gateway.server.webflux.websocket.allowed-origin-patterns` for more flexible patterns, such as `https://*.example.com`. A value of `*` allows all origins. If both are set, an origin matching either is accepted. The following listing allows handshakes from any subdomain of `example.com`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          websocket:
+            allowed-origin-patterns:
+            - https://*.example.com
+----
+
+NOTE: When the gateway runs behind a proxy, same-origin checks use the request URI as seen by the gateway. Configure `server.forward-headers-strategy` so that the forwarded host and scheme are applied.
+
 [[marking-an-exchange-as-routed]]
 == Marking An Exchange As Routed
 

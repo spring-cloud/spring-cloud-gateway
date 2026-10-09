@@ -79,6 +79,7 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.adapter.WebHttpHandlerBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SEC_WEBSOCKET_PROTOCOL;
 
 /**
@@ -124,7 +125,9 @@ public class WebSocketIntegrationTests {
 		}
 
 		this.gatewayContext = new SpringApplicationBuilder(GatewayConfig.class)
-			.properties("ws.server.port:" + this.serverPort, "server.port=0", "spring.jmx.enabled=false")
+			.properties("ws.server.port:" + this.serverPort, "server.port=0", "spring.jmx.enabled=false",
+					"spring.cloud.gateway.server.webflux.websocket.allowed-origins=https://exact.allowed.example",
+					"spring.cloud.gateway.server.webflux.websocket.allowed-origin-patterns=https://*.allowed.example")
 			.run();
 
 		ConfigurableEnvironment env = this.gatewayContext.getBean(ConfigurableEnvironment.class);
@@ -226,6 +229,49 @@ public class WebSocketIntegrationTests {
 	@Test
 	public void customHeader() throws Exception {
 		HttpHeaders headers = new HttpHeaders();
+		headers.add("my-header", "my-value");
+		AtomicReference<Object> headerRef = new AtomicReference<>();
+
+		this.client
+			.execute(getUrl("/custom-header"), headers,
+					session -> session.receive()
+						.map(WebSocketMessage::getPayloadAsText)
+						.doOnNext(headerRef::set)
+						.doOnError(headerRef::set)
+						.then())
+			.block(TIMEOUT);
+
+		assertThat(headerRef.get()).isEqualTo("my-header:my-value");
+	}
+
+	@Test
+	public void crossOriginHandshakeRejected() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setOrigin("https://evil.example");
+
+		assertThatThrownBy(
+				() -> this.client.execute(getUrl("/custom-header"), headers, session -> Mono.empty()).block(TIMEOUT))
+			.hasMessageContaining("403");
+	}
+
+	@Test
+	public void sameOriginHandshakeAccepted() throws Exception {
+		assertOriginAccepted("http://localhost:" + this.gatewayPort);
+	}
+
+	@Test
+	public void allowedOriginHandshakeAccepted() throws Exception {
+		assertOriginAccepted("https://exact.allowed.example");
+	}
+
+	@Test
+	public void allowedOriginPatternHandshakeAccepted() throws Exception {
+		assertOriginAccepted("https://app.allowed.example");
+	}
+
+	private void assertOriginAccepted(String origin) throws Exception {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setOrigin(origin);
 		headers.add("my-header", "my-value");
 		AtomicReference<Object> headerRef = new AtomicReference<>();
 

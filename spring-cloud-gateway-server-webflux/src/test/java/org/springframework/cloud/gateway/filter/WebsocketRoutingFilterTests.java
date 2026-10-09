@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -35,6 +36,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.SEC_WEBSOCKET_PROTOCOL;
 import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.changeSchemeIfIsWebSocketUpgrade;
@@ -42,6 +44,7 @@ import static org.springframework.cloud.gateway.filter.WebsocketRoutingFilter.co
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.PRESERVE_HOST_HEADER_ATTRIBUTE;
 import static org.springframework.http.HttpHeaders.HOST;
+import static org.springframework.http.HttpHeaders.ORIGIN;
 import static org.springframework.http.HttpHeaders.UPGRADE;
 
 public class WebsocketRoutingFilterTests {
@@ -89,6 +92,81 @@ public class WebsocketRoutingFilterTests {
 	@Test
 	public void testHeadersFilterPreserveHost() {
 		assertDefaultHeadersFilters(true);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void defaultOriginCheckAllowsSameOriginOnly() {
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), mock(ObjectProvider.class));
+
+		assertThat(filter.isOriginAllowed(MockServerHttpRequest.get("http://gateway.example/ws").build())).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("http://gateway.example"))).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("https://gateway.example"))).isFalse();
+		assertThat(filter.isOriginAllowed(originRequest("http://evil.example"))).isFalse();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void configuredOriginsAreAllowed() {
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), mock(ObjectProvider.class));
+		filter.setAllowedOrigins(List.of("https://app.allowed.example"));
+
+		assertThat(filter.getAllowedOrigins()).containsExactly("https://app.allowed.example");
+		assertThat(filter.isOriginAllowed(originRequest("http://gateway.example"))).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("https://app.allowed.example"))).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("https://other.allowed.example"))).isFalse();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void configuredOriginPatternsAreAllowed() {
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), mock(ObjectProvider.class));
+		filter.setAllowedOriginPatterns(List.of("https://*.allowed.example"));
+
+		assertThat(filter.getAllowedOriginPatterns()).containsExactly("https://*.allowed.example");
+
+		assertThat(filter.isOriginAllowed(originRequest("http://gateway.example"))).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("https://app.allowed.example"))).isTrue();
+		assertThat(filter.isOriginAllowed(originRequest("https://allowed.example.evil"))).isFalse();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void wildcardAllowsAllOrigins() {
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class),
+				mock(WebSocketService.class), mock(ObjectProvider.class));
+		filter.setAllowedOriginPatterns(List.of("*"));
+
+		assertThat(filter.isOriginAllowed(originRequest("http://evil.example"))).isTrue();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void crossOriginHandshakeIsRejected() {
+		ObjectProvider<List<HttpHeadersFilter>> headersFilters = mock(ObjectProvider.class);
+		when(headersFilters.getIfAvailable(any())).thenReturn(new ArrayList<>());
+		WebSocketService webSocketService = mock(WebSocketService.class);
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(mock(WebSocketClient.class), webSocketService,
+				headersFilters);
+
+		MockServerWebExchange exchange = MockServerWebExchange.from(originRequest("http://evil.example"));
+		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, URI.create("ws://backend/ws"));
+		GatewayFilterChain chain = mock(GatewayFilterChain.class);
+
+		filter.filter(exchange, chain).block();
+
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+		verifyNoInteractions(webSocketService, chain);
+	}
+
+	private static MockServerHttpRequest originRequest(String origin) {
+		return MockServerHttpRequest.get("http://gateway.example/ws")
+			.header(UPGRADE, "WebSocket")
+			.header(ORIGIN, origin)
+			.build();
 	}
 
 	@SuppressWarnings("unchecked")
