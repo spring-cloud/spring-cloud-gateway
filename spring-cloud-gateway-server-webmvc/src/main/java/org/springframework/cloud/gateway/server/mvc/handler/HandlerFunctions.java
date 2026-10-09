@@ -152,12 +152,48 @@ public abstract class HandlerFunctions {
 		return http();
 	}
 
+	public static HandlerFunction<ServerResponse> websocket() {
+		return new LookupWebSocketHandlerFunction();
+	}
+
+	static class LookupWebSocketHandlerFunction implements HandlerFunction<ServerResponse> {
+
+		private final AtomicReference<@Nullable WebSocketHandlerFunction> webSocketHandlerFunction = new AtomicReference<>();
+
+		@Override
+		public ServerResponse handle(ServerRequest serverRequest) throws Exception {
+			WebSocketHandlerFunction function = resolve(serverRequest);
+			if (function == null) {
+				throw new IllegalStateException(
+						"No WebSocketHandlerFunction found. Add spring-boot-starter-websocket to the classpath.");
+			}
+			return function.handle(serverRequest);
+		}
+
+		@Nullable WebSocketHandlerFunction resolve(ServerRequest request) {
+			return webSocketHandlerFunction.updateAndGet(existing -> existing != null ? existing
+					: MvcUtils.getApplicationContext(request)
+						.getBeanProvider(WebSocketHandlerFunction.class)
+						.getIfAvailable());
+		}
+
+	}
+
 	static class LookupProxyExchangeHandlerFunction implements HandlerFunction<ServerResponse> {
 
 		private AtomicReference<@Nullable ProxyExchangeHandlerFunction> proxyExchangeHandlerFunction = new AtomicReference<>();
 
+		private final LookupWebSocketHandlerFunction webSocketHandlerFunction = new LookupWebSocketHandlerFunction();
+
 		@Override
-		public ServerResponse handle(ServerRequest serverRequest) {
+		public ServerResponse handle(ServerRequest serverRequest) throws Exception {
+			// upgrade http routes to WebSocket when supported, like the WebFlux gateway
+			if (WebSocketHandlerFunction.isWebSocketUpgrade(serverRequest)) {
+				WebSocketHandlerFunction function = webSocketHandlerFunction.resolve(serverRequest);
+				if (function != null) {
+					return function.handle(serverRequest);
+				}
+			}
 			ProxyExchangeHandlerFunction proxyFunction = proxyExchangeHandlerFunction.updateAndGet(function -> {
 				if (function == null) {
 					return lookup(serverRequest);

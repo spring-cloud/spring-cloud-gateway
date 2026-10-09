@@ -5,4 +5,5 @@ org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.handler.GatewayMultipartAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration
+org.springframework.cloud.gateway.server.mvc.websocket.GatewayMvcWebSocketAutoConfiguration
 org.springframework.cloud.gateway.server.mvc.config.DefaultFunctionConfiguration

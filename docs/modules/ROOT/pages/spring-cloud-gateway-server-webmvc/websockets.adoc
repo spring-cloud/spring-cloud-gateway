@@ -1,0 +1,116 @@
+[[websockets]]
+= WebSockets
+
+Spring Cloud Gateway Server Web MVC can proxy WebSocket connections. To enable it, add `spring-boot-starter-websocket`:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-websocket</artifactId>
+</dependency>
+----
+
+With WebSocket support on the classpath, a route can proxy WebSockets in either of two ways:
+
+* Use a `ws` or `wss` URI.
+* Use an `http`, `https` or `lb` URI. A request with an `Upgrade: websocket` header is proxied as a WebSocket, and `http` and `https` become `ws` and `wss`.
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+          - id: websocket_route
+            uri: ws://localhost:3001
+            predicates:
+            - Path=/websocket/**
+----
+
+The following example configures the same route with the Java DSL:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
+import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.websocket;
+
+@Configuration
+class RouteConfiguration {
+
+    @Bean
+    public RouterFunction<ServerResponse> websocketRoute() {
+        return route("websocket_route")
+            .GET("/websocket/**", websocket())
+            .before(uri("ws://localhost:3001"))
+            .build();
+    }
+
+}
+----
+
+The gateway connects to the backend before it completes the client's handshake. The client is offered the subprotocol the backend accepted, and gets `502 Bad Gateway` if the backend cannot be reached.
+
+Request filters such as `StripPrefix`, `AddRequestHeader` and `TokenRelay` apply to the handshake. Headers added by response filters are set on the handshake response. Once the connection is established, messages are relayed as they are. Filters that act on a response body, as well as retry and circuit breaker filters, do not apply.
+
+[[websocket-allowed-origins]]
+== Allowed Origins
+
+Browsers do not enforce CORS on WebSocket handshakes, so the gateway checks the `Origin` header itself. By default, it accepts only same-origin handshakes and handshakes without an `Origin` header (such as those from non-browser clients). Cross-origin handshakes are rejected with `403 Forbidden`.
+
+To accept handshakes from other origins, set `spring.cloud.gateway.server.webmvc.websocket.allowed-origins`. Patterns such as `https://*.example.com` are supported, and `*` allows all origins:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          websocket:
+            allowed-origins:
+            - https://*.example.com
+----
+
+[[websocket-properties]]
+== Configuration Properties
+
+All properties are under `spring.cloud.gateway.server.webmvc.websocket`.
+
+|===
+| Property | Default | Description
+
+| `enabled`
+| `true`
+| Whether WebSocket proxying is enabled.
+
+| `allowed-origins`
+| (same origin only)
+| Additional origins allowed to open a connection.
+
+| `connect-timeout`
+| `10s`
+| Time allowed to connect to the backend.
+
+| `send-time-limit`
+| `10s`
+| Time allowed to send a single message to either side before the session is closed.
+
+| `send-buffer-size-limit`
+| `512KB`
+| Outbound data buffered per session before the session is closed.
+
+| `max-message-size`
+| `64KB`
+| Largest message accepted from either side. Larger messages close the connection with status `1009`.
+|===
+
+Servlet WebSocket has no backpressure. When one side reads more slowly than the other sends, outbound messages are buffered up to `send-buffer-size-limit`, and then the connection is closed.
+
+Each open connection holds container resources for its lifetime. For gateways with many long-lived connections, consider enabling virtual threads with `spring.threads.virtual.enabled=true`.
