@@ -34,6 +34,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -55,15 +56,17 @@ public class GRPCApplicationTests {
 	@LocalServerPort
 	private int gatewayPort;
 
+	@Autowired
+	private GRPCApplication.GRPCServer grpcServer;
+
 	public static void main(String[] args) {
 		SpringApplication.run(GRPCApplication.class, args);
 	}
 
 	@BeforeEach
 	void setUp() {
-		int grpcServerPort = gatewayPort + 1;
 		final RouteConfigurer configurer = new RouteConfigurer(gatewayPort);
-		configurer.addRoute(grpcServerPort, "/**", null);
+		configurer.addRoute(grpcServer.getPort(), "/**", null);
 	}
 
 	@Test
