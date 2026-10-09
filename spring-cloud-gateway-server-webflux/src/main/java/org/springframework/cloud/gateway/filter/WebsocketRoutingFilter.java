@@ -19,7 +19,9 @@ package org.springframework.cloud.gateway.filter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,7 +35,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.reactive.socket.CloseStatus;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -72,11 +80,59 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 	// do not use this headersFilters directly, use getHeadersFilters() instead.
 	private volatile @Nullable List<HttpHeadersFilter> headersFilters;
 
+	private final CorsConfiguration corsConfiguration = new CorsConfiguration();
+
 	public WebsocketRoutingFilter(WebSocketClient webSocketClient, WebSocketService webSocketService,
 			ObjectProvider<List<HttpHeadersFilter>> headersFiltersProvider) {
 		this.webSocketClient = webSocketClient;
 		this.webSocketService = webSocketService;
 		this.headersFiltersProvider = headersFiltersProvider;
+	}
+
+	/**
+	 * Set the origins allowed to open a WebSocket connection in addition to the same
+	 * origin. Refer to {@link CorsConfiguration#setAllowedOrigins(List)} for format
+	 * details. For more flexible origin patterns use
+	 * {@link #setAllowedOriginPatterns(Collection)} instead.
+	 * <p>
+	 * By default, no origins are allowed. An origin is accepted if it matches either this
+	 * property or {@link #setAllowedOriginPatterns(Collection)}.
+	 * @param allowedOrigins the allowed origins
+	 */
+	public void setAllowedOrigins(Collection<String> allowedOrigins) {
+		Assert.notNull(allowedOrigins, "Allowed origins Collection must not be null");
+		this.corsConfiguration.setAllowedOrigins(new ArrayList<>(allowedOrigins));
+	}
+
+	/**
+	 * Return the configured allowed origins.
+	 * @return the allowed origins
+	 */
+	public Collection<String> getAllowedOrigins() {
+		List<String> allowedOrigins = this.corsConfiguration.getAllowedOrigins();
+		return (CollectionUtils.isEmpty(allowedOrigins) ? Collections.emptySet()
+				: Collections.unmodifiableSet(new LinkedHashSet<>(allowedOrigins)));
+	}
+
+	/**
+	 * Alternative to {@link #setAllowedOrigins(Collection)} that supports more flexible
+	 * patterns such as {@code https://*.example.com}. Refer to
+	 * {@link CorsConfiguration#setAllowedOriginPatterns(List)} for format details.
+	 * @param allowedOriginPatterns the allowed origin patterns
+	 */
+	public void setAllowedOriginPatterns(Collection<String> allowedOriginPatterns) {
+		Assert.notNull(allowedOriginPatterns, "Allowed origin patterns Collection must not be null");
+		this.corsConfiguration.setAllowedOriginPatterns(new ArrayList<>(allowedOriginPatterns));
+	}
+
+	/**
+	 * Return the configured allowed origin patterns.
+	 * @return the allowed origin patterns
+	 */
+	public Collection<String> getAllowedOriginPatterns() {
+		List<String> allowedOriginPatterns = this.corsConfiguration.getAllowedOriginPatterns();
+		return (CollectionUtils.isEmpty(allowedOriginPatterns) ? Collections.emptySet()
+				: Collections.unmodifiableSet(new LinkedHashSet<>(allowedOriginPatterns)));
 	}
 
 	/* for testing */
@@ -103,6 +159,15 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 		}
 		setAlreadyRouted(exchange);
 
+		if (!isOriginAllowed(exchange.getRequest())) {
+			if (log.isDebugEnabled()) {
+				log.debug("Rejecting WebSocket handshake from origin " + exchange.getRequest().getHeaders().getOrigin()
+						+ " to " + requestUrl);
+			}
+			exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+			return exchange.getResponse().setComplete();
+		}
+
 		HttpHeaders headers = exchange.getRequest().getHeaders();
 		HttpHeaders filtered = filterRequest(getHeadersFilters(), exchange);
 
@@ -110,6 +175,15 @@ public class WebsocketRoutingFilter implements GlobalFilter, Ordered {
 
 		return this.webSocketService.handleRequest(exchange,
 				new ProxyWebSocketHandler(requestUrl, this.webSocketClient, filtered, protocols));
+	}
+
+	/* for testing */ boolean isOriginAllowed(ServerHttpRequest request) {
+		// requests without an Origin header (non-browser clients) or from the same
+		// origin are not cross-origin
+		if (!CorsUtils.isCorsRequest(request)) {
+			return true;
+		}
+		return this.corsConfiguration.checkOrigin(request.getHeaders().getOrigin()) != null;
 	}
 
 	/* for testing */ static @Nullable List<String> getProtocols(HttpHeaders headers) {

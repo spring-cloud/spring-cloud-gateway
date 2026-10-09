@@ -323,6 +323,11 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	public WebsocketProperties websocketProperties() {
+		return new WebsocketProperties();
+	}
+
+	@Bean
 	public SecureHeadersProperties secureHeadersProperties() {
 		return new SecureHeadersProperties();
 	}
@@ -451,8 +456,12 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
-			WebSocketService webSocketService, ObjectProvider<List<HttpHeadersFilter>> headersFilters) {
-		return new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters);
+			WebSocketService webSocketService, ObjectProvider<List<HttpHeadersFilter>> headersFilters,
+			WebsocketProperties websocketProperties) {
+		WebsocketRoutingFilter filter = new WebsocketRoutingFilter(webSocketClient, webSocketService, headersFilters);
+		filter.setAllowedOrigins(websocketProperties.getAllowedOrigins());
+		filter.setAllowedOriginPatterns(websocketProperties.getAllowedOriginPatterns());
+		return filter;
 	}
 
 	@Bean
