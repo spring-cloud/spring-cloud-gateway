@@ -132,7 +132,7 @@ class WebSocketProxyBridge {
 		};
 	}
 
-	private class BackendHandler implements WebSocketHandler {
+	private final class BackendHandler implements WebSocketHandler {
 
 		@Override
 		public void afterConnectionEstablished(WebSocketSession session) {
@@ -179,7 +179,7 @@ class WebSocketProxyBridge {
 
 	}
 
-	private class ClientHandler implements WebSocketHandler, SubProtocolCapable {
+	private final class ClientHandler implements WebSocketHandler, SubProtocolCapable {
 
 		@Override
 		public List<String> getSubProtocols() {

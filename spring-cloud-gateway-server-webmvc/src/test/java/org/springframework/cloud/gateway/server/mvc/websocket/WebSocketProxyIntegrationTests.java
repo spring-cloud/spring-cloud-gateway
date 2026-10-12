@@ -295,6 +295,10 @@ public class WebSocketProxyIntegrationTests {
 		return handler;
 	}
 
+	private static String payload(PongMessage message) {
+		return StandardCharsets.UTF_8.decode(message.getPayload()).toString();
+	}
+
 	static class ClientHandler extends TextWebSocketHandler {
 
 		WebSocketSession session;
@@ -328,10 +332,6 @@ public class WebSocketProxyIntegrationTests {
 			return pongs.poll(5, TimeUnit.SECONDS);
 		}
 
-	}
-
-	private static String payload(PongMessage message) {
-		return StandardCharsets.UTF_8.decode(message.getPayload()).toString();
 	}
 
 	static class EchoHandler extends TextWebSocketHandler {
