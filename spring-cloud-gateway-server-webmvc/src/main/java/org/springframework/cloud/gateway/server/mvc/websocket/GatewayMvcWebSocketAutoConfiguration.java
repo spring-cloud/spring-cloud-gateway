@@ -57,7 +57,8 @@ public class GatewayMvcWebSocketAutoConfiguration {
 		container.setDefaultMaxBinaryMessageBufferSize(maxMessageSize);
 
 		OriginHandshakeInterceptor originInterceptor = new OriginHandshakeInterceptor();
-		originInterceptor.setAllowedOriginPatterns(properties.getAllowedOrigins());
+		originInterceptor.setAllowedOrigins(properties.getAllowedOrigins());
+		originInterceptor.setAllowedOriginPatterns(properties.getAllowedOriginPatterns());
 
 		return new WebSocketProxyHandlerFunction(new StandardWebSocketClient(container), new DefaultHandshakeHandler(),
 				List.of(originInterceptor), requestHttpHeadersFilters, properties);

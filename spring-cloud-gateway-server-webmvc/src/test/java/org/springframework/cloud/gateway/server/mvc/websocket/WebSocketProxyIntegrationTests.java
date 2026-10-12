@@ -75,7 +75,8 @@ import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFuncti
 		properties = {
 				// the default function routes would otherwise shadow the backend endpoints
 				"spring.cloud.gateway.server.webmvc.function.enabled=false",
-				"spring.cloud.gateway.server.webmvc.websocket.allowed-origins=https://*.allowed.example",
+				"spring.cloud.gateway.server.webmvc.websocket.allowed-origins=https://exact.allowed.example",
+				"spring.cloud.gateway.server.webmvc.websocket.allowed-origin-patterns=https://*.allowed.example",
 				"spring.cloud.gateway.server.webmvc.websocket.max-message-size=256KB",
 				"spring.cloud.gateway.server.webmvc.routes[0].id=ws_down",
 				"spring.cloud.gateway.server.webmvc.routes[0].uri=ws://localhost:1",
@@ -257,6 +258,17 @@ public class WebSocketProxyIntegrationTests {
 		client.session.sendMessage(new TextMessage("allowed origin"));
 
 		assertThat(client.nextMessage()).isEqualTo("allowed origin");
+	}
+
+	@Test
+	void exactAllowedOriginHandshakeAccepted() throws Exception {
+		WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
+		headers.setOrigin("https://exact.allowed.example");
+
+		ClientHandler client = connect("/ws/backend/echo", headers);
+		client.session.sendMessage(new TextMessage("exact origin"));
+
+		assertThat(client.nextMessage()).isEqualTo("exact origin");
 	}
 
 	@Test

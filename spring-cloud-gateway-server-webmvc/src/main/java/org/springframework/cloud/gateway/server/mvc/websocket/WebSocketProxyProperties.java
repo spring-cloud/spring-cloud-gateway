@@ -40,11 +40,19 @@ public class WebSocketProxyProperties {
 	private boolean enabled = true;
 
 	/**
-	 * Origins allowed to open a WebSocket connection in addition to the same origin.
-	 * Supports patterns such as {@code https://*.example.com} and {@code *} to allow all
-	 * origins. By default, only same-origin handshakes are accepted.
+	 * Origins allowed to open a WebSocket connection in addition to the same origin, for
+	 * example https://example.com. A value of "*" allows all origins. For wildcard
+	 * matching see allowedOriginPatterns. By default, only same-origin handshakes are
+	 * accepted.
 	 */
 	private List<String> allowedOrigins = new ArrayList<>();
+
+	/**
+	 * Origin patterns allowed to open a WebSocket connection in addition to the same
+	 * origin. Unlike allowedOrigins, supports wildcards such as
+	 * https://*.example.com or https://example.com:[8080,8081].
+	 */
+	private List<String> allowedOriginPatterns = new ArrayList<>();
 
 	/** Time allowed to connect to the backend before the handshake fails. */
 	private Duration connectTimeout = Duration.ofSeconds(10);
@@ -72,6 +80,14 @@ public class WebSocketProxyProperties {
 
 	public void setAllowedOrigins(List<String> allowedOrigins) {
 		this.allowedOrigins = allowedOrigins;
+	}
+
+	public List<String> getAllowedOriginPatterns() {
+		return allowedOriginPatterns;
+	}
+
+	public void setAllowedOriginPatterns(List<String> allowedOriginPatterns) {
+		this.allowedOriginPatterns = allowedOriginPatterns;
 	}
 
 	public Duration getConnectTimeout() {
@@ -112,6 +128,7 @@ public class WebSocketProxyProperties {
 		return new ToStringCreator(this)
 				.append("enabled", enabled)
 				.append("allowedOrigins", allowedOrigins)
+				.append("allowedOriginPatterns", allowedOriginPatterns)
 				.append("connectTimeout", connectTimeout)
 				.append("sendTimeLimit", sendTimeLimit)
 				.append("sendBufferSizeLimit", sendBufferSizeLimit)
