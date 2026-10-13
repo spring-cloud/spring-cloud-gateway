@@ -85,7 +85,7 @@
 *** xref:spring-cloud-gateway-server-webmvc/filters/deduperesponseheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/fallback-headers.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/loadbalancer.adoc[]
-//*** xref:spring-cloud-gateway-server-mvc/filters/local-cache-response-filter.adoc[]
+*** xref:spring-cloud-gateway-server-webmvc/filters/local-cache-response-filter.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/maprequestheader.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/modifyrequestbody.adoc[]
 *** xref:spring-cloud-gateway-server-webmvc/filters/modifyresponsebody.adoc[]
