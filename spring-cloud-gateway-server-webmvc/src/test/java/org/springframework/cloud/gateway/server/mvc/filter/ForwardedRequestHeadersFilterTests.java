@@ -181,6 +181,27 @@ public class ForwardedRequestHeadersFilterTests {
 	}
 
 	@Test
+	public void forwardedHeaderWithoutForIsPreserved() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(FORWARDED_HEADER, "proto=http;host=example.com, for=23.45.67.89")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		assertThat(headers.get(FORWARDED_HEADER)).hasSize(3);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds)
+			.anyMatch(forwarded -> "example.com".equals(forwarded.get("host")) && forwarded.get("for") == null);
+	}
+
+	@Test
 	public void noHostHeader() throws UnknownHostException {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
 			.remoteAddress("10.0.0.1:80")
