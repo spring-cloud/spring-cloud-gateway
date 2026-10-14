@@ -22,8 +22,10 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,7 +61,7 @@ public class ResponseCacheManager {
 
 	private static final Log LOGGER = LogFactory.getLog(ResponseCacheManager.class);
 
-	private static final List<String> forbiddenCacheControlValues = Arrays.asList("private", "no-store");
+	private static final Set<String> forbiddenCacheControlDirectives = Set.of("private", "no-store");
 
 	private static final String VARY_WILDCARD = "*";
 
@@ -211,7 +213,51 @@ public class ResponseCacheManager {
 		HttpHeaders headers = request.getHeaders();
 		List<String> cacheControlHeader = headers.getOrEmpty(HttpHeaders.CACHE_CONTROL);
 
-		return cacheControlHeader.stream().noneMatch(forbiddenCacheControlValues::contains);
+		return cacheControlHeader.stream().noneMatch(ResponseCacheManager::hasForbiddenDirective);
+	}
+
+	/**
+	 * A {@code Cache-Control} value is a comma separated list of directives. Directive
+	 * names are case insensitive and can have an argument, either a token or a
+	 * quoted-string (e.g. {@code private="Set-Cookie"}). A quoted-string can contain
+	 * commas and backslash-escaped characters, so commas inside quotes do not separate
+	 * directives. An unterminated quoted-string is malformed and is treated as
+	 * forbidden, so the message is not cached.
+	 */
+	private static boolean hasForbiddenDirective(String cacheControl) {
+		boolean inQuotes = false;
+		boolean escaped = false;
+		int directiveStart = 0;
+		for (int i = 0; i < cacheControl.length(); i++) {
+			char c = cacheControl.charAt(i);
+			if (inQuotes) {
+				if (escaped) {
+					escaped = false;
+				}
+				else if (c == '\\') {
+					escaped = true;
+				}
+				else if (c == '"') {
+					inQuotes = false;
+				}
+			}
+			else if (c == '"') {
+				inQuotes = true;
+			}
+			else if (c == ',') {
+				if (isForbiddenDirective(cacheControl.substring(directiveStart, i))) {
+					return true;
+				}
+				directiveStart = i + 1;
+			}
+		}
+		return inQuotes || isForbiddenDirective(cacheControl.substring(directiveStart));
+	}
+
+	private static boolean isForbiddenDirective(String directive) {
+		int argumentSeparator = directive.indexOf('=');
+		String name = argumentSeparator >= 0 ? directive.substring(0, argumentSeparator) : directive;
+		return forbiddenCacheControlDirectives.contains(name.trim().toLowerCase(Locale.ROOT));
 	}
 
 	private static boolean hasRequestBody(ServerHttpRequest request) {

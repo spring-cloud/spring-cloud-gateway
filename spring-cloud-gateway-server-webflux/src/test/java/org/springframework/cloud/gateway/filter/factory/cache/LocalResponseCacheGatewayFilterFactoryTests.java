@@ -414,7 +414,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
@@ -542,7 +542,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
@@ -648,7 +648,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
@@ -739,7 +739,7 @@ public class LocalResponseCacheGatewayFilterFactoryTests extends BaseWebClientTe
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
