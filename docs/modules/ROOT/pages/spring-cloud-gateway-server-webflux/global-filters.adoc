@@ -75,7 +75,7 @@ This feature enables a local cache using Caffeine for all responses that meet th
 
 * The request is a bodiless GET.
 * The response has one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
-* The HTTP `Cache-Control` header allows caching (that means it does not have any of the following values: `no-store` present in the request and `no-store` or `private` present in the response).
+* The HTTP `Cache-Control` header allows caching (that means the request does not have the `no-store` directive and the response has neither the `no-store` nor the `private` directive). Directives are matched individually and case-insensitively, wherever they appear in the header, so `Cache-Control: no-cache, no-store, max-age=0` is not cached.
 
 It accepts two configuration parameters:
 

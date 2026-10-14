@@ -76,7 +76,7 @@ public class LocalResponseCacheGlobalFilterTests {
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
@@ -192,7 +192,7 @@ public class LocalResponseCacheGlobalFilterTests {
 
 		@EnableAutoConfiguration
 		@SpringBootConfiguration
-		@Import(DefaultTestConfig.class)
+		@Import({ DefaultTestConfig.class, CacheableHttpBinResponsesConfig.class })
 		public static class TestConfig {
 
 			@Value("${test.uri}")
