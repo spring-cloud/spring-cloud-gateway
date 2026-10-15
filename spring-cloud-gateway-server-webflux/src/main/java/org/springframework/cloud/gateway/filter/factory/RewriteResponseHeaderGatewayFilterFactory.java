@@ -76,6 +76,9 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	}
 
 	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
+		if (exchange.getResponse().isCommitted()) {
+			return;
+		}
 		final String name = Objects.requireNonNull(config.getName(), "name must not be null");
 		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
 		if (responseHeaders.get(name) != null) {

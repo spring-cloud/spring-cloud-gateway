@@ -25,6 +25,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.RewriteResponseHeaderGatewayFilterFactory.Config;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +74,22 @@ public class RewriteResponseHeaderGatewayFilterFactoryUnitTests {
 		assertThat(actualHeaders).isNotNull();
 		assertThat(actualHeaders).containsExactly("TestCookie=Value;SameSite=Strict",
 				"OtherCookie=Value;SameSite=Strict");
+	}
+
+	@Test
+	public void rewriteResponseHeaderSkippedWhenResponseCommitted() {
+		Config config = new Config();
+		config.setName("X-Foo");
+		config.setRegexp("foo");
+		config.setReplacement("bar");
+		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+		exchange.getResponse().getHeaders().set("X-Foo", "foo-value");
+		GatewayFilter filter = filterFactory.apply(config);
+
+		filter.filter(exchange, ex -> ex.getResponse().setComplete()).block();
+
+		assertThat(exchange.getResponse().isCommitted()).isTrue();
+		assertThat(exchange.getResponse().getHeaders().get("X-Foo")).containsExactly("foo-value");
 	}
 
 	@Test
