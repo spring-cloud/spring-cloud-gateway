@@ -73,6 +73,18 @@ public class HandlerFunctionAutoConfiguration {
 	}
 
 	@Bean
+	public Function<RouteProperties, HandlerFunctionDefinition> wsHandlerFunctionDefinition() {
+		return routeProperties -> getResult("ws", routeProperties.getId(), routeProperties.getUri(),
+				HandlerFunctions.websocket());
+	}
+
+	@Bean
+	public Function<RouteProperties, HandlerFunctionDefinition> wssHandlerFunctionDefinition() {
+		return routeProperties -> getResult("wss", routeProperties.getId(), routeProperties.getUri(),
+				HandlerFunctions.websocket());
+	}
+
+	@Bean
 	public Function<RouteProperties, HandlerFunctionDefinition> streamHandlerFunctionDefinition() {
 		return routeProperties -> {
 			Objects.requireNonNull(routeProperties.getUri(), "routeProperties.uri must not be null");
