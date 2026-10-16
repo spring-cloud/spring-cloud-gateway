@@ -120,6 +120,14 @@ public class RewriteLocationResponseHeaderGatewayFilterFactoryUnitTests {
 	}
 
 	@Test
+	public void rewriteLocationBlankHostValueUsesRequestHost() {
+		setupTest("https://replaceme/some/path", "host", "/some/path");
+		config.setHostValue("");
+		filter.rewriteLocation(exchange, config);
+		Mockito.verify(responseHeaders).set(Mockito.eq("Location"), Mockito.eq("https://host/some/path"));
+	}
+
+	@Test
 	public void rewriteLocationCustomProtocols() {
 		setupTest("https://replaceme/some/path", "host", "/some/path");
 		config.setProtocols("gopher|whatever");
