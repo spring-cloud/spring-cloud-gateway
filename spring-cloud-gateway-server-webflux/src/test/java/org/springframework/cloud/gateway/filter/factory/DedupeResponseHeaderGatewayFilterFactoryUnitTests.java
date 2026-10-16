@@ -25,6 +25,8 @@ import org.mockito.Mockito;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.factory.DedupeResponseHeaderGatewayFilterFactory.Config;
@@ -116,6 +118,19 @@ public class DedupeResponseHeaderGatewayFilterFactoryUnitTests {
 		Mockito.verify(headers).get(NAME_1);
 		Mockito.verify(headers).put(Mockito.eq(NAME_1), Mockito.eq(Arrays.asList("2", "3", "4")));
 		Mockito.verify(headers).put(Mockito.anyString(), Mockito.anyList());
+	}
+
+	@Test
+	public void dedupeSkippedWhenResponseCommitted() {
+		config.setName(NAME_1);
+		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+		exchange.getResponse().getHeaders().addAll(NAME_1, Arrays.asList("1", "1"));
+		GatewayFilter gatewayFilter = filter.apply(config);
+
+		gatewayFilter.filter(exchange, ex -> ex.getResponse().setComplete()).block();
+
+		assertThat(exchange.getResponse().isCommitted()).isTrue();
+		assertThat(exchange.getResponse().getHeaders().get(NAME_1)).containsExactly("1", "1");
 	}
 
 	@Test
