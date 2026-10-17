@@ -53,6 +53,14 @@ public class RedisRateLimiterConfigTests {
 		routeLocator.getRoutes().collectList().block();
 	}
 
+	private void assertConfigOnly(String key, double replenishRate, int burstCapacity, int requestedTokens) {
+		RedisRateLimiter.Config config = rateLimiter.getConfig().get(key);
+		assertThat(config).isNotNull();
+		assertThat(config.getReplenishRate()).isEqualTo(replenishRate);
+		assertThat(config.getBurstCapacity()).isEqualTo(burstCapacity);
+		assertThat(config.getRequestedTokens()).isEqualTo(requestedTokens);
+	}
+
 	@Test
 	public void shouldThrowAnErrorWhenReplenishRateIsHigherThanBurstCapacity() {
 		Assertions.assertThatThrownBy(() -> new RedisRateLimiter(10, 5)).isInstanceOf(IllegalArgumentException.class);
@@ -86,7 +94,24 @@ public class RedisRateLimiterConfigTests {
 		assertFilter("alt_custom_redis_rate_limiter", 30, 60, 20, true);
 	}
 
-	private void assertFilter(String key, int replenishRate, int burstCapacity, int requestedTokens,
+	@Test
+	public void fractionalReplenishRateTest() {
+		String key = "fractionalKey";
+		double replenishRate = 0.5;
+		int burstCapacity = 1;
+
+		RedisRateLimiter.Config fractionalConfig = new RedisRateLimiter.Config().setReplenishRate(replenishRate)
+			.setBurstCapacity(burstCapacity)
+			.setRequestedTokens(1);
+
+		// Add this config manually for the test
+		rateLimiter.getConfig().put(key, fractionalConfig);
+
+		// Only check config, skip route check
+		assertConfigOnly(key, replenishRate, burstCapacity, 1);
+	}
+
+	private void assertFilter(String key, double replenishRate, int burstCapacity, int requestedTokens,
 			boolean useDefaultConfig) {
 		RedisRateLimiter.Config config;
 
