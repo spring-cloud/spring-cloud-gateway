@@ -19,6 +19,8 @@ package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -27,6 +29,7 @@ import org.springframework.core.ParameterNameDiscoverer;
  * Information describing an operation method on an endpoint method.
  *
  * @author Phillip Webb
+ * @author zephyr45
  * @since 2.0.0
  * @see ReflectiveOperationInvoker
  */
@@ -36,6 +39,8 @@ public class DefaultOperationMethod implements OperationMethod {
 
 	private final Method method;
 
+	private final @Nullable Object target;
+
 	private final OperationParameters operationParameters;
 
 	/**
@@ -43,8 +48,19 @@ public class DefaultOperationMethod implements OperationMethod {
 	 * @param method the source method
 	 */
 	public DefaultOperationMethod(Method method) {
+		this(method, null);
+	}
+
+	/**
+	 * Create a new {@link DefaultOperationMethod} instance.
+	 * @param method the source method
+	 * @param target the target object for an instance method, or {@code null} for a
+	 * static method
+	 */
+	public DefaultOperationMethod(Method method, @Nullable Object target) {
 		Objects.requireNonNull(method, "Method must not be null");
 		this.method = method;
+		this.target = target;
 		this.operationParameters = new OperationMethodParameters(method, DEFAULT_PARAMETER_NAME_DISCOVERER);
 	}
 
@@ -55,6 +71,11 @@ public class DefaultOperationMethod implements OperationMethod {
 	@Override
 	public Method getMethod() {
 		return this.method;
+	}
+
+	@Override
+	public @Nullable Object getTarget() {
+		return this.target;
 	}
 
 	/**

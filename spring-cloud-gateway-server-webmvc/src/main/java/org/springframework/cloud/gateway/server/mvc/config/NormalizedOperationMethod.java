@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.NameUtils;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
@@ -51,6 +53,11 @@ public class NormalizedOperationMethod implements OperationMethod {
 	@Override
 	public Method getMethod() {
 		return delegate.getMethod();
+	}
+
+	@Override
+	public @Nullable Object getTarget() {
+		return delegate.getTarget();
 	}
 
 	public boolean isConfigurable() {

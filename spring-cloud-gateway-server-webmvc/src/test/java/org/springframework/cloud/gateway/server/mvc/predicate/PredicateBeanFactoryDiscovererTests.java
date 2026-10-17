@@ -24,25 +24,42 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.cloud.gateway.server.mvc.invoke.reflect.OperationMethod;
+import org.springframework.cloud.gateway.server.mvc.test.TestPredicateSupplier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.MultiValueMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests for {@link PredicateBeanFactoryDiscoverer}.
+ *
+ * @author zephyr45
+ */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class PredicateBeanFactoryDiscovererTests {
 
 	@Autowired
 	PredicateBeanFactoryDiscoverer discoverer;
 
+	@Autowired
+	TestPredicateSupplier testPredicateSupplier;
+
 	@Test
 	void contextLoads() {
 		MultiValueMap<String, OperationMethod> operations = discoverer.getOperations();
 		assertThat(operations).isNotEmpty();
+		assertThat(operations.getFirst("alwaysTrue")).extracting(OperationMethod::getTarget)
+			.isSameAs(testPredicateSupplier);
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class Config {
+
+		@Bean
+		TestPredicateSupplier testPredicateSupplier() {
+			return new TestPredicateSupplier();
+		}
 
 	}
 

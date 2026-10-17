@@ -18,11 +18,26 @@ package org.springframework.cloud.gateway.server.mvc.invoke.reflect;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cloud.gateway.server.mvc.invoke.OperationParameters;
 
+/**
+ * Information describing a gateway operation method and its invocation target.
+ *
+ * @author zephyr45
+ */
 public interface OperationMethod {
 
 	Method getMethod();
+
+	/**
+	 * Return the target object for the operation method.
+	 * @return the target object, or {@code null} for a static method
+	 */
+	default @Nullable Object getTarget() {
+		return null;
+	}
 
 	OperationParameters getParameters();
 

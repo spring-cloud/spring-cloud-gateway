@@ -56,7 +56,7 @@ public class ReflectiveOperationInvoker implements OperationInvoker {
 	 * @param parameterValueMapper the parameter mapper
 	 */
 	public ReflectiveOperationInvoker(OperationMethod operationMethod, ParameterValueMapper parameterValueMapper) {
-		this(null, operationMethod, parameterValueMapper);
+		this(operationMethod.getTarget(), operationMethod, parameterValueMapper);
 	}
 
 	/**

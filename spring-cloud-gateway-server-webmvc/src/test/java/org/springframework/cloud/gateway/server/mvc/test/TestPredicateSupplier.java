@@ -25,7 +25,7 @@ import org.springframework.web.servlet.function.RequestPredicate;
 
 public class TestPredicateSupplier implements PredicateSupplier {
 
-	public static RequestPredicate alwaysTrue() {
+	public RequestPredicate alwaysTrue() {
 		return request -> true;
 	}
 
