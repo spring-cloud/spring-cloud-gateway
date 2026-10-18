@@ -61,7 +61,11 @@ public class RewriteResponseHeaderGatewayFilterFactory
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-				return chain.filter(exchange).then(Mono.fromRunnable(() -> rewriteHeaders(exchange, config)));
+				return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+					if (!exchange.getResponse().isCommitted()) {
+						rewriteHeaders(exchange, config);
+					}
+				}));
 			}
 
 			@Override
@@ -76,9 +80,6 @@ public class RewriteResponseHeaderGatewayFilterFactory
 	}
 
 	protected void rewriteHeaders(ServerWebExchange exchange, Config config) {
-		if (exchange.getResponse().isCommitted()) {
-			return;
-		}
 		final String name = Objects.requireNonNull(config.getName(), "name must not be null");
 		final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
 		if (responseHeaders.get(name) != null) {
