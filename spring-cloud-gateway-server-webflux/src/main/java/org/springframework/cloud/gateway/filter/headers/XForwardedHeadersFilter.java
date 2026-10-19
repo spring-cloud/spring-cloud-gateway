@@ -336,9 +336,8 @@ public class XForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 				headers.add(name, value);
 			}
 			// these headers should be treated as a single comma separated header
-			List<String> headerValues = headers.get(name);
-			if (headerValues != null) {
-				List<String> values = headerValues.stream().filter(shouldWrite).toList();
+			if (headers.containsHeader(name)) {
+				List<String> values = headers.getValuesAsList(name).stream().filter(shouldWrite).toList();
 				String delimitedValue = StringUtils.collectionToCommaDelimitedString(values);
 				headers.set(name, delimitedValue);
 			}

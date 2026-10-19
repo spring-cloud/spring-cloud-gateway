@@ -188,4 +188,20 @@ public class XForwardedRequestHeadersFilterTests {
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");
 	}
 
+	@Test
+	public void trustedCommaSeparatedXForwardedForAppended() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
+			.remoteAddress("10.0.0.1")
+			.header(X_FORWARDED_FOR_HEADER, "10.0.0.3, 10.0.0.2")
+			.buildRequest(null);
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		XForwardedRequestHeadersFilter filter = new XForwardedRequestHeadersFilter(
+				new XForwardedRequestHeadersFilterProperties(), "10\\.0\\.0\\.\\d+");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.3,10.0.0.2,10.0.0.1");
+	}
+
 }
