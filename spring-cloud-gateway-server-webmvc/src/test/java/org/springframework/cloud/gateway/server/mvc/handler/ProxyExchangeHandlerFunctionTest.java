@@ -44,6 +44,19 @@ class ProxyExchangeHandlerFunctionTest {
 
 	@Test
 	void keepOriginalEncodingOfQueryParameter() {
+		assertProxiedUri(
+				"http://localhost/é?foo=value1 value2&bar=value3=&qux=value4+",
+				"http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3%3D&qux=value4%2B");
+	}
+
+	@Test
+	void preserveValuelessQueryParameters() {
+		assertProxiedUri(
+				"http://localhost/é?foo=value1 value2&bar=value3=&qux=value4+&flag&next=1",
+				"http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3=&qux=value4+&flag&next=1");
+	}
+
+	private void assertProxiedUri(String requestUri, String expectedUri) {
 		TestProxyExchange proxyExchange = new TestProxyExchange();
 		ProxyExchangeHandlerFunction function = new ProxyExchangeHandlerFunction(proxyExchange, new ObjectProvider<>() {
 			@Override
@@ -96,15 +109,12 @@ class ProxyExchangeHandlerFunctionTest {
 			@Override
 			public Stream<ResponseHttpHeadersFilter> orderedStream() {
 				return Stream.of((httpHeaders, serverRequest) -> new HttpHeaders());
-
 			}
 		});
 
 		function.onApplicationEvent(null);
 
-		MockHttpServletRequest servletRequest = MockMvcRequestBuilders
-			.get("http://localhost/é?foo=value1 value2&bar=value3=&qux=value4+&flag&next=1")
-			.buildRequest(null);
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get(requestUri).buildRequest(null);
 		servletRequest.setAttribute(MvcUtils.GATEWAY_REQUEST_URL_ATTR, URI.create("http://localhost:8080"));
 		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
 
@@ -112,8 +122,7 @@ class ProxyExchangeHandlerFunctionTest {
 
 		URI uri = proxyExchange.getRequest().getUri();
 
-		assertThat(uri).hasToString("http://localhost:8080/%C3%A9?foo=value1%20value2&bar=value3=&qux=value4+&flag&next=1")
-			.hasPath("/é");
+		assertThat(uri).hasToString(expectedUri).hasPath("/é");
 	}
 
 	private class TestProxyExchange extends AbstractProxyExchange {
