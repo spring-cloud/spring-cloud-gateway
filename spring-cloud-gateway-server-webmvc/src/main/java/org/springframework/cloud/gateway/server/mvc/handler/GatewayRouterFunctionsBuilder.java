@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.handler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -24,10 +26,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.Assert;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RequestPredicate;
@@ -42,6 +46,10 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 
 	private final String routeId;
 
+	private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> filters = new ArrayList<>();
+
+	private final List<HandlerFilterFunction<ServerResponse, ServerResponse>> errorHandlers = new ArrayList<>();
+
 	public GatewayRouterFunctionsBuilder(RouterFunctions.Builder builder, String routeId) {
 		this.builder = builder;
 		this.routeId = routeId;
@@ -50,6 +58,12 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 	@Override
 	public RouterFunction<ServerResponse> build() {
 		RouterFunction<ServerResponse> routerFunction = builder.build();
+		Optional<HandlerFilterFunction<ServerResponse, ServerResponse>> filter = Stream
+			.concat(this.filters.stream(), this.errorHandlers.stream())
+			.reduce(HandlerFilterFunction::andThen);
+		if (filter.isPresent()) {
+			routerFunction = routerFunction.filter(filter.get());
+		}
 		RouterFunction<ServerResponse> withAttributes = routerFunction.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR,
 				this.routeId);
 		return new GatewayDelegatingRouterFunction<>(withAttributes, this.routeId);
@@ -255,13 +269,15 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 
 	@Override
 	public RouterFunctions.Builder resource(RequestPredicate predicate, Resource resource) {
-		return builder.resource(predicate, resource);
+		builder.resource(predicate, resource);
+		return this;
 	}
 
 	@Override
 	public RouterFunctions.Builder resource(RequestPredicate predicate, Resource resource,
 			BiConsumer<Resource, HttpHeaders> headersConsumer) {
-		return builder.resource(predicate, resource, headersConsumer);
+		builder.resource(predicate, resource, headersConsumer);
+		return this;
 	}
 
 	@Override
@@ -299,7 +315,13 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 
 	@Override
 	public RouterFunctions.Builder nest(RequestPredicate predicate, Consumer<RouterFunctions.Builder> builderConsumer) {
-		builder.nest(predicate, builderConsumer);
+		Assert.notNull(builderConsumer, "BuilderConsumer must not be null");
+		builder.nest(predicate, () -> {
+			GatewayRouterFunctionsBuilder nested = new GatewayRouterFunctionsBuilder(RouterFunctions.route(),
+					this.routeId);
+			builderConsumer.accept(nested);
+			return nested.build();
+		});
 		return this;
 	}
 
@@ -312,42 +334,64 @@ public class GatewayRouterFunctionsBuilder implements RouterFunctions.Builder {
 
 	@Override
 	public RouterFunctions.Builder path(String pattern, Consumer<RouterFunctions.Builder> builderConsumer) {
-		builder.path(pattern, builderConsumer);
+		Assert.notNull(builderConsumer, "BuilderConsumer must not be null");
+		builder.path(pattern, () -> {
+			GatewayRouterFunctionsBuilder nested = new GatewayRouterFunctionsBuilder(RouterFunctions.route(),
+					this.routeId);
+			builderConsumer.accept(nested);
+			return nested.build();
+		});
 		return this;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T extends ServerResponse, R extends ServerResponse> RouterFunctions.Builder filter(
 			HandlerFilterFunction<T, R> filterFunction) {
-		builder.filter(filterFunction);
+		Assert.notNull(filterFunction, "FilterFunction must not be null");
+		HandlerFilterFunction<ServerResponse, ServerResponse> adaptingFilter = (request, next) -> {
+			HandlerFunction<T> adaptingNext = downstreamRequest -> (T) GatewayServerResponse
+				.adapt(next.handle(downstreamRequest));
+			return GatewayServerResponse.adapt(filterFunction.filter(request, adaptingNext));
+		};
+		this.filters.add(adaptingFilter);
 		return this;
 	}
 
 	@Override
 	public RouterFunctions.Builder before(Function<ServerRequest, ServerRequest> requestProcessor) {
-		builder.before(requestProcessor);
+		this.filters.add(HandlerFilterFunction.ofRequestProcessor(requestProcessor));
 		return this;
 	}
 
 	@Override
 	public <T extends ServerResponse, R extends ServerResponse> RouterFunctions.Builder after(
 			BiFunction<ServerRequest, T, R> responseProcessor) {
-		builder.after(responseProcessor);
-		return this;
+		return filter(HandlerFilterFunction.ofResponseProcessor(responseProcessor));
 	}
 
 	@Override
 	public <T extends ServerResponse> RouterFunctions.Builder onError(Predicate<Throwable> predicate,
 			BiFunction<Throwable, ServerRequest, T> responseProvider) {
-		builder.onError(predicate, responseProvider);
+		Assert.notNull(responseProvider, "ResponseProvider must not be null");
+		HandlerFilterFunction<ServerResponse, ServerResponse> errorFilter = HandlerFilterFunction
+			.ofErrorHandler(predicate, (failure, request) -> responseProvider.apply(failure, request));
+		this.errorHandlers.add(0, (request, next) -> errorFilter.filter(request, downstreamRequest -> {
+			ServerResponse response = next.handle(downstreamRequest);
+			if (response instanceof DelegatingServerResponse delegatingResponse) {
+				// Spring registers write errors only on its own response base class.
+				errorFilter.filter(downstreamRequest, ignored -> delegatingResponse.delegate());
+			}
+			return response;
+		}));
 		return this;
 	}
 
 	@Override
 	public <T extends ServerResponse> RouterFunctions.Builder onError(Class<? extends Throwable> exceptionType,
 			BiFunction<Throwable, ServerRequest, T> responseProvider) {
-		builder.onError(exceptionType, responseProvider);
-		return this;
+		Assert.notNull(exceptionType, "ExceptionType must not be null");
+		return onError(exceptionType::isInstance, responseProvider);
 	}
 
 	@Override

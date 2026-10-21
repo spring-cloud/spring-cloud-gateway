@@ -48,7 +48,6 @@ import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterBeanFactoryDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterDiscoverer;
-import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerDiscoverer;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
 import org.springframework.cloud.gateway.server.mvc.invoke.InvocationContext;
@@ -102,7 +101,7 @@ public class RouterFunctionHolderFactory {
 	};
 
 	private static final RouterFunction<ServerResponse> NEVER_ROUTE = RouterFunctions.route(neverPredicate,
-			request -> GatewayServerResponse.notFound().build());
+			request -> ServerResponse.notFound().build());
 
 	private final Log log = LogFactory.getLog(getClass());
 

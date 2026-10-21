@@ -114,7 +114,7 @@ public abstract class CircuitBreakerFilterFunctions {
 					}
 					// if resume without error, return ok response
 					if (config.isResumeWithoutError()) {
-						return GatewayServerResponse.ok().build();
+						return ServerResponse.ok().build();
 					}
 					throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
 							throwable != null ? throwable.getMessage() : null, throwable);

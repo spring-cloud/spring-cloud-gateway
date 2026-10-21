@@ -16,10 +16,14 @@
 
 package org.springframework.cloud.gateway.server.mvc.filter;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -31,6 +35,7 @@ import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import io.github.bucket4j.distributed.remote.RemoteBucketState;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
@@ -42,6 +47,7 @@ import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerRespons
 import org.springframework.cloud.stream.function.StreamOperations;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
@@ -49,9 +55,18 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.function.AsyncServerResponse;
+import org.springframework.web.servlet.function.EntityResponse;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -63,15 +78,428 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.addResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.dedupeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.removeResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteLocationResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.rewriteResponseHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.setResponseHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 import static org.springframework.cloud.gateway.server.mvc.filter.CircuitBreakerFilterFunctions.circuitBreaker;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.redirectTo;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.fn;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.stream;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
 class AfterFilterFunctionsResponseHeadersTests {
+
+	@Test
+	void addResponseHeaderOnCustomHandlerRoute() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET(path("/foo"), req -> ServerResponse.ok().build())
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string(""));
+	}
+
+	@Test
+	void responseHeaderFiltersPreserveEntityBody() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo",
+					req -> ServerResponse.ok()
+						.header("X-Source", "old")
+						.header("X-Remove", "old")
+						.header("X-Duplicate", "same")
+						.header("X-Rewrite", "old")
+						.body("hello"))
+			.after(dedupeResponseHeader("X-Duplicate"))
+			.after(addResponseHeader("X-Duplicate", "same"))
+			.after(rewriteResponseHeader("X-Rewrite", "old", "new"))
+			.after(setResponseHeader("X-Source", "new"))
+			.after(removeResponseHeader("X-Remove"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().stringValues("X-Source", "new"))
+			.andExpect(header().doesNotExist("X-Remove"))
+			.andExpect(header().stringValues("X-Duplicate", "same"))
+			.andExpect(header().string("X-Rewrite", "new"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void locationResponseHeaderFilterPreservesBody() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.ok().header("Location", "https://upstream.example/foo").body("hello"))
+			.after(rewriteLocationResponseHeader())
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo").header("Host", "gateway.example"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("Location", "https://gateway.example/foo"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void customFilterCanMutateDownstreamResponse() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.ok().body("hello"))
+			.filter((request, next) -> {
+				ServerResponse response = next.handle(request);
+				response.headers().add("X-Custom", "yes");
+				return response;
+			})
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Custom", "yes"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void customFilterShortCircuitResponseIsAdapted() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/foo", req -> {
+			throw new AssertionError("Handler must not be called");
+		})
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.filter((request, next) -> ServerResponse.status(HttpStatus.FORBIDDEN).body("denied"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isForbidden())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("denied"));
+	}
+
+	@Test
+	void responseReplacedByAfterFilterIsAdapted() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.ok().body("original"))
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.after((request, response) -> ServerResponse.accepted().body("replacement"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isAccepted())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("replacement"));
+	}
+
+	@Test
+	void responseFiltersKeepTheirExecutionOrder() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/foo", req -> ServerResponse.ok().build())
+			.after(addResponseHeader("X-Order", "outer"))
+			.after(addResponseHeader("X-Order", "inner"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(header().stringValues("X-Order", "inner", "outer"));
+	}
+
+	@Test
+	void pathNestedResponseFiltersAreAdapted() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.path("/api",
+					nested -> nested.GET("/foo", req -> ServerResponse.ok().body("hello"))
+						.after(addResponseHeader("X-Test", "TestFoo")))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/api/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void predicateNestedResponseFiltersAreAdapted() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.nest(path("/api"),
+					nested -> nested.GET("/foo", req -> ServerResponse.ok().body("hello"))
+						.after(addResponseHeader("X-Test", "TestFoo")))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/api/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void resourceFluentResponseFiltersAreAdapted() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.resource(path("/foo"), new ByteArrayResource("hello".getBytes(StandardCharsets.UTF_8)))
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void typedEntityResponseProcessorStillReceivesEntityResponse() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> EntityResponse.fromObject("hello").build())
+			.after((ServerRequest request, EntityResponse<String> response) -> {
+				assertThat(response.entity()).isEqualTo("hello");
+				response.headers().add("X-Typed", "yes");
+				return response;
+			})
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(header().string("X-Typed", "yes"))
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void responseHeaderFilterPreservesCustomBodyWriter() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.ok().header("X-Source", "old").build((request, response) -> {
+				response.getWriter().write("custom");
+				response.flushBuffer();
+				return null;
+			}))
+			.after(setResponseHeader("X-Source", "new"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(header().stringValues("X-Source", "new"))
+			.andExpect(content().string("custom"));
+	}
+
+	@Test
+	void typedAsyncResponseFilterStillReceivesAsyncServerResponse() throws Exception {
+		ServerResponse completed = ServerResponse.ok().body("hello");
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.async(CompletableFuture.completedFuture(completed)))
+			.filter((ServerRequest request, HandlerFunction<AsyncServerResponse> next) -> {
+				AsyncServerResponse response = next.handle(request);
+				assertThat(response.block()).isSameAs(completed);
+				return response;
+			})
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(status().isOk())
+			.andExpect(content().string("hello"));
+	}
+
+	@Test
+	void outerErrorHandlerStillHandlesNestedResponseWriteFailure() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.path("/api", nested -> nested.GET("/foo", req -> ServerResponse.ok().build((request, response) -> {
+				throw new IOException("write failed");
+			})).filter((request, next) -> next.handle(request)))
+			.onError(IOException.class,
+					(failure, request) -> ServerResponse.status(HttpStatus.BAD_GATEWAY).body("fallback"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/api/foo"))
+			.andExpect(status().isBadGateway())
+			.andExpect(content().string("fallback"));
+	}
+
+	@Test
+	void nestedResponseHeaderMutationRetainsOuterWriteErrorHandling() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.path("/api", nested -> nested.GET("/foo", req -> ServerResponse.ok().build((request, response) -> {
+				throw new IOException("write failed");
+			})).after(addResponseHeader("X-Test", "TestFoo")))
+			.onError(IOException.class,
+					(failure, request) -> ServerResponse.status(HttpStatus.BAD_GATEWAY)
+						.header("X-Fallback", "yes")
+						.body("fallback"))
+			.build();
+
+		MockMvcBuilders.routerFunctions(fooRoute)
+			.build()
+			.perform(get("/api/foo"))
+			.andExpect(status().isBadGateway())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(header().string("X-Fallback", "yes"))
+			.andExpect(content().string("fallback"));
+	}
+
+	@Test
+	void firstRegisteredErrorHandlerKeepsPrecedenceForHandlerAndWriteFailures() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/handler", req -> {
+			throw new IOException("handler failed");
+		}).path("/api", nested -> nested.GET("/writer", req -> ServerResponse.ok().build((request, response) -> {
+			throw new IOException("write failed");
+		})).filter((request, next) -> next.handle(request)))
+			.onError(IOException.class,
+					(failure, request) -> ServerResponse.status(HttpStatus.BAD_GATEWAY).body("first"))
+			.onError(IOException.class,
+					(failure, request) -> ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).body("second"))
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.build();
+		MockMvc mockMvc = MockMvcBuilders.routerFunctions(fooRoute).build();
+
+		for (String path : List.of("/handler", "/api/writer")) {
+			mockMvc.perform(get(path))
+				.andExpect(status().isBadGateway())
+				.andExpect(header().string("X-Test", "TestFoo"))
+				.andExpect(content().string("first"));
+		}
+	}
+
+	@Test
+	void requestProcessorsKeepTheirOrderRelativeToFilters() throws Exception {
+		List<String> calls = new ArrayList<>();
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/foo", req -> {
+			calls.add("handler");
+			return ServerResponse.ok().build();
+		}).before(request -> {
+			calls.add("beforeOuter");
+			return request;
+		}).filter((request, next) -> {
+			calls.add("filterBefore");
+			ServerResponse response = next.handle(request);
+			calls.add("filterAfter");
+			return response;
+		}).before(request -> {
+			calls.add("beforeInner");
+			return request;
+		}).build();
+
+		MockMvcBuilders.routerFunctions(fooRoute).build().perform(get("/foo")).andExpect(status().isOk());
+
+		assertThat(calls).containsExactly("beforeOuter", "filterBefore", "beforeInner", "handler", "filterAfter");
+	}
+
+	@Test
+	void buildingAgainDoesNotChangePreviouslyBuiltFilterChains() throws Exception {
+		RouterFunctions.Builder builder = route("fooRoute").GET("/foo", req -> ServerResponse.ok().build())
+			.after(addResponseHeader("X-Test", "first"));
+		RouterFunction<ServerResponse> firstRoute = builder.build();
+		RouterFunction<ServerResponse> secondRoute = builder.after(addResponseHeader("X-Test", "second")).build();
+
+		MockMvcBuilders.routerFunctions(firstRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(header().stringValues("X-Test", "first"));
+		MockMvcBuilders.routerFunctions(secondRoute)
+			.build()
+			.perform(get("/foo"))
+			.andExpect(header().stringValues("X-Test", "second", "first"));
+	}
+
+	@Test
+	void outerErrorHandlerStillHandlesNestedAsyncResponseFailure() throws Exception {
+		CompletableFuture<ServerResponse> response = new CompletableFuture<>();
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.path("/api",
+					nested -> nested.GET("/foo", req -> ServerResponse.async(response))
+						.filter((request, next) -> next.handle(request)))
+			.onError(IOException.class,
+					(failure, request) -> ServerResponse.status(HttpStatus.BAD_GATEWAY).body("fallback"))
+			.build();
+		MockMvc mockMvc = MockMvcBuilders.routerFunctions(fooRoute).build();
+
+		MvcResult result = mockMvc.perform(get("/api/foo"))
+			.andExpect(MockMvcResultMatchers.request().asyncStarted())
+			.andReturn();
+		response.completeExceptionally(new IOException("async failed"));
+		result.getAsyncResult(5000);
+		mockMvc.perform(asyncDispatch(result))
+			.andExpect(status().isBadGateway())
+			.andExpect(content().string("fallback"));
+	}
+
+	@Test
+	void filterDoesNotReadUnresolvedAsyncResponseMetadata() throws Exception {
+		CompletableFuture<ServerResponse> response = new CompletableFuture<>();
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/foo", req -> ServerResponse.async(response))
+			.filter((request, next) -> next.handle(request))
+			.build();
+		MockMvc mockMvc = MockMvcBuilders.routerFunctions(fooRoute).build();
+
+		MvcResult result = mockMvc.perform(get("/foo"))
+			.andExpect(MockMvcResultMatchers.request().asyncStarted())
+			.andReturn();
+		response.complete(ServerResponse.ok().body("hello"));
+		result.getAsyncResult(5000);
+		mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk()).andExpect(content().string("hello"));
+	}
+
+	@Test
+	void responseHeaderFilterPreservesPublisherBody() throws Exception {
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute")
+			.GET("/foo", req -> ServerResponse.ok().body(Flux.just("hello", "world")))
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.build();
+		MockMvc mockMvc = MockMvcBuilders.routerFunctions(fooRoute).build();
+
+		MvcResult result = mockMvc.perform(get("/foo"))
+			.andExpect(MockMvcResultMatchers.request().asyncStarted())
+			.andReturn();
+		result.getAsyncResult(5000);
+		mockMvc.perform(asyncDispatch(result))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("helloworld"));
+	}
+
+	@Test
+	void responseHeaderFilterPreservesCompletionStageBody() throws Exception {
+		CompletableFuture<String> body = new CompletableFuture<>();
+		RouterFunction<ServerResponse> fooRoute = route("fooRoute").GET("/foo", req -> ServerResponse.ok().body(body))
+			.after(addResponseHeader("X-Test", "TestFoo"))
+			.build();
+		MockMvc mockMvc = MockMvcBuilders.routerFunctions(fooRoute).build();
+
+		MvcResult result = mockMvc.perform(get("/foo"))
+			.andExpect(MockMvcResultMatchers.request().asyncStarted())
+			.andReturn();
+		body.complete("hello");
+		result.getAsyncResult(5000);
+		mockMvc.perform(asyncDispatch(result))
+			.andExpect(status().isOk())
+			.andExpect(header().string("X-Test", "TestFoo"))
+			.andExpect(content().string("hello"));
+	}
 
 	@Test
 	void addResponseHeaderOnServerResponseBuild() {
@@ -89,7 +517,7 @@ class AfterFilterFunctionsResponseHeadersTests {
 	@Test
 	void addResponseHeaderAfterRedirectToFilter() throws Exception {
 		RouterFunction<ServerResponse> redirectRoute = route("redirectRoute")
-			.GET(path("/redirect"), req -> GatewayServerResponse.ok().build())
+			.GET(path("/redirect"), req -> ServerResponse.ok().build())
 			.after(addResponseHeader("X-Test", "TestRedirect"))
 			.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org")))
 			.build();
@@ -115,6 +543,26 @@ class AfterFilterFunctionsResponseHeadersTests {
 
 				assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
 				assertThat(response.headers().getFirst("X-Test")).isEqualTo("TestFn");
+			});
+	}
+
+	@Test
+	void addResponseHeaderAfterFnHandlerPreservesPublisherBody() {
+		new WebApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(ContextFunctionCatalogAutoConfiguration.class))
+			.withUserConfiguration(UpperFunctionConfiguration.class)
+			.run(context -> {
+				RouterFunction<ServerResponse> fnRoute = route("fnRoute").POST(path("/fn"), fn("upperFlux"))
+					.after(addResponseHeader("X-Test", "TestFn"))
+					.build();
+				ServerRequest request = request("POST", "/fn", context, "hello");
+
+				ServerResponse response = fnRoute.route(request).orElseThrow().handle(request);
+				MockHttpServletResponse servletResponse = write(response, request);
+
+				assertThat(servletResponse.getStatus()).isEqualTo(HttpStatus.OK.value());
+				assertThat(servletResponse.getHeader("X-Test")).isEqualTo("TestFn");
+				assertThat(servletResponse.getContentAsString()).isEqualTo("HELLO");
 			});
 	}
 
@@ -215,7 +663,7 @@ class AfterFilterFunctionsResponseHeadersTests {
 	void addResponseHeaderAfterRateLimitRejectsEmptyKey() {
 		rateLimitContextRunner().run(context -> {
 			RouterFunction<ServerResponse> rateLimitRoute = route("rateLimitRoute")
-				.GET(path("/limited"), req -> GatewayServerResponse.ok().build())
+				.GET(path("/limited"), req -> ServerResponse.ok().build())
 				.after(addResponseHeader("X-Test", "TestRateLimit"))
 				.filter(rateLimit(1, Duration.ofMinutes(1), req -> ""))
 				.build();
@@ -231,7 +679,7 @@ class AfterFilterFunctionsResponseHeadersTests {
 	void addResponseHeaderAfterRateLimitExceeded() {
 		rateLimitContextRunner().run(context -> {
 			RouterFunction<ServerResponse> rateLimitRoute = route("rateLimitRoute")
-				.GET(path("/limited"), req -> GatewayServerResponse.ok().build())
+				.GET(path("/limited"), req -> ServerResponse.ok().build())
 				.after(addResponseHeader("X-Test", "TestRateLimit"))
 				.filter(rateLimit(1, Duration.ofMinutes(1), req -> "client"))
 				.build();
@@ -281,7 +729,18 @@ class AfterFilterFunctionsResponseHeadersTests {
 
 	private static ServerResponse handle(RouterFunction<ServerResponse> routerFunction, ServerRequest request)
 			throws Exception {
-		return routerFunction.route(request).orElseThrow().handle(request);
+		ServerResponse response = routerFunction.route(request).orElseThrow().handle(request);
+		MockHttpServletResponse servletResponse = write(response, request);
+		assertThat(servletResponse.getStatus()).isEqualTo(response.statusCode().value());
+		response.headers()
+			.forEach((name, values) -> assertThat(servletResponse.getHeaders(name)).containsExactlyElementsOf(values));
+		return response;
+	}
+
+	private static MockHttpServletResponse write(ServerResponse response, ServerRequest request) throws Exception {
+		MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+		response.writeTo(request.servletRequest(), servletResponse, request::messageConverters);
+		return servletResponse;
 	}
 
 	private static ServerResponse apply(BiFunction<ServerRequest, ServerResponse, ServerResponse> filter,
@@ -296,6 +755,7 @@ class AfterFilterFunctionsResponseHeadersTests {
 	private static ServerRequest request(String method, String path, @Nullable WebApplicationContext context,
 			@Nullable String body) {
 		MockHttpServletRequest servletRequest = new MockHttpServletRequest(method, path);
+		servletRequest.setAsyncSupported(true);
 		if (context != null) {
 			servletRequest.setAttribute(DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE, context);
 		}
@@ -313,6 +773,11 @@ class AfterFilterFunctionsResponseHeadersTests {
 		@Bean
 		Function<String, String> upper() {
 			return String::toUpperCase;
+		}
+
+		@Bean
+		Function<String, Flux<String>> upperFlux() {
+			return value -> Flux.just(value.toUpperCase(Locale.ROOT));
 		}
 
 	}

@@ -96,7 +96,7 @@ public abstract class HandlerFunctions {
 				return processRequest(request, function, body, false, Collections.emptyList(), Collections.emptyList(),
 						additionalRequestHeaders);
 			}
-			return GatewayServerResponse.notFound().build();
+			return ServerResponse.notFound().build();
 		};
 	}
 
@@ -111,9 +111,9 @@ public abstract class HandlerFunctions {
 				.fromHttp(FunctionHandlerHeaderUtils.sanitize(request.headers().asHttpHeaders()));
 			boolean send = streamOps.send(expandedBindingName, MessageBuilder.createMessage(body, messageHeaders));
 			if (send) {
-				return GatewayServerResponse.accepted().build();
+				return ServerResponse.accepted().build();
 			}
-			return GatewayServerResponse.badRequest().build();
+			return ServerResponse.badRequest().build();
 		};
 	}
 
