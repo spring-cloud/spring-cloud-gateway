@@ -3,6 +3,34 @@
 
 The JSONToGRPC GatewayFilter Factory converts a JSON payload to a gRPC request.
 
+[[jsontogrpc-dependencies]]
+== Required Dependencies
+
+The `JsonToGrpc` filter relies on optional dependencies that are not included transitively.
+You must add the following to your project:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-netty</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-protobuf</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.grpc</groupId>
+    <artifactId>grpc-stub</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java-util</artifactId>
+</dependency>
+----
+
+NOTE: Without these dependencies, the gateway will throw a `NoClassDefFoundError` at runtime when the filter is invoked.
+
 The filter takes the following arguments:
 
 * `service`: Short name of the service that handles the request.
