@@ -24,6 +24,7 @@ import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy;
 import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.FallbackHeadersConfig;
+import org.springframework.cloud.gateway.server.mvc.handler.GatewayServerResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
@@ -129,8 +130,9 @@ public interface FilterFunctions {
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
 		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
 
-		return (request,
-				next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString()).build();
+		return (request, next) -> GatewayServerResponse.status(status.resolve())
+			.header(HttpHeaders.LOCATION, uri.toString())
+			.build();
 	}
 
 	@Shortcut

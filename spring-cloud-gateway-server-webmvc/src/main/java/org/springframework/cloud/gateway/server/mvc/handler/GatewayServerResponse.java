@@ -30,10 +30,6 @@ public interface GatewayServerResponse extends ServerResponse {
 
 	void setStatusCode(HttpStatusCode statusCode);
 
-	static ServerResponse adapt(ServerResponse response) {
-		return DelegatingServerResponse.adapt(response);
-	}
-
 	// Static methods
 
 	/**
