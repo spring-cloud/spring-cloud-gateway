@@ -21,9 +21,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.webflux.autoconfigure.WebFluxProperties;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -35,9 +39,14 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.ObjectUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +55,46 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Toshiaki Maki
  */
 public class RouteDefinitionRouteLocatorTests {
+
+	@ParameterizedTest
+	@ValueSource(ints = { 1, 2, 3 })
+	void synchronousPredicatesAreEvaluatedCorrectly(int predicateCount) {
+		RouteDefinition definition = new RouteDefinition();
+		definition.setId("synchronous");
+		definition.setUri(URI.create("https://example.com"));
+		definition.setPredicates(
+				List.of(new PredicateDefinition("Host=*.example.com"), new PredicateDefinition("Path=/api/**"),
+						new PredicateDefinition("Method=GET"))
+					.subList(0, predicateCount));
+		GatewayProperties properties = new GatewayProperties();
+		properties.setRoutes(List.of(definition));
+		RouteDefinitionRouteLocator locator = new RouteDefinitionRouteLocator(
+				new PropertiesRouteDefinitionLocator(properties),
+				List.of(new HostRoutePredicateFactory(), new PathRoutePredicateFactory(new WebFluxProperties()),
+						new MethodRoutePredicateFactory()),
+				List.of(), properties,
+				new ConfigurationService(new DefaultListableBeanFactory(), () -> null, () -> null));
+
+		StepVerifier.create(locator.getRoutes()).assertNext(route -> {
+			MockServerWebExchange matching = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/api/test").header("Host", "foo.example.com"));
+			StepVerifier.create(route.getPredicate().apply(matching)).expectNext(true).verifyComplete();
+
+			MockServerWebExchange wrongHost = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/api/test").header("Host", "other.test"));
+			StepVerifier.create(route.getPredicate().apply(wrongHost)).expectNext(false).verifyComplete();
+			if (predicateCount >= 2) {
+				MockServerWebExchange wrongPath = MockServerWebExchange
+					.from(MockServerHttpRequest.method(HttpMethod.GET, "/other").header("Host", "foo.example.com"));
+				StepVerifier.create(route.getPredicate().apply(wrongPath)).expectNext(false).verifyComplete();
+			}
+			if (predicateCount == 3) {
+				MockServerWebExchange wrongMethod = MockServerWebExchange
+					.from(MockServerHttpRequest.method(HttpMethod.POST, "/api/test").header("Host", "foo.example.com"));
+				StepVerifier.create(route.getPredicate().apply(wrongMethod)).expectNext(false).verifyComplete();
+			}
+		}).verifyComplete();
+	}
 
 	@Test
 	public void contextLoads() {
