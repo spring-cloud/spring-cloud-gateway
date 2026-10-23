@@ -105,6 +105,36 @@ public class RequestRateLimiterGatewayFilterFactoryTests extends BaseWebClientTe
 		assertFilterFactory(exchange -> Mono.empty(), null, true, HttpStatus.FORBIDDEN, true, true);
 	}
 
+	@Test
+	public void deniedDoesNotMutateHeadersWhenResponseAlreadyCommitted() {
+		// gh-4175: when the filter chain is re-subscribed with the same exchange (for
+		// example by the retry filter), the response may already be committed. Adding the
+		// rate-limit headers to a committed response throws UnsupportedOperationException
+		// (ReadOnlyHttpHeaders), so the filter must skip the header mutation.
+		String key = "notallowedkey";
+		Map<String, String> headers = Collections.singletonMap("X-Tokens-Remaining", "0");
+		when(rateLimiter.isAllowed("myroute", key)).thenReturn(Mono.just(new Response(false, headers)));
+
+		MockServerHttpRequest request = MockServerHttpRequest.get("/").build();
+		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+		exchange.getAttributes()
+			.put(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR,
+					Route.async().id("myroute").predicate(ex -> true).uri("http://localhost").build());
+
+		// Simulate a previous subscription having already committed the response.
+		exchange.getResponse().setComplete().block();
+		assertThat(exchange.getResponse().isCommitted()).isTrue();
+
+		RequestRateLimiterGatewayFilterFactory factory = this.context
+			.getBean(RequestRateLimiterGatewayFilterFactory.class);
+		GatewayFilter filter = factory.apply(config -> {
+			config.setRouteId("myroute");
+			config.setKeyResolver(resolver2);
+		});
+
+		StepVerifier.create(filter.filter(exchange, this.filterChain)).expectComplete().verify();
+	}
+
 	private void assertFilterFactory(KeyResolver keyResolver, String key, boolean allowed, HttpStatus expectedStatus) {
 		assertFilterFactory(keyResolver, key, allowed, expectedStatus, null, false);
 	}
