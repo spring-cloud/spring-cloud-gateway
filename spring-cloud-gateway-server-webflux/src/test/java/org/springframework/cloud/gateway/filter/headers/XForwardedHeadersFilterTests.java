@@ -444,4 +444,32 @@ public class XForwardedHeadersFilterTests {
 		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).doesNotContain("127.0.0.1");
 	}
 
+	@Test
+	public void trustedCommaSeparatedXForwardedForAppended() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(X_FORWARDED_FOR_HEADER, "10.0.0.3, 10.0.0.2")
+			.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("10\\.0\\.0\\.\\d+");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.3,10.0.0.2,10.0.0.1");
+	}
+
+	@Test
+	public void mixedTrustedAndUntrustedCommaSeparatedXForwardedForFiltered() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(X_FORWARDED_FOR_HEADER, "10.0.0.3, 192.168.0.1, 10.0.0.2")
+			.build();
+
+		XForwardedHeadersFilter filter = new XForwardedHeadersFilter("10\\.0\\.0\\.\\d+");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		assertThat(headers.getFirst(X_FORWARDED_FOR_HEADER)).isEqualTo("10.0.0.3,10.0.0.2,10.0.0.1");
+	}
+
 }
