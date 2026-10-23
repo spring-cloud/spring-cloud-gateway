@@ -41,15 +41,13 @@ public class GatewayMvcProperties {
 	 * List of Routes.
 	 */
 	@NotNull
-	@Valid
-	private List<RouteProperties> routes = new ArrayList<>();
+	private List<@Valid RouteProperties> routes = new ArrayList<>();
 
 	/**
 	 * Map of Routes.
 	 */
 	@NotNull
-	@Valid
-	private LinkedHashMap<String, RouteProperties> routesMap = new LinkedHashMap<>();
+	private LinkedHashMap<String, @Valid RouteProperties> routesMap = new LinkedHashMap<>();
 
 	/**
 	 * Mime-types that are streaming.
