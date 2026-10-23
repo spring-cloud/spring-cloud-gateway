@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.handler;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -68,6 +69,35 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		@Override
 		public Publisher<Boolean> apply(T t) {
 			return Mono.just(delegate.test(t));
+		}
+
+		@Override
+		public AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
+			return combineSynchronously(other, Predicate::and, AsyncPredicate.super::and);
+		}
+
+		@Override
+		public AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
+			return combineSynchronously(other, Predicate::or, AsyncPredicate.super::or);
+		}
+
+		/**
+		 * Combine two exact {@code DefaultAsyncPredicate} instances synchronously, so
+		 * that a route with several predicates is still evaluated as a single synchronous
+		 * predicate. Subclasses may override {@code apply()}, so they keep the reactive
+		 * composition. Mixing plain and {@link GatewayPredicate} delegates would change
+		 * visitor traversal, so that case also falls back.
+		 */
+		private AsyncPredicate<T> combineSynchronously(AsyncPredicate<? super T> other,
+				BiFunction<Predicate<T>, Predicate<? super T>, Predicate<T>> combiner,
+				Function<AsyncPredicate<? super T>, AsyncPredicate<T>> fallback) {
+			if (getClass() == DefaultAsyncPredicate.class && other.getClass() == DefaultAsyncPredicate.class) {
+				DefaultAsyncPredicate<? super T> right = (DefaultAsyncPredicate<? super T>) other;
+				if ((this.delegate instanceof GatewayPredicate) == (right.delegate instanceof GatewayPredicate)) {
+					return new DefaultAsyncPredicate<>(combiner.apply(this.delegate, right.delegate));
+				}
+			}
+			return fallback.apply(other);
 		}
 
 		@Override

@@ -19,11 +19,17 @@ package org.springframework.cloud.gateway.route;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.boot.webflux.autoconfigure.WebFluxProperties;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -35,9 +41,14 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.MethodRoutePredicateFactory;
+import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.support.ConfigurationService;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.ObjectUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,6 +57,50 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Toshiaki Maki
  */
 public class RouteDefinitionRouteLocatorTests {
+
+	@ParameterizedTest
+	@ValueSource(ints = { 1, 2, 3 })
+	void synchronousPredicatesAreEvaluatedWithoutSubscription(int predicateCount) {
+		RouteDefinition definition = new RouteDefinition();
+		definition.setId("synchronous");
+		definition.setUri(URI.create("https://example.com"));
+		definition.setPredicates(
+				List.of(new PredicateDefinition("Host=*.example.com"), new PredicateDefinition("Path=/api/**"),
+						new PredicateDefinition("Method=GET"))
+					.subList(0, predicateCount));
+		GatewayProperties properties = new GatewayProperties();
+		properties.setRoutes(List.of(definition));
+		RouteDefinitionRouteLocator locator = new RouteDefinitionRouteLocator(
+				new PropertiesRouteDefinitionLocator(properties),
+				List.of(new HostRoutePredicateFactory(), new PathRoutePredicateFactory(new WebFluxProperties()),
+						new MethodRoutePredicateFactory()),
+				List.of(), properties,
+				new ConfigurationService(new DefaultListableBeanFactory(), () -> null, () -> null));
+
+		StepVerifier.create(locator.getRoutes()).assertNext(route -> {
+			Publisher<Boolean> matching = route.getPredicate()
+				.apply(exchange(HttpMethod.GET, "foo.example.com", "/api/test"));
+			// a Callable result lets RoutePredicateHandlerMapping's filterWhen read it
+			// directly instead of subscribing to it for every scanned route
+			assertThat(matching).isInstanceOf(Callable.class);
+			StepVerifier.create(matching).expectNext(true).verifyComplete();
+			assertRejected(route, exchange(HttpMethod.GET, "other.test", "/api/test"));
+			if (predicateCount >= 2) {
+				assertRejected(route, exchange(HttpMethod.GET, "foo.example.com", "/other"));
+			}
+			if (predicateCount == 3) {
+				assertRejected(route, exchange(HttpMethod.POST, "foo.example.com", "/api/test"));
+			}
+		}).verifyComplete();
+	}
+
+	private static MockServerWebExchange exchange(HttpMethod method, String host, String path) {
+		return MockServerWebExchange.from(MockServerHttpRequest.method(method, path).header("Host", host));
+	}
+
+	private static void assertRejected(Route route, MockServerWebExchange exchange) {
+		StepVerifier.create(route.getPredicate().apply(exchange)).expectNext(false).verifyComplete();
+	}
 
 	@Test
 	public void contextLoads() {
