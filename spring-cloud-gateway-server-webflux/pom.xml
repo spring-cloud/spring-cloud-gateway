@@ -351,6 +351,15 @@
 						<goals>
 							<goal>testCompile</goal>
 						</goals>
+						<configuration>
+							<annotationProcessorPaths combine.children="append">
+								<path>
+									<groupId>org.openjdk.jmh</groupId>
+									<artifactId>jmh-generator-annprocess</artifactId>
+									<version>1.20</version>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
