@@ -88,6 +88,44 @@ class RestClientProxyExchangeTests {
 		assertThat(responseBody.closed).isTrue();
 	}
 
+	@Test
+	void exchangeWhenNotModifiedThenClosesClientResponse() throws Exception {
+		RestClient restClient = mock(RestClient.class);
+		RestClient.RequestBodyUriSpec requestSpec = mock(RestClient.RequestBodyUriSpec.class);
+		CloseAwareInputStream responseBody = new CloseAwareInputStream();
+		TestClientHttpResponse clientResponse = new TestClientHttpResponse(responseBody);
+		clientResponse.getHeaders().setContentType(MediaType.TEXT_PLAIN);
+		clientResponse.getHeaders().setETag("\"abc\"");
+
+		when(restClient.method(HttpMethod.GET)).thenReturn(requestSpec);
+		when(requestSpec.uri(any(URI.class))).thenReturn(requestSpec);
+		when(requestSpec.headers(any())).thenReturn(requestSpec);
+		when(requestSpec.exchange(any(), eq(false))).thenAnswer((invocation) -> {
+			RestClient.RequestHeadersSpec.ExchangeFunction<ServerResponse> exchangeFunction = invocation.getArgument(0);
+			return exchangeFunction.exchange(mock(HttpRequest.class), clientResponse);
+		});
+
+		RestClientProxyExchange proxyExchange = new RestClientProxyExchange(restClient, new GatewayMvcProperties());
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/resource")
+			.header(HttpHeaders.IF_NONE_MATCH, "\"abc\"")
+			.buildRequest(null);
+		ServerRequest serverRequest = ServerRequest.create(servletRequest, Collections.emptyList());
+		ProxyExchange.Request request = proxyExchange.request(serverRequest)
+			.uri(URI.create("http://localhost:8781/resource"))
+			.build();
+
+		ServerResponse serverResponse = proxyExchange.exchange(request);
+		// Proxy responses carry the upstream ETag; apply it so checkNotModified can
+		// short-circuit.
+		serverResponse.headers().setETag("\"abc\"");
+
+		MockHttpServletResponse servletResponse = new MockHttpServletResponse();
+		serverResponse.writeTo(servletRequest, servletResponse, Collections::emptyList);
+
+		assertThat(servletResponse.getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+		assertThat(clientResponse.closed).isTrue();
+	}
+
 	private static final class ClientDisconnectedResponse extends MockHttpServletResponse {
 
 		private final ServletOutputStream outputStream = new ServletOutputStream() {
@@ -155,6 +193,8 @@ class RestClientProxyExchangeTests {
 
 		private TestClientHttpResponse(CloseAwareInputStream body) {
 			this.body = body;
+			// Default content type used by existing streaming tests; other tests may
+			// override.
 			this.headers.setContentType(MediaType.TEXT_EVENT_STREAM);
 		}
 
