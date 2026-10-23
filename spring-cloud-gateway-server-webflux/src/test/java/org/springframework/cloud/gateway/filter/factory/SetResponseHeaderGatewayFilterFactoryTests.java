@@ -29,6 +29,8 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +62,19 @@ public class SetResponseHeaderGatewayFilterFactoryTests extends BaseWebClientTes
 			.isOk()
 			.expectHeader()
 			.valueEquals("X-Res-Foo", "Second-www");
+	}
+
+	@Test
+	public void setResponseHeaderSkippedWhenResponseCommitted() {
+		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/").build());
+		exchange.getResponse().getHeaders().set("X-Response-Foo", "Original");
+		NameValueConfig config = new NameValueConfig().setName("X-Response-Foo").setValue("Bar");
+		GatewayFilter filter = new SetResponseHeaderGatewayFilterFactory().apply(config);
+
+		filter.filter(exchange, ex -> ex.getResponse().setComplete()).block();
+
+		assertThat(exchange.getResponse().isCommitted()).isTrue();
+		assertThat(exchange.getResponse().getHeaders().get("X-Response-Foo")).containsExactly("Original");
 	}
 
 	@Test

@@ -34,6 +34,8 @@ import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseH
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -125,6 +127,20 @@ public class RewriteLocationResponseHeaderGatewayFilterFactoryUnitTests {
 		config.setProtocols("gopher|whatever");
 		filter.rewriteLocation(exchange, config);
 		Mockito.verify(responseHeaders).set(Mockito.eq("Location"), Mockito.eq("https://replaceme/some/path"));
+	}
+
+	@Test
+	public void rewriteLocationSkippedWhenResponseCommitted() {
+		MockServerWebExchange committedExchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://example.com/path").build());
+		committedExchange.getResponse().getHeaders().set(HttpHeaders.LOCATION, "https://backend.example.com/path");
+		GatewayFilter gatewayFilter = filter.apply(config);
+
+		gatewayFilter.filter(committedExchange, ex -> ex.getResponse().setComplete()).block();
+
+		assertThat(committedExchange.getResponse().isCommitted()).isTrue();
+		assertThat(committedExchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION))
+			.isEqualTo("https://backend.example.com/path");
 	}
 
 	@Test

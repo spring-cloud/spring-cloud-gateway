@@ -87,6 +87,18 @@ public class SecureHeadersGatewayFilterFactoryUnitTests {
 	}
 
 	@Test
+	public void skipHeadersWhenResponseCommitted() {
+		SecureHeadersGatewayFilterFactory filterFactory = new SecureHeadersGatewayFilterFactory(
+				new SecureHeadersProperties());
+		filter = filterFactory.apply(new Config());
+
+		filter.filter(exchange, ex -> ex.getResponse().setComplete()).block();
+
+		assertThat(exchange.getResponse().isCommitted()).isTrue();
+		assertThat(exchange.getResponse().getHeaders().headerNames()).isEmpty();
+	}
+
+	@Test
 	public void doNotAddDisabledHeaders() {
 		SecureHeadersProperties properties = new SecureHeadersProperties();
 		properties.setDisable(asList("x-xss-protection", "strict-transport-security", "x-frame-options",
