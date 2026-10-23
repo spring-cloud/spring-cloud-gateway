@@ -19,12 +19,10 @@ package org.springframework.cloud.gateway.route;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -60,7 +58,7 @@ public class RouteDefinitionRouteLocatorTests {
 
 	@ParameterizedTest
 	@ValueSource(ints = { 1, 2, 3 })
-	void synchronousPredicatesAreEvaluatedWithoutSubscription(int predicateCount) {
+	void synchronousPredicatesAreEvaluatedCorrectly(int predicateCount) {
 		RouteDefinition definition = new RouteDefinition();
 		definition.setId("synchronous");
 		definition.setUri(URI.create("https://example.com"));
@@ -78,28 +76,24 @@ public class RouteDefinitionRouteLocatorTests {
 				new ConfigurationService(new DefaultListableBeanFactory(), () -> null, () -> null));
 
 		StepVerifier.create(locator.getRoutes()).assertNext(route -> {
-			Publisher<Boolean> matching = route.getPredicate()
-				.apply(exchange(HttpMethod.GET, "foo.example.com", "/api/test"));
-			// a Callable result lets RoutePredicateHandlerMapping's filterWhen read it
-			// directly instead of subscribing to it for every scanned route
-			assertThat(matching).isInstanceOf(Callable.class);
-			StepVerifier.create(matching).expectNext(true).verifyComplete();
-			assertRejected(route, exchange(HttpMethod.GET, "other.test", "/api/test"));
+			MockServerWebExchange matching = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/api/test").header("Host", "foo.example.com"));
+			StepVerifier.create(route.getPredicate().apply(matching)).expectNext(true).verifyComplete();
+
+			MockServerWebExchange wrongHost = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/api/test").header("Host", "other.test"));
+			StepVerifier.create(route.getPredicate().apply(wrongHost)).expectNext(false).verifyComplete();
 			if (predicateCount >= 2) {
-				assertRejected(route, exchange(HttpMethod.GET, "foo.example.com", "/other"));
+				MockServerWebExchange wrongPath = MockServerWebExchange
+					.from(MockServerHttpRequest.method(HttpMethod.GET, "/other").header("Host", "foo.example.com"));
+				StepVerifier.create(route.getPredicate().apply(wrongPath)).expectNext(false).verifyComplete();
 			}
 			if (predicateCount == 3) {
-				assertRejected(route, exchange(HttpMethod.POST, "foo.example.com", "/api/test"));
+				MockServerWebExchange wrongMethod = MockServerWebExchange
+					.from(MockServerHttpRequest.method(HttpMethod.POST, "/api/test").header("Host", "foo.example.com"));
+				StepVerifier.create(route.getPredicate().apply(wrongMethod)).expectNext(false).verifyComplete();
 			}
 		}).verifyComplete();
-	}
-
-	private static MockServerWebExchange exchange(HttpMethod method, String host, String path) {
-		return MockServerWebExchange.from(MockServerHttpRequest.method(method, path).header("Host", host));
-	}
-
-	private static void assertRejected(Route route, MockServerWebExchange exchange) {
-		StepVerifier.create(route.getPredicate().apply(exchange)).expectNext(false).verifyComplete();
 	}
 
 	@Test

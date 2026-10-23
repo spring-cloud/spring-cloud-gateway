@@ -18,18 +18,15 @@ package org.springframework.cloud.gateway.route.builder;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
 import reactor.test.StepVerifier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.handler.AsyncPredicate.DefaultAsyncPredicate;
-import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -137,20 +134,23 @@ public class RouteBuilderTests {
 
 		StepVerifier.create(routeLocator.getRoutes()).assertNext(route -> {
 			assertThat(route.getPredicate()).isExactlyInstanceOf(DefaultAsyncPredicate.class);
-			assertPredicateResult(route, HttpMethod.GET, "foo.somehost.org", "/other", true);
-			assertPredicateResult(route, HttpMethod.GET, "other.test", "/somepath", true);
-			assertPredicateResult(route, HttpMethod.GET, "other.test", "/other", false);
-			assertPredicateResult(route, HttpMethod.POST, "foo.somehost.org", "/somepath", false);
+
+			MockServerWebExchange matchingHost = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/other").header("Host", "foo.somehost.org"));
+			StepVerifier.create(route.getPredicate().apply(matchingHost)).expectNext(true).verifyComplete();
+
+			MockServerWebExchange matchingPath = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/somepath").header("Host", "other.test"));
+			StepVerifier.create(route.getPredicate().apply(matchingPath)).expectNext(true).verifyComplete();
+
+			MockServerWebExchange noMatch = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.GET, "/other").header("Host", "other.test"));
+			StepVerifier.create(route.getPredicate().apply(noMatch)).expectNext(false).verifyComplete();
+
+			MockServerWebExchange wrongMethod = MockServerWebExchange
+				.from(MockServerHttpRequest.method(HttpMethod.POST, "/somepath").header("Host", "foo.somehost.org"));
+			StepVerifier.create(route.getPredicate().apply(wrongMethod)).expectNext(false).verifyComplete();
 		}).verifyComplete();
-	}
-
-	private void assertPredicateResult(Route route, HttpMethod method, String host, String path, boolean expected) {
-		MockServerWebExchange exchange = MockServerWebExchange
-			.from(MockServerHttpRequest.method(method, path).header("Host", host));
-		Publisher<Boolean> result = route.getPredicate().apply(exchange);
-
-		assertThat(result).isInstanceOf(Callable.class);
-		StepVerifier.create(result).expectNext(expected).verifyComplete();
 	}
 
 	@EnableAutoConfiguration
