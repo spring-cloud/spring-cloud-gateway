@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -54,6 +55,10 @@ public class CachingRouteLocator
 
 	private final Map<String, List> cache = new ConcurrentHashMap<>();
 
+	private final AtomicLong refreshSequenceGenerator = new AtomicLong();
+
+	private long lastAppliedRefreshSequence;
+
 	private @Nullable ApplicationEventPublisher applicationEventPublisher;
 
 	public CachingRouteLocator(RouteLocator delegate) {
@@ -85,19 +90,22 @@ public class CachingRouteLocator
 
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
+		long refreshSequence = this.refreshSequenceGenerator.incrementAndGet();
 		try {
 			if (this.cache.containsKey(CACHE_KEY) && event.isScoped()) {
 				final Mono<List<Route>> scopedRoutes = fetch(event.getMetadata()).collect(Collectors.toList())
 					.onErrorResume(s -> Mono.just(List.of()));
 
 				scopedRoutes.subscribe(scopedRoutesList -> {
-					updateCache(Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
-						.sort(AnnotationAwareOrderComparator.INSTANCE));
+					updateCache(refreshSequence,
+							Flux.concat(Flux.fromIterable(scopedRoutesList), getNonScopedRoutes(event))
+								.sort(AnnotationAwareOrderComparator.INSTANCE));
 				}, this::handleRefreshError);
 			}
 			else {
 				final Mono<List<Route>> allRoutes = fetch().collect(Collectors.toList());
-				allRoutes.subscribe(list -> updateCache(Flux.fromIterable(list)), this::handleRefreshError);
+				allRoutes.subscribe(list -> updateCache(refreshSequence, Flux.fromIterable(list)),
+						this::handleRefreshError);
 			}
 		}
 		catch (Throwable e) {
@@ -105,14 +113,21 @@ public class CachingRouteLocator
 		}
 	}
 
-	private synchronized void updateCache(Flux<Route> routes) {
+	private void updateCache(long refreshSequence, Flux<Route> routes) {
 		routes.materialize()
 			.collect(Collectors.toList())
-			.subscribe(this::publishRefreshEvent, this::handleRefreshError);
+			.subscribe(signals -> publishRefreshEvent(refreshSequence, signals), this::handleRefreshError);
 	}
 
-	private void publishRefreshEvent(List<Signal<Route>> signals) {
-		cache.put(CACHE_KEY, signals);
+	private void publishRefreshEvent(long refreshSequence, List<Signal<Route>> signals) {
+
+		synchronized (this) {
+			if (refreshSequence > this.lastAppliedRefreshSequence) {
+				cache.put(CACHE_KEY, signals);
+				this.lastAppliedRefreshSequence = refreshSequence;
+			}
+		}
+
 		Objects.requireNonNull(applicationEventPublisher, "ApplicationEventPublisher is required");
 		applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
 	}
