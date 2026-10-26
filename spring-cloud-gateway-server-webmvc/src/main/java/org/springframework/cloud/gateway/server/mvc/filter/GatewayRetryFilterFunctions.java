@@ -72,7 +72,7 @@ public abstract class GatewayRetryFilterFunctions {
 		CompositeRetryPolicy compositeRetryPolicy = new CompositeRetryPolicy();
 		Map<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
 		config.getExceptions().forEach(exception -> retryableExceptions.put(exception, true));
-		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries(), retryableExceptions);
+		SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(config.getRetries() + 1, retryableExceptions);
 		compositeRetryPolicy
 			.setPolicies(Arrays.asList(simpleRetryPolicy, new HttpRetryPolicy(config)).toArray(new RetryPolicy[0]));
 		retryTemplateBuilder = configureBackoff(retryTemplateBuilder, config);

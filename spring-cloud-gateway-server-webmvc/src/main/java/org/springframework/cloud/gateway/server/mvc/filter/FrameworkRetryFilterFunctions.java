@@ -146,17 +146,9 @@ public abstract class FrameworkRetryFilterFunctions {
 				return false;
 			}
 
-			// Check if we've exceeded max attempts
-			// Note: config.getRetries() represents max attempts (including initial
-			// attempt)
-			// attemptCount tracks the number of attempts made so far (0 = first attempt,
-			// 1 = second attempt, etc.)
-			// shouldRetry is called after each failed attempt, so:
-			// - First failure: attemptCount = 0, we can retry (will become attempt 1)
-			// - Second failure: attemptCount = 1, we can retry (will become attempt 2)
-			// - Third failure: attemptCount = 2, we can retry (will become attempt 3)
-			// - After third failure: attemptCount = 3, we've reached max attempts, stop
-			// So if retries=3, we allow attempts 0, 1, 2 (3 total attempts)
+			// config.getRetries() is the number of retries after the initial attempt.
+			// attemptCount counts the retries granted so far and shouldRetry is called
+			// after each failed attempt, so retries=3 allows 4 attempts in total.
 			if (attemptCount >= config.getRetries()) {
 				return false;
 			}

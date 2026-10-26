@@ -56,6 +56,23 @@ class GatewayRetryFilterFunctionsTests {
 	}
 
 	@Test
+	void retriesConfiguredNumberOfTimes() throws Exception {
+		HandlerFilterFunction<ServerResponse, ServerResponse> filter = GatewayRetryFilterFunctions
+			.retry(config -> config.setRetries(3));
+		AtomicInteger attempts = new AtomicInteger();
+
+		ServerResponse response = filter.filter(request(), request -> {
+			if (attempts.incrementAndGet() <= 3) {
+				return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			}
+			return ServerResponse.ok().build();
+		});
+
+		assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(attempts.get()).isEqualTo(4);
+	}
+
+	@Test
 	void doesNotRetryUnconfiguredException() {
 		HandlerFilterFunction<ServerResponse, ServerResponse> filter = GatewayRetryFilterFunctions
 			.retry(config -> config.setRetries(3).addExceptions(IllegalStateException.class));
@@ -78,7 +95,7 @@ class GatewayRetryFilterFunctionsTests {
 			attempts.incrementAndGet();
 			throw new IllegalStateException("always broken");
 		})).isInstanceOf(IllegalStateException.class);
-		assertThat(attempts.get()).isEqualTo(3);
+		assertThat(attempts.get()).isEqualTo(4);
 	}
 
 	private ServerRequest request() {
