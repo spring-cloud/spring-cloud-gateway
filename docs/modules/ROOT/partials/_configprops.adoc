@@ -65,6 +65,7 @@
 |spring.cloud.gateway.server.webflux.filter.set-request-host-header.enabled | `+++true+++` | Enables the set-request-host-header filter.
 |spring.cloud.gateway.server.webflux.filter.set-response-header.enabled | `+++true+++` | Enables the set-response-header filter.
 |spring.cloud.gateway.server.webflux.filter.set-status.enabled | `+++true+++` | Enables the set-status filter.
+|spring.cloud.gateway.server.webflux.filter.strip-context-path.enabled | `+++true+++` | Enables the strip-context-path filter.
 |spring.cloud.gateway.server.webflux.filter.strip-prefix.enabled | `+++true+++` | Enables the strip-prefix filter.
 |spring.cloud.gateway.server.webflux.forwarded.by.enabled | `+++false+++` | Enables the Forwarded: by header part.
 |spring.cloud.gateway.server.webflux.forwarded.enabled | `+++true+++` | Enables the ForwardedHeadersFilter.
