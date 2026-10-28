@@ -17,6 +17,8 @@
 package org.springframework.cloud.gateway.handler.predicate;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -30,10 +32,15 @@ import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.server.ServerWebExchange;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -92,6 +99,60 @@ public class HostRoutePredicateFactoryTests extends BaseWebClientTests {
 		hostPredicate.setIncludePort(false);
 		expectHostRoute("hostpatternarg.org:8080", "host_without_port_pattern");
 		hostPredicate.setIncludePort(true);
+	}
+
+	@Test
+	public void literalHostMatchKeepsExistingUriTemplateVariables() {
+		Config config = new Config().setPatterns(List.of("www.example.org"));
+		Predicate<ServerWebExchange> predicate = new HostRoutePredicateFactory().apply(config);
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/").header("Host", "www.example.org").build());
+		ServerWebExchangeUtils.putUriTemplateVariables(exchange, Map.of("existing", "value"));
+
+		assertThat(predicate.test(exchange)).isTrue();
+		assertThat(ServerWebExchangeUtils.getUriTemplateVariables(exchange)).containsEntry("existing", "value")
+			.hasSize(1);
+	}
+
+	@Test
+	public void hostTemplateVariablesRetainPatternOrder() {
+		Config config = new Config().setPatterns(List.of("{tenant}.example.org", "api.example.org"));
+		Predicate<ServerWebExchange> predicate = new HostRoutePredicateFactory().apply(config);
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/").header("Host", "api.example.org").build());
+
+		assertThat(predicate.test(exchange)).isTrue();
+		assertThat(ServerWebExchangeUtils.getUriTemplateVariables(exchange)).containsEntry("tenant", "api");
+	}
+
+	@Test
+	public void customPathMatcherStillHandlesLiteralPatterns() {
+		HostRoutePredicateFactory factory = new HostRoutePredicateFactory();
+		factory.setPathMatcher(new AntPathMatcher(".") {
+			@Override
+			public boolean match(String pattern, String path) {
+				return false;
+			}
+		});
+		Config config = new Config().setPatterns(List.of("www.example.org"));
+		Predicate<ServerWebExchange> predicate = factory.apply(config);
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/").header("Host", "www.example.org").build());
+
+		assertThat(predicate.test(exchange)).isFalse();
+	}
+
+	@Test
+	public void exactHostMatchRespectsIncludePortSetting() {
+		Config withPort = new Config().setPatterns(List.of("www.example.org:8080"));
+		Predicate<ServerWebExchange> withPortPredicate = new HostRoutePredicateFactory(true).apply(withPort);
+		Config withoutPort = new Config().setPatterns(List.of("www.example.org"));
+		Predicate<ServerWebExchange> withoutPortPredicate = new HostRoutePredicateFactory(false).apply(withoutPort);
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("/").header("Host", "www.example.org:8080").build());
+
+		assertThat(withPortPredicate.test(exchange)).isTrue();
+		assertThat(withoutPortPredicate.test(exchange)).isTrue();
 	}
 
 	@Test
