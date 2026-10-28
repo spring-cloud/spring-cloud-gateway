@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.ExponentialBackOff;
+import org.springframework.util.backoff.FixedBackOff;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -105,9 +106,16 @@ public abstract class FrameworkRetryFilterFunctions {
 		}
 	}
 
-	private static BackOff createBackOff(BackoffConfig backoff) {
+	// retries counts the initial attempt, a BackOff counts retries only
+	private static long maxRetries(RetryFilterFunctions.RetryConfig config) {
+		return Math.max(0L, config.getRetries() - 1L);
+	}
+
+	private static BackOff createBackOff(RetryFilterFunctions.RetryConfig config) {
+		BackoffConfig backoff = config.getBackoff();
 		ExponentialBackOff exponentialBackOff = new ExponentialBackOff(backoff.getFirstBackoff().toMillis(),
 				backoff.getFactor());
+		exponentialBackOff.setMaxAttempts(maxRetries(config));
 		Duration maxBackoff = backoff.getMaxBackoff();
 		if (maxBackoff != null) {
 			exponentialBackOff.setMaxInterval(maxBackoff.toMillis());
@@ -130,8 +138,8 @@ public abstract class FrameworkRetryFilterFunctions {
 
 		CompositeRetryPolicy(RetryFilterFunctions.RetryConfig config) {
 			this.config = config;
-			this.backOff = config.getBackoff() != null ? createBackOff(config.getBackoff())
-					: RetryPolicy.withDefaults().getBackOff();
+			this.backOff = config.getBackoff() != null ? createBackOff(config)
+					: new FixedBackOff(0, maxRetries(config));
 		}
 
 		@Override
@@ -146,18 +154,9 @@ public abstract class FrameworkRetryFilterFunctions {
 				return false;
 			}
 
-			// Check if we've exceeded max attempts
-			// Note: config.getRetries() represents max attempts (including initial
-			// attempt)
-			// attemptCount tracks the number of attempts made so far (0 = first attempt,
-			// 1 = second attempt, etc.)
-			// shouldRetry is called after each failed attempt, so:
-			// - First failure: attemptCount = 0, we can retry (will become attempt 1)
-			// - Second failure: attemptCount = 1, we can retry (will become attempt 2)
-			// - Third failure: attemptCount = 2, we can retry (will become attempt 3)
-			// - After third failure: attemptCount = 3, we've reached max attempts, stop
-			// So if retries=3, we allow attempts 0, 1, 2 (3 total attempts)
-			if (attemptCount >= config.getRetries()) {
+			// retries is the total number of attempts, including the initial one;
+			// attemptCount counts the retries made so far
+			if (attemptCount >= maxRetries(config)) {
 				return false;
 			}
 
