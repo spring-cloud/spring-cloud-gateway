@@ -9,7 +9,7 @@ The following listing shows how to do so:
 [source,properties]
 ----
 management.endpoint.gateway.access=read-only
-management.endpoints.web.exposure.include=gateway
+management.endpoints.web.exposure.include=gateway,health
 ----
 
 WARNING: It is suggested that you set `management.endpoint.gateway.access` to `read-only`.  This will disable the ability
@@ -17,6 +17,18 @@ to refresh, create, and delete routes.  If you need the ability to create, refre
 endpoint you need to set `management.endpoint.gateway.access` to `unrestricted` OR set `management.endpoint.gateway.enabled=true`.
 If you enable the ability to create, delete, and refresh routes via the actuator endpoint you should take the proper steps to
 make sure your actuator endpoints are https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.security[secured].
+
+[NOTE]
+====
+The actuator endpoints are mapped by Spring Boot's actuator infrastructure, whose handler mapping is ordered ahead of the gateway's `RoutePredicateHandlerMapping`. A route with a path predicate that also covers the actuator path, such as `+Path=/**+`, therefore does not prevent `/actuator/gateway` from being served on the same port.
+
+Such a route does match instead of the actuator endpoint in two cases:
+
+* The endpoints have been moved to a port of their own with `management.server.port`. The application port then no longer serves them, so a route whose path predicate matches `+/actuator/**+` handles those requests and forwards them to its `uri`. The endpoints remain reachable on the management port, where the gateway does not route at all.
+* `spring.cloud.gateway.server.webflux.handler-mapping.order` (default `1`) has been lowered below the order of the actuator handler mapping. Routes are then consulted first, and a matching path predicate shadows the endpoint.
+
+If you need a catch-all route, either keep the actuator path out of its predicate by listing the prefixes you want to route rather than using `+/**+`, or move the endpoints to a `management.server.port` of their own.
+====
 
 This endpoint provides an overview of what is available on the child actuator endpoint and the available methods for each reference. The resulting response is similar to the following:
 
