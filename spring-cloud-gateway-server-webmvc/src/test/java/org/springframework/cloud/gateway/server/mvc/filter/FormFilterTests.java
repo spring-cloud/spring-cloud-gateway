@@ -110,4 +110,40 @@ class FormFilterTests {
 		return list;
 	}
 
+	@Test
+	void retainFormValueThatAlsoAppearsInQueryString() throws IOException {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setQueryString("tag=shared");
+		request.addParameter("tag", "shared", "shared");
+
+		HttpServletRequest wrapped = FormFilter.getRequestWithBodyFromRequestParameters(request);
+
+		assertThat(readForm(wrapped).get("tag")).containsExactly("shared");
+		assertThat(wrapped.getParameterValues("tag")).containsExactly("shared");
+	}
+
+	@Test
+	void removeOnlyQueryOccurrencesWhenValuesAreRepeated() throws IOException {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setQueryString("tag=shared&tag=shared");
+		request.addParameter("tag", "shared", "shared", "shared", "shared", "shared", "other");
+
+		HttpServletRequest wrapped = FormFilter.getRequestWithBodyFromRequestParameters(request);
+
+		assertThat(readForm(wrapped).get("tag")).containsExactly("shared", "shared", "shared", "other");
+		assertThat(wrapped.getParameterValues("tag")).containsExactly("shared", "shared");
+	}
+
+	@Test
+	void retainOverlappingFormValuesWithDifferentQueryValues() throws IOException {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setQueryString("tag=shared&tag=other&tag=shared");
+		request.addParameter("tag", "shared", "other", "shared", "shared", "form", "other");
+
+		HttpServletRequest wrapped = FormFilter.getRequestWithBodyFromRequestParameters(request);
+
+		assertThat(readForm(wrapped).get("tag")).containsExactly("shared", "form", "other");
+		assertThat(wrapped.getParameterValues("tag")).containsExactly("shared", "other", "shared");
+	}
+
 }
