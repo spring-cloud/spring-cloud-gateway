@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -119,12 +120,10 @@ public class FormFilter implements Filter, Ordered {
 			Map.Entry<String, String[]> entry = entryIterator.next();
 			String name = entry.getKey();
 			List<String> values = Arrays.asList(entry.getValue());
+			List<String> queryValues = new ArrayList<>(queryParams.getOrDefault(name, Collections.emptyList()));
 			for (Iterator<String> valueIterator = values.iterator(); valueIterator.hasNext();) {
 				String value = valueIterator.next();
-				List<String> queryValues = queryParams.get(name);
-				boolean isQueryParam = queryParams.containsKey(name) && queryValues != null
-						&& queryValues.contains(value);
-				if (!isQueryParam) {
+				if (!queryValues.remove(value)) {
 					writer.write(URLEncoder.encode(name, FORM_CHARSET));
 					if (value != null) {
 						writer.write('=');
