@@ -14,3 +14,12 @@ There are additional `*FilterFunctions` classes for optional filters that are do
 
 
 WARNING: Any path defined on a route URI will be ignored.
+
+[[http-client-defaults]]
+== HTTP Client Defaults
+
+Requests are forwarded with the HTTP client that Spring Boot configures through the `spring.http.clients.*` properties.
+Unless you set them yourself, Spring Cloud Gateway Server MVC changes two of the defaults for that client:
+
+* `spring.http.clients.redirects` is set to `dont-follow`, so redirects are returned to the caller instead of being followed by the gateway.
+* `spring.http.clients.cookie-handling` is set to `disable`, so cookies from a proxied response are not stored and sent with later requests to the backend. With cookie handling enabled, clients such as Apache HttpComponents or Jetty would otherwise share those cookies across all callers of the gateway.
