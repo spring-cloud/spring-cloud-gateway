@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Weigher;
 import io.github.bucket4j.BucketConfiguration;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -109,6 +111,17 @@ public class FilterAutoConfiguration {
 		@Bean
 		public TokenRelayFilterFunctions.FilterSupplier tokenRelayFilterFunctionsSupplier() {
 			return new TokenRelayFilterFunctions.FilterSupplier();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass({ Weigher.class, Caffeine.class })
+	static class ResponseCacheFilterConfiguration {
+
+		@Bean
+		public ResponseCacheFilterFunctions.FilterSupplier responseCacheFilterFunctionsSupplier() {
+			return new ResponseCacheFilterFunctions.FilterSupplier();
 		}
 
 	}
