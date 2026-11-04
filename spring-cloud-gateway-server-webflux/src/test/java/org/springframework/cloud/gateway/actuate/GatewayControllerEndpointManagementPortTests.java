@@ -21,15 +21,11 @@ import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.test.PermitAllSecurityConfiguration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -75,13 +71,6 @@ class GatewayControllerEndpointManagementPortTests {
 			.expectBody()
 			.jsonPath("$.message")
 			.isEqualTo(message);
-	}
-
-	@SpringBootConfiguration
-	@EnableAutoConfiguration
-	@Import(PermitAllSecurityConfiguration.class)
-	static class TestConfig {
-
 	}
 
 }
