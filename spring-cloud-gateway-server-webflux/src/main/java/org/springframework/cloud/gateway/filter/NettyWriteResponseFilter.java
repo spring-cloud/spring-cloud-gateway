@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
@@ -34,6 +35,7 @@ import org.springframework.cloud.gateway.filter.headers.TrailerHeadersFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
@@ -114,7 +116,15 @@ public class NettyWriteResponseFilter implements GlobalFilter, Ordered {
 							.inbound()
 							.receive()
 							.retain()
-							.map(byteBuf -> wrap(byteBuf, response));
+							.doOnDiscard(ByteBuf.class, ReferenceCountUtil::safeRelease)
+							.map(byteBuf -> wrap(byteBuf, response))
+							.doOnDiscard(DataBuffer.class, dataBuffer -> {
+								try {
+									DataBufferUtils.release(dataBuffer);
+								}
+								catch (Throwable ignored) {
+								}
+							});
 
 					MediaType contentType = null;
 					try {
