@@ -22,7 +22,6 @@ import java.util.Objects;
 import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
@@ -39,7 +38,6 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.s
  * User Request Rate Limiter filter. See https://stripe.com/blog/rate-limiters and
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34.
  */
-@ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.request-rate-limiter")
 public class RequestRateLimiterGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
 
@@ -54,24 +52,18 @@ public class RequestRateLimiterGatewayFilterFactory
 
 	private final KeyResolver defaultKeyResolver;
 
-	/**
-	 * Switch to deny requests if the Key Resolver returns an empty key, defaults to true.
-	 */
-	private boolean denyEmptyKey = true;
-
-	/** HttpStatus to return when denyEmptyKey is true, defaults to FORBIDDEN. */
-	private String emptyKeyStatusCode = HttpStatus.FORBIDDEN.name();
-
-	/**
-	 * Switch to throw a {@link HttpClientErrorException} when the request is denied by
-	 * the RateLimiter, defaults to false.
-	 */
-	private boolean throwOnLimit = false;
+	private final RequestRateLimiterProperties properties;
 
 	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter, KeyResolver defaultKeyResolver) {
+		this(defaultRateLimiter, defaultKeyResolver, new RequestRateLimiterProperties());
+	}
+
+	public RequestRateLimiterGatewayFilterFactory(RateLimiter defaultRateLimiter, KeyResolver defaultKeyResolver,
+			RequestRateLimiterProperties properties) {
 		super(Config.class);
 		this.defaultRateLimiter = defaultRateLimiter;
 		this.defaultKeyResolver = defaultKeyResolver;
+		this.properties = properties;
 	}
 
 	public KeyResolver getDefaultKeyResolver() {
@@ -82,28 +74,76 @@ public class RequestRateLimiterGatewayFilterFactory
 		return defaultRateLimiter;
 	}
 
+	/**
+	 * The externalized filter properties bound from configuration.
+	 * @return the properties backing this filter factory
+	 */
+	public RequestRateLimiterProperties getProperties() {
+		return properties;
+	}
+
+	/**
+	 * @return whether requests with an empty key are denied
+	 * @deprecated in favor of {@link RequestRateLimiterProperties#isDenyEmptyKey()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public boolean isDenyEmptyKey() {
-		return denyEmptyKey;
+		return properties.isDenyEmptyKey();
 	}
 
+	/**
+	 * @param denyEmptyKey whether requests with an empty key are denied
+	 * @deprecated in favor of
+	 * {@link RequestRateLimiterProperties#setDenyEmptyKey(boolean)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setDenyEmptyKey(boolean denyEmptyKey) {
-		this.denyEmptyKey = denyEmptyKey;
+		properties.setDenyEmptyKey(denyEmptyKey);
 	}
 
+	/**
+	 * @return the status code returned when an empty key is denied
+	 * @deprecated in favor of
+	 * {@link RequestRateLimiterProperties#getEmptyKeyStatusCode()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public String getEmptyKeyStatusCode() {
-		return emptyKeyStatusCode;
+		return properties.getEmptyKeyStatusCode();
 	}
 
+	/**
+	 * @param emptyKeyStatusCode the status code returned when an empty key is denied
+	 * @deprecated in favor of
+	 * {@link RequestRateLimiterProperties#setEmptyKeyStatusCode(String)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setEmptyKeyStatusCode(String emptyKeyStatusCode) {
-		this.emptyKeyStatusCode = emptyKeyStatusCode;
+		properties.setEmptyKeyStatusCode(emptyKeyStatusCode);
 	}
 
+	/**
+	 * @return whether an exception is thrown when the request is rate limited
+	 * @deprecated in favor of {@link RequestRateLimiterProperties#isThrowOnLimit()} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public boolean isThrowOnLimit() {
-		return throwOnLimit;
+		return properties.isThrowOnLimit();
 	}
 
+	/**
+	 * @param throwOnLimit whether an exception is thrown when the request is rate limited
+	 * @deprecated in favor of
+	 * {@link RequestRateLimiterProperties#setThrowOnLimit(boolean)} via
+	 * {@link #getProperties()}
+	 */
+	@Deprecated(since = "5.0.3")
 	public void setThrowOnLimit(boolean throwOnLimit) {
-		this.throwOnLimit = throwOnLimit;
+		properties.setThrowOnLimit(throwOnLimit);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -111,10 +151,10 @@ public class RequestRateLimiterGatewayFilterFactory
 	public GatewayFilter apply(Config config) {
 		KeyResolver resolver = getOrDefault(config.keyResolver, defaultKeyResolver);
 		RateLimiter<Object> limiter = getOrDefault(config.rateLimiter, defaultRateLimiter);
-		boolean denyEmpty = getOrDefault(config.denyEmptyKey, this.denyEmptyKey);
+		boolean denyEmpty = getOrDefault(config.denyEmptyKey, properties.isDenyEmptyKey());
 		HttpStatusHolder emptyKeyStatus = HttpStatusHolder
-			.parse(getOrDefault(config.emptyKeyStatus, this.emptyKeyStatusCode));
-		boolean throwLimit = getOrDefault(config.throwOnLimit, this.throwOnLimit);
+			.parse(getOrDefault(config.emptyKeyStatus, properties.getEmptyKeyStatusCode()));
+		boolean throwLimit = getOrDefault(config.throwOnLimit, properties.isThrowOnLimit());
 
 		return (exchange, chain) -> resolver.resolve(exchange).defaultIfEmpty(EMPTY_KEY).flatMap(key -> {
 			if (EMPTY_KEY.equals(key)) {
