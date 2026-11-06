@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.filter.headers.observation;
 import io.micrometer.observation.Observation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.filter.headers.HttpHeadersFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -40,7 +41,7 @@ public class ObservedResponseHttpHeadersFilter implements HttpHeadersFilter {
 
 	@Override
 	public HttpHeaders filter(HttpHeaders input, ServerWebExchange exchange) {
-		Observation childObservation = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR);
+		Observation childObservation = claimObservation(exchange);
 		if (childObservation == null) {
 			return input;
 		}
@@ -55,8 +56,25 @@ public class ObservedResponseHttpHeadersFilter implements HttpHeadersFilter {
 			}
 		}
 		childObservation.stop();
-		exchange.getAttributes().put(OBSERVATION_STOPPED, "true");
 		return input;
+	}
+
+	/**
+	 * Takes the current client observation off the exchange, so that exactly one caller
+	 * stops it - no matter whether the response, an error, the end of the exchange or a
+	 * retry comes first.
+	 * @param exchange the current exchange
+	 * @return the observation the caller has to stop, or {@code null} if there is none or
+	 * another caller already took it
+	 */
+	static @Nullable Observation claimObservation(ServerWebExchange exchange) {
+		Object attribute = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR);
+		if (attribute instanceof Observation observation
+				&& exchange.getAttributes().remove(ServerWebExchangeUtils.GATEWAY_OBSERVATION_ATTR, observation)) {
+			exchange.getAttributes().put(OBSERVATION_STOPPED, "true");
+			return observation;
+		}
+		return null;
 	}
 
 	@Override
