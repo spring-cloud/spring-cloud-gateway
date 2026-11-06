@@ -34,6 +34,7 @@ import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfig
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.GatewayPropagatingSenderTracingObservationHandler;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingGlobalFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingWebExceptionHandler;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservedRequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservedResponseHttpHeadersFilter;
@@ -83,6 +84,7 @@ public class GatewayMetricsAutoConfigurationTests {
 			assertThat(beanFactory.getBean(ObservedRequestHttpHeadersFilter.class)).isNotNull();
 			assertThat(beanFactory.getBean(ObservedResponseHttpHeadersFilter.class)).isNotNull();
 			assertThat(beanFactory.getBean(ObservationClosingWebExceptionHandler.class)).isNotNull();
+			assertThat(beanFactory.getBean(ObservationClosingGlobalFilter.class)).isNotNull();
 			assertThat(beanFactory.getBean(GatewayPropagatingSenderTracingObservationHandler.class)).isNotNull();
 		}
 
@@ -125,6 +127,8 @@ public class GatewayMetricsAutoConfigurationTests {
 				.isNull();
 			assertThat(
 					beanFactory.getBeanProvider(ObservationClosingWebExceptionHandler.class).getIfAvailable(() -> null))
+				.isNull();
+			assertThat(beanFactory.getBeanProvider(ObservationClosingGlobalFilter.class).getIfAvailable(() -> null))
 				.isNull();
 			assertThat(beanFactory.getBeanProvider(GatewayPropagatingSenderTracingObservationHandler.class)
 				.getIfAvailable(() -> null)).isNull();
