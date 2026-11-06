@@ -20,22 +20,29 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractNameValueGatewayFilterFactory.NameValueConfig;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.test.BaseWebClientTests;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,6 +79,42 @@ public class AddRequestParameterGatewayFilterFactoryTests extends BaseWebClientT
 	public void addRequestParameterFilterWorksEncodedPathSegmentJavaDsl() {
 		testRequestParameterFilter("www.addreqparamjavaencodedsegment.org", "/anything/test%20", "ValueB-www",
 				"javaname", "%E6%89%8E%E6%A0%B9");
+	}
+
+	@Test
+	public void addRequestParameterEncodesNewValue() {
+		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory()
+			.apply(new NameValueConfig().setName("tag").setValue("a&b"));
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.method(HttpMethod.GET, URI.create("http://localhost/get")).build());
+
+		filter.filter(exchange, current -> {
+			assertThat(current.getRequest().getURI().getRawQuery()).isEqualTo("tag=a%26b");
+			assertThat(current.getRequest().getQueryParams().getFirst("tag")).isEqualTo("a&b");
+			return Mono.empty();
+		}).block();
+	}
+
+	@Test
+	public void addRequestParameterEncodesNewParamWithoutDoubleEncodingExistingParams() {
+		GatewayFilter filter = new AddRequestParameterGatewayFilterFactory()
+			.apply(new NameValueConfig().setName("new[]").setValue("a b&c+%"));
+		ServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.method(HttpMethod.GET, URI.create("http://localhost/a%20b?old=a%2Fb")).build());
+		AtomicReference<ServerWebExchange> filteredExchange = new AtomicReference<>();
+		GatewayFilterChain chain = current -> {
+			filteredExchange.set(current);
+			return Mono.empty();
+		};
+
+		filter.filter(exchange, chain).block();
+		assertThat(filteredExchange.get().getRequest().getURI().getRawQuery())
+			.isEqualTo("old=a%2Fb&new%5B%5D=a%20b%26c%2B%25");
+
+		filter.filter(filteredExchange.get(), chain).block();
+		assertThat(filteredExchange.get().getRequest().getURI().getRawPath()).isEqualTo("/a%20b");
+		assertThat(filteredExchange.get().getRequest().getURI().getRawQuery())
+			.isEqualTo("old=a%2Fb&new%5B%5D=a%20b%26c%2B%25&new%5B%5D=a%20b%26c%2B%25");
 	}
 
 	private void testRequestParameterFilter(String name, String value) {

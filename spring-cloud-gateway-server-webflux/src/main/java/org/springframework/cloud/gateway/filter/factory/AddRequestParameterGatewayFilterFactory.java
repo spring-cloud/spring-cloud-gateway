@@ -25,12 +25,13 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.util.StringUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
+import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 /**
  * @author Spencer Gibb
@@ -44,36 +45,26 @@ public class AddRequestParameterGatewayFilterFactory extends AbstractNameValueGa
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				String name = Objects.requireNonNull(config.getName(), "name must not be null");
 				String rawValue = Objects.requireNonNull(config.getValue(), "value must not be null");
-				URI uri = exchange.getRequest().getURI();
-				StringBuilder query = new StringBuilder();
-				String originalQuery = uri.getRawQuery();
-
-				if (StringUtils.hasText(originalQuery)) {
-					query.append(originalQuery);
-					if (originalQuery.charAt(originalQuery.length() - 1) != '&') {
-						query.append('&');
-					}
-				}
-
+				ServerHttpRequest request = exchange.getRequest();
+				MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+				queryParams.addAll(request.getQueryParams());
 				String value = ServerWebExchangeUtils.expand(exchange, rawValue);
-				// TODO urlencode?
-				query.append(name);
-				query.append('=');
-				query.append(value);
+				queryParams.add(name, value);
 
-				boolean encoded = containsEncodedParts(uri);
 				try {
-					URI newUri = UriComponentsBuilder.fromUri(uri)
-						.replaceQuery(query.toString())
-						.build(encoded)
+					MultiValueMap<String, String> encodedQueryParams = ServerWebExchangeUtils
+						.encodeQueryParams(queryParams);
+					URI newUri = UriComponentsBuilder.fromUri(request.getURI())
+						.replaceQueryParams(unmodifiableMultiValueMap(encodedQueryParams))
+						.build(true)
 						.toUri();
 
-					ServerHttpRequest request = exchange.getRequest().mutate().uri(newUri).build();
+					ServerHttpRequest updatedRequest = request.mutate().uri(newUri).build();
 
-					return chain.filter(exchange.mutate().request(request).build());
+					return chain.filter(exchange.mutate().request(updatedRequest).build());
 				}
-				catch (RuntimeException ex) {
-					throw new IllegalStateException("Invalid URI query: \"" + query.toString() + "\"");
+				catch (IllegalArgumentException ex) {
+					throw new IllegalStateException("Invalid URI query: \"" + queryParams + "\"", ex);
 				}
 			}
 
