@@ -67,7 +67,7 @@ public abstract class RetryFilterFunctions {
 				: FrameworkRetryFilterFunctions.frameworkRetry(configConsumer);
 	}
 
-	@Shortcut({ "retries", "series", "methods" })
+	@Shortcut({ "retries", "statuses", "methods" })
 	@Configurable
 	@SuppressWarnings("deprecation")
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
@@ -108,6 +108,8 @@ public abstract class RetryFilterFunctions {
 
 		private Set<HttpStatus.Series> series = new HashSet<>(List.of(HttpStatus.Series.SERVER_ERROR));
 
+		private Set<HttpStatus> statuses = new HashSet<>();
+
 		private Set<Class<? extends Throwable>> exceptions = new HashSet<>(
 				List.of(IOException.class, TimeoutException.class, RetryException.class));
 
@@ -137,6 +139,20 @@ public abstract class RetryFilterFunctions {
 
 		public RetryConfig addSeries(HttpStatus.Series... series) {
 			this.series.addAll(Arrays.asList(series));
+			return this;
+		}
+
+		public Set<HttpStatus> getStatuses() {
+			return statuses;
+		}
+
+		public RetryConfig setStatuses(Set<HttpStatus> statuses) {
+			this.statuses = statuses;
+			return this;
+		}
+
+		public RetryConfig addStatuses(HttpStatus... statuses) {
+			this.statuses.addAll(Arrays.asList(statuses));
 			return this;
 		}
 

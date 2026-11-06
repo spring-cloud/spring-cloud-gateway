@@ -92,7 +92,9 @@ public abstract class FrameworkRetryFilterFunctions {
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryFilterFunctions.RetryConfig config) {
-		return config.getSeries().stream().anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
+		return config.getStatuses().contains(httpStatus) || config.getSeries()
+			.stream()
+			.anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
 	}
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryFilterFunctions.RetryConfig config) {

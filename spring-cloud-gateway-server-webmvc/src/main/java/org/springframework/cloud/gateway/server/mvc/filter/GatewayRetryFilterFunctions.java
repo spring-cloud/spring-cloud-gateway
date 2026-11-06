@@ -102,7 +102,9 @@ public abstract class GatewayRetryFilterFunctions {
 	}
 
 	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
-		return config.getSeries().stream().anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
+		return config.getStatuses().contains(httpStatus) || config.getSeries()
+			.stream()
+			.anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
 	}
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryConfig config) {
