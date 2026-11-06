@@ -1,0 +1,41 @@
+spring.cloud.gateway.server.webmvc:
+  routes:
+    - id: cors_route_allowed
+      uri: no://op
+      predicates:
+        - Path=/cors-allowed/**
+      filters:
+        - HttpbinUriResolver=
+        - SetPath=/anything/cors
+        - RemoveResponseHeader=Access-Control-Allow-Origin
+        - RemoveResponseHeader=Access-Control-Allow-Credentials
+      metadata:
+        cors:
+          allowedOrigins: "https://domain.com"
+          allowedMethods:
+            - GET
+            - POST
+          allowCredentials: true
+          maxAge: 30
+          allowedHeaders: "X-Custom-Request-Header"
+          exposedHeaders: "X-Custom-Exposed-Header"
+    - id: no_cors_route
+      uri: no://op
+      predicates:
+        - Path=/no-cors/**
+      filters:
+        - HttpbinUriResolver=
+        - SetPath=/anything/no-cors
+        - RemoveResponseHeader=Access-Control-Allow-Origin
+        - RemoveResponseHeader=Access-Control-Allow-Credentials
+    - id: cors_route_pattern
+      uri: no://op
+      predicates:
+        - Path=/cors-pattern/**
+      filters:
+        - HttpbinUriResolver=
+        - SetPath=/anything/cors-pattern
+        - RemoveResponseHeader=Access-Control-Allow-Origin
+      metadata:
+        cors:
+          allowedOriginPatterns: "https://*.spring.io"
