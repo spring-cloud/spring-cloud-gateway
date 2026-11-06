@@ -2,7 +2,7 @@
 = `RewriteLocationResponseHeader` Filter
 
 The `RewriteLocationResponseHeader` filter modifies the value of the `Location` response header, usually to get rid of backend-specific details.
-It takes the `stripVersionMode`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters.
+It takes the `stripVersion`, `locationHeaderName`, `hostValue`, and `protocolsRegex` parameters, all of which are optional.
 The following listing configures a `RewriteLocationResponseHeader` filter:
 
 .application.yml
@@ -20,6 +20,29 @@ spring:
               - Path=/**
               filters:
               - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+----
+
+Trailing parameters may be left empty or omitted entirely, in which case their defaults apply.
+Parameters can also be set by name, which lets you skip any of them:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: rewritelocationresponseheader_route
+              uri: http://example.org
+              predicates:
+              - Path=/**
+              filters:
+              - name: RewriteLocationResponseHeader
+                args:
+                  stripVersion: ALWAYS_STRIP
+                  hostValue: api.example.com
 ----
 
 .GatewaySampleApplication.java
@@ -50,7 +73,7 @@ class RouteConfiguration {
 
 For example, for a request of `POST https://api.example.com/some/object/name`, the `Location` response header value of `https://object-service.prod.example.net/v2/some/object/id` is rewritten as `https://api.example.com/some/object/id`.
 
-The `stripVersionMode` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
+The `stripVersion` parameter has the following possible values: `NEVER_STRIP`, `AS_IN_REQUEST` (default), and `ALWAYS_STRIP`.
 
 * `NEVER_STRIP`: The version is not stripped, even if the original request path contains no version.
 * `AS_IN_REQUEST`: The version is stripped only if the original request path contains no version.
