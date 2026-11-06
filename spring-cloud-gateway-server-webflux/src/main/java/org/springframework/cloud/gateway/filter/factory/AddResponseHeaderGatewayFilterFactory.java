@@ -81,7 +81,7 @@ public class AddResponseHeaderGatewayFilterFactory extends AbstractNameValueGate
 	}
 
 	void addHeader(ServerWebExchange exchange, NameValueConfig config) {
-		// if response has been commited, no more response headers will bee added.
+		// if response has been committed, no more response headers will bee added.
 		if (!exchange.getResponse().isCommitted()) {
 			String name = Objects.requireNonNull(config.getName(), "name must not be null");
 			String rawValue = Objects.requireNonNull(config.getValue(), "value must not be null");
