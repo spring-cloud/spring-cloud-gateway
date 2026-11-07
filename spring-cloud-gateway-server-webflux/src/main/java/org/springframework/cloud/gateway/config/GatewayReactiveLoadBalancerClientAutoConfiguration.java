@@ -22,9 +22,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledFilter;
 import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.filter.LoadBalancerServiceInstanceCookieFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
+import org.springframework.cloud.gateway.filter.WebSessionStickyLoadBalancerFilter;
+import org.springframework.cloud.gateway.filter.factory.WebSessionStickyGatewayFilterFactory;
 import org.springframework.cloud.loadbalancer.config.LoadBalancerAutoConfiguration;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
@@ -36,6 +39,7 @@ import org.springframework.web.reactive.DispatcherHandler;
  *
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
+ * @author Beteab Gebru
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass({ ReactiveLoadBalancer.class, LoadBalancerAutoConfiguration.class, DispatcherHandler.class })
@@ -59,6 +63,23 @@ public class GatewayReactiveLoadBalancerClientAutoConfiguration {
 	public LoadBalancerServiceInstanceCookieFilter loadBalancerServiceInstanceCookieFilter(
 			LoadBalancerClientFactory loadBalancerClientFactory) {
 		return new LoadBalancerServiceInstanceCookieFilter(loadBalancerClientFactory);
+	}
+
+	@Bean
+	@ConditionalOnBean(LoadBalancerClientFactory.class)
+	@ConditionalOnMissingBean(WebSessionStickyLoadBalancerFilter.class)
+	@ConditionalOnEnabledGlobalFilter(WebSessionStickyLoadBalancerFilter.class)
+	public WebSessionStickyLoadBalancerFilter webSessionStickyLoadBalancerFilter(
+			LoadBalancerClientFactory clientFactory) {
+		return new WebSessionStickyLoadBalancerFilter(clientFactory);
+	}
+
+	@Bean
+	@ConditionalOnBean(LoadBalancerClientFactory.class)
+	@ConditionalOnMissingBean(WebSessionStickyGatewayFilterFactory.class)
+	@ConditionalOnEnabledFilter(WebSessionStickyGatewayFilterFactory.class)
+	public WebSessionStickyGatewayFilterFactory webSessionStickyGatewayFilterFactory() {
+		return new WebSessionStickyGatewayFilterFactory();
 	}
 
 }
