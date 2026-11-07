@@ -18,6 +18,8 @@ package org.springframework.cloud.gateway.handler;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,6 +40,30 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(OutputCaptureExtension.class)
 public class RoutePredicateHandlerMappingTests {
+
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void lookupRouteSkipsRouteWhenAnySynchronousPredicateFails(boolean useOr, CapturedOutput capturedOutput) {
+		AsyncPredicate<ServerWebExchange> failingPredicate = AsyncPredicate.from(swe -> {
+			throw new IllegalStateException("boom");
+		});
+		AsyncPredicate<ServerWebExchange> failingSecondPredicate = useOr
+				? AsyncPredicate.from(swe -> false).or(failingPredicate)
+				: AsyncPredicate.from(swe -> true).and(AsyncPredicate.from(swe -> true)).and(failingPredicate);
+		Route routeFail = Route.async()
+			.id("routeFail")
+			.uri("http://localhost")
+			.asyncPredicate(failingSecondPredicate)
+			.build();
+		Route routeTrue = Route.async().id("routeTrue").uri("http://localhost").predicate(swe -> true).build();
+		RoutePredicateHandlerMapping mapping = new RoutePredicateHandlerMapping(null,
+				() -> Flux.just(routeFail, routeTrue).hide(), new GlobalCorsProperties(), new MockEnvironment());
+
+		final Mono<Route> routeMono = mapping.lookupRoute(Mockito.mock(ServerWebExchange.class));
+
+		StepVerifier.create(routeMono.map(Route::getId)).expectNext("routeTrue").verifyComplete();
+		assertThat(capturedOutput.getOut()).contains("Error applying predicate for route: routeFail");
+	}
 
 	@Test
 	public void lookupRouteFromSyncPredicates(CapturedOutput capturedOutput) {
