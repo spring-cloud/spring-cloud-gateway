@@ -34,7 +34,7 @@ spring.cloud.gateway.server.webmvc:
         - HttpbinUriResolver=
         - TokenRelay
         - AddRequestHeader=X-Test,listRoute2
-        - Retry=3,TOO_MANY_REQUESTS,GET
+        - Retry=3,SERVER_ERROR
     - id: listRoute3
       uri: lb://httpbin
       predicates:

@@ -28,8 +28,6 @@ import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.
 import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.RetryConfig;
 import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.RetryException;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
@@ -84,7 +82,7 @@ public abstract class GatewayRetryFilterFunctions {
 			reset(request);
 			ServerResponse serverResponse = next.handle(request);
 
-			if (isRetryableStatusCode(serverResponse.statusCode(), config)
+			if (config.isRetryableStatusCode(serverResponse.statusCode())
 					&& isRetryableMethod(request.method(), config)) {
 				// use this to transfer information to HttpStatusRetryPolicy
 				throw new RetryException(request, serverResponse);
@@ -99,12 +97,6 @@ public abstract class GatewayRetryFilterFunctions {
 			clientHttpResponse.close();
 			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR, null);
 		}
-	}
-
-	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryConfig config) {
-		return config.getStatuses().contains(httpStatus) || config.getSeries()
-			.stream()
-			.anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
 	}
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryConfig config) {
@@ -140,7 +132,7 @@ public abstract class GatewayRetryFilterFunctions {
 		public boolean canRetry(RetryContext context) {
 			// TODO: custom exception
 			if (context.getLastThrowable() instanceof RetryException e) {
-				return isRetryableStatusCode(e.getResponse().statusCode(), config)
+				return config.isRetryableStatusCode(e.getResponse().statusCode())
 						&& isRetryableMethod(e.getRequest().method(), config);
 			}
 			return super.canRetry(context);

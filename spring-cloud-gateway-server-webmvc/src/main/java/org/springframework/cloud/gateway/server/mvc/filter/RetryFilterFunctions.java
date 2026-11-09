@@ -36,6 +36,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -67,7 +68,7 @@ public abstract class RetryFilterFunctions {
 				: FrameworkRetryFilterFunctions.frameworkRetry(configConsumer);
 	}
 
-	@Shortcut({ "retries", "statuses", "methods" })
+	@Shortcut({ "retries", "series", "methods" })
 	@Configurable
 	@SuppressWarnings("deprecation")
 	public static HandlerFilterFunction<ServerResponse, ServerResponse> retry(RetryConfig config) {
@@ -154,6 +155,11 @@ public abstract class RetryFilterFunctions {
 		public RetryConfig addStatuses(HttpStatus... statuses) {
 			this.statuses.addAll(Arrays.asList(statuses));
 			return this;
+		}
+
+		boolean isRetryableStatusCode(HttpStatusCode status) {
+			return this.statuses.contains(status)
+					|| this.series.stream().anyMatch(series -> HttpStatus.Series.resolve(status.value()) == series);
 		}
 
 		public Set<Class<? extends Throwable>> getExceptions() {
