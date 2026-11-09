@@ -2271,7 +2271,7 @@
     {
       "name": "spring.cloud.gateway.set-status.original-status-header-name",
       "type": "java.lang.String",
-      "description": "The name of the header which contains http code of the proxied request.",
+      "description": "The name of the header which contains the original HTTP status code of the proxied response.",
       "sourceType": "org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory",
       "deprecated": true,
       "deprecation": {

@@ -27,7 +27,7 @@ spring:
 
 In either case, the HTTP status of the response is set to 401.
 
-You can configure the `SetStatus` `GatewayFilter` to return the original HTTP status code from the proxied request in a header in the response.
+You can configure the `SetStatus` `GatewayFilter` to return the original HTTP status code from the proxied response in a header in the response.
 The header is added to the response if configured with the following property:
 
 .application.yml
@@ -36,7 +36,9 @@ The header is added to the response if configured with the following property:
 spring:
   cloud:
     gateway:
-      set-status:
-        original-status-header-name: original-http-status
+      server:
+        webflux:
+          set-status:
+            original-status-header-name: original-http-status
 ----
 

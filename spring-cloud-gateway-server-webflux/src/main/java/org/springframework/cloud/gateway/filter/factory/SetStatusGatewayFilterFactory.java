@@ -46,7 +46,8 @@ public class SetStatusGatewayFilterFactory extends AbstractGatewayFilterFactory<
 	public static final String STATUS_KEY = "status";
 
 	/**
-	 * The name of the header which contains http code of the proxied request.
+	 * The name of the header which contains the original HTTP status code of the
+	 * proxied response.
 	 */
 	private @Nullable String originalStatusHeaderName;
 
