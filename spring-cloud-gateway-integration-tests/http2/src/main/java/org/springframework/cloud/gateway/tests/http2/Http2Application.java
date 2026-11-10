@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.tests.http2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,6 +33,7 @@ import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSupplie
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -50,6 +52,11 @@ public class Http2Application {
 	@GetMapping("hello")
 	public String hello() {
 		return "Hello";
+	}
+
+	@GetMapping("data")
+	public String getData(@RequestParam(name = "size", defaultValue = "5000", required = true) Integer size) {
+		return StringUtils.repeat("a", size);
 	}
 
 	@Bean
