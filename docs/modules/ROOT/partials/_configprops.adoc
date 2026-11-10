@@ -151,7 +151,7 @@
 |spring.cloud.gateway.server.webflux.route-filter-cache-enabled | `+++false+++` | Enables the route filter cache, defaults to false.
 |spring.cloud.gateway.server.webflux.route-refresh-listener.enabled | `+++true+++` | If RouteRefreshListener should be turned on.
 |spring.cloud.gateway.server.webflux.routes |  | List of Routes.
-|spring.cloud.gateway.server.webflux.set-status.original-status-header-name |  | The name of the header which contains http code of the proxied request.
+|spring.cloud.gateway.server.webflux.set-status.original-status-header-name |  | The name of the header which contains the original HTTP status code of the proxied response.
 |spring.cloud.gateway.server.webflux.streaming-media-types |  | 
 |spring.cloud.gateway.server.webflux.trusted-proxies |  | Regular expression defining proxies that are trusted when they appear in a Forwarded or X-Forwarded header.
 |spring.cloud.gateway.server.webflux.version.default-version |  | The defaultVersion.
