@@ -48,14 +48,12 @@ public class RouteProperties {
 	 * List of predicates for matching the Route.
 	 */
 	@NotEmpty
-	@Valid
-	private List<PredicateProperties> predicates = new ArrayList<>();
+	private List<@Valid PredicateProperties> predicates = new ArrayList<>();
 
 	/**
 	 * List of filters to be applied to the Route.
 	 */
-	@Valid
-	private List<FilterProperties> filters = new ArrayList<>();
+	private List<@Valid FilterProperties> filters = new ArrayList<>();
 
 	/**
 	 * The destination URI.
