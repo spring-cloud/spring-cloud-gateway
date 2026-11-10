@@ -54,7 +54,7 @@ public class GatewayHttpTagsProvider implements GatewayTagsProvider {
 			}
 		}
 
-		return Tags.of("outcome", outcome, "status", status, "httpStatusCode", httpStatusCodeStr, "httpMethod",
+		return Tags.of("outcome", outcome, "status", status, "http.status.code", httpStatusCodeStr, "http.method",
 				httpMethod);
 	}
 
