@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -39,67 +39,93 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class AsyncPredicateTest {
 
-	@Test
-	public void andOfSynchronousPredicatesIsSynchronous() {
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void synchronousCompositionPreservesOrderAndShortCircuiting(boolean useOr) {
 		List<Integer> tested = new ArrayList<>();
-		AsyncPredicate<Object> predicate = new DefaultAsyncPredicate<>(o -> tested.add(0))
-			.and(new DefaultAsyncPredicate<>(o -> !tested.add(1)))
-			.and(new DefaultAsyncPredicate<>(o -> tested.add(2)));
+		AsyncPredicate<Object> left = new DefaultAsyncPredicate<>(o -> {
+			tested.add(0);
+			return !useOr;
+		});
+		AsyncPredicate<Object> right = new DefaultAsyncPredicate<>(o -> {
+			tested.add(1);
+			return useOr;
+		});
+		AsyncPredicate<Object> skipped = new DefaultAsyncPredicate<>(o -> tested.add(2));
+		AsyncPredicate<Object> predicate = useOr ? left.or(right).or(skipped) : left.and(right).and(skipped);
 
 		assertThat(predicate).isExactlyInstanceOf(DefaultAsyncPredicate.class);
-		StepVerifier.create(predicate.apply(new Object())).expectNext(false).verifyComplete();
+		StepVerifier.create(predicate.apply(new Object())).expectNext(useOr).verifyComplete();
 		assertThat(tested).containsExactly(0, 1);
 	}
 
-	@Test
-	public void andOfSynchronousPredicatesKeepsDescriptionAndVisitedNodes() {
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void synchronousCompositionKeepsDescriptionAndVisitedNodes(boolean useOr) {
 		GatewayPredicate left = new NamedGatewayPredicate("left");
 		GatewayPredicate right = new NamedGatewayPredicate("right");
-		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate.from(left).and(AsyncPredicate.from(right));
+		AsyncPredicate<ServerWebExchange> predicate = useOr ? AsyncPredicate.from(left).or(AsyncPredicate.from(right))
+				: AsyncPredicate.from(left).and(AsyncPredicate.from(right));
 		List<HasConfig> visited = new ArrayList<>();
 
 		predicate.accept(visited::add);
 
-		assertThat(predicate).hasToString("(left && right)");
+		assertThat(predicate).isExactlyInstanceOf(DefaultAsyncPredicate.class);
+		assertThat(predicate).hasToString(useOr ? "(left || right)" : "(left && right)");
 		assertThat(visited).containsExactly(left, right);
 	}
 
-	@Test
-	public void andOfMixedPredicateDelegatesKeepsVisitedNodes() {
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void mixedPredicateDelegatesKeepVisitedNodes(boolean useOr) {
 		GatewayPredicate gateway = new NamedGatewayPredicate("gateway");
-		AsyncPredicate<ServerWebExchange> plain = new DefaultAsyncPredicate<>(exchange -> true);
+		AsyncPredicate<ServerWebExchange> plain = new DefaultAsyncPredicate<>(exchange -> !useOr);
 		AsyncPredicate<ServerWebExchange> wrapped = AsyncPredicate.from(gateway);
+		List<AsyncPredicate<ServerWebExchange>> predicates = useOr ? List.of(plain.or(wrapped), wrapped.or(plain))
+				: List.of(plain.and(wrapped), wrapped.and(plain));
 
-		for (AsyncPredicate<ServerWebExchange> predicate : List.of(plain.and(wrapped), wrapped.and(plain))) {
+		for (AsyncPredicate<ServerWebExchange> predicate : predicates) {
 			List<HasConfig> visited = new ArrayList<>();
 			predicate.accept(visited::add);
 
-			assertThat(predicate).isExactlyInstanceOf(AndAsyncPredicate.class);
+			assertThat(predicate).isExactlyInstanceOf(useOr ? OrAsyncPredicate.class : AndAsyncPredicate.class);
 			assertThat(visited).containsExactly(gateway);
 			StepVerifier.create(predicate.apply(null)).expectNext(true).verifyComplete();
 		}
 	}
 
-	@Test
-	public void andWithAsynchronousPredicateStaysAsynchronous() {
-		AsyncPredicate<Object> predicate = new DefaultAsyncPredicate<>(o -> true).and(o -> Mono.just(false));
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void compositionWithAsynchronousPredicateStaysDeferred(boolean useOr) {
+		List<Integer> tested = new ArrayList<>();
+		AsyncPredicate<Object> synchronous = new DefaultAsyncPredicate<>(o -> !useOr);
+		AsyncPredicate<Object> asynchronous = o -> Mono.fromSupplier(() -> tested.add(0));
+		AsyncPredicate<Object> predicate = useOr ? synchronous.or(asynchronous) : synchronous.and(asynchronous);
 
-		assertThat(predicate).isExactlyInstanceOf(AndAsyncPredicate.class);
-		StepVerifier.create(predicate.apply(new Object())).expectNext(false).verifyComplete();
+		assertThat(predicate).isExactlyInstanceOf(useOr ? OrAsyncPredicate.class : AndAsyncPredicate.class);
+		Publisher<Boolean> result = predicate.apply(new Object());
+		assertThat(tested).isEmpty();
+		StepVerifier.create(result).expectNext(true).verifyComplete();
+		assertThat(tested).containsExactly(0);
 	}
 
-	@Test
-	public void andDoesNotBypassOverriddenApply() {
-		AsyncPredicate<Object> overridden = new DefaultAsyncPredicate<>(o -> true) {
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
+	public void compositionDoesNotBypassOverriddenApply(boolean useOr) {
+		AsyncPredicate<Object> overridden = new DefaultAsyncPredicate<>(o -> !useOr) {
 			@Override
 			public Publisher<Boolean> apply(Object o) {
-				return Mono.just(false);
+				return Mono.just(useOr);
 			}
 		};
-		AsyncPredicate<Object> synchronous = new DefaultAsyncPredicate<>(o -> true);
+		AsyncPredicate<Object> synchronous = new DefaultAsyncPredicate<>(o -> !useOr);
+		List<AsyncPredicate<Object>> predicates = useOr
+				? List.of(synchronous.or(overridden), overridden.or(synchronous))
+				: List.of(synchronous.and(overridden), overridden.and(synchronous));
 
-		StepVerifier.create(synchronous.and(overridden).apply(new Object())).expectNext(false).verifyComplete();
-		StepVerifier.create(overridden.and(synchronous).apply(new Object())).expectNext(false).verifyComplete();
+		for (AsyncPredicate<Object> predicate : predicates) {
+			StepVerifier.create(predicate.apply(new Object())).expectNext(useOr).verifyComplete();
+		}
 	}
 
 	@Test
@@ -124,105 +150,6 @@ public class AsyncPredicateTest {
 
 		left.assertTested();
 		right.assertTested();
-	}
-
-	@ParameterizedTest
-	@CsvSource({ "false, false, false", "false, true, true", "true, false, true", "true, true, true" })
-	public void orOfSynchronousPredicatesIsSynchronous(boolean leftResult, boolean rightResult, boolean expected) {
-		List<Integer> tested = new ArrayList<>();
-		AsyncPredicate<Object> left = new DefaultAsyncPredicate<>(o -> {
-			tested.add(0);
-			return leftResult;
-		});
-		AsyncPredicate<Object> right = new DefaultAsyncPredicate<>(o -> {
-			tested.add(1);
-			return rightResult;
-		});
-		AsyncPredicate<Object> predicate = left.or(right);
-
-		assertThat(predicate).isExactlyInstanceOf(DefaultAsyncPredicate.class);
-		Publisher<Boolean> result = predicate.apply(new Object());
-		assertThat(tested).containsExactlyElementsOf(leftResult ? List.of(0) : List.of(0, 1));
-		StepVerifier.create(result).expectNext(expected).verifyComplete();
-	}
-
-	@Test
-	public void orChainOfSynchronousPredicatesIsSynchronous() {
-		List<Integer> tested = new ArrayList<>();
-		AsyncPredicate<Object> predicate = new DefaultAsyncPredicate<>(o -> !tested.add(0))
-			.or(new DefaultAsyncPredicate<>(o -> tested.add(1)))
-			.or(new DefaultAsyncPredicate<>(o -> tested.add(2)));
-
-		assertThat(predicate).isExactlyInstanceOf(DefaultAsyncPredicate.class);
-		StepVerifier.create(predicate.apply(new Object())).expectNext(true).verifyComplete();
-		assertThat(tested).containsExactly(0, 1);
-	}
-
-	@Test
-	public void orOfSynchronousPredicatesKeepsDescriptionAndVisitedNodes() {
-		GatewayPredicate left = new NamedGatewayPredicate("left");
-		GatewayPredicate right = new NamedGatewayPredicate("right");
-		AsyncPredicate<ServerWebExchange> predicate = AsyncPredicate.from(left).or(AsyncPredicate.from(right));
-		List<HasConfig> visited = new ArrayList<>();
-
-		predicate.accept(visited::add);
-
-		assertThat(predicate).hasToString("(left || right)");
-		assertThat(visited).containsExactly(left, right);
-	}
-
-	@Test
-	public void orOfMixedPredicateDelegatesKeepsVisitedNodes() {
-		GatewayPredicate gateway = new NamedGatewayPredicate("gateway");
-		AsyncPredicate<ServerWebExchange> plain = new DefaultAsyncPredicate<>(exchange -> false);
-		AsyncPredicate<ServerWebExchange> wrapped = AsyncPredicate.from(gateway);
-
-		for (AsyncPredicate<ServerWebExchange> predicate : List.of(plain.or(wrapped), wrapped.or(plain))) {
-			List<HasConfig> visited = new ArrayList<>();
-			predicate.accept(visited::add);
-
-			assertThat(predicate).isExactlyInstanceOf(OrAsyncPredicate.class);
-			assertThat(visited).containsExactly(gateway);
-			StepVerifier.create(predicate.apply(null)).expectNext(true).verifyComplete();
-		}
-	}
-
-	@Test
-	public void orWithAsynchronousPredicateStaysAsynchronous() {
-		List<Integer> tested = new ArrayList<>();
-		AsyncPredicate<Object> synchronousFalse = new DefaultAsyncPredicate<>(o -> false);
-		AsyncPredicate<Object> asynchronousTrue = o -> Mono.defer(() -> Mono.just(tested.add(0)));
-		AsyncPredicate<Object> predicate = synchronousFalse.or(asynchronousTrue);
-
-		assertThat(predicate).isExactlyInstanceOf(OrAsyncPredicate.class);
-		Publisher<Boolean> result = predicate.apply(new Object());
-		assertThat(tested).isEmpty();
-		StepVerifier.create(result).expectNext(true).verifyComplete();
-		assertThat(tested).containsExactly(0);
-
-		AsyncPredicate<Object> asynchronousFalse = o -> Mono.defer(() -> Mono.just(false));
-		predicate = asynchronousFalse.or(new DefaultAsyncPredicate<>(o -> tested.add(1)));
-		assertThat(predicate).isExactlyInstanceOf(OrAsyncPredicate.class);
-		result = predicate.apply(new Object());
-		assertThat(tested).containsExactly(0);
-		StepVerifier.create(result).expectNext(true).verifyComplete();
-		assertThat(tested).containsExactly(0, 1);
-	}
-
-	@Test
-	public void orDoesNotBypassOverriddenApply() {
-		AsyncPredicate<Object> overridden = new DefaultAsyncPredicate<>(o -> false) {
-			@Override
-			public Publisher<Boolean> apply(Object o) {
-				return Mono.just(true);
-			}
-		};
-		AsyncPredicate<Object> synchronous = new DefaultAsyncPredicate<>(o -> false);
-
-		assertThat(synchronous.or(overridden)).isExactlyInstanceOf(OrAsyncPredicate.class);
-		assertThat(overridden.or(synchronous)).isExactlyInstanceOf(OrAsyncPredicate.class);
-		StepVerifier.create(synchronous.or(overridden).apply(new Object())).expectNext(true).verifyComplete();
-		StepVerifier.create(overridden.or(synchronous).apply(new Object())).expectNext(true).verifyComplete();
 	}
 
 	@Test
