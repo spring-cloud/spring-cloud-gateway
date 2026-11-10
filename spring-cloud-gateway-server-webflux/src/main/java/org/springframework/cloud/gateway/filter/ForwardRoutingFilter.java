@@ -30,6 +30,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.handle;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 
@@ -72,6 +73,9 @@ public class ForwardRoutingFilter implements GlobalFilter, Ordered {
 		if (log.isTraceEnabled()) {
 			log.trace("Forwarding to URI: " + requestUrl);
 		}
+
+		addOriginalRequestUrl(exchange, exchange.getRequest().getURI());
+
 		DispatcherHandler handler = getDispatcherHandler();
 		Objects.requireNonNull(handler, "DispatcherHandler must not be null");
 		return handle(handler, exchange);
