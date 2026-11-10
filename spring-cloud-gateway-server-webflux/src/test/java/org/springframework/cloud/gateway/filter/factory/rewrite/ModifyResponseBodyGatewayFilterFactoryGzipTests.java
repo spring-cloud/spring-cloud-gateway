@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.filter.factory.rewrite;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,20 @@ class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests
 			.json("{\"length\":25,\"value\":\"\\\"httpbin compatible home\\\"\"}");
 	}
 
+	@Test
+	void testModificationOfResponseBodyBytes() {
+		URI uri = UriComponentsBuilder.fromUriString(this.baseUri + "/gzip-byte").build(true).toUri();
+
+		testClient.get()
+				.uri(uri)
+				.header("Host", "www.modifyresponsebodyjava.org")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectBody()
+				// Expected: the original data ("httpbin compatible home") should be correctly included as a JSON value
+				.json("{\"is_byte\":true,\"original\":\"httpbin compatible home\"}");
+	}
+
 	@EnableAutoConfiguration
 	@SpringBootConfiguration
 	@Import(DefaultTestConfig.class)
@@ -74,6 +89,15 @@ class ModifyResponseBodyGatewayFilterFactoryGzipTests extends BaseWebClientTests
 						modifiedResponse.put("value", originalResponse);
 						modifiedResponse.put("length", originalResponse.length());
 						return Mono.just(modifiedResponse);
+					}))
+					.uri(uri))
+				.route("modify_response_java_test_gzip_byte", r -> r.path("/gzip-byte")
+					.and()
+					.host("www.modifyresponsebodyjava.org")
+					.filters(f -> f.setPath("/gzip").modifyResponseBody(byte[].class, byte[].class, (webExchange, originalResponse) -> {
+						String s = new String(originalResponse, StandardCharsets.UTF_8);
+						String modified = "{\"is_byte\":true,\"original\":" + s + "}";
+						return Mono.just(modified.getBytes(StandardCharsets.UTF_8));
 					}))
 					.uri(uri))
 				.build();
