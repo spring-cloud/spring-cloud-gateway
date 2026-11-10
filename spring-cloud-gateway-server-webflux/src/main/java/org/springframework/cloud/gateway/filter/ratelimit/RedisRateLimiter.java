@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -139,7 +140,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 * @param defaultBurstCapacity how many tokens the bucket can hold in token-bucket
 	 * algorithm.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity) {
+	public RedisRateLimiter(double defaultReplenishRate, long defaultBurstCapacity) {
 		super(Config.class, CONFIGURATION_PROPERTY_NAME, (ConfigurationService) null);
 		this.defaultConfig = new Config().setReplenishRate(defaultReplenishRate).setBurstCapacity(defaultBurstCapacity);
 	}
@@ -151,7 +152,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	 * algorithm.
 	 * @param defaultRequestedTokens how many tokens are requested per request.
 	 */
-	public RedisRateLimiter(int defaultReplenishRate, long defaultBurstCapacity, int defaultRequestedTokens) {
+	public RedisRateLimiter(double defaultReplenishRate, long defaultBurstCapacity, int defaultRequestedTokens) {
 		this(defaultReplenishRate, defaultBurstCapacity);
 		Objects.requireNonNull(this.defaultConfig, "defaultConfig may not be null");
 		this.defaultConfig.setRequestedTokens(defaultRequestedTokens);
@@ -250,7 +251,7 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		Config routeConfig = loadConfiguration(routeId);
 
 		// How many requests per second do you want a user to be allowed to do?
-		int replenishRate = routeConfig.getReplenishRate();
+		double replenishRate = routeConfig.getReplenishRate();
 
 		// How much bursting do you want to allow?
 		long burstCapacity = routeConfig.getBurstCapacity();
@@ -311,11 +312,18 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		return routeConfig;
 	}
 
+	private static String formatReplenishRate(double rate) {
+		if (rate == Math.floor(rate)) {
+			return String.valueOf((long) rate);
+		}
+		return String.valueOf(rate);
+	}
+
 	public Map<String, String> getHeaders(Config config, Long tokensLeft) {
 		Map<String, String> headers = new HashMap<>();
 		if (isIncludeHeaders()) {
 			headers.put(this.remainingHeader, tokensLeft.toString());
-			headers.put(this.replenishRateHeader, String.valueOf(config.getReplenishRate()));
+			headers.put(this.replenishRateHeader, formatReplenishRate(config.getReplenishRate()));
 			headers.put(this.burstCapacityHeader, String.valueOf(config.getBurstCapacity()));
 			headers.put(this.requestedTokensHeader, String.valueOf(config.getRequestedTokens()));
 		}
@@ -325,8 +333,8 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 	@Validated
 	public static class Config {
 
-		@Min(1)
-		private int replenishRate;
+		@DecimalMin(value = "0.0", inclusive = false)
+		private double replenishRate;
 
 		@Min(0)
 		private long burstCapacity = 1;
@@ -334,11 +342,11 @@ public class RedisRateLimiter extends AbstractRateLimiter<RedisRateLimiter.Confi
 		@Min(1)
 		private int requestedTokens = 1;
 
-		public int getReplenishRate() {
+		public double getReplenishRate() {
 			return replenishRate;
 		}
 
-		public Config setReplenishRate(int replenishRate) {
+		public Config setReplenishRate(double replenishRate) {
 			this.replenishRate = replenishRate;
 			return this;
 		}
