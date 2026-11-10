@@ -25,6 +25,7 @@ import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.isAlreadyRouted;
 
 /**
@@ -44,6 +45,13 @@ public class ForwardPathFilter implements GlobalFilter, Ordered {
 			if (isAlreadyRouted(exchange) || !"forward".equals(scheme)) {
 				return chain.filter(exchange);
 			}
+			// Record the pre-forward URL so downstream handlers can retrieve it via
+			// GATEWAY_ORIGINAL_REQUEST_URL_ATTR, matching every other filter that
+			// rewrites the request path (e.g. SetPathGatewayFilterFactory,
+			// RewritePathGatewayFilterFactory). Without this, forward:// routes never
+			// populated the attribute despite it being documented behavior.
+			// See https://github.com/spring-cloud/spring-cloud-gateway/issues/4053
+			addOriginalRequestUrl(exchange, exchange.getRequest().getURI());
 			exchange = exchange.mutate()
 				.request(exchange.getRequest().mutate().path(routeUri.getPath()).build())
 				.build();
