@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.config;
 
 import java.security.cert.X509Certificate;
 
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import reactor.netty.http.Http11SslContextSpec;
 import reactor.netty.http.Http2SslContextSpec;
@@ -26,6 +27,7 @@ import reactor.netty.tcp.SslProvider;
 
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.ssl.SslOptions;
 import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 
 public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, HttpClient> {
@@ -52,24 +54,29 @@ public class HttpClientSslConfigurer extends AbstractSslConfigurer<HttpClient, H
 	}
 
 	protected void configureSslContext(HttpClientProperties.Ssl ssl, SslProvider.SslContextSpec sslContextSpec) {
-		SslProvider.ProtocolSslContextSpec clientSslContext = (serverProperties.getHttp2().isEnabled())
+		SslProvider.GenericSslContextSpec<SslContextBuilder> clientSslContext = serverProperties.getHttp2().isEnabled()
 				? Http2SslContextSpec.forClient() : Http11SslContextSpec.forClient();
 		clientSslContext.configure(sslContextBuilder -> {
 			X509Certificate[] trustedX509Certificates = getTrustedX509CertificatesForTrustManager();
-			SslBundle bundle = getBundle();
+			SslBundle sslBundle = getBundle();
 			if (trustedX509Certificates.length > 0) {
 				setTrustManager(sslContextBuilder, trustedX509Certificates);
 			}
 			else if (ssl.isUseInsecureTrustManager()) {
 				setTrustManager(sslContextBuilder, InsecureTrustManagerFactory.INSTANCE);
 			}
-			else if (bundle != null) {
-				setTrustManager(sslContextBuilder, bundle.getManagers().getTrustManagerFactory());
+			else if (sslBundle != null) {
+				setTrustManager(sslContextBuilder, sslBundle.getManagers().getTrustManagerFactory());
 			}
 
 			try {
-				if (bundle != null) {
-					sslContextBuilder.keyManager(bundle.getManagers().getKeyManagerFactory());
+				if (sslBundle != null) {
+					sslContextBuilder.keyManager(sslBundle.getManagers().getKeyManagerFactory());
+					SslOptions sslOptions = sslBundle.getOptions();
+					if (sslOptions != null && sslOptions.isSpecified()) {
+						sslContextBuilder.ciphers(SslOptions.asSet(sslOptions.getCiphers()));
+						sslContextBuilder.protocols(sslOptions.getEnabledProtocols());
+					}
 				}
 				else {
 					sslContextBuilder.keyManager(getKeyManagerFactory());
