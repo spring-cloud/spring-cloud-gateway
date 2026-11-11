@@ -55,8 +55,8 @@ import static org.springframework.cloud.gateway.server.mvc.test.TestUtils.getMap
  * @author Spencer Gibb
  */
 @SpringBootTest(webEnvironment = RANDOM_PORT,
-		properties = { "spring.cloud.gateway.server.webmvc.forwarded.enabled=true",
-				"spring.cloud.gateway.server.webmvc.x-forwarded.enabled=true",
+		properties = { "spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=true",
+				"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=true",
 				"spring.cloud.gateway.server.webmvc.trusted-proxies=10.0.0.1",
 				"logging.level.org.springframework.cloud.gateway.mvc.filter=TRACE" })
 @ContextConfiguration(initializers = HttpbinTestcontainers.class)
