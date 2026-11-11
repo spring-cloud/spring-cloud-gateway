@@ -23,3 +23,5 @@ spring:
 This prefixes `/mypath` to the path of all matching requests.
 So a request to `/hello` is sent to `/mypath/hello`.
 
+NOTE: If the request has a context path (for example, when `spring.webflux.base-path` is set or a forwarded prefix applies), add the xref:spring-cloud-gateway-server-webflux/gatewayfilter-factories/stripcontextpath-factory.adoc[`StripContextPath` filter] before this filter to remove the context path first; otherwise, mutating the path fails with an invalid context path error.
+
