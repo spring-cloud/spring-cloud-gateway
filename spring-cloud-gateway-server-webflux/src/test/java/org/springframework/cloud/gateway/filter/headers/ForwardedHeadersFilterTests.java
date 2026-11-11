@@ -359,6 +359,35 @@ public class ForwardedHeadersFilterTests {
 		assertThat(filtered).isNotEmpty();
 	}
 
+	// https://github.com/spring-cloud/spring-cloud-gateway/issues/4214
+	// RFC 7239 section 4 makes every Forwarded pair parameter optional, so an
+	// upstream entry without a "for" value must not be dropped when it came from
+	// an otherwise-trusted remote address.
+	@Test
+	public void forwardedEntryWithoutForValueIsKeptWhenRemoteAddressTrusted() throws Exception {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.header(FORWARDED_HEADER, "host=upstream.example.com;proto=https")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter("10\\.0\\.0\\..*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		// the upstream entry (no "for") plus the gateway's own newly-added entry
+		assertThat(forwardeds).hasSize(2);
+		Optional<Forwarded> upstream = forwardeds.stream()
+			.filter(forwarded -> "upstream.example.com".equals(forwarded.get("host")))
+			.findFirst();
+		assertThat(upstream).isPresent();
+		upstream.ifPresent(forwarded -> assertThat(forwarded.getValues()).containsEntry("host", "upstream.example.com")
+			.containsEntry("proto", "https")
+			.doesNotContainKey("for"));
+	}
+
 	@Test
 	public void remoteAdddressIsNullUnTrustedProxyNotAppended() throws Exception {
 		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost:8080/get")
