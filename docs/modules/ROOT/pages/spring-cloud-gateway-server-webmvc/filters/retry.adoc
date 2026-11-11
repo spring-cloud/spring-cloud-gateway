@@ -31,6 +31,10 @@ The following defaults are configured for `Retry` filter, if enabled:
 * `cacheBody`: `false`
 * `backoff`: disabled
 
+NOTE: The `statuses` and `series` parameters are combined with a logical OR.
+For example, configuring `statuses` as `NOT_FOUND` (404) and `series` as `SERVER_ERROR` makes both 404 and all 5xx responses eligible for retry.
+Configuring `statuses` as `SERVICE_UNAVAILABLE` (503) and `series` as `SERVER_ERROR` still makes all 5xx responses eligible for retry, not just 503.
+
 WARNING: Setting `cacheBody` to `true` causes the gateway to read the whole body into memory. This should be used with caution.
 
 The following listing configures a Retry  filter:
