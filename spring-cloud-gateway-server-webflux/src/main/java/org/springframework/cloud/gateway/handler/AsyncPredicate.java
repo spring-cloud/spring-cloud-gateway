@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
@@ -62,8 +63,15 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		private final Predicate<T> delegate;
 
+		private final Supplier<String> description;
+
 		public DefaultAsyncPredicate(Predicate<T> delegate) {
+			this(delegate, () -> delegate.toString());
+		}
+
+		private DefaultAsyncPredicate(Predicate<T> delegate, Supplier<String> description) {
 			this.delegate = delegate;
+			this.description = description;
 		}
 
 		@Override
@@ -73,12 +81,12 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public AsyncPredicate<T> and(AsyncPredicate<? super T> other) {
-			return combineSynchronously(other, Predicate::and, AsyncPredicate.super::and);
+			return combineSynchronously(other, Predicate::and, "&&", AsyncPredicate.super::and);
 		}
 
 		@Override
 		public AsyncPredicate<T> or(AsyncPredicate<? super T> other) {
-			return combineSynchronously(other, Predicate::or, AsyncPredicate.super::or);
+			return combineSynchronously(other, Predicate::or, "||", AsyncPredicate.super::or);
 		}
 
 		/**
@@ -89,12 +97,18 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 		 * visitor traversal, so that case also falls back.
 		 */
 		private AsyncPredicate<T> combineSynchronously(AsyncPredicate<? super T> other,
-				BiFunction<Predicate<T>, Predicate<? super T>, Predicate<T>> combiner,
+				BiFunction<Predicate<T>, Predicate<? super T>, Predicate<T>> combiner, String operator,
 				Function<AsyncPredicate<? super T>, AsyncPredicate<T>> fallback) {
+			Objects.requireNonNull(other, "Right AsyncPredicate must not be null");
 			if (getClass() == DefaultAsyncPredicate.class && other.getClass() == DefaultAsyncPredicate.class) {
 				DefaultAsyncPredicate<? super T> right = (DefaultAsyncPredicate<? super T>) other;
 				if ((this.delegate instanceof GatewayPredicate) == (right.delegate instanceof GatewayPredicate)) {
-					return new DefaultAsyncPredicate<>(combiner.apply(this.delegate, right.delegate));
+					Predicate<T> combined = combiner.apply(this.delegate, right.delegate);
+					if (this.delegate instanceof GatewayPredicate) {
+						return new DefaultAsyncPredicate<>(combined);
+					}
+					return new DefaultAsyncPredicate<>(combined,
+							() -> String.format("(%s %s %s)", this, operator, right));
 				}
 			}
 			return fallback.apply(other);
@@ -102,7 +116,7 @@ public interface AsyncPredicate<T> extends Function<T, Publisher<Boolean>>, HasC
 
 		@Override
 		public String toString() {
-			return this.delegate.toString();
+			return this.description.get();
 		}
 
 		@Override

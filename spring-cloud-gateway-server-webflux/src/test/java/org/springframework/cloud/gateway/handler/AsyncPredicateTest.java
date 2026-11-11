@@ -41,6 +41,18 @@ public class AsyncPredicateTest {
 
 	@ParameterizedTest
 	@ValueSource(booleans = { false, true })
+	public void plainPredicateCompositionKeepsDescription(boolean useOr) {
+		AsyncPredicate<Object> left = new DefaultAsyncPredicate<>(new NamedPredicate("left"));
+		AsyncPredicate<Object> right = new DefaultAsyncPredicate<>(new NamedPredicate("right"));
+		AsyncPredicate<Object> last = new DefaultAsyncPredicate<>(new NamedPredicate("last"));
+		AsyncPredicate<Object> predicate = useOr ? left.or(right).and(last) : left.and(right).or(last);
+
+		assertThat(predicate).isExactlyInstanceOf(DefaultAsyncPredicate.class);
+		assertThat(predicate).hasToString(useOr ? "((left || right) && last)" : "((left && right) || last)");
+	}
+
+	@ParameterizedTest
+	@ValueSource(booleans = { false, true })
 	public void synchronousCompositionPreservesOrderAndShortCircuiting(boolean useOr) {
 		List<Integer> tested = new ArrayList<>();
 		AsyncPredicate<Object> left = new DefaultAsyncPredicate<>(o -> {
@@ -188,6 +200,20 @@ public class AsyncPredicateTest {
 
 		falsePredicate.assertTested();
 		truePredicate.assertTested();
+	}
+
+	private record NamedPredicate(String name) implements Predicate<Object> {
+
+		@Override
+		public boolean test(Object value) {
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return this.name;
+		}
+
 	}
 
 	private record NamedGatewayPredicate(String name) implements GatewayPredicate {
