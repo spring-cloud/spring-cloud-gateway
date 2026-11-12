@@ -49,7 +49,7 @@ spring:
 
 The example above specifies a `clientRegistrationId`, which can be used to obtain and forward an OAuth2 access token for any available `ClientRegistration`.
 
-Spring Cloud Gateway Server MVC can forward the OAuth2 access token of the currently authenticated user `oauth2Login()` is used to authenticate the user.
+Spring Cloud Gateway Server MVC can forward the OAuth2 access token of the currently authenticated user when `oauth2Login()` is used to authenticate the user.
 To add this functionality to the gateway, you can omit the `clientRegistrationId` parameter like this:
 
 .RouteConfiguration.java
@@ -88,9 +88,9 @@ spring:
               - TokenRelay=
 ----
 
-and it will (in addition to logging the user in and grabbing a token)
-pass the authentication token downstream to the services (in this case
-`/resource`).
+After Spring Security authenticates the user, the filter passes the user's OAuth2 access token
+downstream to the services (in this case `/resource`).
+The filter does not perform login or configure browser redirects.
 
 To enable this for Spring Cloud Gateway Server MVC add the following dependencies
 
@@ -108,3 +108,99 @@ NOTE: The Token Relay filter will only work if the proper `spring.security.oauth
 NOTE: The default implementation used by the Token Relay filter
 uses an in-memory data store.  You will need to provide your own implementation `OAuth2AuthorizedClientService`
 if you need a more robust solution.
+
+[[tokenrelay-bff]]
+== Using Gateway as a BFF
+
+When Gateway acts as a backend for frontend (BFF), the browser authenticates with the gateway using a session cookie.
+Spring Security's `oauth2Login()` performs the OAuth2 authorization code flow and maintains the authenticated session.
+The OAuth2 tokens remain on the server; the frontend does not need to store or send them.
+Use `TokenRelay` without a `clientRegistrationId` to send the logged-in user's access token to downstream services in the `Authorization: Bearer` header.
+Login, logout, session handling, and browser redirects are configured through Spring Security, not through `TokenRelay`.
+
+The following example assumes that the frontend and gateway are exposed at the same origin, `https://localhost:9000`, with the frontend served at `/` and its public assets under `/assets/**`.
+It also assumes an OIDC client registration configured through `spring.security.oauth2.client.*` properties, including the `openid` scope, and a provider that supports RP-initiated logout.
+Adapt the public paths and frontend URL to your deployment; all other requests require authentication.
+
+.BffSecurityConfiguration.java
+[source,java]
+----
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+
+@Configuration
+@EnableWebSecurity
+public class BffSecurityConfiguration {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            ClientRegistrationRepository registrations) throws Exception {
+        String frontendUrl = "https://localhost:9000/";
+        SimpleUrlAuthenticationSuccessHandler loginSuccessHandler =
+                new SimpleUrlAuthenticationSuccessHandler(frontendUrl);
+        loginSuccessHandler.setAlwaysUseDefaultTargetUrl(true);
+        OidcClientInitiatedLogoutSuccessHandler logoutSuccessHandler =
+                new OidcClientInitiatedLogoutSuccessHandler(registrations);
+        logoutSuccessHandler.setPostLogoutRedirectUri(frontendUrl);
+
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                    .requestMatchers("/", "/assets/**", "/error").permitAll()
+                    .anyRequest().authenticated())
+            .oauth2Login(oauth2 -> oauth2.successHandler(loginSuccessHandler))
+            .oauth2Client(Customizer.withDefaults())
+            .logout(logout -> logout.logoutSuccessHandler(logoutSuccessHandler))
+            .csrf(csrf -> csrf.spa());
+        return http.build();
+    }
+}
+----
+
+=== Login and Frontend Navigation
+
+Start login with a browser navigation to `/oauth2/authorization/\{registrationId}` on the gateway.
+After successful login, the success handler in the example always redirects to `frontendUrl` instead of a previously saved request.
+The OAuth2 login callback is a different URL: by default, `\{baseUrl}/login/oauth2/code/\{registrationId}`.
+Register that callback with the provider as an allowed OAuth2 redirect URI.
+
+=== Local and OIDC Provider Logout
+
+Spring Security's local logout invalidates the gateway session and clears its security context.
+A `SimpleUrlLogoutSuccessHandler` can redirect the browser afterwards, but does not end the user's session at the identity provider.
+This is appropriate when only local logout is required.
+
+For provider logout, the example uses `OidcClientInitiatedLogoutSuccessHandler` to redirect the browser to the provider's logout endpoint after local logout.
+The provider must support OIDC RP-initiated logout and expose an `end_session_endpoint`, typically through discovery using the configured `issuer-uri`.
+Register `frontendUrl` according to the provider's allowed *post-logout redirect URI* requirements.
+This registration is separate from the OAuth2 login callback registration.
+Without provider logout, a subsequent login may authenticate the user again without prompting for credentials because the provider session is still active.
+
+OIDC back-channel logout handles provider-initiated session termination.
+It is optional and is not required for token relay or RP-initiated logout.
+See the https://docs.spring.io/spring-security/reference/7.0/servlet/oauth2/login/logout.html[Spring Security OIDC logout documentation] for provider requirements and back-channel configuration.
+
+=== SPA CSRF Protection and Deployment
+
+Keep CSRF protection enabled because the browser automatically sends the gateway's session cookie.
+The example uses `csrf.spa()`, available since Spring Security 7.0, to configure SPA-compatible CSRF token handling.
+The frontend must read the `XSRF-TOKEN` cookie and send its value in the `X-XSRF-TOKEN` header on unsafe requests, such as `POST`, `PUT`, `PATCH`, and `DELETE`.
+Logout is also a CSRF-protected `POST` to `/logout`.
+For browser navigation through the provider logout redirects, a server-rendered form can submit the CSRF token exposed by Spring Security as a request attribute in the `_csrf` parameter.
+Spring Security clears the previous CSRF token on authentication success and logout success.
+Make a safe request to the gateway, such as `GET /` in this example, to obtain a fresh CSRF cookie before sending another unsafe request.
+See the https://docs.spring.io/spring-security/reference/7.0/servlet/exploits/csrf.html#csrf-integration-javascript-spa[Spring Security SPA CSRF documentation] for details.
+
+If the frontend and gateway use different origins, configure CORS with explicitly allowed origins and credentials, browser requests that include credentials, and suitable cookie settings, including `SameSite` and `Secure` where required.
+Do not assume that frontend JavaScript can read a cookie belonging to a different origin; choose a CSRF token delivery mechanism appropriate to that deployment.
+Use HTTPS in production and retain CSRF protection rather than disabling it to accommodate cross-origin requests.
+
+`TokenRelay` does not restrict a gateway to a single frontend.
+The fixed frontend URL above is a deployment choice, not a filter requirement.
+If you implement dynamic redirect destinations, strictly allowlist them and securely correlate the destination with the login flow; do not redirect to an arbitrary URL supplied by a request.
