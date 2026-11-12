@@ -1,0 +1,21 @@
+httpbin.base: http://${httpbin.host}:${httpbin.port}
+spring.cloud.gateway.server.webmvc:
+  function:
+    enabled: false
+  routes:
+    - id: removeJsonAttrsNoFlag
+      uri: ${httpbin.base}
+      predicates:
+        - Path=/get
+      filters:
+        - RemoveJsonAttributesResponseBody=origin,url
+    - id: removeJsonAttrsWithFlag
+      uri: ${httpbin.base}
+      predicates:
+        - Path=/post
+      filters:
+        - RemoveJsonAttributesResponseBody=Foo,true
+
+logging:
+  level:
+    org.springframework.cloud.gateway.server.mvc: INFO
