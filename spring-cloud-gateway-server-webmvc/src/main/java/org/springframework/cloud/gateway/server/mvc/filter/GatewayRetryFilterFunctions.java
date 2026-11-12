@@ -126,6 +126,10 @@ public abstract class GatewayRetryFilterFunctions {
 		return retryTemplateBuilder.exponentialBackoff(backoff.getFirstBackoff(), backoff.getFactor(), maxBackoff);
 	}
 
+	/**
+	 * Decides only whether an HTTP status may be retried, meant to be combined with a
+	 * {@link SimpleRetryPolicy} in a {@link CompositeRetryPolicy}.
+	 */
 	public static class HttpRetryPolicy extends NeverRetryPolicy {
 
 		private final RetryConfig config;
@@ -141,7 +145,8 @@ public abstract class GatewayRetryFilterFunctions {
 				return isRetryableStatusCode(e.getResponse().statusCode(), config)
 						&& isRetryableMethod(e.getRequest().method(), config);
 			}
-			return super.canRetry(context);
+			// other exceptions are classified by SimpleRetryPolicy
+			return true;
 		}
 
 	}
