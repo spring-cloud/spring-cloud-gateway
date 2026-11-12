@@ -20,7 +20,7 @@ spring:
 ----
 
 This `GatewayFilter` replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+So, if the request sent to the downstream service had `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
 
 `SetRequestHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
