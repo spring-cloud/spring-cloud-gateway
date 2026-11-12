@@ -19,8 +19,10 @@ package org.springframework.cloud.gateway.handler.predicate;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -31,12 +33,15 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * @author Spencer Gibb
+ * @author Alpha
  */
 public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<HostRoutePredicateFactory.Config> {
 
 	private boolean includePort = true;
 
 	private PathMatcher pathMatcher = new AntPathMatcher(".");
+
+	private boolean pathMatcherCustomized;
 
 	public HostRoutePredicateFactory() {
 		this(true);
@@ -49,6 +54,7 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 
 	public void setPathMatcher(PathMatcher pathMatcher) {
 		this.pathMatcher = pathMatcher;
+		this.pathMatcherCustomized = true;
 	}
 
 	/* for testing */ void setIncludePort(boolean includePort) {
@@ -67,6 +73,21 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
+		List<String> patterns = new ArrayList<>(config.getPatterns());
+		Set<String> literalPatterns = new HashSet<>();
+		List<String> nonLiteralPatterns = new ArrayList<>();
+		boolean containsUriTemplateVariables = false;
+		for (String pattern : patterns) {
+			if (isLiteralPattern(pattern)) {
+				literalPatterns.add(pattern);
+			}
+			else {
+				nonLiteralPatterns.add(pattern);
+				containsUriTemplateVariables |= pattern.indexOf('{') >= 0;
+			}
+		}
+		boolean hasUriTemplateVariables = containsUriTemplateVariables;
+
 		return new GatewayPredicate() {
 			@Override
 			public boolean test(ServerWebExchange exchange) {
@@ -88,17 +109,28 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 					return false;
 				}
 
+				PathMatcher matcher = pathMatcher;
+				boolean useFastPath = !pathMatcherCustomized;
 				String match = null;
-				for (int i = 0; i < config.getPatterns().size(); i++) {
-					String pattern = config.getPatterns().get(i);
-					if (pathMatcher.match(pattern, host)) {
-						match = pattern;
-						break;
+				if (useFastPath && !hasUriTemplateVariables && literalPatterns.contains(host)) {
+					match = host;
+				}
+				else {
+					List<String> patternsToCheck = useFastPath && !hasUriTemplateVariables ? nonLiteralPatterns
+							: patterns;
+					for (String pattern : patternsToCheck) {
+						boolean matches = useFastPath && isLiteralPattern(pattern) ? pattern.equals(host)
+								: matcher.match(pattern, host);
+						if (matches) {
+							match = pattern;
+							break;
+						}
 					}
 				}
 
 				if (match != null) {
-					Map<String, String> variables = pathMatcher.extractUriTemplateVariables(match, host);
+					Map<String, String> variables = !useFastPath || match.indexOf('{') >= 0
+							? matcher.extractUriTemplateVariables(match, host) : Collections.emptyMap();
 					ServerWebExchangeUtils.putUriTemplateVariables(exchange, variables);
 					return true;
 				}
@@ -116,6 +148,10 @@ public class HostRoutePredicateFactory extends AbstractRoutePredicateFactory<Hos
 				return String.format("Hosts: %s", config.getPatterns());
 			}
 		};
+	}
+
+	private static boolean isLiteralPattern(String pattern) {
+		return pattern.indexOf('*') < 0 && pattern.indexOf('?') < 0 && pattern.indexOf('{') < 0;
 	}
 
 	public static class Config {
