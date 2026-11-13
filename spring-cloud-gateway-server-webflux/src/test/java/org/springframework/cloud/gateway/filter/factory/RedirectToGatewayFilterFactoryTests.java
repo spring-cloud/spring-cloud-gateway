@@ -78,6 +78,54 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redirectToUrlDoesNotIncludeRequestPathByDefault() {
+		testClient.get()
+			.uri("/original/path")
+			.header("Host", "www.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org");
+	}
+
+	@Test
+	public void redirectToUrlIncludesRequestPathWhenEnabledOnFilter() {
+		testClient.get()
+			.uri("/original/path")
+			.header("Host", "path.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/original/path");
+	}
+
+	@Test
+	public void redirectToUrlIncludesRequestPathAndQueryParametersWhenEnabledOnFilter() {
+		testClient.get()
+			.uri("/original/path?membership=gold")
+			.header("Host", "pathandquery.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/original/path?membership=gold");
+	}
+
+	@Test
+	public void redirectToUrlIncludesRequestPathWithoutDuplicateSlash() {
+		testClient.get()
+			.uri("/original/path")
+			.header("Host", "trailingpath.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/base/original/path");
+	}
+
+	@Test
 	public void redirectToRelativeUrlFilterWorks() {
 		testClient.get()
 			.uri("/")
@@ -131,7 +179,10 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 		config.setStatus("301");
 		config.setUrl("http://newurl");
 		config.setIncludeRequestParams(true);
+		config.setIncludeRequestPath(true);
+
 		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
 		assertThat(filter.toString()).contains("301").contains("http://newurl").contains("true");
 	}
 
@@ -154,6 +205,18 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 				.route("relative_redirect",
 						r -> r.host("**.relativeredirect.org")
 							.filters(f -> f.redirect(302, "/index.html#/customers"))
+							.uri("no://op"))
+				.route("redirect_with_request_path",
+						r -> r.host("path.redirectto.org")
+							.filters(f -> f.redirect(302, "https://example.org", false, true))
+							.uri("no://op"))
+				.route("redirect_with_request_path_and_query_params",
+						r -> r.host("pathandquery.redirectto.org")
+							.filters(f -> f.redirect(302, "https://example.org", true, true))
+							.uri("no://op"))
+				.route("redirect_with_trailing_destination_path",
+						r -> r.host("trailingpath.redirectto.org")
+							.filters(f -> f.redirect(302, "https://example.org/base/", false, true))
 							.uri("no://op"))
 				.build();
 		}

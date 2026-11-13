@@ -549,6 +549,21 @@ public class GatewayFilterSpec extends UriSpec {
 	 * @param status an HTTP status code, should be a {@code 300} series redirect
 	 * @param url the URL to redirect to. This URL will be set in the {@code location}
 	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @param includeRequestPath if true, the original request path will be appended to
+	 * the URL
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(int status, String url, boolean includeRequestParams,
+			boolean includeRequestPath) {
+		return redirect(String.valueOf(status), url, includeRequestParams, includeRequestPath);
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
 	 */
 	public GatewayFilterSpec redirect(String status, URI url) {
@@ -565,6 +580,22 @@ public class GatewayFilterSpec extends UriSpec {
 	 */
 	public GatewayFilterSpec redirect(String status, String url, boolean includeRequestParams) {
 		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url, includeRequestParams));
+	}
+
+	/**
+	 * A filter that will return a redirect response back to the client.
+	 * @param status an HTTP status code, should be a {@code 300} series redirect
+	 * @param url the URL to redirect to. This URL will be set in the {@code location}
+	 * header
+	 * @param includeRequestParams if true, query params will be passed to the url
+	 * @param includeRequestPath if true, the original request path will be appended to
+	 * the URL
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(String status, String url, boolean includeRequestParams,
+			boolean includeRequestPath) {
+		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(status, url, includeRequestParams,
+				includeRequestPath));
 	}
 
 	/**
@@ -813,7 +844,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that rewrites the value of a request parameter
+	 * A filter that rewrites the value of a request parameter.
 	 * @param name The name of the request parameter to replace
 	 * @param replacement The new value for the request parameter
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
