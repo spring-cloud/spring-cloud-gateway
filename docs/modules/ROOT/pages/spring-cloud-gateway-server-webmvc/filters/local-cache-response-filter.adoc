@@ -5,12 +5,13 @@ This filter allows caching the response body and headers to follow these rules:
 
 * It can only cache bodiless GET requests.
 * It caches the response only for one of the following status codes: HTTP 200 (OK), HTTP 206 (Partial Content), or HTTP 301 (Moved Permanently).
-* Response data is not cached if `Cache-Control` header does not allow it (`no-store` present in the request or `no-store` or `private` present in the response).
+* Response data is not cached if the `Cache-Control` header does not allow it: the `no-store` directive in the request, or the `no-store` or `private` directive in the response. Directives are matched individually and case-insensitively, wherever they appear in the header, so a response with `Cache-Control: no-cache, no-store, max-age=0` or `Cache-Control: max-age=60, private` is not cached.
 * Response data is not cached if the response `Vary` header is `*`.
 * Response data is not cached if the response has a streaming media type (see `spring.cloud.gateway.server.webmvc.streaming-media-types`).
 * If a new request is performed with `no-cache` value in `Cache-Control` header, the request is forwarded to the upstream and the existing cache entry is kept.
 
 This filter configures the local response cache per route.
+Cache entries are keyed on the matched route, the request URI, the `Authorization` header, the cookies, and the request headers listed in the response `Vary` header, so routes that match the same URI never share entries, even when the same filter instance is applied to more than one route.
 
 It accepts the first parameter to override the time to expire a cache entry (expressed in `s` for seconds, `m` for minutes, and `h` for hours) and a second parameter to set the maximum size of the cache to evict entries for this route (`KB`, `MB`, or `GB`).
 Both parameters are optional: if the time to live is not set, it defaults to 5 minutes; if the maximum size is not set, the cache is not size-bounded.

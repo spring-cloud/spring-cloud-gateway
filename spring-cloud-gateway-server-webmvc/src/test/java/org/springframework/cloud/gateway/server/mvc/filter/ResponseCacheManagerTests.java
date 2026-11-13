@@ -17,10 +17,12 @@
 package org.springframework.cloud.gateway.server.mvc.filter;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.CacheKeyGenerator;
 import org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.CachedResponse;
 import org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.CachedResponseMetadata;
@@ -86,6 +89,71 @@ public class ResponseCacheManagerTests {
 		assertThat(manager
 			.isRequestCacheable(request("GET", "/resource").header(HttpHeaders.CACHE_CONTROL, cacheControl).build()))
 			.isFalse();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "no-cache, no-store", "max-age=0, no-store", "NO-STORE", "no-transform ,no-store",
+			"private, no-store", "max-age=60, private", "No-Store", "private=\"Set-Cookie\"" })
+	public void requestIsNotCacheableWhenForbiddenDirectiveIsAmongOthers(String cacheControl) {
+		ResponseCacheManager manager = manager(Clock.systemUTC());
+		assertThat(manager
+			.isRequestCacheable(request("GET", "/resource").header(HttpHeaders.CACHE_CONTROL, cacheControl).build()))
+			.isFalse();
+	}
+
+	@Test
+	public void requestIsNotCacheableWhenForbiddenDirectiveIsInSeparateHeaderLine() {
+		ResponseCacheManager manager = manager(Clock.systemUTC());
+		assertThat(manager.isRequestCacheable(request("GET", "/resource").header(HttpHeaders.CACHE_CONTROL, "max-age=0")
+			.header(HttpHeaders.CACHE_CONTROL, "no-store")
+			.build())).isFalse();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "max-age=0, no-cache", "max-age=0, example=\"a,no-store,b\"", "example=\"private\"",
+			"example=no-store-extension", "no-cache", "s-maxage=60" })
+	public void requestIsCacheableWhenForbiddenWordIsNotADirective(String cacheControl) {
+		ResponseCacheManager manager = manager(Clock.systemUTC());
+		assertThat(manager
+			.isRequestCacheable(request("GET", "/resource").header(HttpHeaders.CACHE_CONTROL, cacheControl).build()))
+			.isTrue();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "private", "no-store", "private, no-store",
+			"no-cache, no-store, max-age=0, must-revalidate", "max-age=60, private", "public,private", "PRIVATE",
+			"No-Store", "  max-age=60 ,  no-store  ", "private=\"Set-Cookie\"" })
+	public void responseIsNotCachedWhenForbiddenDirectiveIsPresent(String cacheControl) {
+		assertThat(isResponseCached(cacheControl)).isFalse();
+	}
+
+	@Test
+	public void responseIsNotCachedWhenForbiddenDirectiveIsInSeparateHeaderLine() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CACHE_CONTROL, "max-age=60");
+		headers.add(HttpHeaders.CACHE_CONTROL, "private");
+		assertThat(isResponseCached(headers)).isFalse();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "example=\"a,b\", private", "example=\"a,b\", no-store, max-age=60",
+			"example=\"a\\\",b\", no-store", "private, example=\"a,b\"" })
+	public void responseIsNotCachedWhenForbiddenDirectiveIsNextToQuotedArgument(String cacheControl) {
+		assertThat(isResponseCached(cacheControl)).isFalse();
+	}
+
+	@Test
+	public void responseIsNotCachedWhenQuotedArgumentIsUnterminated() {
+		assertThat(isResponseCached("max-age=60, example=\"a, public")).isFalse();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "public, max-age=60, example=\"a,no-store,b\"", "example=\"private\"",
+			"example=\"a, private\", max-age=60", "example=\"a\\\",no-store\"", "example=\"a\\\\\", max-age=60",
+			"example=no-store-extension", "public, max-age=60", "no-cache", "max-age=60, no-transform", "s-maxage=60",
+			"private-extension" })
+	public void responseIsCachedWhenForbiddenWordIsNotADirective(String cacheControl) {
+		assertThat(isResponseCached(cacheControl)).isTrue();
 	}
 
 	@ParameterizedTest
@@ -362,8 +430,69 @@ public class ResponseCacheManagerTests {
 			.isEqualTo(cacheKeyGenerator.generateKey(otherRequest, Collections.emptyList()));
 	}
 
+	@Test
+	public void keyDiffersOnRouteId() {
+		ServerRequest request = request("GET", "/resource").routeId("route-a").build();
+		ServerRequest otherRequest = request("GET", "/resource").routeId("route-b").build();
+		assertThat(cacheKeyGenerator.generateKey(request, Collections.emptyList()))
+			.isNotEqualTo(cacheKeyGenerator.generateKey(otherRequest, Collections.emptyList()));
+		assertThat(cacheKeyGenerator.generateMetadataKey(request))
+			.isNotEqualTo(cacheKeyGenerator.generateMetadataKey(otherRequest));
+	}
+
+	@Test
+	public void keyIsStableForSameRouteId() {
+		ServerRequest request = request("GET", "/resource").routeId("route-a").build();
+		ServerRequest sameRequest = request("GET", "/resource").routeId("route-a").build();
+		assertThat(cacheKeyGenerator.generateKey(request, Collections.emptyList()))
+			.isEqualTo(cacheKeyGenerator.generateKey(sameRequest, Collections.emptyList()));
+	}
+
+	@Test
+	public void keyWithoutRouteIdDiffersFromKeyWithRouteId() {
+		ServerRequest request = request("GET", "/resource").build();
+		ServerRequest routedRequest = request("GET", "/resource").routeId("route-a").build();
+		assertThat(cacheKeyGenerator.generateKey(request, Collections.emptyList())).isNotBlank()
+			.isNotEqualTo(cacheKeyGenerator.generateKey(routedRequest, Collections.emptyList()));
+	}
+
+	@Test
+	public void keyWithoutRouteIdHasNoRouteSegment() throws Exception {
+		ServerRequest request = request("GET", "/resource").build();
+		// uri;authorization;cookies; - the format used before keys were scoped to a route
+		byte[] rawKey = (request.uri() + ";;;").getBytes(StandardCharsets.UTF_8);
+		String expected = Base64.getEncoder().encodeToString(MessageDigest.getInstance("MD5").digest(rawKey));
+		assertThat(cacheKeyGenerator.generateKey(request, Collections.emptyList())).isEqualTo(expected);
+	}
+
+	@Test
+	public void entryCachedForOneRouteIsNotServedToAnotherRoute() throws Exception {
+		ResponseCacheManager manager = manager(Clock.systemUTC());
+		ServerRequest requestA = request("GET", "/resource").routeId("route-a").build();
+		ServerRequest requestB = request("GET", "/resource").routeId("route-b").build();
+
+		write(manager.processFromUpstream(requestA, manager.resolveMetadataKey(requestA), upstreamResponse("a")));
+
+		assertThat(manager.getFromCache(requestA, manager.resolveMetadataKey(requestA))).isPresent();
+		assertThat(manager.getFromCache(requestB, manager.resolveMetadataKey(requestB))).isEmpty();
+	}
+
 	private ResponseCacheManager manager(Clock clock) {
 		return new ResponseCacheManager(cacheKeyGenerator, Caffeine.newBuilder().build(), TIME_TO_LIVE, clock);
+	}
+
+	private boolean isResponseCached(String cacheControl) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.CACHE_CONTROL, cacheControl);
+		return isResponseCached(headers);
+	}
+
+	private boolean isResponseCached(HttpHeaders headers) {
+		ResponseCacheManager manager = manager(Clock.systemUTC());
+		ServerRequest request = request("GET", "/resource").build();
+		ServerResponse response = upstreamResponse("the body", HttpStatus.OK, headers);
+		// a response that is not cacheable is returned as is
+		return manager.processFromUpstream(request, manager.resolveMetadataKey(request), response) != response;
 	}
 
 	private static RequestBuilder request(String method, String path) {
@@ -409,6 +538,11 @@ public class ResponseCacheManagerTests {
 
 		private RequestBuilder header(String name, String value) {
 			servletRequest.addHeader(name, value);
+			return this;
+		}
+
+		private RequestBuilder routeId(String routeId) {
+			servletRequest.setAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, routeId);
 			return this;
 		}
 

@@ -33,7 +33,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -183,7 +185,7 @@ public abstract class ResponseCacheFilterFunctions {
 
 		private static final Log LOGGER = LogFactory.getLog(ResponseCacheManager.class);
 
-		private static final List<String> FORBIDDEN_CACHE_CONTROL_VALUES = List.of("private", "no-store");
+		private static final Set<String> FORBIDDEN_CACHE_CONTROL_DIRECTIVES = Set.of("private", "no-store");
 
 		private static final List<HttpStatusCode> STATUSES_TO_CACHE = List.of(HttpStatus.OK, HttpStatus.PARTIAL_CONTENT,
 				HttpStatus.MOVED_PERMANENTLY);
@@ -347,7 +349,51 @@ public abstract class ResponseCacheFilterFunctions {
 		private static boolean isCacheControlAllowed(HttpHeaders headers) {
 			return headers.getOrEmpty(HttpHeaders.CACHE_CONTROL)
 				.stream()
-				.noneMatch(FORBIDDEN_CACHE_CONTROL_VALUES::contains);
+				.noneMatch(ResponseCacheManager::hasForbiddenDirective);
+		}
+
+		/**
+		 * A {@code Cache-Control} value is a comma separated list of directives.
+		 * Directive names are case insensitive and can have an argument, either a token
+		 * or a quoted-string (e.g. {@code private="Set-Cookie"}). A quoted-string can
+		 * contain commas and backslash-escaped characters, so commas inside quotes do not
+		 * separate directives. An unterminated quoted-string is malformed and is treated
+		 * as forbidden, so the message is not cached.
+		 */
+		private static boolean hasForbiddenDirective(String cacheControl) {
+			boolean inQuotes = false;
+			boolean escaped = false;
+			int directiveStart = 0;
+			for (int i = 0; i < cacheControl.length(); i++) {
+				char c = cacheControl.charAt(i);
+				if (inQuotes) {
+					if (escaped) {
+						escaped = false;
+					}
+					else if (c == '\\') {
+						escaped = true;
+					}
+					else if (c == '"') {
+						inQuotes = false;
+					}
+				}
+				else if (c == '"') {
+					inQuotes = true;
+				}
+				else if (c == ',') {
+					if (isForbiddenDirective(cacheControl.substring(directiveStart, i))) {
+						return true;
+					}
+					directiveStart = i + 1;
+				}
+			}
+			return inQuotes || isForbiddenDirective(cacheControl.substring(directiveStart));
+		}
+
+		private static boolean isForbiddenDirective(String directive) {
+			int argumentSeparator = directive.indexOf('=');
+			String name = argumentSeparator >= 0 ? directive.substring(0, argumentSeparator) : directive;
+			return FORBIDDEN_CACHE_CONTROL_DIRECTIVES.contains(name.trim().toLowerCase(Locale.ROOT));
 		}
 
 		private static boolean isVaryWildcard(HttpHeaders headers) {
@@ -380,8 +426,8 @@ public abstract class ResponseCacheFilterFunctions {
 	}
 
 	/**
-	 * Creates cache keys based on a {@link ServerRequest} and the headers the cached
-	 * response varies on.
+	 * Creates cache keys based on a {@link ServerRequest}, the matched route and the
+	 * headers the cached response varies on.
 	 */
 	static class CacheKeyGenerator {
 
@@ -409,6 +455,10 @@ public abstract class ResponseCacheFilterFunctions {
 
 		private byte[] generateRawKey(ServerRequest request, List<String> varyOnHeaders) {
 			StringBuilder rawKey = new StringBuilder();
+			String routeId = MvcUtils.getAttribute(request, MvcUtils.GATEWAY_ROUTE_ID_ATTR);
+			if (routeId != null) {
+				rawKey.append(routeId).append(KEY_SEPARATOR);
+			}
 			rawKey.append(request.uri()).append(KEY_SEPARATOR);
 			rawKey.append(headerKeyValue(request, HttpHeaders.AUTHORIZATION, KEY_SEPARATOR)).append(KEY_SEPARATOR);
 			rawKey.append(cookiesKeyValue(request)).append(KEY_SEPARATOR);

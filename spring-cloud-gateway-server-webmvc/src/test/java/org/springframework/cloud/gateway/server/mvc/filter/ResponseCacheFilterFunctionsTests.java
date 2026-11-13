@@ -42,6 +42,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.RequestPredicates;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -49,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.removeRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BodyFilterFunctions.modifyResponseBody;
 import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.prefixPath;
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.setPath;
 import static org.springframework.cloud.gateway.server.mvc.filter.ResponseCacheFilterFunctions.localResponseCache;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -417,6 +420,63 @@ public class ResponseCacheFilterFunctionsTests {
 		assertThat(cacheController.map.get("etag-hit").get()).isEqualTo(1);
 	}
 
+	@Test
+	public void filterSharedBetweenRoutesMatchingTheSameUriDoesNotShareEntries() {
+		String uri = "/shared?key=shared-routes";
+		restClient.get()
+			.uri(uri)
+			.header("X-Route", "a")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("1");
+		// same URI, different route: must not be served route a's cached response
+		restClient.get()
+			.uri(uri)
+			.header("X-Route", "b")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("2");
+		// same route again: served from that route's entry
+		restClient.get()
+			.uri(uri)
+			.header("X-Route", "a")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("1");
+		restClient.get()
+			.uri(uri)
+			.header("X-Route", "b")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("2");
+	}
+
+	@Test
+	public void responseWithForbiddenDirectiveAmongOthersIsNotCached() {
+		restClient.get()
+			.uri("/privatecombined?key=private-combined")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("1");
+		restClient.get()
+			.uri("/privatecombined?key=private-combined")
+			.exchange()
+			.expectStatus()
+			.isOk()
+			.expectBody(String.class)
+			.isEqualTo("2");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@Import(PermitAllSecurityConfiguration.class)
@@ -451,6 +511,45 @@ public class ResponseCacheFilterFunctionsTests {
 			// @formatter:off
 			return route("testcachedprivate")
 					.GET("/private", http())
+					.before(new LocalServerPortUriResolver())
+					.filter(localResponseCache(Duration.ofSeconds(30), null))
+					.filter(prefixPath("/do"))
+					.build();
+			// @formatter:on
+		}
+
+		private static final HandlerFilterFunction<ServerResponse, ServerResponse> SHARED_CACHE = localResponseCache(
+				Duration.ofSeconds(30), null);
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSharedCacheA() {
+			// @formatter:off
+			return route("testsharedcachea")
+					.GET("/shared", RequestPredicates.headers(headers -> "a".equals(headers.firstHeader("X-Route"))), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(SHARED_CACHE)
+					.filter(setPath("/do/cached"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsSharedCacheB() {
+			// @formatter:off
+			return route("testsharedcacheb")
+					.GET("/shared", RequestPredicates.headers(headers -> "b".equals(headers.firstHeader("X-Route"))), http())
+					.before(new LocalServerPortUriResolver())
+					.filter(SHARED_CACHE)
+					.filter(setPath("/do/cached"))
+					.build();
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsCachedPrivateCombined() {
+			// @formatter:off
+			return route("testcachedprivatecombined")
+					.GET("/privatecombined", http())
 					.before(new LocalServerPortUriResolver())
 					.filter(localResponseCache(Duration.ofSeconds(30), null))
 					.filter(prefixPath("/do"))
@@ -543,6 +642,10 @@ public class ResponseCacheFilterFunctionsTests {
 		@RestController
 		protected static class CacheController {
 
+			// upstream endpoints behind Spring Security otherwise answer with
+			// "no-cache, no-store, max-age=0, must-revalidate", which must not be cached
+			private static final String CACHEABLE = "max-age=60";
+
 			ConcurrentHashMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
 
 			@GetMapping("/do/cached")
@@ -563,6 +666,11 @@ public class ResponseCacheFilterFunctionsTests {
 				return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "private").body(next(key));
 			}
 
+			@GetMapping("/do/privatecombined")
+			public ResponseEntity<String> cachedPrivateCombined(@RequestParam("key") String key) {
+				return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "max-age=60, private").body(next(key));
+			}
+
 			@GetMapping("/do/varystar")
 			public ResponseEntity<String> varyStar(@RequestParam("key") String key) {
 				return ResponseEntity.ok().header(HttpHeaders.VARY, "*").body(next(key));
@@ -572,12 +680,15 @@ public class ResponseCacheFilterFunctionsTests {
 			public ResponseEntity<String> vary(@RequestParam("key") String key,
 					@RequestHeader(name = "X-Custom", required = false) String custom) {
 				assertThat(custom).isNotNull();
-				return ResponseEntity.ok().header(HttpHeaders.VARY, "X-Custom").body(next(key));
+				return ResponseEntity.ok()
+					.header(HttpHeaders.CACHE_CONTROL, CACHEABLE)
+					.header(HttpHeaders.VARY, "X-Custom")
+					.body(next(key));
 			}
 
 			@GetMapping("/do/modified")
 			public ResponseEntity<String> modified(@RequestParam("key") String key) {
-				return ResponseEntity.ok(next(key));
+				return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, CACHEABLE).body(next(key));
 			}
 
 			@GetMapping("/do/stream")
@@ -587,7 +698,7 @@ public class ResponseCacheFilterFunctionsTests {
 
 			@GetMapping("/do/etag")
 			public ResponseEntity<String> etag(@RequestParam("key") String key) {
-				return ResponseEntity.ok().eTag("\"v1\"").body(next(key));
+				return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, CACHEABLE).eTag("\"v1\"").body(next(key));
 			}
 
 			@GetMapping("/do/fallback")
