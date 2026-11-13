@@ -36,7 +36,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 
 public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered, ApplicationListener<EnableBodyCachingEvent> {
 
-	private ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
 
 	@Override
 	public void onApplicationEvent(EnableBodyCachingEvent event) {
@@ -54,11 +54,13 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered, Appli
 			return chain.filter(exchange.mutate().request(cachedRequest).build());
 		}
 
-		//
 		DataBuffer body = exchange.getAttribute(CACHED_REQUEST_BODY_ATTR);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
-		if (body != null || route == null || !this.routesToCache.containsKey(route.getId())) {
+		boolean shouldCacheBody = route != null && (this.routesToCache.containsKey(route.getId())
+				|| route.getFilters().stream().anyMatch(CacheRequestBodyGatewayFilter.class::isInstance));
+
+		if (body != null || !shouldCacheBody) {
 			return chain.filter(exchange);
 		}
 
