@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.filter.factory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,6 +30,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties("spring.cloud.gateway.server.webflux.filter.secure-headers")
 public class SecureHeadersProperties {
+
+	/**
+	 * Value that disables all secure headers.
+	 */
+	public static final String ALL_HEADERS = "all";
 
 	/**
 	 * Xss-Protection header name.
@@ -139,7 +145,7 @@ public class SecureHeadersProperties {
 				SecureHeadersProperties.REFERRER_POLICY_HEADER, SecureHeadersProperties.CONTENT_SECURITY_POLICY_HEADER,
 				SecureHeadersProperties.X_DOWNLOAD_OPTIONS_HEADER,
 				SecureHeadersProperties.X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER)
-			.map(String::toLowerCase)
+			.map(SecureHeadersProperties::normalizeHeaderName)
 			.collect(Collectors.toUnmodifiableSet());
 
 	}
@@ -254,7 +260,9 @@ public class SecureHeadersProperties {
 	 */
 	public void setDisable(List<String> disable) {
 		if (disable != null) {
-			disabledHeaders = disable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+			disabledHeaders = disable.stream()
+				.map(SecureHeadersProperties::normalizeHeaderName)
+				.collect(Collectors.toUnmodifiableSet());
 		}
 	}
 
@@ -272,7 +280,9 @@ public class SecureHeadersProperties {
 	 */
 	public void setEnable(List<String> enable) {
 		if (enable != null) {
-			enabledHeaders = enable.stream().map(String::toLowerCase).collect(Collectors.toUnmodifiableSet());
+			enabledHeaders = enable.stream()
+				.map(SecureHeadersProperties::normalizeHeaderName)
+				.collect(Collectors.toUnmodifiableSet());
 		}
 	}
 
@@ -288,6 +298,10 @@ public class SecureHeadersProperties {
 	 */
 	public Set<String> getDefaultHeaders() {
 		return defaultHeaders;
+	}
+
+	static String normalizeHeaderName(String headerName) {
+		return headerName.toLowerCase(Locale.ROOT);
 	}
 
 	@Override

@@ -40,6 +40,25 @@ spring:
           disable: x-frame-options,strict-transport-security
 ----
 
+To disable all secure headers, set the `disable` property to `all`:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          filter:
+            secure-headers:
+              disable: all
+----
+
+This also disables explicitly enabled headers, such as `Permissions-Policy`.
+Headers already present in the response are preserved.
+The same `disable: all` value can be used in route filter arguments.
+
 To apply the `SecureHeaders` filter to a specific route, add the filter to the list of filters of that route.
 You can customize the route filter using arguments. Route configuration overrides the global default configuration for this route.
 
