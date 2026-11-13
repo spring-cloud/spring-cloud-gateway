@@ -48,7 +48,8 @@ public final class LocalResponseCacheUtils {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Caffeine createCaffeine(LocalResponseCacheProperties cacheProperties) {
-		Caffeine caffeine = Caffeine.newBuilder();
+		// Record stats unconditionally; LongAdder overhead is negligible.
+		Caffeine caffeine = Caffeine.newBuilder().recordStats();
 		LOGGER.info("Initializing Caffeine");
 		Duration ttlSeconds = cacheProperties.getTimeToLive();
 		caffeine.expireAfterWrite(ttlSeconds);
