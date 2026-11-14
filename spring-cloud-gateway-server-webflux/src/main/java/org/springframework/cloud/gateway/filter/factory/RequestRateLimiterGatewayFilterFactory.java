@@ -131,8 +131,14 @@ public class RequestRateLimiterGatewayFilterFactory
 			}
 			return limiter.isAllowed(routeId, key).flatMap(response -> {
 
-				for (Map.Entry<String, String> header : response.getHeaders().entrySet()) {
-					exchange.getResponse().getHeaders().add(header.getKey(), header.getValue());
+				// The response may already be committed when the filter chain is
+				// re-subscribed with the same exchange (for example by the retry
+				// filter). Adding headers to a committed response would throw
+				// UnsupportedOperationException from ReadOnlyHttpHeaders.
+				if (!exchange.getResponse().isCommitted()) {
+					for (Map.Entry<String, String> header : response.getHeaders().entrySet()) {
+						exchange.getResponse().getHeaders().add(header.getKey(), header.getValue());
+					}
 				}
 
 				if (response.isAllowed()) {
