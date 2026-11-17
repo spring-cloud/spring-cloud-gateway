@@ -45,17 +45,17 @@ The `XForwarded` Headers Filter creates various `X-Forwarded-*` headers to send 
 
 Creating of individual headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.server.webmvc.x-forwarded.for-enabled`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.host-enabled`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.port-enabled`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.proto-enabled`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.prefix-enabled`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-enabled`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-enabled`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-enabled`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-enabled`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-enabled`
 
 Appending multiple headers can be controlled by the following boolean properties (defaults to true):
 
-- `spring.cloud.gateway.server.webmvc.x-forwarded.for-append`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.host-append`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.port-append`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.proto-append`
-- `spring.cloud.gateway.server.webmvc.x-forwarded.prefix-append`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-append`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-append`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-append`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-append`
+- `spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-append`
 
