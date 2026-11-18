@@ -105,6 +105,7 @@ import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGate
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestHeaderToRequestUriGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterGatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RequestRateLimiterProperties;
 import org.springframework.cloud.gateway.filter.factory.RequestSizeGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RewriteLocationResponseHeaderGatewayFilterFactory;
@@ -213,7 +214,7 @@ import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyReques
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "spring.cloud.gateway.server.webflux.enabled", matchIfMissing = true)
-@EnableConfigurationProperties
+@EnableConfigurationProperties(RequestRateLimiterProperties.class)
 @AutoConfigureBefore({ HttpHandlerAutoConfiguration.class, WebFluxAutoConfiguration.class })
 @AutoConfigureAfter({ GatewayReactiveLoadBalancerClientAutoConfiguration.class,
 		GatewayClassPathWarningAutoConfiguration.class })
@@ -677,8 +678,8 @@ public class GatewayAutoConfiguration {
 	@ConditionalOnBean({ RateLimiter.class, KeyResolver.class })
 	@ConditionalOnEnabledFilter
 	public RequestRateLimiterGatewayFilterFactory requestRateLimiterGatewayFilterFactory(RateLimiter rateLimiter,
-			KeyResolver resolver) {
-		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver);
+			KeyResolver resolver, RequestRateLimiterProperties properties) {
+		return new RequestRateLimiterGatewayFilterFactory(rateLimiter, resolver, properties);
 	}
 
 	@Bean
