@@ -18,7 +18,9 @@ package org.springframework.cloud.gateway.filter.factory.cache;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.jspecify.annotations.Nullable;
@@ -63,6 +65,8 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final CaffeineCacheManager caffeineCacheManager;
 
+	private final Map<String, CacheSettings> registeredCacheSettings = new ConcurrentHashMap<>();
+
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
 		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager());
@@ -84,14 +88,31 @@ public class LocalResponseCacheGatewayFilterFactory
 	public GatewayFilter apply(RouteCacheConfiguration config) {
 		LocalResponseCacheProperties cacheProperties = mapRouteCacheConfig(config);
 
-		Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
-		String cacheName = config.getRouteId() + "-cache";
-		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
-		Cache routeCache = caffeineCacheManager.getCache(cacheName);
-		Objects.requireNonNull(routeCache, "Cache " + cacheName + " not found");
+		Cache routeCache = registerOrReuseCache(config, cacheProperties);
 		return new ResponseCacheGatewayFilter(
 				cacheManagerFactory.create(routeCache, cacheProperties.getTimeToLive(), requestOptions));
 
+	}
+
+	/**
+	 * Returns the cache backing the route. A route refresh applies the filter again, so
+	 * the cache already registered is reused when the route cache configuration has not
+	 * changed, keeping the entries cached so far. A new cache is built when the
+	 * configuration changed, and also when the route has no id, because in that case the
+	 * cache name cannot tell one route from another.
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Cache registerOrReuseCache(RouteCacheConfiguration config, LocalResponseCacheProperties cacheProperties) {
+		String cacheName = config.getRouteId() + "-cache";
+		CacheSettings settings = new CacheSettings(cacheProperties.getTimeToLive(), cacheProperties.getSize());
+		if (config.getRouteId() == null || !settings.equals(registeredCacheSettings.get(cacheName))) {
+			Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
+			caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+			registeredCacheSettings.put(cacheName, settings);
+		}
+		Cache routeCache = caffeineCacheManager.getCache(cacheName);
+		Objects.requireNonNull(routeCache, "Cache " + cacheName + " not found");
+		return routeCache;
 	}
 
 	private LocalResponseCacheProperties mapRouteCacheConfig(RouteCacheConfiguration config) {
@@ -146,6 +167,9 @@ public class LocalResponseCacheGatewayFilterFactory
 			return this.routeId;
 		}
 
+	}
+
+	private record CacheSettings(@Nullable Duration timeToLive, @Nullable DataSize size) {
 	}
 
 }
