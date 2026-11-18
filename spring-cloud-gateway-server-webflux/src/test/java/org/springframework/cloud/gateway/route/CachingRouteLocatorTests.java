@@ -20,9 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesResultEvent;
@@ -136,6 +138,64 @@ public class CachingRouteLocatorTests {
 			.order(id)
 			.predicate(exchange -> true)
 			.build();
+	}
+
+	@Test
+	void latestRefreshShouldWinWhenRefreshesCompleteOutOfOrder() throws Exception {
+
+		Route oldRoute = Route.async()
+			.id("old-route")
+			.uri("http://localhost/old")
+			.order(0)
+			.predicate(exchange -> true)
+			.build();
+
+		Route newRoute = Route.async()
+			.id("new-route")
+			.uri("http://localhost/new")
+			.order(0)
+			.predicate(exchange -> true)
+			.build();
+
+		AtomicInteger calls = new AtomicInteger();
+
+		Sinks.One<Route> firstRefresh = Sinks.one();
+		Sinks.One<Route> secondRefresh = Sinks.one();
+
+		RouteLocator delegate = () -> {
+			if (calls.getAndIncrement() == 0) {
+				return firstRefresh.asMono().flux();
+			}
+			return secondRefresh.asMono().flux();
+		};
+
+		CachingRouteLocator locator = new CachingRouteLocator(delegate);
+
+		CountDownLatch latch = new CountDownLatch(2);
+
+		locator.setApplicationEventPublisher(event -> {
+			if (event instanceof RefreshRoutesResultEvent) {
+				latch.countDown();
+			}
+		});
+
+		// Start the older refresh first.
+		locator.onApplicationEvent(new RefreshRoutesEvent(this));
+
+		// Start the newer refresh second.
+		locator.onApplicationEvent(new RefreshRoutesEvent(this));
+
+		// Force the newer refresh to complete first.
+		assertThat(secondRefresh.tryEmitValue(newRoute)).isEqualTo(Sinks.EmitResult.OK);
+
+		// Force the older refresh to complete afterward.
+		assertThat(firstRefresh.tryEmitValue(oldRoute)).isEqualTo(Sinks.EmitResult.OK);
+
+		assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+
+		List<Route> routes = locator.getRoutes().collectList().block();
+
+		assertThat(routes).containsExactly(newRoute);
 	}
 
 }
