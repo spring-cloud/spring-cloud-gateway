@@ -27,6 +27,7 @@ import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.boot.convert.ApplicationConversionService;
+import org.springframework.core.retry.RetryException;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -36,6 +37,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RetryFilterFunctionBackoffTests {
 
@@ -54,6 +56,50 @@ class RetryFilterFunctionBackoffTests {
 	void frameworkRetryUsesConfiguredBackoff() throws Exception {
 		assertBackoff(FrameworkRetryFilterFunctions
 			.frameworkRetry(config -> config.setRetries(2).setBackoff(BACKOFF, MAX_BACKOFF, 2)));
+	}
+
+	@Test
+	void frameworkRetryWithoutBackoffMakesRetriesAttemptsWithoutDelay() throws Exception {
+		AtomicInteger attempts = new AtomicInteger();
+		long start = System.nanoTime();
+
+		ServerResponse response = FrameworkRetryFilterFunctions.frameworkRetry(config -> config.setRetries(5))
+			.filter(request(), request -> {
+				if (attempts.incrementAndGet() < 5) {
+					return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+				}
+				return ServerResponse.ok().build();
+			});
+
+		assertThat(response.statusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(attempts.get()).isEqualTo(5);
+		assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(1));
+	}
+
+	@Test
+	void frameworkRetryStopsAfterRetriesAttempts() {
+		AtomicInteger attempts = new AtomicInteger();
+		HandlerFilterFunction<ServerResponse, ServerResponse> filter = FrameworkRetryFilterFunctions
+			.frameworkRetry(config -> config.setRetries(5));
+
+		assertThatThrownBy(() -> filter.filter(request(), request -> {
+			attempts.incrementAndGet();
+			return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		})).isInstanceOf(RetryException.class).hasMessageContaining("exhausted");
+		assertThat(attempts.get()).isEqualTo(5);
+	}
+
+	@Test
+	void frameworkRetryWithBackoffStopsAfterRetriesAttempts() {
+		AtomicInteger attempts = new AtomicInteger();
+		HandlerFilterFunction<ServerResponse, ServerResponse> filter = FrameworkRetryFilterFunctions
+			.frameworkRetry(config -> config.setRetries(5).setBackoff(BACKOFF, MAX_BACKOFF, 2));
+
+		assertThatThrownBy(() -> filter.filter(request(), request -> {
+			attempts.incrementAndGet();
+			return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		})).isInstanceOf(RetryException.class).hasMessageContaining("exhausted");
+		assertThat(attempts.get()).isEqualTo(5);
 	}
 
 	@Test
