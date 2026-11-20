@@ -17,6 +17,7 @@
 package org.springframework.cloud.gateway.server.mvc;
 
 import java.time.Duration;
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +26,11 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.boot.http.client.ClientHttpRequestFactoryBuilder;
+import org.springframework.boot.http.client.HttpClientSettings;
+import org.springframework.boot.http.client.HttpCookieHandling;
+import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilder;
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
 import org.springframework.boot.http.client.autoconfigure.HttpClientsProperties;
@@ -34,6 +39,7 @@ import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfigura
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.gateway.server.mvc.GatewayServerMvcAutoConfiguration.GatewayHttpClientEnvironmentPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -50,6 +56,8 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -169,6 +177,55 @@ public class GatewayServerMvcAutoConfigurationTests {
 			.run();
 		ClientHttpRequestFactoryBuilder<?> builder = context.getBean(ClientHttpRequestFactoryBuilder.class);
 		assertThat(builder).isInstanceOf(SimpleClientHttpRequestFactoryBuilder.class);
+	}
+
+	@Test
+	void cookieHandlingIsDisabledByDefault() {
+		try (ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
+			.properties("spring.main.web-application-type=none")
+			.run()) {
+			HttpClientSettings settings = context.getBean(HttpClientSettings.class);
+			assertThat(settings.cookieHandling()).isEqualTo(HttpCookieHandling.DISABLE);
+			assertThat(settings.redirects()).isEqualTo(HttpRedirects.DONT_FOLLOW);
+		}
+	}
+
+	@Test
+	void cookieHandlingSetByUserIsKept() {
+		try (ConfigurableApplicationContext context = new SpringApplicationBuilder(TestConfig.class)
+			.properties("spring.main.web-application-type=none",
+					"spring.http.clients.cookie-handling=enable-when-possible")
+			.run()) {
+			HttpClientSettings settings = context.getBean(HttpClientSettings.class);
+			assertThat(settings.cookieHandling()).isEqualTo(HttpCookieHandling.ENABLE_WHEN_POSSIBLE);
+			assertThat(settings.redirects()).isEqualTo(HttpRedirects.DONT_FOLLOW);
+		}
+	}
+
+	@Test
+	void environmentPostProcessorOnlyAddsMissingDefaults() {
+		GatewayHttpClientEnvironmentPostProcessor postProcessor = new GatewayHttpClientEnvironmentPostProcessor();
+
+		// same conversion service SpringApplication uses for post processors
+		StandardEnvironment environment = new StandardEnvironment();
+		environment.setConversionService(new ApplicationConversionService());
+		environment.getPropertySources()
+			.addLast(new MapPropertySource("test", Map.of("spring.http.clients.redirects", "follow")));
+		postProcessor.postProcessEnvironment(environment, null);
+		assertThat(environment.getProperty("spring.http.clients.redirects", HttpRedirects.class))
+			.isEqualTo(HttpRedirects.FOLLOW);
+		assertThat(environment.getProperty("spring.http.clients.cookie-handling", HttpCookieHandling.class))
+			.isEqualTo(HttpCookieHandling.DISABLE);
+
+		environment = new StandardEnvironment();
+		environment.setConversionService(new ApplicationConversionService());
+		environment.getPropertySources()
+			.addLast(new MapPropertySource("test", Map.of("spring.http.clients.redirects", "follow",
+					"spring.http.clients.cookie-handling", "enable")));
+		postProcessor.postProcessEnvironment(environment, null);
+		assertThat(environment.getPropertySources().contains("gatewayHttpClientProperties")).isFalse();
+		assertThat(environment.getProperty("spring.http.clients.cookie-handling", HttpCookieHandling.class))
+			.isEqualTo(HttpCookieHandling.ENABLE);
 	}
 
 	@Test
