@@ -187,7 +187,7 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 
 		// TODO: add new forwarded
 		URI uri = request.uri();
-		String host = original.getFirst(HttpHeaders.HOST);
+		String host = toHostValue(uri, original.getFirst(HttpHeaders.HOST));
 
 		Forwarded forwarded = new Forwarded();
 		if (host != null) {
@@ -225,6 +225,25 @@ public class ForwardedRequestHeadersFilter implements HttpHeadersFilter.RequestH
 		updated.add(FORWARDED_HEADER, forwarded.toHeaderValue());
 
 		return updated;
+	}
+
+	/**
+	 * Derives the {@code host} value from the request URI so that it is consistent with
+	 * {@code proto} and {@code for}, which also reflect any forwarded information already
+	 * applied to the request (e.g. by {@code ForwardedHeaderFilter}). Falls back to the
+	 * {@code Host} header if the URI has no host.
+	 */
+	private static @Nullable String toHostValue(URI uri, @Nullable String hostHeader) {
+		String host = uri.getHost();
+		if (host == null) {
+			return hostHeader;
+		}
+		int port = uri.getPort();
+		String scheme = uri.getScheme();
+		if (port < 0 || (port == 80 && "http".equals(scheme)) || (port == 443 && "https".equals(scheme))) {
+			return host;
+		}
+		return host + ":" + port;
 	}
 
 	private void addForwardedByHeader(Forwarded forwarded, ServerRequest request) {
