@@ -88,6 +88,7 @@ public class DisableBuiltInGlobalFiltersTests {
 			"spring.cloud.gateway.server.webflux.global-filter.load-balancer-service-instance-cookie.enabled=false",
 			"spring.cloud.gateway.server.webflux.global-filter.function-routing.enabled=false",
 			"spring.cloud.gateway.server.webflux.global-filter.stream-routing.enabled=false",
+			"spring.cloud.gateway.server.webflux.global-filter.observation-closing.enabled=false",
 			"spring.cloud.gateway.server.webflux.metrics.enabled=false" })
 	@ActiveProfiles("disable-components")
 	public class DisableAllGlobalFiltersByProperty {
