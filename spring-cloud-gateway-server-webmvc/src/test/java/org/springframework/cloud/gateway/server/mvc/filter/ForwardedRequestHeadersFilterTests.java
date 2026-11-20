@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -39,9 +40,12 @@ import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter.Forwarded;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.StringUtils;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.function.ServerRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -139,6 +143,53 @@ public class ForwardedRequestHeadersFilterTests {
 		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
 			.containsEntry("proto", "http")
 			.containsEntry("for", "\"10.0.0.1:80\"");
+	}
+
+	@Test
+	public void hostIsTakenFromRequestUriRewrittenByForwardedHeaderFilter() throws Exception {
+		// simulates server.forward-headers-strategy=framework: the filter rewrites the
+		// request URL and hides the Forwarded header, but keeps the Host header
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://gateway-internal:8080/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=original.example.com;for=12.34.56.78")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		MockFilterChain chain = new MockFilterChain();
+		new ForwardedHeaderFilter().doFilter(servletRequest, new MockHttpServletResponse(), chain);
+		HttpServletRequest forwardedRequest = (HttpServletRequest) chain.getRequest();
+		assertThat(forwardedRequest.getHeader(HttpHeaders.HOST)).isEqualTo("gateway-internal:8080");
+		ServerRequest request = ServerRequest.create(forwardedRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "original.example.com")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostFromRequestUriKeepsNonDefaultPort() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("https://myhost:8443/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "myhost:8443")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"myhost:8443\"")
+			.containsEntry("proto", "https");
 	}
 
 	@Test
