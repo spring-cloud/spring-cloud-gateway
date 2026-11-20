@@ -46,9 +46,8 @@ spring:
 
 WARNING: If using the `lb()` filter, it needs to be after any filter that manipulates the path such as `setPath()` or `stripPrefix()`, otherwise the resulting url could be incorrect. The `lb:` scheme handler in configuration, automatically puts the filter in the highest precedence order.
 
-NOTE: By default, when a service instance cannot be found by the `ReactorLoadBalancer`, a `503` is returned.
-// TODO: implement use404
-// You can configure the gateway to return a `404` by setting `spring.cloud.gateway.loadbalancer.use404=true`.
+NOTE: By default, when a service instance cannot be found by the `LoadBalancerClient`, a `503` is returned.
+You can configure the gateway to return a `404` when no service instance is found by setting `spring.cloud.gateway.server.webmvc.loadbalancer.use404=true`.
 
 NOTE: The `isSecure` value of the `ServiceInstance` returned from the `LoadBalancerClient` overrides
 the scheme specified in the request made to the Gateway.

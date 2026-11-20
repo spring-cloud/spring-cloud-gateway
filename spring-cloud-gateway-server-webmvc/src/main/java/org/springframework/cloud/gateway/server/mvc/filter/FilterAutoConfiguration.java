@@ -27,7 +27,9 @@ import io.github.bucket4j.BucketConfiguration;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionDefinition;
@@ -74,6 +76,7 @@ public class FilterAutoConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(LoadBalancerClient.class)
+	@EnableConfigurationProperties(GatewayLoadBalancerProperties.class)
 	public static class LoadBalancerHandlerConfiguration {
 
 		@Bean
