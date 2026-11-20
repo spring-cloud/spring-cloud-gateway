@@ -16,15 +16,17 @@
 
 package org.springframework.cloud.gateway.support;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.core.style.ToStringCreator;
 
 public abstract class AbstractStatefulConfigurable<C> extends AbstractConfigurable<C>
 		implements StatefulConfigurable<C> {
 
-	private Map<String, C> config = new HashMap<>();
+	// Written while routes are built, which may run on several threads at once, and
+	// read on every request (e.g. RedisRateLimiter#isAllowed).
+	private final Map<String, C> config = new ConcurrentHashMap<>();
 
 	protected AbstractStatefulConfigurable(Class<C> configClass) {
 		super(configClass);
