@@ -177,14 +177,19 @@ public class SecureHeadersGatewayFilterFactory
 	 */
 	private Set<String> assembleHeaders(Config config, SecureHeadersProperties properties) {
 		Set<String> headersToAddToResponse = new HashSet<>(properties.getDefaultHeaders());
+		Set<String> disabledHeaders;
 		if (config.isRouteFilterConfigProvided()) {
 			headersToAddToResponse.addAll(config.getRouteEnabledHeaders());
-			headersToAddToResponse.removeAll(config.getRouteDisabledHeaders());
+			disabledHeaders = config.getRouteDisabledHeaders();
 		}
 		else {
 			headersToAddToResponse.addAll(properties.getEnabledHeaders());
-			headersToAddToResponse.removeAll(properties.getDisabledHeaders());
+			disabledHeaders = properties.getDisabledHeaders();
 		}
+		if (disabledHeaders.contains(SecureHeadersProperties.ALL_HEADERS)) {
+			return Set.of();
+		}
+		headersToAddToResponse.removeAll(disabledHeaders);
 		return headersToAddToResponse;
 	}
 
@@ -364,7 +369,7 @@ public class SecureHeadersGatewayFilterFactory
 			if (enable != null) {
 				this.routeFilterConfigProvided = true;
 				this.routeEnabledHeaders = enable.stream()
-					.map(String::toLowerCase)
+					.map(SecureHeadersProperties::normalizeHeaderName)
 					.collect(Collectors.toUnmodifiableSet());
 			}
 		}
@@ -383,7 +388,7 @@ public class SecureHeadersGatewayFilterFactory
 			if (disable != null) {
 				this.routeFilterConfigProvided = true;
 				this.routeDisabledHeaders = disable.stream()
-					.map(String::toLowerCase)
+					.map(SecureHeadersProperties::normalizeHeaderName)
 					.collect(Collectors.toUnmodifiableSet());
 			}
 		}
