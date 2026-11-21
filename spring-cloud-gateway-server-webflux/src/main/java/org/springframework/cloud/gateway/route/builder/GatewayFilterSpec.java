@@ -76,6 +76,7 @@ import org.springframework.cloud.gateway.filter.factory.SetRequestUriGatewayFilt
 import org.springframework.cloud.gateway.filter.factory.SetResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SetStatusGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.SpringCloudCircuitBreakerFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.StripContextPathGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.StripPrefixGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.cache.LocalResponseCacheGatewayFilterFactory;
@@ -868,6 +869,15 @@ public class GatewayFilterSpec extends UriSpec {
 	public GatewayFilterSpec saveSession() {
 		return filter(getBean(SaveSessionGatewayFilterFactory.class).apply(c -> {
 		}));
+	}
+
+	/**
+	 * Strips the context path from the request before any other path-manipulating filter
+	 * runs.
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec stripContextPath() {
+		return filter(getBean(StripContextPathGatewayFilterFactory.class).apply());
 	}
 
 	/**
