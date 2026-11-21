@@ -1,11 +1,12 @@
 [[discoveryclient-route-definition-locator]]
 = `DiscoveryClient` Route Definition Locator
 
-You can configure the gateway to create routes based on services registered with a `DiscoveryClient` compatible service registry.
+You can configure the gateway to create routes based on services registered with a `ReactiveDiscoveryClient` compatible service registry.
 
-By default, the routes created use the protocol `lb://service-name` (where `service-name` is the String that `DiscoveryClient::getServices` will return) and this means that they are load-balanced. For that reason, you also need to include the `org.springframework.cloud:spring-cloud-starter-loadbalancer` dependency, so that it is available on the classpath.
+By default, the routes created use the protocol `lb://service-name` (where `service-name` is the String that `ReactiveDiscoveryClient::getServices` will return) and this means that they are load-balanced. For that reason, you also need to include the `org.springframework.cloud:spring-cloud-starter-loadbalancer` dependency, so that it is available on the classpath.
 
-To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `DiscoveryClient` implementation (such as Netflix Eureka, Consul, Zookeeper or Kubernetes) is on the classpath and enabled.
+To enable this, set `spring.cloud.gateway.discovery.locator.enabled=true` and make sure a `ReactiveDiscoveryClient` implementation (such as Netflix Eureka, Consul, Zookeeper or Kubernetes) is on the classpath and enabled.
+A blocking `DiscoveryClient` bean on its own is not used, and the locator is not created when `spring.cloud.discovery.reactive.enabled` is `false`.
 
 [[configuring-predicates-and-filters-for-discoveryclient-routes]]
 == Configuring Predicates and Filters For `DiscoveryClient` Routes
