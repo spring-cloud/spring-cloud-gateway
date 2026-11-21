@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 public abstract class CircuitBreakerFilterFunctions {
@@ -78,11 +79,9 @@ public abstract class CircuitBreakerFilterFunctions {
 			.stream()
 			.map(status -> HttpStatusHolder.valueOf(status).resolve())
 			.collect(Collectors.toSet());
+		CircuitBreakerHolder circuitBreakerHolder = new CircuitBreakerHolder();
 		return (request, next) -> {
-			CircuitBreakerFactory<?, ?> circuitBreakerFactory = MvcUtils.getApplicationContext(request)
-				.getBean(CircuitBreakerFactory.class);
-			// TODO: cache
-			CircuitBreaker circuitBreaker = circuitBreakerFactory.create(config.getId());
+			CircuitBreaker circuitBreaker = circuitBreakerHolder.getOrCreate(request, config.getId());
 			return circuitBreaker.run(() -> {
 				try {
 					ServerResponse serverResponse = next.handle(request);
@@ -143,6 +142,26 @@ public abstract class CircuitBreakerFilterFunctions {
 				});
 			});
 		};
+	}
+
+	private static final class CircuitBreakerHolder {
+
+		private volatile @Nullable CircuitBreaker circuitBreaker;
+
+		CircuitBreaker getOrCreate(ServerRequest request, @Nullable String id) {
+			CircuitBreaker cached = this.circuitBreaker;
+			return cached != null ? cached : initialize(request, id);
+		}
+
+		private synchronized CircuitBreaker initialize(ServerRequest request, @Nullable String id) {
+			CircuitBreaker cached = this.circuitBreaker;
+			if (cached == null) {
+				cached = MvcUtils.getApplicationContext(request).getBean(CircuitBreakerFactory.class).create(id);
+				this.circuitBreaker = cached;
+			}
+			return cached;
+		}
+
 	}
 
 	public static class CircuitBreakerConfig {
