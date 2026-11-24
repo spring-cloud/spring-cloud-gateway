@@ -68,7 +68,7 @@ final class FunctionHandlerRequestProcessingHelper {
 		}
 
 		if (function == null) {
-			return ServerResponse.notFound().build();
+			return GatewayServerResponse.notFound().build();
 		}
 
 		HttpHeaders headers = request.headers().asHttpHeaders();
@@ -95,13 +95,13 @@ final class FunctionHandlerRequestProcessingHelper {
 		}
 		Object result = function.apply(inputMessage);
 		if (function.isConsumer()) {
-			return HttpMethod.DELETE.equals(request.method()) ? ServerResponse.ok().build()
-					: ServerResponse.accepted()
+			return HttpMethod.DELETE.equals(request.method()) ? GatewayServerResponse.ok().build()
+					: GatewayServerResponse.accepted()
 						.headers(h -> h.addAll(sanitize(headers, ignoredHeaders, requestOnlyHeaders)))
 						.build();
 		}
 
-		BodyBuilder responseOkBuilder = ServerResponse.ok()
+		BodyBuilder responseOkBuilder = GatewayServerResponse.ok()
 			.headers(h -> h.addAll(sanitize(headers, ignoredHeaders, requestOnlyHeaders)));
 		if (result instanceof Iterable i) {
 			List aggregatedResult = (List) StreamSupport.stream(i.spliterator(), false).map(m -> {
