@@ -35,11 +35,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.server.mvc.filter.Bucket4jFilterFunctions.rateLimit;
 
-/**
- * Tests the response when Bucket4j cannot obtain a rate limit key.
- *
- * @author joecqupt
- */
 class Bucket4jFilterFunctionsTests {
 
 	@Test
