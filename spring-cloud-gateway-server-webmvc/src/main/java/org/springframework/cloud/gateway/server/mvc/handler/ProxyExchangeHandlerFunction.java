@@ -98,6 +98,10 @@ public class ProxyExchangeHandlerFunction
 				.replaceQueryParams(params)
 				.build(true)
 				.toUri();
+		String rawQuery = serverRequest.uri().getRawQuery();
+		if (hasValuelessQueryParameter(rawQuery)) {
+			url = UriComponentsBuilder.fromUri(url).replaceQuery(rawQuery).build(true).toUri();
+		}
 		// @formatter:on
 
 		HttpHeaders filteredRequestHeaders = filterHeaders(this.requestHttpHeadersFilters,
@@ -137,6 +141,18 @@ public class ProxyExchangeHandlerFunction
 			filtered = typed.apply(filtered, requestOrResponse);
 		}
 		return filtered;
+	}
+
+	private boolean hasValuelessQueryParameter(@Nullable String rawQuery) {
+		if (rawQuery == null || rawQuery.isEmpty()) {
+			return false;
+		}
+		for (String pair : rawQuery.split("&")) {
+			if (!pair.isEmpty() && pair.indexOf('=') < 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public interface URIResolver extends Function<ServerRequest, URI> {
