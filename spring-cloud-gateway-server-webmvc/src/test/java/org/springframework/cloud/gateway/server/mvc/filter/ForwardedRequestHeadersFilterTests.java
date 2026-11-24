@@ -193,6 +193,92 @@ public class ForwardedRequestHeadersFilterTests {
 	}
 
 	@Test
+	public void hostMatchesHostHeaderWithoutForwardedHeaderProcessing() {
+		// no ForwardedHeaderFilter: the request URI reflects the Host header, so the host
+		// value is the same as before deriving it from the URI
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://myhost:8080/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "myhost:8080")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+		assertThat(request.uri().getHost()).isEqualTo("myhost");
+		assertThat(request.uri().getPort()).isEqualTo(8080);
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"myhost:8080\"")
+			.containsEntry("proto", "http");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6Literal() {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://[2001:db8::1]:8080/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "[2001:db8::1]:8080")
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		ServerRequest request = ServerRequest.create(servletRequest, Collections.emptyList());
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]:8080\"");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6LiteralRewrittenByForwardedHeaderFilter() throws Exception {
+		ServerRequest request = applyForwardedHeaderFilter("proto=https;host=\"[2001:db8::1]\";for=12.34.56.78");
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostWithNonDefaultPortRewrittenByForwardedHeaderFilter() throws Exception {
+		ServerRequest request = applyForwardedHeaderFilter("proto=https;host=\"example.com:8443\";for=12.34.56.78");
+		assertThat(request.uri().getPort()).isEqualTo(8443);
+
+		ForwardedRequestHeadersFilter filter = new ForwardedRequestHeadersFilter(".*");
+
+		HttpHeaders headers = filter.apply(request.headers().asHttpHeaders(), request);
+
+		List<Forwarded> forwardeds = ForwardedRequestHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"example.com:8443\"")
+			.containsEntry("proto", "https");
+	}
+
+	private static ServerRequest applyForwardedHeaderFilter(String forwardedHeader) throws Exception {
+		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://gateway-internal:8080/get")
+			.remoteAddress("10.0.0.1:80")
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, forwardedHeader)
+			.buildRequest(null);
+		servletRequest.setRemoteHost("10.0.0.1");
+		MockFilterChain chain = new MockFilterChain();
+		new ForwardedHeaderFilter().doFilter(servletRequest, new MockHttpServletResponse(), chain);
+		return ServerRequest.create((HttpServletRequest) chain.getRequest(), Collections.emptyList());
+	}
+
+	@Test
 	public void forwardedHeaderExists() {
 		MockHttpServletRequest servletRequest = MockMvcRequestBuilders.get("http://localhost/get")
 			.remoteAddress("10.0.0.1:80")

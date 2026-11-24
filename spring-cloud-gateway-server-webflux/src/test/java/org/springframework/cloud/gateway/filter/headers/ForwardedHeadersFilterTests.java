@@ -129,6 +129,88 @@ public class ForwardedHeadersFilterTests {
 	}
 
 	@Test
+	public void hostMatchesHostHeaderWithoutForwardedHeaderProcessing() throws UnknownHostException {
+		// no ForwardedHeaderTransformer: the request URI reflects the Host header, so the
+		// host value is the same as before deriving it from the URI
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost:8080")
+			.build();
+		assertThat(request.getURI().getHost()).isEqualTo("myhost");
+		assertThat(request.getURI().getPort()).isEqualTo(8080);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"myhost:8080\"")
+			.containsEntry("proto", "http");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6Literal() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://[2001:db8::1]:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "[2001:db8::1]:8080")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]:8080\"");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6LiteralRewrittenByForwardedHeaderTransformer() throws UnknownHostException {
+		MockServerHttpRequest original = MockServerHttpRequest.get("http://gateway-internal:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=\"[2001:db8::1]\";for=12.34.56.78")
+			.build();
+		ServerHttpRequest request = new ForwardedHeaderTransformer().apply(original);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(original).mutate().request(request).build());
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostWithNonDefaultPortRewrittenByForwardedHeaderTransformer() throws UnknownHostException {
+		MockServerHttpRequest original = MockServerHttpRequest.get("http://gateway-internal:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=\"example.com:8443\";for=12.34.56.78")
+			.build();
+		ServerHttpRequest request = new ForwardedHeaderTransformer().apply(original);
+		assertThat(request.getURI().getPort()).isEqualTo(8443);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(original).mutate().request(request).build());
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"example.com:8443\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
 	public void hostFallsBackToHostHeaderWhenRequestUriHasNoHost() throws UnknownHostException {
 		MockServerHttpRequest request = MockServerHttpRequest.get("/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
