@@ -19,11 +19,13 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.URI;
 import java.util.function.Consumer;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
 import org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy;
 import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.FallbackHeadersConfig;
+import org.springframework.cloud.gateway.server.mvc.filter.RewriteLocationResponseHeaderFilterFunctions.RewriteLocationResponseHeaderConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
@@ -169,6 +171,13 @@ public interface FilterFunctions {
 
 	static HandlerFilterFunction<ServerResponse, ServerResponse> requestSize(DataSize maxSize) {
 		return ofRequestProcessor(BeforeFilterFunctions.requestSize(maxSize));
+	}
+
+	@Shortcut({ "stripVersion", "locationHeaderName", "hostValue", "protocolsRegex" })
+	@Configurable
+	static HandlerFilterFunction<ServerResponse, ServerResponse> rewriteLocationResponseHeader(
+			RewriteLocationResponseHeaderConfig config) {
+		return ofResponseProcessor(RewriteLocationResponseHeaderFilterFunctions.rewriteLocationResponseHeader(config));
 	}
 
 	@Shortcut

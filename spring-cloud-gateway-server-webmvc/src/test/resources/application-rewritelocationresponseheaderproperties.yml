@@ -1,0 +1,50 @@
+spring.cloud.gateway.server.webmvc:
+  routes:
+    - id: rewrite_location_shortcut_trailing_defaults
+      uri: http://localhost
+      predicates:
+        - Path=/anything/rewritelocation/trailingdefaults
+      filters:
+        - LocalServerPortUriResolver=
+        - SetPath=/rewritelocation/backend
+        - RewriteLocationResponseHeader=AS_IN_REQUEST, Location, ,
+    - id: rewrite_location_shortcut_no_args
+      uri: http://localhost
+      predicates:
+        - Path=/anything/rewritelocation/noargs
+      filters:
+        - LocalServerPortUriResolver=
+        - SetPath=/rewritelocation/backend
+        - RewriteLocationResponseHeader
+    - id: rewrite_location_named_args_subset
+      uri: http://localhost
+      predicates:
+        - Path=/anything/rewritelocation/namedsubset
+      filters:
+        - LocalServerPortUriResolver=
+        - SetPath=/rewritelocation/backend
+        - name: RewriteLocationResponseHeader
+          args:
+            stripVersion: ALWAYS_STRIP
+            hostValue: example-api.com
+    - id: rewrite_location_named_args_blank_host
+      uri: http://localhost
+      predicates:
+        - Path=/anything/rewritelocation/blankhost
+      filters:
+        - LocalServerPortUriResolver=
+        - SetPath=/rewritelocation/backend
+        - name: RewriteLocationResponseHeader
+          args:
+            stripVersion: AS_IN_REQUEST
+            locationHeaderName: Location
+            hostValue:
+            protocolsRegex: https?
+    - id: rewrite_location_shortcut_all_args
+      uri: http://localhost
+      predicates:
+        - Path=/anything/rewritelocation/allargs
+      filters:
+        - LocalServerPortUriResolver=
+        - SetPath=/rewritelocation/backend
+        - RewriteLocationResponseHeader=NEVER_STRIP, Location, example-api.com, https?
