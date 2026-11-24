@@ -24,7 +24,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -37,14 +37,14 @@ class RouteConfiguration {
         return route("setrequestheader_route")
             .GET("/**", http())
             .before(uri("https://example.org"))
-            .before(setRequestHostHeader("X-Request-Red", "Blue"))
+            .before(setRequestHeader("X-Request-Red", "Blue"))
             .build();
     }
 }
 ----
 
-This  filter replaces (rather than adding) all headers with the given name.
-So, if the downstream server responded with `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
+This filter replaces (rather than adding) all headers with the given name.
+So, if the incoming request has `X-Request-Red:1234`, it will be replaced with `X-Request-Red:Blue`, which is what the downstream service would receive.
 
 `SetRequestHeader` is aware of URI variables used to match a path or host.
 URI variables may be used in the value and are expanded at runtime.
@@ -68,7 +68,7 @@ spring:
 .GatewaySampleApplication.java
 [source,java]
 ----
-import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHostHeader;
+import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.setRequestHeader;
 import static org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions.route;
 import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
@@ -82,7 +82,7 @@ class RouteConfiguration {
         return route("setrequestheader_route")
             .route(host("{segment}.myhost.org"), http())
             .before(uri("https://example.org"))
-            .before(setRequestHostHeader("X-Request-Red", "Blue-{segment}"))
+            .before(setRequestHeader("X-Request-Red", "Blue-{segment}"))
             .build();
     }
 }
