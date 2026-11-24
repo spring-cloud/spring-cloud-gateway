@@ -37,9 +37,11 @@ import org.springframework.boot.webflux.autoconfigure.WebFluxAutoConfiguration;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.Forwarded;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.util.StringUtils;
+import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.cloud.gateway.filter.headers.ForwardedHeadersFilter.FORWARDED_HEADER;
@@ -62,7 +64,7 @@ public class ForwardedHeadersFilterTests {
 
 	@Test
 	public void forwardedHeaderDoesNotExist() throws UnknownHostException {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 			.header(HttpHeaders.HOST, "myhost")
 			.build();
@@ -81,6 +83,148 @@ public class ForwardedHeadersFilterTests {
 		assertThat(forwarded.getValues()).containsEntry("host", "myhost")
 			.containsEntry("proto", "http")
 			.containsEntry("for", "\"10.0.0.1:80\"");
+	}
+
+	@Test
+	public void hostIsTakenFromRequestUriRewrittenByForwardedHeaderTransformer() throws UnknownHostException {
+		// simulates server.forward-headers-strategy=framework: the transformer rewrites
+		// the request URI and removes the Forwarded header, but keeps the Host header
+		MockServerHttpRequest original = MockServerHttpRequest.get("http://gateway-internal:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=original.example.com;for=12.34.56.78")
+			.build();
+		ServerHttpRequest request = new ForwardedHeaderTransformer().apply(original);
+		assertThat(request.getHeaders().getFirst(HttpHeaders.HOST)).isEqualTo("gateway-internal:8080");
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(original).mutate().request(request).build());
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "original.example.com")
+			.containsEntry("proto", "https");
+		assertThat(forwardeds.get(0).get("for")).contains("12.34.56.78");
+	}
+
+	@Test
+	public void hostFromRequestUriKeepsNonDefaultPort() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("https://myhost:8443/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost:8443")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"myhost:8443\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostMatchesHostHeaderWithoutForwardedHeaderProcessing() throws UnknownHostException {
+		// no ForwardedHeaderTransformer: the request URI reflects the Host header, so the
+		// host value is the same as before deriving it from the URI
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost:8080")
+			.build();
+		assertThat(request.getURI().getHost()).isEqualTo("myhost");
+		assertThat(request.getURI().getPort()).isEqualTo(8080);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"myhost:8080\"")
+			.containsEntry("proto", "http");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6Literal() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://[2001:db8::1]:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "[2001:db8::1]:8080")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]:8080\"");
+	}
+
+	@Test
+	public void hostFromRequestUriWithIpv6LiteralRewrittenByForwardedHeaderTransformer() throws UnknownHostException {
+		MockServerHttpRequest original = MockServerHttpRequest.get("http://gateway-internal:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=\"[2001:db8::1]\";for=12.34.56.78")
+			.build();
+		ServerHttpRequest request = new ForwardedHeaderTransformer().apply(original);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(original).mutate().request(request).build());
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"[2001:db8::1]\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostWithNonDefaultPortRewrittenByForwardedHeaderTransformer() throws UnknownHostException {
+		MockServerHttpRequest original = MockServerHttpRequest.get("http://gateway-internal:8080/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "gateway-internal:8080")
+			.header(FORWARDED_HEADER, "proto=https;host=\"example.com:8443\";for=12.34.56.78")
+			.build();
+		ServerHttpRequest request = new ForwardedHeaderTransformer().apply(original);
+		assertThat(request.getURI().getPort()).isEqualTo(8443);
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(),
+				MockServerWebExchange.from(original).mutate().request(request).build());
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "\"example.com:8443\"")
+			.containsEntry("proto", "https");
+	}
+
+	@Test
+	public void hostFallsBackToHostHeaderWhenRequestUriHasNoHost() throws UnknownHostException {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/get")
+			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
+			.header(HttpHeaders.HOST, "myhost")
+			.build();
+
+		ForwardedHeadersFilter filter = new ForwardedHeadersFilter(".*");
+
+		HttpHeaders headers = filter.filter(request.getHeaders(), MockServerWebExchange.from(request));
+
+		List<Forwarded> forwardeds = ForwardedHeadersFilter.parse(headers.get(FORWARDED_HEADER));
+
+		assertThat(forwardeds).hasSize(1);
+		assertThat(forwardeds.get(0).getValues()).containsEntry("host", "myhost");
 	}
 
 	@Test
@@ -288,7 +432,7 @@ public class ForwardedHeadersFilterTests {
 
 	@Test
 	public void forwardedHeadersNotTrusted() throws Exception {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 			.header(HttpHeaders.HOST, "myhost")
 			.build();
@@ -312,7 +456,7 @@ public class ForwardedHeadersFilterTests {
 
 	@Test
 	public void forwardedHeadersNotTrustedForwardedNotAppended() throws Exception {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 			.header(HttpHeaders.HOST, "myhost")
 			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=\"127.0.0.1:80\",for=10.0.0.11")
@@ -341,7 +485,7 @@ public class ForwardedHeadersFilterTests {
 	// verify that existing forwarded header is not forwarded if not trusted
 	@Test
 	public void untrustedForwardedForNotAppended() throws Exception {
-		MockServerHttpRequest request = MockServerHttpRequest.get("http://localhost/get")
+		MockServerHttpRequest request = MockServerHttpRequest.get("http://myhost/get")
 			.remoteAddress(new InetSocketAddress(InetAddress.getByName("10.0.0.1"), 80))
 			.header(HttpHeaders.HOST, "myhost")
 			.header(FORWARDED_HEADER, "proto=http;host=myhost;for=\"127.0.0.1:80\",for=10.0.0.11")
