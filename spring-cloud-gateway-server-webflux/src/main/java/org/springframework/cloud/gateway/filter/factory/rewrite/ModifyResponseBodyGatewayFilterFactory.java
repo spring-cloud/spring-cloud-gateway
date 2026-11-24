@@ -59,7 +59,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.O
  * <p>
  * When the response has no body, the {@link RewriteFunction} is invoked with {@code null}
  * for the body parameter. Implementations (including Kotlin with a nullable parameter)
- * must handle this case.
+ * must handle this case. A compressed body that is empty once decompressed is treated as
+ * having no body.
+ *
+ * @author Sharang Gupta
  */
 public class ModifyResponseBodyGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<ModifyResponseBodyGatewayFilterFactory.Config> {
@@ -293,6 +296,7 @@ public class ModifyResponseBodyGatewayFilterFactory
 					return clientResponse.bodyToMono(byte[].class)
 						.publishOn(Schedulers.parallel())
 						.map(decoder::decode)
+						.filter(bytes -> bytes.length > 0)
 						.map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
 						.map(buffer -> prepareClientResponse(Mono.just(buffer), exchange.getResponse().getHeaders()))
 						.flatMap(response -> response.bodyToMono(inClass));
