@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.gateway.server.mvc.common;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -52,15 +54,7 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 			PredicateVisitor predicateVisitor = new PredicateVisitor();
 			RouterFunctionVisitor routerFunctionVisitor = new RouterFunctionVisitor(predicateVisitor);
 			routerFunction.accept(routerFunctionVisitor);
-			if (predicateVisitor.argumentSupplier != null) {
-				ArgumentSuppliedEvent<?> argumentSuppliedEvent = predicateVisitor.argumentSupplier
-					.getArgumentSuppliedEvent();
-				if (predicateVisitor.attributes != null) {
-					argumentSuppliedEvent = new AttributedArugmentSuppliedEvent<>(argumentSuppliedEvent,
-							predicateVisitor.attributes);
-				}
-				publisher.publishEvent(argumentSuppliedEvent);
-			}
+			predicateVisitor.argumentSuppliedEvents.forEach(publisher::publishEvent);
 		}
 		return bean;
 	}
@@ -108,16 +102,16 @@ public class ArgumentSupplierBeanPostProcessor implements BeanPostProcessor {
 
 		private final AtomicReference<@Nullable Map<String, Object>> attributesRef = new AtomicReference<>();
 
-		private @Nullable ArgumentSupplier<?> argumentSupplier;
-
-		private @Nullable Map<String, Object> attributes;
+		private final List<ArgumentSuppliedEvent<?>> argumentSuppliedEvents = new ArrayList<>();
 
 		@Override
 		@SuppressWarnings("rawtypes")
 		public void unknown(RequestPredicate predicate) {
 			if (predicate instanceof ArgumentSupplier argSupplier) {
-				this.argumentSupplier = argSupplier;
-				this.attributes = attributesRef.get();
+				ArgumentSuppliedEvent<?> event = argSupplier.getArgumentSuppliedEvent();
+				Map<String, Object> attributes = attributesRef.get();
+				argumentSuppliedEvents
+					.add((attributes != null) ? new AttributedArugmentSuppliedEvent<>(event, attributes) : event);
 			}
 		}
 
