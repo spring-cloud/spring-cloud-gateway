@@ -63,6 +63,12 @@ public class ObservedRequestHttpHeadersFilter implements HttpHeadersFilter {
 		if (log.isDebugEnabled()) {
 			log.debug("Will instrument the HTTP request headers " + newHeaders);
 		}
+		// a retried request starts a new observation, so the previous attempt ends here if
+		// neither a response nor an error stopped it (e.g. it failed before the response)
+		Observation previousObservation = ObservedResponseHttpHeadersFilter.claimObservation(exchange);
+		if (previousObservation != null) {
+			previousObservation.stop();
+		}
 		Observation parentObservation = getParentObservation(exchange);
 		GatewayContext gatewayContext = new GatewayContext(newHeaders, exchange.getRequest(), exchange);
 		Observation childObservation = GatewayDocumentedObservation.GATEWAY_HTTP_CLIENT_OBSERVATION.observation(

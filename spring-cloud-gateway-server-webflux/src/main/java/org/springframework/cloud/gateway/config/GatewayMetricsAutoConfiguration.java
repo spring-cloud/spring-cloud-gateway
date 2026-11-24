@@ -34,8 +34,10 @@ import org.springframework.boot.micrometer.metrics.autoconfigure.CompositeMeterR
 import org.springframework.boot.micrometer.metrics.autoconfigure.MetricsAutoConfiguration;
 import org.springframework.boot.micrometer.observation.autoconfigure.ObservationAutoConfiguration;
 import org.springframework.boot.webflux.autoconfigure.HttpHandlerAutoConfiguration;
+import org.springframework.cloud.gateway.config.conditional.ConditionalOnEnabledGlobalFilter;
 import org.springframework.cloud.gateway.filter.GatewayMetricsFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.GatewayObservationConvention;
+import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingGlobalFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservationClosingWebExceptionHandler;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservedRequestHttpHeadersFilter;
 import org.springframework.cloud.gateway.filter.headers.observation.ObservedResponseHttpHeadersFilter;
@@ -125,6 +127,13 @@ public class GatewayMetricsAutoConfiguration {
 		@Order(Ordered.HIGHEST_PRECEDENCE)
 		ObservationClosingWebExceptionHandler observationClosingWebExceptionHandler() {
 			return new ObservationClosingWebExceptionHandler();
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		@ConditionalOnEnabledGlobalFilter
+		ObservationClosingGlobalFilter observationClosingGlobalFilter() {
+			return new ObservationClosingGlobalFilter();
 		}
 
 	}
