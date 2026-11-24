@@ -212,6 +212,17 @@ public abstract class MvcUtils {
 		return (T) request.servletRequest().getAttribute(key);
 	}
 
+	/**
+	 * Returns the value of the request attribute for the given key, reading it from the
+	 * unwrapped {@link HttpServletRequest}. Useful in places where only the servlet
+	 * request is available, such as response writing code.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> @Nullable T getAttribute(HttpServletRequest request, String key) {
+		HttpServletRequest unwrapped = unwrapRequest(request);
+		return (T) unwrapped.getAttribute(key);
+	}
+
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> getGatewayAttributes(ServerRequest request) {
 		// This map is made in GatewayDelegatingRouterFunction.route() and persists across
