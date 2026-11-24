@@ -16,7 +16,9 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,6 +32,7 @@ import org.springframework.boot.http.client.SimpleClientHttpRequestFactoryBuilde
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
 import org.springframework.boot.http.client.autoconfigure.HttpClientsProperties;
 import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientsProperties;
+import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration;
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -50,6 +53,15 @@ import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoC
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.mock.http.client.MockClientHttpRequest;
+import org.springframework.mock.http.client.MockClientHttpResponse;
+import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -172,6 +184,26 @@ public class GatewayServerMvcAutoConfigurationTests {
 	}
 
 	@Test
+	void userRestClientCustomizerRunsAfterGatewayRestClientCustomizer() {
+		new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+			.withUserConfiguration(RequestFactoryCustomizerConfig.class)
+			.run(context -> {
+				RestClient restClient = context.getBean(RestClient.Builder.class).build();
+				restClient.get().uri("http://localhost/test").retrieve().toBodilessEntity();
+
+				RecordingRequestFactory beanRequestFactory = context.getBean(RecordingRequestFactory.class);
+				RecordingRequestFactory customizerRequestFactory = context
+					.getBean(RequestFactoryCustomizerConfig.class).customizerRequestFactory;
+				assertThat(customizerRequestFactory.requests).hasValue(1);
+				assertThat(beanRequestFactory.requests).hasValue(0);
+			});
+	}
+
+	@Test
 	void loadBalancerFunctionHandlerAdded() {
 		new ApplicationContextRunner()
 			.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
@@ -228,6 +260,39 @@ public class GatewayServerMvcAutoConfigurationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class TestConfig {
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class RequestFactoryCustomizerConfig {
+
+		final RecordingRequestFactory customizerRequestFactory = new RecordingRequestFactory();
+
+		// applied by gatewayRestClientCustomizer
+		@Bean
+		RecordingRequestFactory beanRequestFactory() {
+			return new RecordingRequestFactory();
+		}
+
+		// no @Order, like a customizer coming from a library
+		@Bean
+		RestClientCustomizer userRestClientCustomizer() {
+			return restClientBuilder -> restClientBuilder.requestFactory(customizerRequestFactory);
+		}
+
+	}
+
+	static class RecordingRequestFactory implements ClientHttpRequestFactory {
+
+		final AtomicInteger requests = new AtomicInteger();
+
+		@Override
+		public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) {
+			requests.incrementAndGet();
+			MockClientHttpRequest request = new MockClientHttpRequest(httpMethod, uri);
+			request.setResponse(new MockClientHttpResponse(new byte[0], HttpStatus.OK));
+			return request;
+		}
 
 	}
 
