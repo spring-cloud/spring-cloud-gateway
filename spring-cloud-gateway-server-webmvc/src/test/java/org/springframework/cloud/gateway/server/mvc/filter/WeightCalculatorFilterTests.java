@@ -22,19 +22,44 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.cloud.gateway.server.mvc.common.ArgumentSupplierBeanPostProcessor;
 import org.springframework.cloud.gateway.server.mvc.common.WeightConfig;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter.GroupWeightConfig;
+import org.springframework.cloud.gateway.server.mvc.handler.GatewayRouterFunctions;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.servlet.function.RouterFunction;
+import org.springframework.web.servlet.function.ServerResponse;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
+import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.weight;
 
 public class WeightCalculatorFilterTests {
+
+	@Test
+	public void weightRoutesInSingleRouterFunctionAreAllCalculated() {
+		WeightCalculatorFilter filter = createFilter();
+		ArgumentSupplierBeanPostProcessor processor = new ArgumentSupplierBeanPostProcessor(
+				event -> filter.onApplicationEvent((ApplicationEvent) event));
+
+		RouterFunction<ServerResponse> routerFunction = GatewayRouterFunctions.route("weight_high")
+			.route(weight("group1", 8), http())
+			.build()
+			.and(GatewayRouterFunctions.route("weight_low").route(weight("group1", 2), http()).build());
+
+		processor.postProcessBeforeInitialization(routerFunction, "weightRoutes");
+
+		GroupWeightConfig config = filter.getGroupWeights().get("group1");
+		assertThat(config.normalizedWeights).containsExactly(entry("weight_high", 0.8), entry("weight_low", 0.2));
+	}
 
 	@Test
 	public void testWeightCalculation() {

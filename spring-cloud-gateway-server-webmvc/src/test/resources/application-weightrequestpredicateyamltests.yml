@@ -1,0 +1,10 @@
+spring.cloud.gateway.server.webmvc:
+  routes:
+    - id: weight_high
+      uri: https://weighthigh.org
+      predicates:
+        - Weight=group1, 8
+    - id: weight_low
+      uri: https://weightlow.org
+      predicates:
+        - Weight=group1, 2
