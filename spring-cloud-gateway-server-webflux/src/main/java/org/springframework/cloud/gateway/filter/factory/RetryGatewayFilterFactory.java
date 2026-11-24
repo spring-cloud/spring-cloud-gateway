@@ -40,6 +40,7 @@ import reactor.util.retry.Retry;
 import reactor.util.retry.RetryBackoffSpec;
 import reactor.util.retry.RetrySpec;
 
+import org.springframework.cloud.gateway.filter.CacheRequestBodyGatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.HasRouteId;
@@ -81,7 +82,6 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	@Override
 	public GatewayFilter apply(RetryConfig retryConfig) {
 		retryConfig.validate();
-		enableBodyCaching(retryConfig.getRouteId());
 
 		boolean hasStatusCodeRepeat = !retryConfig.getStatuses().isEmpty() || !retryConfig.getSeries().isEmpty();
 		boolean hasExceptionRetry = !retryConfig.getExceptions().isEmpty();
@@ -108,8 +108,9 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 			return Mono.fromDirect(publisher);
 		};
+		enableBodyCaching(retryConfig.getRouteId());
 
-		return new GatewayFilter() {
+		return new CacheRequestBodyGatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				return gatewayFilter.filter(exchange, chain);
@@ -167,18 +168,18 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	/**
-	 * Checks elapsed-time-plus-{@code upcomingDelay} against {@code timeout}, rather than just
-	 * elapsed time, so we stop before waiting on a delay that would blow the budget rather than
-	 * only after it's already blown.
+	 * Checks elapsed-time-plus-{@code upcomingDelay} against {@code timeout}, rather than
+	 * just elapsed time, so we stop before waiting on a delay that would blow the budget
+	 * rather than only after it's already blown.
 	 */
 	private boolean withinTimeout(Instant start, @Nullable Duration timeout, Duration upcomingDelay) {
 		return timeout == null || Duration.between(start, Instant.now()).plus(upcomingDelay).compareTo(timeout) < 0;
 	}
 
 	/**
-	 * Exponential backoff for the given (1-based) iteration, capped at {@code maxBackoff} when
-	 * configured. Hand-rolled because there's no reactor-core backoff builder usable with
-	 * {@code repeatWhen}, which is what the status-code repeat path needs.
+	 * Exponential backoff for the given (1-based) iteration, capped at {@code maxBackoff}
+	 * when configured. Hand-rolled because there's no reactor-core backoff builder usable
+	 * with {@code repeatWhen}, which is what the status-code repeat path needs.
 	 */
 	private Duration computeBackoff(BackoffConfig backoff, long iteration) {
 		Duration next = backoff.getFirstBackoff().multipliedBy((long) Math.pow(backoff.getFactor(), iteration - 1));
@@ -191,7 +192,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 
 	/**
 	 * Randomizes a backoff duration by +/- {@code randomFactor}, for the same reason as
-	 * {@link #computeBackoff}: no reactor-core built-in covers this for {@code repeatWhen}.
+	 * {@link #computeBackoff}: no reactor-core built-in covers this for
+	 * {@code repeatWhen}.
 	 */
 	private Duration applyJitter(Duration backoff, JitterConfig jitter) {
 		long jitterOffset = (long) (backoff.toMillis() * jitter.getRandomFactor());
@@ -201,10 +203,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	}
 
 	/**
-	 * The backoff delay before the given iteration's attempt, or {@link Duration#ZERO} if no
-	 * backoff is configured. Callers should compute this once per iteration and reuse it for
-	 * both the {@link #withinTimeout} check and the actual delay, since jitter is randomized
-	 * and calling this twice would produce two different values.
+	 * The backoff delay before the given iteration's attempt, or {@link Duration#ZERO} if
+	 * no backoff is configured. Callers should compute this once per iteration and reuse
+	 * it for both the {@link #withinTimeout} check and the actual delay, since jitter is
+	 * randomized and calling this twice would produce two different values.
 	 */
 	private Duration nextDelay(long iteration, RetryConfig retryConfig) {
 		BackoffConfig backoff = retryConfig.getBackoff();
@@ -222,7 +224,8 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	/**
 	 * The next 1-based iteration number, derived from {@link #RETRY_ITERATION_KEY} rather
 	 * than the value emitted by {@code repeatWhen}'s companion {@code Flux<Long>} (which
-	 * counts items emitted by the source and is always {@code 0} for a {@code Mono<Void>}).
+	 * counts items emitted by the source and is always {@code 0} for a
+	 * {@code Mono<Void>}).
 	 */
 	private long nextIteration(ServerWebExchange exchange) {
 		Integer currentIteration = exchange.getAttribute(RETRY_ITERATION_KEY);
@@ -232,8 +235,10 @@ public class RetryGatewayFilterFactory extends AbstractGatewayFilterFactory<Retr
 	private Function<Flux<Long>, Publisher<Long>> buildStatusCodeRepeat(ServerWebExchange exchange,
 			RetryConfig retryConfig) {
 		Instant start = Instant.now();
-		// the upcoming delay is computed once per iteration (up front) so the same value can be used both to
-		// decide whether it would blow the configured timeout budget, and, if not, as the actual delay applied
+		// the upcoming delay is computed once per iteration (up front) so the same value
+		// can be used both to
+		// decide whether it would blow the configured timeout budget, and, if not, as the
+		// actual delay applied
 		return companion -> companion.map(ignored -> nextIteration(exchange))
 			.map(iteration -> Tuples.of(iteration, nextDelay(iteration, retryConfig)))
 			.takeWhile(tuple -> !exceedsMaxIterations(exchange, retryConfig)
