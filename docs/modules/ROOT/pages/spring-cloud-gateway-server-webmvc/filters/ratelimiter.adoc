@@ -9,7 +9,8 @@ The algorithm used by Bucket4j is the https://en.wikipedia.org/wiki/Token_bucket
 
 The filter takes a `keyResolver` parameter and other Bucket4j configuration parameters. The key resolver is a `java.util.Function<ServerRequest, String>`. This allows the user to extract any information out of the request to use as a key in the configured https://github.com/bucket4j/bucket4j#bucket4j-distributed-features[Bucket4j distribution] mechanism. A common key would be the `Principal` retrieved from the `ServerRequest`.
 
-By default, if the key resolver does not find a key, requests are denied with the `FORBIDDEN` status.
+By default, if the key resolver does not find a key, requests are denied with `HTTP 403 - Forbidden`.
+Use `setEmptyKeyStatus(HttpStatus.UNAUTHORIZED)` in the Java DSL to return `HTTP 401 - Unauthorized` instead.
 
 NOTE: Currently, the only way to configure key resolvers is through the Java DSL and not through external properties.
 

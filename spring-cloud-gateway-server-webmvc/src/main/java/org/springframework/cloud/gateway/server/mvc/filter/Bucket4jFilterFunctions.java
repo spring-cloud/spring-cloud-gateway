@@ -77,8 +77,7 @@ public abstract class Bucket4jFilterFunctions {
 			AsyncProxyManager proxyManager = MvcUtils.getApplicationContext(request).getBean(AsyncProxyManager.class);
 			String key = config.getKeyResolver() != null ? config.getKeyResolver().apply(request) : "";
 			if (!StringUtils.hasText(key)) {
-				// TODO: configurable empty key status code
-				return ServerResponse.status(HttpStatus.FORBIDDEN).build();
+				return ServerResponse.status(config.getEmptyKeyStatus()).build();
 			}
 			TaskExecutor taskExecutor = MvcUtils.getApplicationContext(request)
 				.getBean(APPLICATION_TASK_EXECUTOR_BEAN_NAME, TaskExecutor.class);
@@ -119,6 +118,8 @@ public abstract class Bucket4jFilterFunctions {
 		Function<ServerRequest, String> keyResolver;
 
 		HttpStatusCode statusCode = HttpStatus.TOO_MANY_REQUESTS;
+
+		HttpStatusCode emptyKeyStatus = HttpStatus.FORBIDDEN;
 
 		@org.jspecify.annotations.Nullable
 		Duration timeout;
@@ -170,6 +171,15 @@ public abstract class Bucket4jFilterFunctions {
 
 		public RateLimitConfig setStatusCode(HttpStatusCode statusCode) {
 			this.statusCode = statusCode;
+			return this;
+		}
+
+		public HttpStatusCode getEmptyKeyStatus() {
+			return emptyKeyStatus;
+		}
+
+		public RateLimitConfig setEmptyKeyStatus(HttpStatusCode emptyKeyStatus) {
+			this.emptyKeyStatus = Objects.requireNonNull(emptyKeyStatus, "emptyKeyStatus may not be null");
 			return this;
 		}
 
