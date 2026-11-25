@@ -1,13 +1,22 @@
 [[redirectto-gatewayfilter-factory]]
 = `RedirectTo` `GatewayFilter` Factory
 
-The `RedirectTo` `GatewayFilter` factory takes three parameters, `status`, `url`, and optionally `includeRequestParams`.
+The `RedirectTo` `GatewayFilter` factory takes four parameters: `status`, `url`, `includeRequestParams`, and `includeRequestPath`.
+
 The `status` parameter should be a 300 series redirect HTTP code, such as 301.
-The `url` parameter should be a valid URL.
-This is the value of the `Location` header.
-The `includeRequestParams` parameter indicates whether request query parameters should be included on the `url`.
-When not set, it will be treated as `false`.
-For relative redirects, you should use `uri: no://op` as the uri of your route definition.
+
+The `url` parameter should be a valid URL. This is the value of the `Location` header.
+
+The `includeRequestParams` parameter indicates whether the original request query parameters should be appended to the redirect URL.
+
+The `includeRequestPath` parameter indicates whether the original request path should be appended to the redirect URL.
+
+Both `includeRequestParams` and `includeRequestPath` default to `false`.
+
+If the destination URL already contains query parameters, the original request query parameters are appended to the existing query string.
+
+For relative redirects, you should use `uri: no://op` as the URI of your route definition.
+
 The following listing configures a `RedirectTo` `GatewayFilter`:
 
 .application.yml
@@ -19,15 +28,15 @@ spring:
       server:
         webflux:
           routes:
-          - id: prefixpath_route
+          - id: redirectto_route
             uri: https://example.org
             filters:
-            - RedirectTo=302, https://acme.org
+            - RedirectTo=302,https://acme.org
 ----
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
 
-The following example configures a `RedirectTo` `GatewayFilter` with `includeRequestParams` set to `true`.
+The following example configures a `RedirectTo` `GatewayFilter` with `includeRequestParams` and `includeRequestPath` set to `true`.
 
 .application.yml
 [source,yaml]
@@ -38,11 +47,52 @@ spring:
       server:
         webflux:
           routes:
-          - id: prefixpath_route
+          - id: redirectto_route
             uri: https://example.org
             filters:
-            - RedirectTo=302, https://acme.org, true
+            - RedirectTo=302,https://acme.org,true,true
 ----
 
-When a request with query `?skip=10` is made to the gateway, the gateway will send a status 302 with a
-`Location:https://acme.org?skip=10` header to perform a redirect.
+When a request to `/orders?skip=10` is made to the gateway, the gateway will send a status 302 with a `Location:https://acme.org/orders?skip=10` header to perform a redirect.
+
+The following example demonstrates preserving an existing query string in the destination URL:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+          - id: redirectto_route
+            uri: https://example.org
+            filters:
+            - RedirectTo=302,https://acme.org/landing?campaign=spring,true,true
+----
+
+When a request to `/orders?skip=10` is made to the gateway, the resulting redirect URL will be:
+
+[source,text]
+----
+https://acme.org/landing/orders?campaign=spring&skip=10
+----
+
+The Java DSL also supports configuring these options using a configuration object:
+
+[source,java]
+----
+@Bean
+public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("redirectto_route", r -> r
+            .path("/**")
+            .filters(f -> f.redirect(302, "https://acme.org", config -> {
+                config.setIncludeRequestPath(true);
+                config.setIncludeRequestParams(true);
+            }))
+            .uri("https://example.org"))
+        .build();
+}
+----
