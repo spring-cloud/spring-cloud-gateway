@@ -80,13 +80,13 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	@Test
 	public void redirectToUrlDoesNotIncludeRequestPathByDefault() {
 		testClient.get()
-				.uri("/original/path")
-				.header("Host", "www.redirectto.org")
-				.exchange()
-				.expectStatus()
-				.isEqualTo(HttpStatus.FOUND)
-				.expectHeader()
-				.valueEquals(HttpHeaders.LOCATION, "https://example.org");
+			.uri("/original/path")
+			.header("Host", "www.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org");
 	}
 
 	@Test
@@ -178,38 +178,37 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 		URI requestUri = URI.create("http://localhost:" + port + "/files/a%20b");
 
 		testClient.get()
-				.uri(requestUri)
-				.header("Host", "encodedpath.redirectto.org")
-				.exchange()
-				.expectStatus()
-				.isEqualTo(HttpStatus.FOUND)
-				.expectHeader()
-				.valueEquals(HttpHeaders.LOCATION, "https://example.org/files/a%20b");
+			.uri(requestUri)
+			.header("Host", "encodedpath.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/files/a%20b");
 	}
 
 	@Test
 	public void redirectToHandlesRootRequestPath() {
 		testClient.get()
-				.uri("/")
-				.header("Host", "rootpath.redirectto.org")
-				.exchange()
-				.expectStatus()
-				.isEqualTo(HttpStatus.FOUND)
-				.expectHeader()
-				.valueEquals(HttpHeaders.LOCATION, "https://example.org/base/");
+			.uri("/")
+			.header("Host", "rootpath.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/base/");
 	}
 
 	@Test
 	public void redirectToPreservesExistingDestinationQueryParameters() {
 		testClient.get()
-				.uri("/orders/42?source=mobile")
-				.header("Host", "destinationquery.redirectto.org")
-				.exchange()
-				.expectStatus()
-				.isEqualTo(HttpStatus.FOUND)
-				.expectHeader()
-				.valueEquals(HttpHeaders.LOCATION,
-						"https://example.org/landing/orders/42?campaign=spring&source=mobile");
+			.uri("/orders/42?source=mobile")
+			.header("Host", "destinationquery.redirectto.org")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/landing/orders/42?campaign=spring&source=mobile");
 	}
 
 	@Test
@@ -245,42 +244,34 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 						r -> r.host("**.relativeredirect.org")
 							.filters(f -> f.redirect(302, "/index.html#/customers"))
 							.uri("no://op"))
-				.route("redirect_with_request_path",
-						r -> r.host("path.redirectto.org")
-								.filters(f -> f.redirect(302, "https://example.org",
-										config -> config.setIncludeRequestPath(true)))
-							.uri("no://op"))
-				.route("redirect_with_request_path_and_query_params",
-						r -> r.host("pathandquery.redirectto.org")
-								.filters(f -> f.redirect(302, "https://example.org", config -> {
-									config.setIncludeRequestParams(true);
-									config.setIncludeRequestPath(true);
-								}))
-							.uri("no://op"))
+				.route("redirect_with_request_path", r -> r.host("path.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org", config -> config.setIncludeRequestPath(true)))
+					.uri("no://op"))
+				.route("redirect_with_request_path_and_query_params", r -> r.host("pathandquery.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org", config -> {
+						config.setIncludeRequestParams(true);
+						config.setIncludeRequestPath(true);
+					}))
+					.uri("no://op"))
 				.route("redirect_with_trailing_destination_path",
 						r -> r.host("trailingpath.redirectto.org")
-								.filters(f -> f.redirect(302, "https://example.org/base/",
-										config -> config.setIncludeRequestPath(true)))
+							.filters(f -> f.redirect(302, "https://example.org/base/",
+									config -> config.setIncludeRequestPath(true)))
 							.uri("no://op"))
-                                .route("redirect_with_encoded_request_path",
-                                        r -> r.host("encodedpath.redirectto.org")
-                                                .filters(f -> f.redirect(302, "https://example.org",
-                                                        config -> config.setIncludeRequestPath(true)))
-                                                .uri("no://op"))
-                                .route("redirect_with_root_request_path",
-                                        r -> r.host("rootpath.redirectto.org")
-                                                .filters(f -> f.redirect(302, "https://example.org/base/",
-                                                        config -> config.setIncludeRequestPath(true)))
-                                                .uri("no://op"))
-                                .route("redirect_with_existing_destination_query",
-                                        r -> r.host("destinationquery.redirectto.org")
-                                                .filters(f -> f.redirect(302,
-                                                        "https://example.org/landing?campaign=spring",
-                                                        config -> {
-                                                            config.setIncludeRequestPath(true);
-                                                            config.setIncludeRequestParams(true);
-                                                        }))
-                                                .uri("no://op"))
+				.route("redirect_with_encoded_request_path", r -> r.host("encodedpath.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org", config -> config.setIncludeRequestPath(true)))
+					.uri("no://op"))
+				.route("redirect_with_root_request_path",
+						r -> r.host("rootpath.redirectto.org")
+							.filters(f -> f.redirect(302, "https://example.org/base/",
+									config -> config.setIncludeRequestPath(true)))
+							.uri("no://op"))
+				.route("redirect_with_existing_destination_query", r -> r.host("destinationquery.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org/landing?campaign=spring", config -> {
+						config.setIncludeRequestPath(true);
+						config.setIncludeRequestParams(true);
+					}))
+					.uri("no://op"))
 
 				.build();
 		}
