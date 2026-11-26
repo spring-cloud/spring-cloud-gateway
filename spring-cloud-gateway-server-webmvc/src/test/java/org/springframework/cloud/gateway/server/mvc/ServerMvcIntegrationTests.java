@@ -53,6 +53,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -91,6 +92,8 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_FIRST;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_LAST;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_UNIQUE;
@@ -693,6 +696,18 @@ public class ServerMvcIntegrationTests {
 	}
 
 	@Test
+	public void redirectToIncludesRequestPathAndQueryParameters() {
+		restClient.get()
+			.uri("/anything/redirectboth/users/42?name=yash&role=developer")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION,
+					"https://example.org/anything/redirectboth/users/42?name=yash&role=developer");
+	}
+
+	@Test
 	public void redirectToPreservesDestinationQueryParameters() {
 		restClient.get()
 			.uri("/anything/redirectdestinationquery?source=gateway")
@@ -723,6 +738,21 @@ public class ServerMvcIntegrationTests {
 			.isEqualTo(HttpStatus.FOUND)
 			.expectHeader()
 			.valueEquals(HttpHeaders.LOCATION, "https://example.org/");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRootDestinationPath() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create("https://example.org/"),
+				config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.statusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("https://example.org/evil.example.com")
+			.doesNotStartWith("//");
 	}
 
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
@@ -1091,6 +1121,32 @@ public class ServerMvcIntegrationTests {
 				Map<String, Object> headers = getMap(res.getResponseBody(), "headers");
 				assertThat(headers).containsEntry("X-Foo", "FOOVAL");
 			});
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRelativeRootDestination() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create("/"), config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithEmptyRelativeDestination() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create(""), config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
 	}
 
 	@SpringBootConfiguration
@@ -1468,6 +1524,21 @@ public class ServerMvcIntegrationTests {
 					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org"), config ->
 							config.setIncludeRequestParams(true)))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttowithquery");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithPathAndQuery() {
+			FilterFunctions.RedirectToShortcutConfig config = new FilterFunctions.RedirectToShortcutConfig();
+			config.setStatus("FOUND");
+			config.setUri(URI.create("https://example.org"));
+			config.setIncludeRequestParams(true);
+			config.setIncludeRequestPath(true);
+
+			// @formatter:off
+			return route(path("/anything/redirectboth/**"), http())
+					.filter(redirectTo(config))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttowithpathandquery");
 			// @formatter:on
 		}
 

@@ -19,11 +19,13 @@ package org.springframework.cloud.gateway.filter.factory;
 import java.net.URI;
 
 import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
 
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory.Config;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -32,9 +34,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -212,6 +217,118 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 	}
 
 	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRootDestinationPath() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost//evil.example.com").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("https://example.org/");
+		config.setIncludeRequestPath(true);
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION))
+			.isEqualTo("https://example.org/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithEmptyDestinationPath() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost//evil.example.com").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("https://example.org");
+		config.setIncludeRequestPath(true);
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION))
+			.isEqualTo("https://example.org/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
+	public void redirectToPreservesOpaqueUriWhenNoOptionsAreEnabled() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost/test").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("mailto:test@example.com");
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION))
+			.isEqualTo("mailto:test@example.com");
+	}
+
+	@Test
+	public void redirectToPreservesNonAsciiDestinationWhenNoOptionsAreEnabled() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost/test").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("https://example.org/café");
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION))
+			.isEqualTo("https://example.org/café");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRelativeRootDestination() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost//evil.example.com").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("/");
+		config.setIncludeRequestPath(true);
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithEmptyRelativeDestination() {
+		MockServerWebExchange exchange = MockServerWebExchange
+			.from(MockServerHttpRequest.get("http://localhost//evil.example.com").build());
+
+		Config config = new Config();
+		config.setStatus("302");
+		config.setUrl("");
+		config.setIncludeRequestPath(true);
+
+		GatewayFilter filter = new RedirectToGatewayFilterFactory().apply(config);
+
+		StepVerifier.create(filter.filter(exchange, mock(GatewayFilterChain.class))).verifyComplete();
+
+		assertThat(exchange.getResponse().getHeaders().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
 	public void toStringFormat() {
 		Config config = new Config();
 		config.setStatus("301");
@@ -272,7 +389,14 @@ public class RedirectToGatewayFilterFactoryTests extends BaseWebClientTests {
 						config.setIncludeRequestParams(true);
 					}))
 					.uri("no://op"))
-
+				.route("redirect_with_multiple_slashes_root_destination", r -> r
+					.host("multipleslashesroot.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org/", config -> config.setIncludeRequestPath(true)))
+					.uri("no://op"))
+				.route("redirect_with_multiple_slashes_empty_destination", r -> r
+					.host("multipleslashesempty.redirectto.org")
+					.filters(f -> f.redirect(302, "https://example.org", config -> config.setIncludeRequestPath(true)))
+					.uri("no://op"))
 				.build();
 		}
 

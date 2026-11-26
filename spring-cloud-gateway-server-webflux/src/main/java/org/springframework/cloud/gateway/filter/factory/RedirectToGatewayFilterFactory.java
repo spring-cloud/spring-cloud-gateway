@@ -130,10 +130,14 @@ public class RedirectToGatewayFilterFactory
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 
-					URI redirectUri = buildRedirectUri(uri, exchange, config);
+					URI redirectUri = uri;
+
+					if (config.includeRequestPath || config.includeRequestParams) {
+						redirectUri = buildRedirectUri(uri, exchange, config);
+					}
 
 					final ServerHttpResponse response = exchange.getResponse();
-					response.getHeaders().set(HttpHeaders.LOCATION, redirectUri.toASCIIString());
+					response.getHeaders().set(HttpHeaders.LOCATION, redirectUri.toString());
 					return response.setComplete();
 				}
 				return Mono.empty();
@@ -173,9 +177,12 @@ public class RedirectToGatewayFilterFactory
 			String requestPath = exchange.getRequest().getURI().getRawPath();
 
 			if (requestPath != null && !requestPath.isEmpty()) {
+				requestPath = normalizeRequestPath(requestPath);
+
 				if (destinationPath.endsWith("/") && requestPath.startsWith("/")) {
 					requestPath = requestPath.substring(1);
 				}
+
 				destinationPath += requestPath;
 			}
 		}
@@ -200,6 +207,16 @@ public class RedirectToGatewayFilterFactory
 		}
 
 		return URI.create(redirectUri.toString());
+	}
+
+	private static String normalizeRequestPath(String requestPath) {
+		int firstNonSlash = 0;
+
+		while (firstNonSlash < requestPath.length() && requestPath.charAt(firstNonSlash) == '/') {
+			firstNonSlash++;
+		}
+
+		return "/" + requestPath.substring(firstNonSlash);
 	}
 
 	public static class Config {

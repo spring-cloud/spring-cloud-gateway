@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.URI;
 import java.util.function.Consumer;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
@@ -132,6 +133,15 @@ public interface FilterFunctions {
 		});
 	}
 
+	@Shortcut({ "status", "uri", "includeRequestParams", "includeRequestPath" })
+	@Configurable
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(RedirectToShortcutConfig config) {
+		return redirectTo(HttpStatusHolder.valueOf(config.getStatus()), config.getUri(), redirectConfig -> {
+			redirectConfig.setIncludeRequestParams(config.isIncludeRequestParams());
+			redirectConfig.setIncludeRequestPath(config.isIncludeRequestPath());
+		});
+	}
+
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri,
 			Consumer<RedirectToConfig> configConsumer) {
 		return redirectTo(new HttpStatusHolder(null, status), uri, configConsumer);
@@ -182,9 +192,12 @@ public interface FilterFunctions {
 			String requestPath = request.uri().getRawPath();
 
 			if (requestPath != null && !requestPath.isEmpty()) {
+				requestPath = normalizeRequestPath(requestPath);
+
 				if (destinationPath.endsWith("/") && requestPath.startsWith("/")) {
 					requestPath = requestPath.substring(1);
 				}
+
 				destinationPath += requestPath;
 			}
 		}
@@ -332,6 +345,16 @@ public interface FilterFunctions {
 		return ofRequestProcessor(BeforeFilterFunctions.uri(uri));
 	}
 
+	private static String normalizeRequestPath(String requestPath) {
+		int firstNonSlash = 0;
+
+		while (firstNonSlash < requestPath.length() && requestPath.charAt(firstNonSlash) == '/') {
+			firstNonSlash++;
+		}
+
+		return "/" + requestPath.substring(firstNonSlash);
+	}
+
 	class RedirectToConfig {
 
 		private boolean includeRequestPath;
@@ -352,6 +375,50 @@ public interface FilterFunctions {
 
 		public void setIncludeRequestParams(boolean includeRequestParams) {
 			this.includeRequestParams = includeRequestParams;
+		}
+
+	}
+
+	class RedirectToShortcutConfig {
+
+		private String status;
+
+		private URI uri;
+
+		private boolean includeRequestParams;
+
+		private boolean includeRequestPath;
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+		}
+
+		public URI getUri() {
+			return uri;
+		}
+
+		public void setUri(URI uri) {
+			this.uri = uri;
+		}
+
+		public boolean isIncludeRequestParams() {
+			return includeRequestParams;
+		}
+
+		public void setIncludeRequestParams(boolean includeRequestParams) {
+			this.includeRequestParams = includeRequestParams;
+		}
+
+		public boolean isIncludeRequestPath() {
+			return includeRequestPath;
+		}
+
+		public void setIncludeRequestPath(boolean includeRequestPath) {
+			this.includeRequestPath = includeRequestPath;
 		}
 
 	}
