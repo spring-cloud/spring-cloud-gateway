@@ -63,20 +63,31 @@ public class LocalResponseCacheGatewayFilterFactory
 
 	private final CaffeineCacheManager caffeineCacheManager;
 
+	private final CacheMetricsListener cacheMetricsListener;
+
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions) {
-		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager());
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, new CaffeineCacheManager(),
+				CacheMetricsListener.NOOP);
 	}
 
 	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
 			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
 			CaffeineCacheManager caffeineCacheManager) {
+		this(cacheManagerFactory, defaultTimeToLive, defaultSize, requestOptions, caffeineCacheManager,
+				CacheMetricsListener.NOOP);
+	}
+
+	public LocalResponseCacheGatewayFilterFactory(ResponseCacheManagerFactory cacheManagerFactory,
+			Duration defaultTimeToLive, DataSize defaultSize, RequestOptions requestOptions,
+			CaffeineCacheManager caffeineCacheManager, CacheMetricsListener cacheMetricsListener) {
 		super(RouteCacheConfiguration.class);
 		this.cacheManagerFactory = cacheManagerFactory;
 		this.defaultTimeToLive = defaultTimeToLive;
 		this.defaultSize = defaultSize;
 		this.requestOptions = requestOptions;
 		this.caffeineCacheManager = caffeineCacheManager;
+		this.cacheMetricsListener = cacheMetricsListener;
 	}
 
 	@Override
@@ -86,7 +97,9 @@ public class LocalResponseCacheGatewayFilterFactory
 
 		Caffeine caffeine = LocalResponseCacheUtils.createCaffeine(cacheProperties);
 		String cacheName = config.getRouteId() + "-cache";
-		caffeineCacheManager.registerCustomCache(cacheName, caffeine.build());
+		com.github.benmanes.caffeine.cache.Cache nativeCache = caffeine.build();
+		caffeineCacheManager.registerCustomCache(cacheName, nativeCache);
+		cacheMetricsListener.onCacheCreated(nativeCache, cacheName);
 		Cache routeCache = caffeineCacheManager.getCache(cacheName);
 		Objects.requireNonNull(routeCache, "Cache " + cacheName + " not found");
 		return new ResponseCacheGatewayFilter(
@@ -107,6 +120,39 @@ public class LocalResponseCacheGatewayFilterFactory
 	@Override
 	public List<String> shortcutFieldOrder() {
 		return List.of("timeToLive", "size");
+	}
+
+	/**
+	 * Callback invoked by {@link LocalResponseCacheGatewayFilterFactory} (and
+	 * {@code LocalResponseCacheAutoConfiguration} for the global cache) each time a
+	 * Caffeine cache backing {@code LocalResponseCache} is created or replaced. Allows
+	 * external components - typically a Micrometer binder - to attach observers without
+	 * the filter factory depending on Micrometer directly.
+	 *
+	 * <p>
+	 * Implementations must be safe to invoke multiple times with the same {@code
+	 * cacheName} (e.g. on every route refresh) since the gateway may rebuild the cache.
+	 */
+	@FunctionalInterface
+	public interface CacheMetricsListener {
+
+		/**
+		 * Invoked after a Caffeine cache for {@code cacheName} is created (or re-created
+		 * on refresh).
+		 * @param cache the current Caffeine cache instance.
+		 * @param cacheName the cache name used for tagging metrics; for per-route caches
+		 * this is {@code <routeId>-cache}.
+		 */
+		void onCacheCreated(com.github.benmanes.caffeine.cache.Cache<?, ?> cache, String cacheName);
+
+		/**
+		 * No-op default returned when no metrics binder is wired in (e.g. when Micrometer
+		 * is absent or
+		 * {@code spring.cloud.gateway.server.webflux.metrics.enabled=false}).
+		 */
+		CacheMetricsListener NOOP = (cache, cacheName) -> {
+		};
+
 	}
 
 	@Validated
