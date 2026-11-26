@@ -30,12 +30,14 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.function.context.FunctionCatalog;
 import org.springframework.cloud.function.context.FunctionProperties;
+import org.springframework.cloud.function.context.MessageRoutingCallback;
 import org.springframework.cloud.function.context.catalog.SimpleFunctionRegistry.FunctionInvocationWrapper;
 import org.springframework.cloud.function.context.config.RoutingFunction;
 import org.springframework.cloud.gateway.server.mvc.GatewayMvcClassPathWarningAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.RouteProperties;
 import org.springframework.cloud.stream.function.StreamOperations;
+import org.springframework.context.ApplicationContext;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -57,7 +59,8 @@ public abstract class HandlerFunctions {
 	public static HandlerFunction<ServerResponse> fn(String functionName) {
 		Assert.hasText(functionName, "'functionName' must not be empty");
 		return request -> {
-			FunctionCatalog functionCatalog = MvcUtils.getApplicationContext(request).getBean(FunctionCatalog.class);
+			ApplicationContext applicationContext = MvcUtils.getApplicationContext(request);
+			FunctionCatalog functionCatalog = applicationContext.getBean(FunctionCatalog.class);
 			String expandedFunctionName = MvcUtils.expand(request, functionName);
 			FunctionInvocationWrapper function;
 			Object body = null;
@@ -83,6 +86,17 @@ public abstract class HandlerFunctions {
 			 */
 			Map<String, String> additionalRequestHeaders = new HashMap<>();
 			if (function == null) {
+				FunctionInvocationWrapper routingTarget = functionCatalog.lookup(expandedFunctionName);
+				FunctionInvocationWrapper defaultRouteHandler = functionCatalog
+					.lookup(RoutingFunction.DEFAULT_ROUTE_HANDLER);
+				MessageRoutingCallback routingCallback = applicationContext
+					.getBeanProvider(MessageRoutingCallback.class)
+					.getIfAvailable();
+
+				if (routingTarget == null && defaultRouteHandler == null && routingCallback == null) {
+					return ServerResponse.notFound().build();
+				}
+
 				additionalRequestHeaders.put(FunctionProperties.FUNCTION_DEFINITION, expandedFunctionName);
 
 				function = functionCatalog.lookup(RoutingFunction.FUNCTION_NAME,
