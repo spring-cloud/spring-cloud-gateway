@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.server.mvc;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -26,6 +27,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.http.client.HttpCookieHandling;
 import org.springframework.boot.http.client.HttpRedirects;
 import org.springframework.boot.http.client.autoconfigure.HttpClientAutoConfiguration;
 import org.springframework.boot.http.client.autoconfigure.imperative.ImperativeHttpClientsProperties.Factory;
@@ -275,16 +277,27 @@ public class GatewayServerMvcAutoConfiguration {
 		static final boolean JDK = ClassUtils.isPresent("java.net.http.HttpClient", null);
 		static final boolean HIGHER_PRIORITY = APACHE || JETTY || REACTOR_NETTY;
 		static final String SPRING_REDIRECTS_PROPERTY = "spring.http.clients.redirects";
+		static final String SPRING_COOKIE_HANDLING_PROPERTY = "spring.http.clients.cookie-handling";
 		static final String SPRING_HTTP_FACTORY_PROPERTY = "spring.http.clients.imperative.factory";
 
 		@Override
 		public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+			Map<String, Object> defaults = new HashMap<>();
 			HttpRedirects redirects = environment.getProperty(SPRING_REDIRECTS_PROPERTY, HttpRedirects.class);
 			if (redirects == null) {
 				// the user hasn't set anything, change the default
+				defaults.put(SPRING_REDIRECTS_PROPERTY, HttpRedirects.DONT_FOLLOW);
+			}
+			HttpCookieHandling cookieHandling = environment.getProperty(SPRING_COOKIE_HANDLING_PROPERTY,
+					HttpCookieHandling.class);
+			if (cookieHandling == null) {
+				// the user hasn't set anything, don't let the proxy client keep cookies
+				// from one response and send them with later requests
+				defaults.put(SPRING_COOKIE_HANDLING_PROPERTY, HttpCookieHandling.DISABLE);
+			}
+			if (!defaults.isEmpty()) {
 				environment.getPropertySources()
-					.addFirst(new MapPropertySource("gatewayHttpClientProperties",
-							Map.of(SPRING_REDIRECTS_PROPERTY, HttpRedirects.DONT_FOLLOW)));
+					.addFirst(new MapPropertySource("gatewayHttpClientProperties", defaults));
 			}
 			Factory factory = environment.getProperty(SPRING_HTTP_FACTORY_PROPERTY, Factory.class);
 			boolean setJdkHttpClientProperties = false;
