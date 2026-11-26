@@ -34,6 +34,7 @@ import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfigura
 import org.springframework.boot.restclient.autoconfigure.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.filter.FilterAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
@@ -46,6 +47,7 @@ import org.springframework.cloud.gateway.server.mvc.filter.RemoveXForwardedReque
 import org.springframework.cloud.gateway.server.mvc.filter.TransferEncodingNormalizationRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.WeightCalculatorFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
+import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilterProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctionAutoConfiguration;
 import org.springframework.cloud.gateway.server.mvc.predicate.PredicateAutoConfiguration;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
@@ -214,8 +216,8 @@ public class GatewayServerMvcAutoConfigurationTests {
 					HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
 					HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
 					RestClientAutoConfiguration.class, SslAutoConfiguration.class))
-			.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded.enabled=true",
-					"spring.cloud.gateway.server.webmvc.x-forwarded.enabled=true",
+			.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=true",
+					"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=true",
 					"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
 			.run(context -> {
 				assertThat(context).hasSingleBean(ForwardedRequestHeadersFilter.class)
@@ -223,6 +225,65 @@ public class GatewayServerMvcAutoConfigurationTests {
 					.doesNotHaveBean(RemoveForwardedRequestHeadersFilter.class)
 					.doesNotHaveBean(RemoveXForwardedRequestHeadersFilter.class);
 			});
+	}
+
+	@Test
+	public void forwardedHeaderFiltersDisabledWithProperties() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded-request-headers-filter.enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false",
+						"spring.cloud.gateway.server.webmvc.trusted-proxies=.*")
+				.run(context -> {
+					assertThat(context).doesNotHaveBean(ForwardedRequestHeadersFilter.class)
+							.doesNotHaveBean(XForwardedRequestHeadersFilter.class)
+							.hasSingleBean(RemoveForwardedRequestHeadersFilter.class)
+							.hasSingleBean(RemoveXForwardedRequestHeadersFilter.class);
+				});
+	}
+
+	@Test
+	public void xForwardedRequestHeadersFilterPropertiesBind() {
+		new ApplicationContextRunner()
+				.withConfiguration(AutoConfigurations.of(FilterAutoConfiguration.class, PredicateAutoConfiguration.class,
+						HandlerFunctionAutoConfiguration.class, GatewayServerMvcAutoConfiguration.class,
+						HttpClientAutoConfiguration.class, RestTemplateAutoConfiguration.class,
+						RestClientAutoConfiguration.class, SslAutoConfiguration.class))
+				.withPropertyValues("spring.cloud.gateway.server.webmvc.forwarded-by-enabled=true",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.order=5",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-enabled=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.for-append=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.host-append=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.port-append=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.proto-append=false",
+						"spring.cloud.gateway.server.webmvc.x-forwarded-request-headers-filter.prefix-append=false")
+				.run(context -> {
+					assertThat(context).hasSingleBean(GatewayMvcProperties.class);
+					assertThat(context.getBean(GatewayMvcProperties.class).isForwardedByEnabled()).isTrue();
+					assertThat(context).hasSingleBean(XForwardedRequestHeadersFilterProperties.class);
+					XForwardedRequestHeadersFilterProperties properties = context
+							.getBean(XForwardedRequestHeadersFilterProperties.class);
+					assertThat(properties.isEnabled()).isFalse();
+					assertThat(properties.getOrder()).isEqualTo(5);
+					assertThat(properties.isForEnabled()).isFalse();
+					assertThat(properties.isHostEnabled()).isFalse();
+					assertThat(properties.isPortEnabled()).isFalse();
+					assertThat(properties.isProtoEnabled()).isFalse();
+					assertThat(properties.isPrefixEnabled()).isFalse();
+					assertThat(properties.isForAppend()).isFalse();
+					assertThat(properties.isHostAppend()).isFalse();
+					assertThat(properties.isPortAppend()).isFalse();
+					assertThat(properties.isProtoAppend()).isFalse();
+					assertThat(properties.isPrefixAppend()).isFalse();
+				});
 	}
 
 	@SpringBootConfiguration
