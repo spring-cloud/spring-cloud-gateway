@@ -19,6 +19,7 @@ package org.springframework.cloud.gateway.server.mvc.filter;
 import java.net.URI;
 import java.util.function.Consumer;
 
+import org.springframework.cloud.gateway.server.mvc.common.Configurable;
 import org.springframework.cloud.gateway.server.mvc.common.HttpStatusHolder;
 import org.springframework.cloud.gateway.server.mvc.common.KeyValues;
 import org.springframework.cloud.gateway.server.mvc.common.Shortcut;
@@ -29,6 +30,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.web.servlet.function.HandlerFilterFunction.ofRequestProcessor;
@@ -127,10 +129,100 @@ public interface FilterFunctions {
 
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri) {
+		return redirectTo(status, uri, config -> {
+		});
+	}
+
+	@Shortcut({ "status", "uri", "includeRequestParams", "includeRequestPath" })
+	@Configurable
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(RedirectToShortcutConfig config) {
+		return redirectTo(HttpStatusHolder.valueOf(config.getStatus()), config.getUri(), redirectConfig -> {
+			redirectConfig.setIncludeRequestParams(config.isIncludeRequestParams());
+			redirectConfig.setIncludeRequestPath(config.isIncludeRequestPath());
+		});
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(int status, URI uri,
+			Consumer<RedirectToConfig> configConsumer) {
+		return redirectTo(new HttpStatusHolder(null, status), uri, configConsumer);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(String status, URI uri,
+			Consumer<RedirectToConfig> configConsumer) {
+		return redirectTo(HttpStatusHolder.valueOf(status), uri, configConsumer);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusCode status, URI uri,
+			Consumer<RedirectToConfig> configConsumer) {
+		return redirectTo(new HttpStatusHolder(status, null), uri, configConsumer);
+	}
+
+	static HandlerFilterFunction<ServerResponse, ServerResponse> redirectTo(HttpStatusHolder status, URI uri,
+			Consumer<RedirectToConfig> configConsumer) {
 		Assert.isTrue(status.is3xxRedirection(), "status must be a 3xx code, but was " + status);
 
-		return (request,
-				next) -> ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, uri.toString()).build();
+		RedirectToConfig config = new RedirectToConfig();
+		configConsumer.accept(config);
+
+		return (request, next) -> {
+			URI redirectUri = uri;
+
+			if (config.isIncludeRequestPath() || config.isIncludeRequestParams()) {
+				redirectUri = buildRedirectUri(uri, request, config);
+			}
+
+			return ServerResponse.status(status.resolve()).header(HttpHeaders.LOCATION, redirectUri.toString()).build();
+		};
+	}
+
+	private static URI buildRedirectUri(URI uri, ServerRequest request, RedirectToConfig config) {
+		StringBuilder redirectUri = new StringBuilder();
+
+		if (uri.getScheme() != null) {
+			redirectUri.append(uri.getScheme()).append(':');
+		}
+
+		if (uri.getRawAuthority() != null) {
+			redirectUri.append("//").append(uri.getRawAuthority());
+		}
+
+		String destinationPath = uri.getRawPath() != null ? uri.getRawPath() : "";
+
+		if (config.isIncludeRequestPath()) {
+			String requestPath = request.uri().getRawPath();
+
+			if (requestPath != null && !requestPath.isEmpty()) {
+				requestPath = normalizeRequestPath(requestPath);
+
+				if (destinationPath.endsWith("/") && requestPath.startsWith("/")) {
+					requestPath = requestPath.substring(1);
+				}
+
+				destinationPath += requestPath;
+			}
+		}
+
+		redirectUri.append(destinationPath);
+
+		String destinationQuery = uri.getRawQuery();
+		String requestQuery = config.isIncludeRequestParams() ? request.uri().getRawQuery() : null;
+
+		if (destinationQuery != null && !destinationQuery.isEmpty()) {
+			redirectUri.append('?').append(destinationQuery);
+
+			if (requestQuery != null && !requestQuery.isEmpty()) {
+				redirectUri.append('&').append(requestQuery);
+			}
+		}
+		else if (requestQuery != null && !requestQuery.isEmpty()) {
+			redirectUri.append('?').append(requestQuery);
+		}
+
+		if (uri.getRawFragment() != null) {
+			redirectUri.append('#').append(uri.getRawFragment());
+		}
+
+		return URI.create(redirectUri.toString());
 	}
 
 	@Shortcut
@@ -251,6 +343,84 @@ public interface FilterFunctions {
 	@Shortcut
 	static HandlerFilterFunction<ServerResponse, ServerResponse> uri(URI uri) {
 		return ofRequestProcessor(BeforeFilterFunctions.uri(uri));
+	}
+
+	private static String normalizeRequestPath(String requestPath) {
+		int firstNonSlash = 0;
+
+		while (firstNonSlash < requestPath.length() && requestPath.charAt(firstNonSlash) == '/') {
+			firstNonSlash++;
+		}
+
+		return "/" + requestPath.substring(firstNonSlash);
+	}
+
+	class RedirectToConfig {
+
+		private boolean includeRequestPath;
+
+		private boolean includeRequestParams;
+
+		public boolean isIncludeRequestPath() {
+			return includeRequestPath;
+		}
+
+		public void setIncludeRequestPath(boolean includeRequestPath) {
+			this.includeRequestPath = includeRequestPath;
+		}
+
+		public boolean isIncludeRequestParams() {
+			return includeRequestParams;
+		}
+
+		public void setIncludeRequestParams(boolean includeRequestParams) {
+			this.includeRequestParams = includeRequestParams;
+		}
+
+	}
+
+	class RedirectToShortcutConfig {
+
+		private String status;
+
+		private URI uri;
+
+		private boolean includeRequestParams;
+
+		private boolean includeRequestPath;
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+		}
+
+		public URI getUri() {
+			return uri;
+		}
+
+		public void setUri(URI uri) {
+			this.uri = uri;
+		}
+
+		public boolean isIncludeRequestParams() {
+			return includeRequestParams;
+		}
+
+		public void setIncludeRequestParams(boolean includeRequestParams) {
+			this.includeRequestParams = includeRequestParams;
+		}
+
+		public boolean isIncludeRequestPath() {
+			return includeRequestPath;
+		}
+
+		public void setIncludeRequestPath(boolean includeRequestPath) {
+			this.includeRequestPath = includeRequestPath;
+		}
+
 	}
 
 	class FilterSupplier extends SimpleFilterSupplier {

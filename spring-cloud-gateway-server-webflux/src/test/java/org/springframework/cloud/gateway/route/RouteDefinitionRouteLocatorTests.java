@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.config.PropertiesRouteDefinitionLocator;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -32,6 +33,7 @@ import org.springframework.cloud.gateway.filter.OrderedGatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.AddResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
+import org.springframework.cloud.gateway.filter.factory.RedirectToGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RemoveResponseHeaderGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.RetryGatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.HostRoutePredicateFactory;
@@ -138,6 +140,46 @@ public class RouteDefinitionRouteLocatorTests {
 			assertThat(filters.get(0).toString()).contains("retries = 3");
 			assertThat(filters.get(0).toString()).contains("series = list[SERVER_ERROR]");
 			assertThat(filters.get(0).toString()).contains("methods = list[GET]");
+		}).expectComplete().verify();
+	}
+
+	@Test
+	public void redirectToShortcutConfigurationLoads() {
+		List<RoutePredicateFactory> predicates = Arrays.asList(new HostRoutePredicateFactory());
+		List<GatewayFilterFactory> gatewayFilterFactories = Arrays.asList(new RedirectToGatewayFilterFactory());
+
+		GatewayProperties gatewayProperties = new GatewayProperties();
+		gatewayProperties.setRoutes(List.of(new RouteDefinition() {
+			{
+				setId("redirect");
+				setUri(URI.create("https://example.org"));
+				setPredicates(List.of(new PredicateDefinition("Host=*.example.com")));
+				setFilters(List.of(new FilterDefinition("RedirectTo=302,https://example.org,true,true")));
+			}
+		}));
+
+		FilterDefinition filterDefinition = gatewayProperties.getRoutes().get(0).getFilters().get(0);
+
+		assertThat(filterDefinition.getName()).isEqualTo("RedirectTo");
+		assertThat(filterDefinition.getArgs()).containsEntry("_genkey_0", "302")
+			.containsEntry("_genkey_1", "https://example.org")
+			.containsEntry("_genkey_2", "true")
+			.containsEntry("_genkey_3", "true");
+
+		ConfigurationService configurationService = new ConfigurationService(new DefaultListableBeanFactory(),
+				() -> null, () -> null);
+
+		PropertiesRouteDefinitionLocator routeDefinitionLocator = new PropertiesRouteDefinitionLocator(
+				gatewayProperties);
+
+		RouteDefinitionRouteLocator routeDefinitionRouteLocator = new RouteDefinitionRouteLocator(
+				new CompositeRouteDefinitionLocator(Flux.just(routeDefinitionLocator)), predicates,
+				gatewayFilterFactories, gatewayProperties, configurationService);
+
+		StepVerifier.create(routeDefinitionRouteLocator.getRoutes()).assertNext(route -> {
+			assertThat(route.getFilters()).hasSize(1);
+			assertThat(route.getFilters().get(0).toString()).contains("includeRequestParams = true")
+				.contains("includeRequestPath = true");
 		}).expectComplete().verify();
 	}
 

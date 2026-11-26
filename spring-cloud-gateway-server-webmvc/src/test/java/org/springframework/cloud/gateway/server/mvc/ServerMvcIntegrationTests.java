@@ -53,6 +53,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions;
 import org.springframework.cloud.gateway.server.mvc.filter.FormFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.ForwardedRequestHeadersFilter;
 import org.springframework.cloud.gateway.server.mvc.filter.XForwardedRequestHeadersFilter;
@@ -91,6 +92,8 @@ import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_FIRST;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_LAST;
 import static org.springframework.cloud.gateway.server.mvc.filter.AfterFilterFunctions.DedupeStrategy.RETAIN_UNIQUE;
@@ -670,6 +673,88 @@ public class ServerMvcIntegrationTests {
 			.valueEquals(HttpHeaders.LOCATION, "https://exampleredirect.com");
 	}
 
+	@Test
+	public void redirectToIncludesRequestPath() {
+		restClient.get()
+			.uri("/anything/redirectpath/users/42")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/anything/redirectpath/users/42");
+	}
+
+	@Test
+	public void redirectToIncludesRequestQueryParameters() {
+		restClient.get()
+			.uri("/anything/redirectquery?name=yash&role=developer")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org?name=yash&role=developer");
+	}
+
+	@Test
+	public void redirectToIncludesRequestPathAndQueryParameters() {
+		restClient.get()
+			.uri("/anything/redirectboth/users/42?name=yash&role=developer")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION,
+					"https://example.org/anything/redirectboth/users/42?name=yash&role=developer");
+	}
+
+	@Test
+	public void redirectToPreservesDestinationQueryParameters() {
+		restClient.get()
+			.uri("/anything/redirectdestinationquery?source=gateway")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org?existing=value&source=gateway");
+	}
+
+	@Test
+	public void redirectToPreservesEncodedRequestPath() {
+		restClient.get()
+			.uri(URI.create("/anything/redirectencoded/users/john%20doe"))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/anything/redirectencoded/users/john%20doe");
+	}
+
+	@Test
+	public void redirectToHandlesRootRequestPath() {
+		restClient.get()
+			.uri("/")
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FOUND)
+			.expectHeader()
+			.valueEquals(HttpHeaders.LOCATION, "https://example.org/");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRootDestinationPath() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create("https://example.org/"),
+				config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.statusCode()).isEqualTo(HttpStatus.FOUND);
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("https://example.org/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
 	private MultiValueMap<String, HttpEntity<?>> createMultipartData() {
 		ClassPathResource part = new ClassPathResource("test/1x1.png");
 		MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -1038,6 +1123,32 @@ public class ServerMvcIntegrationTests {
 			});
 	}
 
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithRelativeRootDestination() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create("/"), config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
+	@Test
+	public void redirectToNormalizesMultipleLeadingSlashesWithEmptyRelativeDestination() throws Exception {
+		ServerRequest request = mock(ServerRequest.class);
+		when(request.uri()).thenReturn(URI.create("http://localhost//evil.example.com"));
+
+		var filter = redirectTo(HttpStatus.FOUND, URI.create(""), config -> config.setIncludeRequestPath(true));
+
+		ServerResponse response = filter.filter(request, req -> ServerResponse.ok().build());
+
+		assertThat(response.headers().getFirst(HttpHeaders.LOCATION)).isEqualTo("/evil.example.com")
+			.doesNotStartWith("//");
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@LoadBalancerClient(name = "httpbin", configuration = TestLoadBalancerConfig.Httpbin.class)
@@ -1393,6 +1504,71 @@ public class ServerMvcIntegrationTests {
 			return route(path("/anything/redirect"), http())
 					.filter(redirectTo(HttpStatus.MOVED_PERMANENTLY, URI.create("https://exampleredirect.com")))
 					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirectto");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithPath() {
+			// @formatter:off
+			return route(path("/anything/redirectpath/**"), http())
+					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org"), config ->
+							config.setIncludeRequestPath(true)))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttowithpath");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithQuery() {
+			// @formatter:off
+			return route(path("/anything/redirectquery"), http())
+					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org"), config ->
+							config.setIncludeRequestParams(true)))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttowithquery");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithPathAndQuery() {
+			FilterFunctions.RedirectToShortcutConfig config = new FilterFunctions.RedirectToShortcutConfig();
+			config.setStatus("FOUND");
+			config.setUri(URI.create("https://example.org"));
+			config.setIncludeRequestParams(true);
+			config.setIncludeRequestPath(true);
+
+			// @formatter:off
+			return route(path("/anything/redirectboth/**"), http())
+					.filter(redirectTo(config))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttowithpathandquery");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithDestinationQuery() {
+			// @formatter:off
+			return route(path("/anything/redirectdestinationquery"), http())
+					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org?existing=value"), config ->
+							config.setIncludeRequestParams(true)))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttodestinationquery");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToWithEncodedPath() {
+			// @formatter:off
+			return route(path("/anything/redirectencoded/**"), http())
+					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org"), config ->
+							config.setIncludeRequestPath(true)))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttoencodedpath");
+			// @formatter:on
+		}
+
+		@Bean
+		public RouterFunction<ServerResponse> gatewayRouterFunctionsRedirectToRoot() {
+			// @formatter:off
+			return route(path("/"), http())
+					.filter(redirectTo(HttpStatus.FOUND, URI.create("https://example.org"), config ->
+							config.setIncludeRequestPath(true)))
+					.withAttribute(MvcUtils.GATEWAY_ROUTE_ID_ATTR, "testredirecttoroot");
 			// @formatter:on
 		}
 

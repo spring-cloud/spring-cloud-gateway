@@ -32,7 +32,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setResponseStatus;
@@ -58,66 +57,87 @@ public class RedirectToGatewayFilterFactory
 	 */
 	public static final String INCLUDE_REQUEST_PARAMS_KEY = "includeRequestParams";
 
+	/**
+	 * IncludeRequestPath key.
+	 */
+	public static final String INCLUDE_REQUEST_PATH_KEY = "includeRequestPath";
+
 	public RedirectToGatewayFilterFactory() {
 		super(Config.class);
 	}
 
 	@Override
 	public List<String> shortcutFieldOrder() {
-		return Arrays.asList(STATUS_KEY, URL_KEY, INCLUDE_REQUEST_PARAMS_KEY);
+		return Arrays.asList(STATUS_KEY, URL_KEY, INCLUDE_REQUEST_PARAMS_KEY, INCLUDE_REQUEST_PATH_KEY);
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
 		String status = Objects.requireNonNull(config.status, "status must not be null");
 		String url = Objects.requireNonNull(config.url, "url must not be null");
-		return apply(status, url, config.includeRequestParams);
+		HttpStatusHolder httpStatus = HttpStatusHolder.parse(status);
+		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + status);
+		return apply(httpStatus, URI.create(url), config);
 	}
 
 	public GatewayFilter apply(String statusString, String urlString) {
 		return apply(statusString, urlString, false);
 	}
 
+	/**
+	 * Retained for compatibility with the original include-request-parameters option.
+	 */
 	public GatewayFilter apply(String statusString, String urlString, boolean includeRequestParams) {
 		HttpStatusHolder httpStatus = HttpStatusHolder.parse(statusString);
 		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + statusString);
-		final URI url = URI.create(urlString);
-		return apply(httpStatus, url, includeRequestParams);
+		Config config = new Config();
+		config.setIncludeRequestParams(includeRequestParams);
+		return apply(httpStatus, URI.create(urlString), config);
 	}
 
 	public GatewayFilter apply(HttpStatus httpStatus, URI uri) {
-		return apply(new HttpStatusHolder(httpStatus, null), uri, false);
+		return apply(new HttpStatusHolder(httpStatus, null), uri, new Config());
 	}
 
+	/**
+	 * Retained for compatibility with the original include-request-parameters option.
+	 */
 	public GatewayFilter apply(HttpStatus httpStatus, URI uri, boolean includeRequestParams) {
-		return apply(new HttpStatusHolder(httpStatus, null), uri, includeRequestParams);
+		Config config = new Config();
+		config.setIncludeRequestParams(includeRequestParams);
+		return apply(new HttpStatusHolder(httpStatus, null), uri, config);
 	}
 
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri) {
-		return apply(httpStatus, uri, false);
+		return apply(httpStatus, uri, new Config());
 	}
 
+	/**
+	 * Retained for compatibility with the original include-request-parameters option.
+	 */
 	public GatewayFilter apply(HttpStatusHolder httpStatus, URI uri, boolean includeRequestParams) {
+		Config config = new Config();
+		config.setIncludeRequestParams(includeRequestParams);
+		return apply(httpStatus, uri, config);
+	}
+
+	private GatewayFilter apply(HttpStatusHolder httpStatus, URI uri, Config config) {
+		Assert.isTrue(httpStatus.is3xxRedirection(), "status must be a 3xx code, but was " + httpStatus);
+
 		return new GatewayFilter() {
 			@Override
 			public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 				if (!exchange.getResponse().isCommitted()) {
 					setResponseStatus(exchange, httpStatus);
 
-					String location;
-					if (includeRequestParams) {
-						location = UriComponentsBuilder.fromUri(uri)
-							.queryParams(exchange.getRequest().getQueryParams())
-							.build()
-							.toUri()
-							.toString();
-					}
-					else {
-						location = uri.toString();
+					URI redirectUri = uri;
+
+					if (config.includeRequestPath || config.includeRequestParams) {
+						redirectUri = buildRedirectUri(uri, exchange, config);
 					}
 
 					final ServerHttpResponse response = exchange.getResponse();
-					response.getHeaders().set(HttpHeaders.LOCATION, location);
+					response.getHeaders().set(HttpHeaders.LOCATION, redirectUri.toString());
 					return response.setComplete();
 				}
 				return Mono.empty();
@@ -133,10 +153,70 @@ public class RedirectToGatewayFilterFactory
 					status = httpStatus.getStatus().toString();
 				}
 				return filterToStringCreator(RedirectToGatewayFilterFactory.this).append(status, uri)
-					.append(INCLUDE_REQUEST_PARAMS_KEY, includeRequestParams)
+					.append(INCLUDE_REQUEST_PARAMS_KEY, config.includeRequestParams)
+					.append(INCLUDE_REQUEST_PATH_KEY, config.includeRequestPath)
 					.toString();
 			}
 		};
+	}
+
+	private URI buildRedirectUri(URI uri, ServerWebExchange exchange, Config config) {
+		StringBuilder redirectUri = new StringBuilder();
+
+		if (uri.getScheme() != null) {
+			redirectUri.append(uri.getScheme()).append(':');
+		}
+
+		if (uri.getRawAuthority() != null) {
+			redirectUri.append("//").append(uri.getRawAuthority());
+		}
+
+		String destinationPath = uri.getRawPath() != null ? uri.getRawPath() : "";
+
+		if (config.includeRequestPath) {
+			String requestPath = exchange.getRequest().getURI().getRawPath();
+
+			if (requestPath != null && !requestPath.isEmpty()) {
+				requestPath = normalizeRequestPath(requestPath);
+
+				if (destinationPath.endsWith("/") && requestPath.startsWith("/")) {
+					requestPath = requestPath.substring(1);
+				}
+
+				destinationPath += requestPath;
+			}
+		}
+
+		redirectUri.append(destinationPath);
+
+		String destinationQuery = uri.getRawQuery();
+		String requestQuery = config.includeRequestParams ? exchange.getRequest().getURI().getRawQuery() : null;
+
+		if (destinationQuery != null && !destinationQuery.isEmpty()) {
+			redirectUri.append('?').append(destinationQuery);
+			if (requestQuery != null && !requestQuery.isEmpty()) {
+				redirectUri.append('&').append(requestQuery);
+			}
+		}
+		else if (requestQuery != null && !requestQuery.isEmpty()) {
+			redirectUri.append('?').append(requestQuery);
+		}
+
+		if (uri.getRawFragment() != null) {
+			redirectUri.append('#').append(uri.getRawFragment());
+		}
+
+		return URI.create(redirectUri.toString());
+	}
+
+	private static String normalizeRequestPath(String requestPath) {
+		int firstNonSlash = 0;
+
+		while (firstNonSlash < requestPath.length() && requestPath.charAt(firstNonSlash) == '/') {
+			firstNonSlash++;
+		}
+
+		return "/" + requestPath.substring(firstNonSlash);
 	}
 
 	public static class Config {
@@ -145,7 +225,9 @@ public class RedirectToGatewayFilterFactory
 
 		private @Nullable String url;
 
-		boolean includeRequestParams;
+		private boolean includeRequestParams;
+
+		private boolean includeRequestPath;
 
 		public @Nullable String getStatus() {
 			return status;
@@ -169,6 +251,14 @@ public class RedirectToGatewayFilterFactory
 
 		public void setIncludeRequestParams(boolean includeRequestParams) {
 			this.includeRequestParams = includeRequestParams;
+		}
+
+		public boolean isIncludeRequestPath() {
+			return includeRequestPath;
+		}
+
+		public void setIncludeRequestPath(boolean includeRequestPath) {
+			this.includeRequestPath = includeRequestPath;
 		}
 
 	}

@@ -608,6 +608,40 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
+	 * A filter that redirects the request and optionally includes the original request
+	 * path and query parameters.
+	 * @param status an HTTP status code, should be a 300 series redirect
+	 * @param url the URL to redirect to
+	 * @param configurer customizes the redirect options
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(int status, String url,
+			Consumer<RedirectToGatewayFilterFactory.Config> configurer) {
+		return redirect(String.valueOf(status), url, configurer);
+	}
+
+	/**
+	 * A filter that redirects the request and optionally includes the original request
+	 * path and query parameters.
+	 * @param status an HTTP status code, should be a 300 series redirect
+	 * @param url the URL to redirect to
+	 * @param configurer customizes the redirect options
+	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters
+	 */
+	public GatewayFilterSpec redirect(String status, String url,
+			Consumer<RedirectToGatewayFilterFactory.Config> configurer) {
+		RedirectToGatewayFilterFactory.Config config = new RedirectToGatewayFilterFactory.Config();
+		config.setStatus(status);
+		config.setUrl(url);
+		configurer.accept(config);
+		return filter(getBean(RedirectToGatewayFilterFactory.class).apply(config));
+	}
+
+	public GatewayFilterSpec redirect(int status, URI url, Consumer<RedirectToGatewayFilterFactory.Config> configurer) {
+		return redirect(String.valueOf(status), url.toString(), configurer);
+	}
+
+	/**
 	 * A filter that can be used to modify the response body. By default, this only
 	 * removes root attributes.
 	 * @param attributes list of attributes to remove.
@@ -813,7 +847,7 @@ public class GatewayFilterSpec extends UriSpec {
 	}
 
 	/**
-	 * A filter that rewrites the value of a request parameter
+	 * A filter that rewrites the value of a request parameter.
 	 * @param name The name of the request parameter to replace
 	 * @param replacement The new value for the request parameter
 	 * @return a {@link GatewayFilterSpec} that can be used to apply additional filters

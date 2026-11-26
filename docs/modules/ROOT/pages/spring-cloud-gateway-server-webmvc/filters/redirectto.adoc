@@ -1,11 +1,22 @@
 [[redirectto-filter]]
 = `RedirectTo` Filter
 
-The `RedirectTo` filter takes two parameters, `status` and `url`.
+The `RedirectTo` filter takes two required parameters, `status` and `url`, and supports two optional configuration properties: `includeRequestParams` and `includeRequestPath`.
+
 The `status` parameter should be a 300 series redirect HTTP code, such as 301.
-The `url` parameter should be a valid URL.
-This is the value of the `Location` header.
-For relative redirects, you should use `uri: no://op` as the uri of your route definition.
+
+The `url` parameter should be a valid URL. This is the value of the `Location` header.
+
+The `includeRequestParams` property indicates whether the original request query parameters should be appended to the redirect URL.
+
+The `includeRequestPath` property indicates whether the original request path should be appended to the redirect URL.
+
+Both properties default to `false`.
+
+If the destination URL already contains query parameters, the original request query parameters are appended to the existing query string.
+
+For relative redirects, you should use `uri: no://op` as the URI of your route definition.
+
 The following listing configures a `RedirectTo` filter:
 
 .application.yml
@@ -22,7 +33,7 @@ spring:
               predicates:
               - Path=/**
               filters:
-              - RedirectTo=302, https://acme.org
+              - RedirectTo=302,https://acme.org
 ----
 
 .GatewaySampleApplication.java
@@ -41,10 +52,23 @@ class RouteConfiguration {
         return route("redirectto_route")
             .GET("/**", http())
             .before(uri("https://example.org"))
-            .filter(redirectTo(302, URI.create("acme.org")))
+            .filter(redirectTo(302, URI.create("https://acme.org")))
             .build();
     }
 }
 ----
 
 This will send a status 302 with a `Location:https://acme.org` header to perform a redirect.
+
+The following example configures both optional properties using the Java DSL:
+
+.GatewaySampleApplication.java
+[source,java]
+----
+.filter(redirectTo(302, URI.create("https://acme.org"), config -> {
+    config.setIncludeRequestPath(true);
+    config.setIncludeRequestParams(true);
+}))
+----
+
+When a request to `/orders?skip=10` is made to the gateway, the resulting redirect URL will be `https://acme.org/orders?skip=10`.
