@@ -186,6 +186,12 @@
       "defaultValue": "true"
     },
     {
+      "name": "spring.cloud.gateway.server.webflux.filter.strip-context-path.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables the strip-context-path filter.",
+      "defaultValue": "true"
+    },
+    {
       "name": "spring.cloud.gateway.server.webflux.filter.strip-prefix.enabled",
       "type": "java.lang.Boolean",
       "description": "Enables the strip-prefix filter.",
