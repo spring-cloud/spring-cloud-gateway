@@ -26,6 +26,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
 import org.springframework.cloud.gateway.server.mvc.handler.ProxyExchange;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
@@ -46,7 +48,7 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 
 		int transferredBytes;
 
-		if (isStreamingMediaType(properties.getStreamingMediaTypes(), clientResponse.getHeaders().getContentType())) {
+		if (isStreamingMediaType(properties.getStreamingMediaTypes(), getContentType(clientResponse))) {
 			transferredBytes = copyResponseBodyWithFlushing(inputStream, outputStream);
 		}
 		else {
@@ -77,7 +79,31 @@ public abstract class AbstractProxyExchange implements ProxyExchange {
 	}
 
 	private boolean isStreamingResponse(ClientHttpResponse clientResponse) {
-		return isStreamingMediaType(properties.getStreamingMediaTypes(), clientResponse.getHeaders().getContentType());
+		return isStreamingMediaType(properties.getStreamingMediaTypes(), getContentType(clientResponse));
+	}
+
+	/**
+	 * Reads the response content type without parsing its parameters. Only the type and
+	 * subtype are relevant for streaming detection, and clients may send non-standard
+	 * charset values (for example {@code x-user-defined}) that
+	 * {@link HttpHeaders#getContentType()} rejects.
+	 * @param clientResponse the client response to read the content type from
+	 * @return the parsed content type, or {@code null} if the header is missing or cannot
+	 * be parsed
+	 */
+	private static @Nullable MediaType getContentType(ClientHttpResponse clientResponse) {
+		String contentType = clientResponse.getHeaders().getFirst(HttpHeaders.CONTENT_TYPE);
+		if (contentType == null) {
+			return null;
+		}
+		int parameterIndex = contentType.indexOf(';');
+		String mediaType = parameterIndex >= 0 ? contentType.substring(0, parameterIndex) : contentType;
+		try {
+			return MediaType.parseMediaType(mediaType.trim());
+		}
+		catch (InvalidMediaTypeException ex) {
+			return null;
+		}
 	}
 
 	private static boolean isStreamingMediaType(List<MediaType> streamingMediaTypes, @Nullable MediaType mediaType) {

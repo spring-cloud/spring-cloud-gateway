@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.gateway.server.mvc.config.GatewayMvcProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.client.MockClientHttpResponse;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -97,6 +98,44 @@ public class AbstractProxyExchangeTests {
 
 		assertThat(result).isEqualTo(3);
 		verify(outputStream, times(1)).flush();
+	}
+
+	/**
+	 * Verifies that a non-standard charset in the response content type does not prevent
+	 * the response body from being copied.
+	 */
+	@Test
+	public void copyResponseBodyWithNonStandardCharset() throws IOException {
+		MockClientHttpResponse mockResponse = new MockClientHttpResponse(new byte[0], 200);
+		mockResponse.getHeaders().set(HttpHeaders.CONTENT_TYPE, "text/plain; charset=x-user-defined");
+
+		InputStream inputStream = mock(InputStream.class);
+		when(inputStream.transferTo(any())).thenReturn(3L);
+		OutputStream outputStream = mock(OutputStream.class);
+
+		int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
+
+		assertThat(result).isEqualTo(3);
+		verify(outputStream, times(1)).flush();
+	}
+
+	/**
+	 * Verifies that a streaming response is still detected when its content type contains
+	 * a non-standard charset.
+	 */
+	@Test
+	public void copyResponseBodyForTextEventStreamWithNonStandardCharset() throws IOException {
+		MockClientHttpResponse mockResponse = new MockClientHttpResponse(new byte[0], 200);
+		mockResponse.getHeaders().set(HttpHeaders.CONTENT_TYPE, "text/event-stream; charset=x-user-defined");
+
+		InputStream inputStream = mock(InputStream.class);
+		when(inputStream.read(any())).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(-1);
+		OutputStream outputStream = mock(OutputStream.class);
+
+		int result = new TestProxyExchange().copyResponseBody(mockResponse, inputStream, outputStream);
+
+		assertThat(result).isEqualTo(3);
+		verify(outputStream, times(4)).flush();
 	}
 
 	class TestProxyExchange extends AbstractProxyExchange {
