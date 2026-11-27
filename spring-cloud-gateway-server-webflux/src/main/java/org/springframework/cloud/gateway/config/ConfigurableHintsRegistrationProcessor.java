@@ -70,7 +70,7 @@ class ConfigurableHintsRegistrationProcessor implements BeanFactoryInitializatio
 			Set.of("org.springframework.security.oauth2.client.OAuth2AuthorizedClient",
 					"org.springframework.security.web.server.SecurityWebFilterChain",
 					"org.springframework.boot.security.autoconfigure.SecurityProperties"),
-			JsonToGrpcGatewayFilterFactory.class, Set.of("io.grpc.Channel"), RedisRateLimiter.class,
+			JsonToGrpcGatewayFilterFactory.class, Set.of("io.grpc.netty.NettyChannelBuilder"), RedisRateLimiter.class,
 			Set.of("org.springframework.data.redis.core.RedisTemplate",
 					"org.springframework.web.reactive.DispatcherHandler"),
 			SpringCloudCircuitBreakerResilience4JFilterFactory.class, circuitBreakerConditionalClasses,
