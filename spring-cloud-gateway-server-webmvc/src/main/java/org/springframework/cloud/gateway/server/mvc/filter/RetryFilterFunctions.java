@@ -36,6 +36,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.log.LogMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
@@ -108,6 +109,8 @@ public abstract class RetryFilterFunctions {
 
 		private Set<HttpStatus.Series> series = new HashSet<>(List.of(HttpStatus.Series.SERVER_ERROR));
 
+		private Set<HttpStatus> statuses = new HashSet<>();
+
 		private Set<Class<? extends Throwable>> exceptions = new HashSet<>(
 				List.of(IOException.class, TimeoutException.class, RetryException.class));
 
@@ -138,6 +141,25 @@ public abstract class RetryFilterFunctions {
 		public RetryConfig addSeries(HttpStatus.Series... series) {
 			this.series.addAll(Arrays.asList(series));
 			return this;
+		}
+
+		public Set<HttpStatus> getStatuses() {
+			return statuses;
+		}
+
+		public RetryConfig setStatuses(Set<HttpStatus> statuses) {
+			this.statuses = statuses;
+			return this;
+		}
+
+		public RetryConfig addStatuses(HttpStatus... statuses) {
+			this.statuses.addAll(Arrays.asList(statuses));
+			return this;
+		}
+
+		boolean isRetryableStatusCode(HttpStatusCode status) {
+			return this.statuses.contains(status)
+					|| this.series.stream().anyMatch(series -> HttpStatus.Series.resolve(status.value()) == series);
 		}
 
 		public Set<Class<? extends Throwable>> getExceptions() {

@@ -25,8 +25,6 @@ import org.springframework.cloud.gateway.server.mvc.filter.RetryFilterFunctions.
 import org.springframework.core.retry.RetryPolicy;
 import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.ExponentialBackOff;
@@ -73,7 +71,7 @@ public abstract class FrameworkRetryFilterFunctions {
 				reset(request);
 				ServerResponse serverResponse = next.handle(request);
 
-				if (isRetryableStatusCode(serverResponse.statusCode(), config)
+				if (config.isRetryableStatusCode(serverResponse.statusCode())
 						&& isRetryableMethod(request.method(), config)) {
 					// use this to transfer information for HTTP status retry logic
 					throw new RetryFilterFunctions.RetryException(request, serverResponse);
@@ -89,10 +87,6 @@ public abstract class FrameworkRetryFilterFunctions {
 			clientHttpResponse.close();
 			MvcUtils.putAttribute(request, MvcUtils.CLIENT_RESPONSE_ATTR, null);
 		}
-	}
-
-	private static boolean isRetryableStatusCode(HttpStatusCode httpStatus, RetryFilterFunctions.RetryConfig config) {
-		return config.getSeries().stream().anyMatch(series -> HttpStatus.Series.resolve(httpStatus.value()) == series);
 	}
 
 	private static boolean isRetryableMethod(HttpMethod method, RetryFilterFunctions.RetryConfig config) {
@@ -165,7 +159,7 @@ public abstract class FrameworkRetryFilterFunctions {
 
 			// Check if it's an HTTP status retry case
 			if (throwable instanceof RetryFilterFunctions.RetryException retryException) {
-				shouldRetry = isRetryableStatusCode(retryException.getResponse().statusCode(), config)
+				shouldRetry = config.isRetryableStatusCode(retryException.getResponse().statusCode())
 						&& isRetryableMethod(retryException.getRequest().method(), config);
 			}
 			else {

@@ -13,8 +13,7 @@ TIP: You can force the use of the Framework retry filter even when Spring Retry 
 The `Retry` filter supports the following parameters:
 
 * `retries`: The number of retries that should be attempted.
-//TODO: implement statuses
-//* `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
+* `statuses`: The HTTP status codes that should be retried, represented by using `org.springframework.http.HttpStatus`.
 * `methods`: The HTTP methods that should be retried, represented by using `org.springframework.http.HttpMethod`.
 * `series`: The series of status codes to be retried, represented by using `org.springframework.http.HttpStatus.Series`.
 * `exceptions`: A list of thrown exceptions that should be retried.
@@ -31,6 +30,10 @@ The following defaults are configured for `Retry` filter, if enabled:
 * `exceptions`: `IOException`, `TimeoutException` and `RetryException`
 * `cacheBody`: `false`
 * `backoff`: disabled
+
+NOTE: The `statuses` and `series` parameters are combined with a logical OR.
+For example, configuring `statuses` as `NOT_FOUND` (404) and `series` as `SERVER_ERROR` makes both 404 and all 5xx responses eligible for retry.
+Configuring `statuses` as `SERVICE_UNAVAILABLE` (503) and `series` as `SERVER_ERROR` still makes all 5xx responses eligible for retry, not just 503.
 
 WARNING: Setting `cacheBody` to `true` causes the gateway to read the whole body into memory. This should be used with caution.
 
@@ -53,6 +56,7 @@ spring:
               - name: Retry
                 args:
                   retries: 3
+                  statuses: BAD_GATEWAY
                   series: SERVER_ERROR
                   methods: GET,POST
                   cacheBody: true
@@ -84,6 +88,7 @@ class RouteConfiguration {
             .route(host("*.retry.com"), http())
             .before(uri("http://localhost:8080/flakey"))
             .filter(retry(config -> config.setRetries(3)
+                    .setStatuses(Set.of(HttpStatus.BAD_GATEWAY))
                     .setSeries(Set.of(HttpStatus.Series.SERVER_ERROR))
                     .setMethods(Set.of(HttpMethod.GET, HttpMethod.POST))
                     .setCacheBody(true)
