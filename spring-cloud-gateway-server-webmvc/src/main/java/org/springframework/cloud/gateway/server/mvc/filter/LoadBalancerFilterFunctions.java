@@ -40,11 +40,13 @@ import org.springframework.cloud.client.loadbalancer.RequestData;
 import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.ResponseData;
 import org.springframework.cloud.gateway.server.mvc.common.MvcUtils;
+import org.springframework.cloud.gateway.server.mvc.config.GatewayLoadBalancerProperties;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.function.HandlerFilterFunction;
 import org.springframework.web.servlet.function.ServerResponse;
 
@@ -89,10 +91,13 @@ public abstract class LoadBalancerFilterFunctions {
 			if (retrievedInstance == null) {
 				supportedLifecycleProcessors.forEach(lifecycle -> lifecycle
 					.onComplete(new CompletionContext<>(CompletionContext.Status.DISCARD, lbRequest)));
-				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE,
-						"Unable to find instance for " + serviceId);
-				// throw NotFoundException.create(properties.isUse404(), "Unable to find
-				// instance for " + serviceId);
+				String message = "Unable to find instance for " + serviceId;
+				GatewayLoadBalancerProperties properties = getApplicationContext(request)
+					.getBean(GatewayLoadBalancerProperties.class);
+				if (properties.isUse404()) {
+					throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+				}
+				throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE, message);
 			}
 
 			URI uri = request.uri();
