@@ -41,7 +41,7 @@ public class GatewayHttpTagsProviderTests {
 	private static final String ROUTE_URI = "http://gatewaytagsprovider.org:80";
 
 	private static final Tags DEFAULT_TAGS = Tags.of("outcome", OK.series().name(), "status", OK.name(),
-			"httpStatusCode", String.valueOf(OK.value()), "httpMethod", "GET");
+			"http.status.code", String.valueOf(OK.value()), "http.method", "GET");
 
 	@Test
 	public void httpTags() {
@@ -59,7 +59,7 @@ public class GatewayHttpTagsProviderTests {
 
 		Tags tags = tagsProvider.apply(exchange);
 		assertThat(tags)
-			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "499", "httpMethod", "GET", "httpStatusCode", "499"));
+			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "499", "http.method", "GET", "http.status.code", "499"));
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class GatewayHttpTagsProviderTests {
 
 		Tags tags = tagsProvider.apply(exchange);
 		assertThat(tags)
-			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM", "httpStatusCode", "NA", "httpMethod", "GET"));
+			.isEqualTo(Tags.of("outcome", "CUSTOM", "status", "CUSTOM", "http.status.code", "NA", "http.method", "GET"));
 	}
 
 	@Test
