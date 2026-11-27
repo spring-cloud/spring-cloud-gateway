@@ -53,8 +53,6 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 
 	private @Nullable Integer serverPort;
 
-	private final Log logger = LogFactory.getLog(getClass());
-
 	private boolean forwardedByEnabled = false;
 
 	/**
@@ -219,7 +217,7 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 			addForwardedBy(forwarded, InetAddress.getLocalHost());
 		}
 		catch (UnknownHostException e) {
-			this.logger.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
+			log.warn("Can not resolve host address, skipping Forwarded 'by' header", e);
 		}
 	}
 
