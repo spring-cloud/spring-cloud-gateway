@@ -30,12 +30,12 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -46,49 +46,38 @@ import org.springframework.stereotype.Component;
 @EnableAutoConfiguration
 public class GRPCApplication {
 
+	protected GRPCApplication() {
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(GRPCApplication.class, args);
 	}
 
 	@Component
-	static class GRPCServer implements ApplicationRunner {
+	static class GRPCServer implements ApplicationRunner, DisposableBean {
 
 		private static final Logger log = LoggerFactory.getLogger(GRPCServer.class);
 
-		private final Environment environment;
-
 		private Server server;
-
-		GRPCServer(Environment environment) {
-			this.environment = environment;
-		}
 
 		@Override
 		public void run(ApplicationArguments args) throws Exception {
-			final GRPCServer server = new GRPCServer(environment);
-			server.start();
+			start();
 		}
 
 		private void start() throws IOException {
-			Integer serverPort = environment.getProperty("local.server.port", Integer.class);
-			int grpcPort = serverPort + 1;
 			ServerCredentials creds = createServerCredentials();
-			server = Grpc.newServerBuilderForPort(grpcPort, creds)
+			server = Grpc.newServerBuilderForPort(0, creds)
 				.addService(new HelloService())
 				.addService(new StreamService())
 				.build()
 				.start();
 
-			log.info("Starting gRPC server in port " + grpcPort);
+			log.info("Starting gRPC server in port " + server.getPort());
+		}
 
-			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-				try {
-					GRPCServer.this.stop();
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace(System.err);
-				}
-			}));
+		int getPort() {
+			return server.getPort();
 		}
 
 		private ServerCredentials createServerCredentials() throws IOException {
@@ -98,7 +87,8 @@ public class GRPCApplication {
 			return TlsServerCredentials.create(certChain, privateKey);
 		}
 
-		private void stop() throws InterruptedException {
+		@Override
+		public void destroy() throws InterruptedException {
 			if (server != null) {
 				server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
 			}
