@@ -23,6 +23,10 @@ import org.springframework.cloud.gateway.support.HasConfig;
 import org.springframework.cloud.gateway.support.Visitor;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * A {@link Predicate} that is specific to Spring Cloud Gateway, providing additional
+ * methods for composing predicates and visiting them.
+ */
 public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfig {
 
 	@Override
@@ -46,7 +50,6 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 
 	static GatewayPredicate wrapIfNeeded(Predicate<? super ServerWebExchange> other) {
 		GatewayPredicate right;
-
 		if (other instanceof GatewayPredicate gatewayPredicate) {
 			right = gatewayPredicate;
 		}
@@ -82,6 +85,23 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 			return this.delegate.getClass().getSimpleName();
 		}
 
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof GatewayPredicateWrapper)) {
+				return false;
+			}
+			GatewayPredicateWrapper that = (GatewayPredicateWrapper) o;
+			return Objects.equals(this.delegate, that.delegate);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(this.delegate);
+		}
+
 	}
 
 	class NegateGatewayPredicate implements GatewayPredicate {
@@ -94,8 +114,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		}
 
 		@Override
-		public boolean test(ServerWebExchange t) {
-			return !this.predicate.test(t);
+		public boolean test(ServerWebExchange exchange) {
+			return !this.predicate.test(exchange);
 		}
 
 		@Override
@@ -106,6 +126,23 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		@Override
 		public String toString() {
 			return String.format("!%s", this.predicate);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof NegateGatewayPredicate)) {
+				return false;
+			}
+			NegateGatewayPredicate that = (NegateGatewayPredicate) o;
+			return Objects.equals(this.predicate, that.predicate);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(this.predicate);
 		}
 
 	}
@@ -124,8 +161,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		}
 
 		@Override
-		public boolean test(ServerWebExchange t) {
-			return (this.left.test(t) && this.right.test(t));
+		public boolean test(ServerWebExchange exchange) {
+			return this.left.test(exchange) && this.right.test(exchange);
 		}
 
 		@Override
@@ -137,6 +174,23 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		@Override
 		public String toString() {
 			return String.format("(%s && %s)", this.left, this.right);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof AndGatewayPredicate)) {
+				return false;
+			}
+			AndGatewayPredicate that = (AndGatewayPredicate) o;
+			return Objects.equals(this.left, that.left) && Objects.equals(this.right, that.right);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.left, this.right);
 		}
 
 	}
@@ -155,8 +209,8 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		}
 
 		@Override
-		public boolean test(ServerWebExchange t) {
-			return (this.left.test(t) || this.right.test(t));
+		public boolean test(ServerWebExchange exchange) {
+			return this.left.test(exchange) || this.right.test(exchange);
 		}
 
 		@Override
@@ -168,6 +222,23 @@ public interface GatewayPredicate extends Predicate<ServerWebExchange>, HasConfi
 		@Override
 		public String toString() {
 			return String.format("(%s || %s)", this.left, this.right);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof OrGatewayPredicate)) {
+				return false;
+			}
+			OrGatewayPredicate that = (OrGatewayPredicate) o;
+			return Objects.equals(this.left, that.left) && Objects.equals(this.right, that.right);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.left, this.right);
 		}
 
 	}
