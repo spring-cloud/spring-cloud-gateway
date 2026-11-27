@@ -153,6 +153,94 @@ However, if `GATEWAY_SCHEME_PREFIX_ATTR` is specified for the route in the Gatew
 
 TIP: Gateway supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
+[[web-session-sticky-load-balancer-filter]]
+== `WebSessionStickyLoadBalancerFilter`
+
+The `WebSessionStickyLoadBalancerFilter` provides server-side, WebSession-based sticky routing as an opt-in complement to the standard `ReactiveLoadBalancerClientFilter`.
+A route opts in by using `sticky://` as its URI scheme instead of `lb://`.
+
+Unlike the cookie-based approach provided by `LoadBalancerServiceInstanceCookieFilter`, this filter stores the `serviceId -> instanceId` affinity map server-side in the gateway's own `WebSession`.
+Clients do not need to send or manage any cookie.
+
+When a request arrives on a sticky route, the filter:
+
+1. Looks up an existing `serviceId -> instanceId` affinity in the session.
+2. If a pinned instance is found *and* that instance is still registered, routes directly to it.
+3. If no affinity exists, or the pinned instance has been deregistered (e.g. after a health-check failure), selects a new instance via the configured delegate balancer (round-robin by default) and records the new affinity in the session.
+
+This means a failed instance is transparently replaced — the client sees no error and subsequent requests are pinned to the new instance.
+
+=== Enabling the filter
+
+The filter is disabled by default.
+Enable it with:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          global-filter:
+            web-session-sticky-load-balancer-filter:
+              enabled: true
+----
+
+=== Route configuration
+
+Use `sticky://` as the URI scheme on any route that should use session affinity:
+
+.application.yml
+[source,yaml]
+----
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: sticky-api-route
+              uri: sticky://my-service
+              predicates:
+                - Path=/api/**
+            - id: regular-route
+              uri: lb://my-service
+              predicates:
+                - Path=/public/**
+----
+
+In the example above, `/api/**` requests are pinned to a single instance of `my-service` for the life of the session, while `/public/**` requests are distributed across instances using the normal round-robin balancer.
+
+NOTE: The `WebSessionStickyLoadBalancerFilter` handles only `sticky://` URIs.
+Routes using the standard `lb://` scheme continue to be handled by `ReactiveLoadBalancerClientFilter` and are unaffected.
+
+NOTE: Session affinity depends on the gateway maintaining a `WebSession` for each client.
+Ensure that session persistence (e.g. Spring Session with Redis) is configured if you run multiple gateway instances; otherwise, a client that reaches a different gateway replica will lose its affinity until a new instance is selected.
+
+=== Comparison with cookie-based sticky sessions
+
+|===
+| Feature | `LoadBalancerServiceInstanceCookieFilter` | `WebSessionStickyLoadBalancerFilter`
+
+| Affinity storage
+| Client-side HTTP cookie (`sc-lb-instance-id`)
+| Server-side `WebSession` attribute
+
+| Per-route opt-in
+| No — configured per service via `LoadBalancerProperties`
+| Yes — use `sticky://` on individual routes
+
+| Client transparency
+| Client must echo the cookie on each request
+| Fully transparent; no client change required
+
+| Graceful re-pin on instance failure
+| No — cookie retains stale instance id
+| Yes — stale affinity is replaced automatically
+|===
+
 [[routetorequesturl-filter]]
 == `RouteToRequestUrl` Filter
 
