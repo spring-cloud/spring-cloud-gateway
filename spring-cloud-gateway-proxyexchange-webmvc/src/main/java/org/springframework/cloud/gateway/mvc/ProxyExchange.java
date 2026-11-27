@@ -484,20 +484,21 @@ public class ProxyExchange<T> {
 			forwarded = "";
 		}
 		String forwardedHeader = webRequest.getHeader("host");
-		if (forwardedHeader != null) {
-			forwarded = forwarded + forwarded(uri, forwardedHeader);
-		}
+		forwarded = forwarded + forwarded(uri, forwardedHeader);
 		headers.set("forwarded", forwarded);
 	}
 
-	private String forwarded(URI uri, String hostHeader) {
+	private String forwarded(URI uri, @Nullable String hostHeader) {
 		if (StringUtils.hasText(hostHeader)) {
 			return "host=" + hostHeader;
 		}
+		// HTTP/2 requests carry no Host header; the authority is taken from the
+		// :authority pseudo-header, which the servlet container exposes through the
+		// request URL (server name and port).
 		if ("http".equals(uri.getScheme())) {
-			return "host=" + uri.getHost();
+			return "host=" + uri.getAuthority();
 		}
-		return String.format("host=%s;proto=%s", uri.getHost(), uri.getScheme());
+		return String.format("host=%s;proto=%s", uri.getAuthority(), uri.getScheme());
 	}
 
 	private @Nullable Object body() {
