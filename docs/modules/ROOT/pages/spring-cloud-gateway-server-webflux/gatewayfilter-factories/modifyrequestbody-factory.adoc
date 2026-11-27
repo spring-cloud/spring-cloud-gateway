@@ -3,7 +3,7 @@
 
 You can use the `ModifyRequestBody` filter to modify the request body before it is sent downstream by the gateway.
 
-NOTE: This filter can be configured only by using the Java DSL.
+NOTE: This filter can be configured only by using the Java or Kotlin DSL.
 
 The following listing shows how to modify a request body `GatewayFilter`:
 
@@ -39,6 +39,22 @@ static class Hello {
 ----
 
 NOTE: If the request has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the request.
+
+When using the Kotlin DSL, the body types can be given as reified type parameters:
+
+[source,kotlin]
+----
+@Bean
+fun routes(builder: RouteLocatorBuilder) = builder.routes {
+    route(id = "rewrite_request_upper") {
+        host("*.rewriterequestupper.org")
+        filters {
+            modifyRequestBody<String, String> { _, s -> Mono.justOrEmpty(s?.uppercase()) }
+        }
+        uri(uri)
+    }
+}
+----
 
 
 

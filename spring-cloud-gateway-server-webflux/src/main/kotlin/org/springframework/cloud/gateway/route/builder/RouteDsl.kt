@@ -16,9 +16,11 @@
 
 package org.springframework.cloud.gateway.route.builder
 
+import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction
 import org.springframework.cloud.gateway.route.Route
 import org.springframework.cloud.gateway.route.RouteLocator
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder.RouteSpec
+import org.springframework.core.ParameterizedTypeReference
 import java.util.function.Predicate
 
 /**
@@ -103,4 +105,68 @@ fun PredicateSpec.filters(init: GatewayFilterSpec.() -> Unit) {
     spec.apply(init)
 }
 
+/**
+ * Extension for [GatewayFilterSpec.modifyRequestBody] providing a
+ * `modifyRequestBody<T, R> { exchange, body -> ... }` variant leveraging Kotlin reified type parameters.
+ *
+ * The body passed to [rewriteFunction] is `null` when the request has no body.
+ */
+inline fun <reified T : Any, reified R : Any> GatewayFilterSpec.modifyRequestBody(
+    rewriteFunction: RewriteFunction<T, R>
+): GatewayFilterSpec = modifyRequestBody(
+    object : ParameterizedTypeReference<T>() {},
+    object : ParameterizedTypeReference<R>() {},
+    rewriteFunction
+)
 
+/**
+ * Extension for [GatewayFilterSpec.modifyRequestBody] providing a
+ * `modifyRequestBody<T, R>(newContentType) { exchange, body -> ... }` variant leveraging Kotlin reified type
+ * parameters.
+ *
+ * The body passed to [rewriteFunction] is `null` when the request has no body.
+ */
+inline fun <reified T : Any, reified R : Any> GatewayFilterSpec.modifyRequestBody(
+    newContentType: String?,
+    rewriteFunction: RewriteFunction<T, R>
+): GatewayFilterSpec = modifyRequestBody(
+    object : ParameterizedTypeReference<T>() {},
+    object : ParameterizedTypeReference<R>() {},
+    newContentType,
+    rewriteFunction
+)
+
+/**
+ * Extension for [GatewayFilterSpec.modifyResponseBody] providing a
+ * `modifyResponseBody<T, R> { exchange, body -> ... }` variant leveraging Kotlin reified type parameters.
+ *
+ * The body passed to [rewriteFunction] is `null` when the response has no body. Only the raw classes of
+ * [T] and [R] are used, so generic type arguments are not taken into account (a `List<Foo>` body is read
+ * as a list of maps).
+ */
+inline fun <reified T : Any, reified R : Any> GatewayFilterSpec.modifyResponseBody(
+    rewriteFunction: RewriteFunction<T, R>
+): GatewayFilterSpec = modifyResponseBody(T::class.java, R::class.java, rewriteFunction)
+
+/**
+ * Extension for [GatewayFilterSpec.modifyResponseBody] providing a
+ * `modifyResponseBody<T, R>(newContentType) { exchange, body -> ... }` variant leveraging Kotlin reified type
+ * parameters.
+ *
+ * The body passed to [rewriteFunction] is `null` when the response has no body. Only the raw classes of
+ * [T] and [R] are used, so generic type arguments are not taken into account (a `List<Foo>` body is read
+ * as a list of maps).
+ */
+inline fun <reified T : Any, reified R : Any> GatewayFilterSpec.modifyResponseBody(
+    newContentType: String,
+    rewriteFunction: RewriteFunction<T, R>
+): GatewayFilterSpec = modifyResponseBody(T::class.java, R::class.java, newContentType, rewriteFunction)
+
+/**
+ * Extension for [PredicateSpec.readBody] providing a `readBody<T> { body -> ... }` variant leveraging Kotlin
+ * reified type parameters.
+ *
+ * Only the raw class of [T] is used, so generic type arguments are not taken into account.
+ */
+inline fun <reified T : Any> PredicateSpec.readBody(predicate: Predicate<T>): BooleanSpec =
+    readBody(T::class.java, predicate)

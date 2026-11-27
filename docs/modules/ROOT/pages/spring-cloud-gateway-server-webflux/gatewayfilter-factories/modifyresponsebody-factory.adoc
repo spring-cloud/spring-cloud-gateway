@@ -3,7 +3,7 @@
 
 You can use the `ModifyResponseBody` filter to modify the response body before it is sent back to the client.
 
-NOTE: This filter can be configured only by using the Java DSL.
+NOTE: This filter can be configured only by using the Java or Kotlin DSL.
 
 The following listing shows how to modify a response body `GatewayFilter`:
 
@@ -21,4 +21,21 @@ public RouteLocator routes(RouteLocatorBuilder builder) {
 ----
 
 NOTE: If the response has no body, the `RewriteFilter` is passed `null`. `Mono.empty()` should be returned to assign a missing body in the response.
+
+When using the Kotlin DSL, the body types can be given as reified type parameters:
+
+[source,kotlin]
+----
+@Bean
+fun routes(builder: RouteLocatorBuilder) = builder.routes {
+    route(id = "rewrite_response_upper") {
+        host("*.rewriteresponseupper.org")
+        filters {
+            prefixPath("/httpbin")
+            modifyResponseBody<String, String> { _, s -> Mono.justOrEmpty(s?.uppercase()) }
+        }
+        uri(uri)
+    }
+}
+----
 
